@@ -1,0 +1,19 @@
+[build]
+  publish = "dist"
+  functions = "netlify/functions"
+
+[dev]
+  command = "npx vite"
+  targetPort = 5173
+  port = 8888
+  autoLaunch = true
+
+[[redirects]]
+  from = "/api/auth"
+  to = "/.netlify/functions/auth"
+  status = 200
+
+[[redirects]]
+  from = "/api/claude"
+  to = "/.netlify/functions/claude"
+  status = 200
