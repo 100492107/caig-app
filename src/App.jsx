@@ -623,19 +623,20 @@ const CSS = `
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 /* ── ROOT & BASE ── */
 :root{
-  --ink:#03030a;--s1:#07070f;--s2:#0d0d18;--s3:#121220;--s4:#181828;--s5:#202035;--s6:#2a2a42;
-  --e1:rgba(255,255,255,.032);--e2:rgba(255,255,255,.058);--e3:rgba(255,255,255,.094);--e4:rgba(255,255,255,.16);
-  --t0:#f0eeff;--t1:#b8b4d4;--t2:#6e6a8c;--t3:#3e3a5a;--t4:#252240;
-  --amber:#f5a623;--amber2:rgba(245,166,35,.09);--amberb:rgba(245,166,35,.26);--amber-glow:rgba(245,166,35,.18);
-  --green:#2dd4a0;--green2:rgba(45,212,160,.09);--blue:#6366f1;--blue2:rgba(99,102,241,.09);
+  --ink:#0f1117;--s1:#161b27;--s2:#1c2233;--s3:#222a3d;--s4:#283045;--s5:#2e3850;--s6:#3a4660;
+  --e1:rgba(255,255,255,.07);--e2:rgba(255,255,255,.11);--e3:rgba(255,255,255,.16);--e4:rgba(255,255,255,.22);
+  --t0:#eef0f8;--t1:#b0b8d0;--t2:#7a88a8;--t3:#5a6a8a;--t4:#3a4a6a;
+  --amber:#f5a623;--amber2:rgba(245,166,35,.12);--amberb:rgba(245,166,35,.32);--amber-glow:rgba(245,166,35,.22);
+  --green:#2dd4a0;--green2:rgba(45,212,160,.11);--blue:#6366f1;--blue2:rgba(99,102,241,.11);
   --violet:#818cf8;--red:#f07070;--gold:#fbbf24;
   --c-content:#34d399;--c-proposals:#818cf8;--c-outreach:#f59e0b;--c-onboarding:#fb923c;
+  --c-automate:#38bdf8;--c-predict:#a78bfa;
   --r:10px;--rl:14px;--rxl:18px;--r2:22px;
   --sans:'Inter',-apple-system,system-ui,sans-serif;
   --mono:ui-monospace,'SF Mono','Fira Code',monospace;
-  --shadow-sm:0 1px 3px rgba(0,0,0,.4),0 1px 2px rgba(0,0,0,.6);
-  --shadow-md:0 4px 16px rgba(0,0,0,.5),0 2px 6px rgba(0,0,0,.4);
-  --shadow-lg:0 12px 40px rgba(0,0,0,.6),0 4px 12px rgba(0,0,0,.5);
+  --shadow-sm:0 1px 3px rgba(0,0,0,.3),0 1px 2px rgba(0,0,0,.4);
+  --shadow-md:0 4px 16px rgba(0,0,0,.35),0 2px 6px rgba(0,0,0,.25);
+  --shadow-lg:0 12px 40px rgba(0,0,0,.45),0 4px 12px rgba(0,0,0,.3);
   --shadow-amber:0 4px 24px rgba(245,166,35,.22),0 1px 4px rgba(245,166,35,.14);
   --shadow-green:0 4px 24px rgba(45,212,160,.18),0 1px 4px rgba(45,212,160,.10);
   --nav-h:60px;
@@ -668,7 +669,7 @@ html,body,#root{height:100%;background:var(--ink);color:var(--t0);font-family:va
 .tb-signout:hover{background:var(--s3);color:var(--t0);border-color:var(--e2)}
 /* ── MAIN ── */
 .main{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden;background:var(--ink)}
-.view{flex:1;overflow-y:auto;padding:40px 48px}
+.view{flex:1;overflow-y:auto;padding:40px 56px}
 
 /* ── BUTTONS ── */
 .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--r);font-size:12.5px;font-weight:500;font-family:var(--sans);cursor:pointer;border:none;transition:all .14s cubic-bezier(.22,1,.36,1);white-space:nowrap;letter-spacing:-.012em;position:relative;overflow:hidden}
@@ -714,7 +715,7 @@ select{cursor:pointer;appearance:none}
 .spin{animation:spin .72s linear infinite}
 
 /* ── AUTOPILOT / MODULE HEADER ── */
-.ap{max-width:880px;margin:0 auto}
+.ap{width:100%}
 .ap-header{margin-bottom:28px}
 .ap-header-title{font-size:20px;font-weight:700;color:var(--t0);letter-spacing:-.04em;margin-bottom:3px}
 .ap-header-sub{font-size:12.5px;color:var(--t3);font-weight:300;line-height:1.6}
@@ -942,52 +943,52 @@ select{cursor:pointer;appearance:none}
 .pcard.custom.on{border-style:solid}
 
 /* ── HOME ── */
-.home{max-width:1100px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
-.home-head{display:flex;flex-direction:column;gap:2px;padding-bottom:2px}
-.home-date{font-size:10.5px;color:var(--t4);letter-spacing:.08em;text-transform:uppercase;margin-bottom:3px;font-weight:500}
-.home-greeting{font-size:26px;font-weight:800;color:var(--t0);letter-spacing:-.055em;line-height:1.1}
-.home-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
-.hs{background:var(--s2);border:1px solid var(--e1);border-radius:var(--rl);padding:16px 12px;text-align:center;transition:border-color .13s,transform .13s}
-.hs:hover{border-color:var(--e2);transform:translateY(-1px)}
-.hs-val{font-size:24px;font-weight:800;letter-spacing:-.055em;line-height:1;margin-bottom:4px;font-family:var(--mono)}
-.hs-lbl{font-size:9px;color:var(--t4);text-transform:uppercase;letter-spacing:.11em;font-weight:600}
-.home-card{background:var(--s2);border:1px solid var(--e1);border-radius:var(--rxl);padding:20px 18px}
-.home-sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-.home-sh-t{font-size:10px;font-weight:700;color:var(--t4);text-transform:uppercase;letter-spacing:.13em}
-.home-sh-ct{font-size:10.5px;color:var(--t4)}
-.home-sh-link{background:transparent;border:none;color:var(--amber);font-size:10.5px;cursor:pointer;font-family:var(--sans);padding:0;opacity:.75;transition:opacity .12s}
+.home{width:100%;display:flex;flex-direction:column;gap:24px}
+.home-head{display:flex;flex-direction:column;gap:4px;padding-bottom:4px}
+.home-date{font-size:11px;color:var(--t2);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px;font-weight:500}
+.home-greeting{font-size:32px;font-weight:800;color:var(--t0);letter-spacing:-.055em;line-height:1.1}
+.home-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+.hs{background:var(--s2);border:1px solid var(--e1);border-radius:var(--rl);padding:20px 16px;text-align:center;transition:border-color .13s,transform .13s}
+.hs:hover{border-color:var(--e3);transform:translateY(-1px)}
+.hs-val{font-size:28px;font-weight:800;letter-spacing:-.055em;line-height:1;margin-bottom:6px;font-family:var(--mono)}
+.hs-lbl{font-size:10px;color:var(--t2);text-transform:uppercase;letter-spacing:.11em;font-weight:600}
+.home-card{background:var(--s2);border:1px solid var(--e1);border-radius:var(--rxl);padding:24px 24px}
+.home-sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.home-sh-t{font-size:11px;font-weight:700;color:var(--t1);text-transform:uppercase;letter-spacing:.13em}
+.home-sh-ct{font-size:11px;color:var(--t2)}
+.home-sh-link{background:transparent;border:none;color:var(--amber);font-size:11px;cursor:pointer;font-family:var(--sans);padding:0;opacity:.85;transition:opacity .12s}
 .home-sh-link:hover{opacity:1}
-.home-pgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
-.hpc{background:var(--s3);border:1px solid var(--e1);border-radius:var(--rl);padding:12px 10px;position:relative;overflow:hidden;transition:border-color .13s,transform .13s;cursor:default}
-.hpc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--pc);opacity:.65}
-.hpc-dot{width:5px;height:5px;border-radius:50%;background:var(--pc);margin-bottom:8px;box-shadow:0 0 7px var(--pc)}
-.hpc-name{font-size:11px;font-weight:600;color:var(--t0);letter-spacing:-.01em;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.hpc-niche{font-size:9px;color:var(--t4);margin-bottom:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.hpc-cnt{font-size:9.5px;color:var(--t4);font-family:var(--mono)}
-.home-recent-list{display:flex;flex-direction:column;gap:4px}
-.hrc{background:var(--s3);border-radius:9px;padding:9px 12px;border:1px solid var(--e1)}
-.hrc-top{display:flex;align-items:center;gap:7px;margin-bottom:2px}
-.hrc-plat{font-size:8.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em}
-.hrc-pname{font-size:10.5px;font-weight:500;color:var(--t2)}
-.hrc-date{margin-left:auto;font-size:9px;color:var(--t4);font-family:var(--mono)}
-.hrc-hook{font-size:11px;color:var(--t2);line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.home-status{background:var(--s2);border:1px solid var(--e1);border-radius:var(--rl);padding:10px 16px;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
-.hsb-item{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--t4)}
-.hsb-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
-.hsb-dot.g{background:var(--green);box-shadow:0 0 6px var(--green)}
-.hsb-dot.a{background:var(--amber);box-shadow:0 0 6px var(--amber)}
+.home-pgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.hpc{background:var(--s3);border:1px solid var(--e1);border-radius:var(--rl);padding:14px 14px;position:relative;overflow:hidden;transition:border-color .13s,transform .13s;cursor:default}
+.hpc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--pc);opacity:.8}
+.hpc-dot{width:6px;height:6px;border-radius:50%;background:var(--pc);margin-bottom:10px;box-shadow:0 0 8px var(--pc)}
+.hpc-name{font-size:12px;font-weight:600;color:var(--t0);letter-spacing:-.01em;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hpc-niche{font-size:10px;color:var(--t2);margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hpc-cnt{font-size:10px;color:var(--t2);font-family:var(--mono)}
+.home-recent-list{display:flex;flex-direction:column;gap:6px}
+.hrc{background:var(--s3);border-radius:10px;padding:12px 14px;border:1px solid var(--e1)}
+.hrc-top{display:flex;align-items:center;gap:8px;margin-bottom:3px}
+.hrc-plat{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em}
+.hrc-pname{font-size:11px;font-weight:500;color:var(--t1)}
+.hrc-date{margin-left:auto;font-size:10px;color:var(--t2);font-family:var(--mono)}
+.hrc-hook{font-size:12px;color:var(--t1);line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.home-status{background:var(--s2);border:1px solid var(--e1);border-radius:var(--rl);padding:12px 20px;display:flex;align-items:center;gap:24px;flex-wrap:wrap}
+.hsb-item{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--t2)}
+.hsb-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.hsb-dot.g{background:var(--green);box-shadow:0 0 8px var(--green)}
+.hsb-dot.a{background:var(--amber);box-shadow:0 0 8px var(--amber)}
 /* ── Home module cards ────────────────────────────────────── */
-.home-modules{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin-bottom:26px}
-.hmc{background:var(--s2);border:1px solid var(--e1);border-radius:var(--rl);padding:18px 20px 16px;cursor:pointer;transition:border-color .18s,transform .18s,box-shadow .18s;position:relative;overflow:hidden}
-.hmc::before{content:"";position:absolute;inset:0;background:linear-gradient(135deg,var(--mc-c,var(--amber)) 0%,transparent 60%);opacity:.06;pointer-events:none;transition:opacity .2s}
-.hmc:hover{border-color:var(--mc-c,var(--amber));transform:translateY(-2px);box-shadow:0 6px 24px rgba(0,0,0,.28)}
-.hmc:hover::before{opacity:.13}
-.hmc-icon{width:34px;height:34px;border-radius:10px;background:color-mix(in srgb,var(--mc-c,var(--amber)) 14%,transparent);display:flex;align-items:center;justify-content:center;margin-bottom:14px;color:var(--mc-c,var(--amber))}
-.hmc-title{font-size:13.5px;font-weight:700;color:var(--t0);margin-bottom:4px}
-.hmc-desc{font-size:11.5px;color:var(--t3);line-height:1.5}
-.hmc-tag{display:inline-flex;align-items:center;gap:4px;margin-top:12px;font-size:10px;font-weight:600;color:var(--mc-c,var(--amber));text-transform:uppercase;letter-spacing:.07em}
-.hmc-tag.soon{color:var(--t4)}
-.hmc-arrow{font-size:13px;margin-left:2px}
+.home-modules{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-bottom:8px}
+.hmc{background:var(--s2);border:1px solid var(--e1);border-radius:var(--rxl);padding:28px 28px 22px;cursor:pointer;transition:border-color .18s,transform .18s,box-shadow .18s;position:relative;overflow:hidden;min-height:200px;display:flex;flex-direction:column}
+.hmc::before{content:"";position:absolute;inset:0;background:linear-gradient(135deg,var(--mc-c,var(--amber)) 0%,transparent 55%);opacity:.07;pointer-events:none;transition:opacity .2s}
+.hmc:hover{border-color:var(--mc-c,var(--amber));transform:translateY(-3px);box-shadow:0 12px 40px rgba(0,0,0,.3)}
+.hmc:hover::before{opacity:.15}
+.hmc-icon{width:42px;height:42px;border-radius:12px;background:color-mix(in srgb,var(--mc-c,var(--amber)) 16%,transparent);display:flex;align-items:center;justify-content:center;margin-bottom:18px;color:var(--mc-c,var(--amber));flex-shrink:0}
+.hmc-title{font-size:15px;font-weight:700;color:var(--t0);margin-bottom:8px;letter-spacing:-.02em}
+.hmc-desc{font-size:12.5px;color:var(--t2);line-height:1.65;flex:1}
+.hmc-tag{display:inline-flex;align-items:center;gap:4px;margin-top:16px;font-size:10.5px;font-weight:600;color:var(--mc-c,var(--amber));text-transform:uppercase;letter-spacing:.07em}
+.hmc-tag.soon{color:var(--t3)}
+.hmc-arrow{font-size:14px;margin-left:2px}
 
 /* ── LOGIN GATE ── */
 .login-gate{position:fixed;inset:0;background:var(--ink);display:flex;align-items:center;justify-content:center;z-index:9999;background-image:radial-gradient(ellipse at 50% 0%,rgba(245,166,35,.04),transparent 60%)}
@@ -1029,7 +1030,7 @@ select{cursor:pointer;appearance:none}
   .pgrid{grid-template-columns:1fr 1fr}
 }
 /* ── Shared module shell (Proposals / Outreach / Onboarding) ─────────────── */
-.mod-shell{max-width:1000px;margin:0 auto;padding:0 0 48px}
+.mod-shell{width:100%;padding:0 0 48px}
 /* hero header */
 .mod-hero{text-align:center;padding:36px 20px 32px;margin-bottom:32px;position:relative}
 .mod-badge{display:inline-flex;align-items:center;gap:7px;padding:5px 14px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:18px;border:1px solid;background:color-mix(in srgb,var(--mod-c,var(--amber)) 10%,transparent);border-color:color-mix(in srgb,var(--mod-c,var(--amber)) 28%,transparent);color:var(--mod-c,var(--amber))}
@@ -2406,213 +2407,195 @@ const ONBOARDING_SECTIONS = [
   "FAQs",
 ];
 
+// ─── AUTOMATE TASKS MODULE ────────────────────────────────────────────────────
 function Onboarding() {
   const [fields, setFields] = useState({
-    clientName: "",
-    company: "",
-    servicesSummary: "",
-    startDate: "",
-    accountManager: "",
-    agencyName: "Cornerstone AI Group",
-    meetingCadence: "bi-weekly",
-    reportingDay: "Monday",
-    sections: [...ONBOARDING_SECTIONS],
-    extra: "",
+    businessName: "",
+    industry: "",
+    teamSize: "",
+    topTasks: "",
+    currentTools: "",
+    priority: "scheduling",
+    hoursPerWeek: "",
+    contactName: "",
   });
-  const [preview, setPreview] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
 
   const set = (k, v) => setFields(f => ({ ...f, [k]: v }));
-  const toggleSection = (s) =>
-    set("sections", fields.sections.includes(s)
-      ? fields.sections.filter(x => x !== s)
-      : [...fields.sections, s]);
 
-  const ready = fields.clientName && fields.company;
+  const PRIORITIES = [
+    "Scheduling & Calendar",
+    "Invoice Processing",
+    "Data Entry & CRM Updates",
+    "Inbox Management",
+    "Meeting Transcription",
+    "Employee Training",
+    "Customer Service Inquiries",
+    "Reporting & Analytics",
+  ];
 
-  const buildDoc = () => {
-    const { clientName, company, servicesSummary, startDate, accountManager,
-            agencyName, meetingCadence, reportingDay, sections, extra } = fields;
-    const first = clientName.split(" ")[0];
-    const am = accountManager || "your account manager";
+  const ready = fields.businessName && fields.industry && fields.topTasks;
 
-    const sectionContent = {
-      "Welcome & Introduction": `Welcome to ${agencyName}, ${first}!\n\nWe're delighted to have ${company} on board and are excited to get to work. This document covers everything you need to know as we kick things off together.`,
-      "Agency Overview": `${agencyName} is a full-service digital marketing agency specialising in social media, content, and growth strategy. We work with a select number of clients at any one time to ensure every brand receives senior-level attention.\n\nOur team is made up of strategists, creatives, copywriters, and AI specialists — all working together to deliver results.`,
-      "Point of Contact & Communication": `Your dedicated account manager is **${am}**. All day-to-day communication goes through them.\n\n• Email: team@cornerstoneaigroup.com\n• Response time: within 1 business day\n• Preferred channel: Email or Slack (if applicable)\n• Meetings: ${meetingCadence} video calls via Google Meet`,
-      "Onboarding Questionnaire": `To hit the ground running, we'll send you a short onboarding questionnaire covering:\n\n• Your target audience and ideal customer\n• Brand voice and tone preferences\n• Key competitors\n• Past marketing activities and results\n• Platforms and channels to focus on\n\nPlease complete this within 3 business days of receiving it.`,
-      "Brand Assets Required": `To produce on-brand content from day one, please send us:\n\n• Logo files (SVG or PNG, with transparent background)\n• Brand colour codes (hex)\n• Brand fonts (or font name)\n• Any existing brand guidelines\n• Photography / video assets (if available)\n• Previous campaign examples you liked`,
-      "Access & Logins": `We'll send a secure access request for the following platforms (where applicable):\n\n• Social media accounts (Meta Business Suite, LinkedIn, TikTok, etc.)\n• Google Analytics / Search Console\n• Website CMS (read access only unless agreed otherwise)\n• Email marketing platform\n\nAll credentials are stored securely and never shared externally.`,
-      "Content Approval Process": `All content goes through the following approval flow:\n\n1. ${agencyName} drafts content\n2. Delivered to ${first} for review (48-hour window)\n3. Amendments applied (max 2 revision rounds included)\n4. Final sign-off by ${first}\n5. Scheduled and published\n\nUnapproved content will never be published.`,
-      "Reporting & Review Cadence": `You'll receive:\n\n• **${reportingDay} reports** — weekly performance summary via email\n• **Monthly review call** — deeper dive into strategy and results\n• **Quarterly planning session** — roadmap for the next 3 months\n\nAll reports are shared via Google Sheets / our reporting dashboard.`,
-      "Billing & Invoicing": `Invoices are raised on the 1st of each month and due within 14 days. Payment via bank transfer (details on invoice).\n\nPlease ensure billing details are confirmed with ${am} before your first invoice is issued.`,
-      "FAQs": `**How quickly can you start?**\nOnce the onboarding questionnaire and brand assets are received, we typically begin within 5 business days.\n\n**Can I change my package?**\nYes — with 30 days' notice.\n\n**What if I'm not happy with the work?**\nWe have a revision process built into every deliverable. If something isn't right, let your account manager know immediately.\n\n**How do I pause or cancel?**\nAll we ask for is 30 days' written notice.`,
-    };
-
-    const lines = [
-      `# Client Onboarding Pack`,
-      `**Client:** ${clientName} · ${company}`,
-      startDate ? `**Start Date:** ${startDate}` : "",
-      servicesSummary ? `**Services:** ${servicesSummary}` : "",
-      `**Prepared by:** ${agencyName}`,
-      ``,
-      `---`,
-      ``,
-      ...sections.flatMap(s => [
-        `## ${s}`,
-        sectionContent[s] || "",
-        ``,
-      ]),
-      extra ? `## Additional Notes\n\n${extra}` : "",
-    ].filter(l => l !== undefined);
-
-    return lines.join("\n");
-  };
-
-  const doc = buildDoc();
-
-  const handlePrint = () => {
-    const w = window.open("", "_blank");
-    w.document.write(`<!DOCTYPE html><html><head>
-      <title>Onboarding — ${fields.company}</title>
-      <style>
-        *{box-sizing:border-box;margin:0;padding:0}
-        body{font-family:'Georgia',serif;color:#111;padding:60px 72px;max-width:860px;margin:0 auto;line-height:1.75}
-        h1{font-size:26px;font-weight:700;margin-bottom:8px}
-        h2{font-size:13px;font-weight:700;margin:32px 0 10px;letter-spacing:.05em;text-transform:uppercase;color:#444;border-top:1px solid #eee;padding-top:22px}
-        p{font-size:13.5px;color:#222;margin-bottom:8px}
-        li{font-size:13.5px;color:#222;margin-bottom:4px}
-        ul{padding-left:18px;margin-bottom:10px}
-        hr{border:none;border-top:1px solid #ddd;margin:24px 0}
-        strong{font-weight:600}
-        @media print{body{padding:40px 52px}}
-      </style></head><body>
-      ${doc
-        .replace(/^# (.+)$/m, '<h1>$1</h1>')
-        .replace(/^## (.+)$/gm, '<h2>$1</h2>')
-        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-        .replace(/^---$/gm, '<hr/>')
-        .replace(/^• (.+)$/gm, '<li>$1</li>')
-        .replace(/\n{2,}/g, '</p><p>')
-        .replace(/<\/p><p><li>/g, '<ul><li>')
-        .replace(/<\/li><\/p>/g, '</li></ul>')}
-      </body></html>`);
-    w.document.close();
-    setTimeout(() => w.print(), 400);
+  const handleSubmit = () => {
+    if (!ready) return;
+    setSubmitted(true);
   };
 
   return (
-    <div className="mod-shell" style={{ "--mod-c": "var(--c-onboarding)" }}>
-      {!preview ? (
+    <div className="mod-shell" style={{ "--mod-c": "var(--c-automate)" }}>
+      <div className="mod-hero">
+        <div className="mod-badge">
+          <div className="mod-badge-dot" />
+          Task Automation
+        </div>
+        <div className="mod-title">Automate Routine Tasks</div>
+        <div className="mod-desc">
+          Stop losing hours to admin. Tell us what's eating your time — we'll map out an AI automation plan that hands it all back to you.
+        </div>
+      </div>
+
+      {!submitted ? (
         <>
-          <div className="mod-hero">
-            <div className="mod-badge"><span className="mod-badge-dot" /> Onboarding</div>
-            <div className="mod-title">Client Onboarding</div>
-            <div className="mod-desc">Generate a complete, professional onboarding pack for any new client — in seconds.</div>
+          {/* Stats banner */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 16, marginBottom: 32 }}>
+            {[
+              { v: "59%", l: "of SMB owners want AI to handle customer service inquiries" },
+              { v: "56%", l: "want AI to take over employee training and onboarding" },
+              { v: "11h", l: "average hours per week lost to repetitive admin tasks" },
+            ].map(s => (
+              <div key={s.l} style={{ background: "var(--s2)", border: "1px solid var(--e1)", borderRadius: "var(--rl)", padding: "20px 22px" }}>
+                <div style={{ fontSize: 32, fontWeight: 800, color: "var(--c-automate)", fontFamily: "var(--mono)", marginBottom: 8, letterSpacing: "-.04em" }}>{s.v}</div>
+                <div style={{ fontSize: 12, color: "var(--t2)", lineHeight: 1.6 }}>{s.l}</div>
+              </div>
+            ))}
           </div>
 
           <div className="mod-body">
             <div className="mod-card">
-              <div className="mod-card-title">Client Details <span className="mod-card-title-line" /></div>
+              <div className="mod-card-title">Your Business<div className="mod-card-title-line" /></div>
+
               <div className="mod-field">
-                <label className="mod-label">Client name *</label>
-                <input className="mod-input" value={fields.clientName}
-                  onChange={e => set("clientName", e.target.value)} placeholder="e.g. Emma Williams" />
+                <label className="mod-label">Business name</label>
+                <input className="mod-input" placeholder="e.g. Apex Consulting Ltd" value={fields.businessName} onChange={e => set("businessName", e.target.value)} />
               </div>
               <div className="mod-field">
-                <label className="mod-label">Company *</label>
-                <input className="mod-input" value={fields.company}
-                  onChange={e => set("company", e.target.value)} placeholder="e.g. Bloom & Co" />
+                <label className="mod-label">Industry</label>
+                <input className="mod-input" placeholder="e.g. Professional Services, Retail, Healthcare" value={fields.industry} onChange={e => set("industry", e.target.value)} />
               </div>
               <div className="mod-field">
-                <label className="mod-label">Services summary</label>
-                <input className="mod-input" value={fields.servicesSummary}
-                  onChange={e => set("servicesSummary", e.target.value)}
-                  placeholder="e.g. Social media management, monthly reporting" />
-              </div>
-              <div className="mod-field">
-                <label className="mod-label">Start date</label>
-                <input className="mod-input" type="date" value={fields.startDate}
-                  onChange={e => set("startDate", e.target.value)} />
-              </div>
-              <div className="mod-field">
-                <label className="mod-label">Account manager</label>
-                <input className="mod-input" value={fields.accountManager}
-                  onChange={e => set("accountManager", e.target.value)} placeholder="e.g. Alex Reid" />
-              </div>
-              <div className="mod-field">
-                <label className="mod-label">Meeting cadence</label>
-                <select className="mod-input" value={fields.meetingCadence}
-                  onChange={e => set("meetingCadence", e.target.value)}>
-                  {["weekly", "bi-weekly", "monthly"].map(o => <option key={o}>{o}</option>)}
+                <label className="mod-label">Team size</label>
+                <select className="mod-input" value={fields.teamSize} onChange={e => set("teamSize", e.target.value)}>
+                  <option value="">Select team size</option>
+                  {["Just me","2–5","6–15","16–50","50+"].map(o => <option key={o} value={o}>{o}</option>)}
                 </select>
               </div>
               <div className="mod-field">
-                <label className="mod-label">Weekly reporting day</label>
-                <select className="mod-input" value={fields.reportingDay}
-                  onChange={e => set("reportingDay", e.target.value)}>
-                  {["Monday","Tuesday","Wednesday","Thursday","Friday"].map(o => <option key={o}>{o}</option>)}
-                </select>
+                <label className="mod-label">Hours per week lost to admin (approx.)</label>
+                <input className="mod-input" placeholder="e.g. 10" value={fields.hoursPerWeek} onChange={e => set("hoursPerWeek", e.target.value)} />
               </div>
               <div className="mod-field">
-                <label className="mod-label">Additional notes</label>
-                <textarea className="mod-input mod-ta" rows={3} value={fields.extra}
-                  onChange={e => set("extra", e.target.value)}
-                  placeholder="Any extra details to include" />
+                <label className="mod-label">Your name</label>
+                <input className="mod-input" placeholder="e.g. Sarah Johnson" value={fields.contactName} onChange={e => set("contactName", e.target.value)} />
               </div>
             </div>
 
             <div className="mod-card">
-              <div className="mod-card-title">Sections to Include <span className="mod-card-title-line" /></div>
-              <div className="mod-chips" style={{ flexDirection: "column", gap: 7 }}>
-                {ONBOARDING_SECTIONS.map(s => (
-                  <button key={s} className={`mod-chip${fields.sections.includes(s) ? " on" : ""}`}
-                    onClick={() => toggleSection(s)} style={{ justifyContent: "flex-start" }}>
-                    {fields.sections.includes(s) && IcCheck}
-                    {s}
-                  </button>
-                ))}
+              <div className="mod-card-title">Tasks to Automate<div className="mod-card-title-line" /></div>
+
+              <div className="mod-field">
+                <label className="mod-label">What are your most time-consuming routine tasks?</label>
+                <textarea className="mod-input mod-ta" style={{ minHeight: 100 }} placeholder="e.g. Manually entering client data into our CRM, following up on unpaid invoices, scheduling meetings across time zones..." value={fields.topTasks} onChange={e => set("topTasks", e.target.value)} />
+              </div>
+
+              <div className="mod-field">
+                <label className="mod-label">Current tools you use</label>
+                <input className="mod-input" placeholder="e.g. HubSpot, Xero, Google Workspace, Slack" value={fields.currentTools} onChange={e => set("currentTools", e.target.value)} />
+              </div>
+
+              <div className="mod-field">
+                <label className="mod-label">Top automation priority</label>
+                <div className="mod-chips" style={{ marginTop: 4 }}>
+                  {PRIORITIES.map(p => (
+                    <button
+                      key={p}
+                      className={`mod-chip${fields.priority === p ? " on" : ""}`}
+                      onClick={() => set("priority", p)}
+                    >{p}</button>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
 
           <div className="mod-action-wrap">
-            <button className={`mod-btn${ready ? " ready" : ""}`} disabled={!ready}
-              onClick={() => setPreview(true)}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                <circle cx="9" cy="7" r="4"/>
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            <button className={`mod-btn${ready ? " ready" : ""}`} disabled={!ready} onClick={handleSubmit}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
               </svg>
-              Generate Onboarding Pack
+              Generate My Automation Blueprint
             </button>
-            <div className="mod-hint">
-              {ready ? "Ready — click to build your onboarding document" : "Client name and company are required"}
-            </div>
+            <div className="mod-hint">We'll map which tasks to automate first and which AI tools to use.</div>
           </div>
         </>
       ) : (
         <>
           <div className="mod-preview-bar">
-            <button className="btn btn-dim" onClick={() => setPreview(false)}>← Edit</button>
-            <div className="mod-preview-title">Onboarding Pack — {fields.company}</div>
-            <button className="btn btn-dim" onClick={() => navigator.clipboard.writeText(doc)}>
-              {IcCopy} Copy text
-            </button>
-            <button className="btn" style={{ background: "var(--c-onboarding)", color: "#0a0500", fontSize: 12 }}
-              onClick={() => openPrint(`Onboarding — ${fields.company}`, doc, "#fb923c")}>
-              {IcPrint} Save as PDF
-            </button>
+            <div className="mod-preview-title">Automation Blueprint — {fields.businessName}</div>
+            <button className="btn btn-dim" onClick={() => setSubmitted(false)} style={{ fontSize: 12 }}>← Edit</button>
           </div>
+
           <div className="mod-doc">
-            {renderDoc(doc, "var(--c-onboarding)")}
+            <div className="pd-h1">AI Automation Blueprint</div>
+            <div style={{ fontSize: 12, color: "var(--t2)", marginBottom: 24 }}>
+              Prepared for {fields.contactName || fields.businessName} · {fields.industry} · Team: {fields.teamSize || "n/a"}
+            </div>
+
+            <div className="pd-h2">The Opportunity</div>
+            <div className="pd-p">
+              Based on your profile, your team is spending approximately <strong>{fields.hoursPerWeek || "several"} hours per week</strong> on tasks that AI can handle autonomously. At a conservative £40/hr value, that's <strong>£{fields.hoursPerWeek ? (parseInt(fields.hoursPerWeek) * 40 * 52).toLocaleString() : "significant value"} per year</strong> locked in manual work.
+            </div>
+            <div className="pd-p">
+              Industry data shows 59% of business owners like you are already implementing AI for customer service, and 56% for training — the businesses doing this now are pulling ahead.
+            </div>
+
+            <div className="pd-h2">Your Priority: {fields.priority}</div>
+            <div className="pd-p">
+              Starting with <strong>{fields.priority}</strong> is the right call. It's high-frequency, rule-based, and directly measurable — exactly the profile that delivers fast ROI from automation.
+            </div>
+
+            <div className="pd-h2">Tasks Identified for Automation</div>
+            <div className="pd-p" style={{ whiteSpace: "pre-wrap", color: "var(--t1)" }}>{fields.topTasks}</div>
+
+            <div className="pd-h2">Recommended AI Stack</div>
+            {[
+              { tool: "Zapier / Make", use: "Connect your existing tools (" + (fields.currentTools || "CRM, email, calendar") + ") without writing code" },
+              { tool: "AI Email Assistant", use: "Triage inbox, draft replies, auto-route enquiries — saves 2–3 hours/week immediately" },
+              { tool: "Meeting Transcription (Otter.ai / Fireflies)", use: "Auto-generate meeting notes, action items, and CRM updates from every call" },
+              { tool: "Invoice Automation (Dext + Xero)", use: "Capture, categorise and process invoices with zero manual data entry" },
+              { tool: "Scheduling AI (Calendly + AI layer)", use: "Eliminate back-and-forth — let prospects book directly, auto-prep briefing docs" },
+            ].map(r => (
+              <div key={r.tool} className="pd-li"><strong>{r.tool}:</strong> {r.use}</div>
+            ))}
+
+            <div className="pd-h2">90-Day Roadmap</div>
+            {[
+              { phase: "Days 1–30", action: "Audit and document every recurring task. Set up " + fields.priority + " automation. Target: 3h/week saved." },
+              { phase: "Days 31–60", action: "Expand to inbox management and CRM auto-update. Train team on new workflow. Target: 6h/week saved." },
+              { phase: "Days 61–90", action: "Layer in reporting automation and customer service AI. Measure time saved vs cost. Target: " + (fields.hoursPerWeek || "8") + "h/week reclaimed." },
+            ].map(r => (
+              <div key={r.phase} className="pd-li"><strong>{r.phase}:</strong> {r.action}</div>
+            ))}
+
+            <div className="pd-h2">Next Step</div>
+            <div className="pd-p">
+              Book a 30-minute automation audit with Cornerstone AI Group. We'll walk through your current stack, identify the three highest-impact automations, and give you a clear implementation plan — no jargon, no fluff.
+            </div>
           </div>
         </>
       )}
     </div>
   );
 }
-
 // ─── OUTREACH ─────────────────────────────────────────────────────────────────
 const OUTREACH_TONES = ["Professional", "Friendly", "Direct", "Conversational", "Executive"];
 const OUTREACH_GOALS = [
@@ -2623,213 +2606,200 @@ const OUTREACH_GOALS = [
   "Re-engage a cold lead",
 ];
 
+// ─── PREDICT CUSTOMER NEEDS MODULE ───────────────────────────────────────────
 function Outreach() {
   const [fields, setFields] = useState({
-    prospectName: "",
-    prospectTitle: "",
-    company: "",
+    businessName: "",
     industry: "",
-    painPoint: "",
-    offer: "",
-    cta: "Book a 20-minute call",
-    tone: "Professional",
-    goal: "Book a discovery call",
-    senderName: "",
-    senderTitle: "",
-    agencyName: "Cornerstone AI Group",
-    followUps: true,
+    customerBase: "",
+    currentData: "",
+    goal: "churn",
+    avgOrderValue: "",
+    crmTool: "",
+    contactName: "",
   });
-  const [preview, setPreview] = useState(false);
-
+  const [submitted, setSubmitted] = useState(false);
   const set = (k, v) => setFields(f => ({ ...f, [k]: v }));
 
-  const ready = fields.prospectName && fields.company && fields.offer;
+  const GOALS = [
+    { id: "churn", label: "Predict Churn", desc: "Identify who's about to leave before they do" },
+    { id: "leads", label: "Score Leads", desc: "Find high-quality prospects in your pipeline" },
+    { id: "upsell", label: "Personalise Upsells", desc: "Recommend the right product at the right time" },
+    { id: "ltv", label: "Maximise LTV", desc: "Predict and increase customer lifetime value" },
+    { id: "segment", label: "Smart Segmentation", desc: "Group customers by behaviour, not just demographics" },
+    { id: "pricing", label: "Premium Willingness", desc: "Find who would pay more for specific features" },
+  ];
 
-  const buildSequence = () => {
-    const { prospectName, prospectTitle, company, industry, painPoint, offer, cta,
-            tone, senderName, senderTitle, agencyName, followUps } = fields;
-    const first = prospectName.split(" ")[0];
-    const from = senderName || agencyName;
-    const fromLine = senderTitle ? `${from} · ${senderTitle}` : from;
-
-    const email1 = `Subject: ${company} × ${agencyName}
-
-Hi ${first},
-
-${tone === "Direct" || tone === "Executive"
-  ? `I'll keep this brief — I think we can help ${company}.`
-  : `Hope you're having a great week.`}
-
-I came across ${company}${industry ? ` in the ${industry} space` : ""} and ${painPoint
-  ? `noticed ${painPoint}.`
-  : `was impressed by what you're building.`}
-
-We work with ${industry || "growing"} businesses to ${offer}.
-
-${cta ? `Would it be worth a quick chat? Happy to ${cta.toLowerCase()}.` : "Worth a quick call?"}
-
-${fromLine}
-${agencyName}`;
-
-    const email2 = `Subject: Re: ${company} × ${agencyName}
-
-Hi ${first},
-
-Just wanted to bump this up in case it got buried.
-
-We've been helping businesses like ${company} ${offer.toLowerCase()} — and the results have been strong.
-
-If now isn't the right time, no worries at all. Just let me know and I'll check back in a few months.
-
-Otherwise — ${cta ? cta.toLowerCase() : "happy to jump on a call"}?
-
-${fromLine}`;
-
-    const email3 = `Subject: Closing the loop — ${company}
-
-Hi ${first},
-
-I don't want to keep cluttering your inbox, so this will be my last message for now.
-
-If you're ever looking for support with ${offer.toLowerCase()}, I'd love to reconnect.
-
-Wishing you and the ${company} team all the best.
-
-${fromLine}`;
-
-    return { email1, email2, email3 };
-  };
-
-  const seq = buildSequence();
-
-  const handleCopy = (txt) => navigator.clipboard.writeText(txt);
-
-  const EmailCard = ({ label, body, delay }) => (
-    <div className="oc-email">
-      <div className="oc-email-head">
-        <span className="oc-email-label">{label}</span>
-        <span className="oc-email-delay">{delay}</span>
-        <button className="btn btn-dim" style={{ fontSize: 11, padding: "4px 10px", marginLeft: "auto" }}
-          onClick={() => handleCopy(body)}>Copy</button>
-      </div>
-      <pre className="oc-body">{body}</pre>
-    </div>
-  );
+  const ready = fields.businessName && fields.industry && fields.customerBase;
 
   return (
-    <div className="mod-shell" style={{ "--mod-c": "var(--c-outreach)" }}>
-      {!preview ? (
+    <div className="mod-shell" style={{ "--mod-c": "var(--c-predict)" }}>
+      <div className="mod-hero">
+        <div className="mod-badge">
+          <div className="mod-badge-dot" />
+          Customer Intelligence
+        </div>
+        <div className="mod-title">Predict Customer Needs</div>
+        <div className="mod-desc">
+          Move beyond guesswork. Use AI to analyse your customer data, predict behaviour, and take action — before your competitors even know there's an opportunity.
+        </div>
+      </div>
+
+      {!submitted ? (
         <>
-          <div className="mod-hero">
-            <div className="mod-badge"><span className="mod-badge-dot" /> Outreach</div>
-            <div className="mod-title">Cold Outreach</div>
-            <div className="mod-desc">Build a 3-email cold outreach sequence — personalised to your prospect and ready to send.</div>
+          {/* Stats banner */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 16, marginBottom: 32 }}>
+            {[
+              { v: "5–25×", l: "cheaper to retain an existing customer than acquire a new one" },
+              { v: "35%", l: "of Amazon's revenue comes from AI-powered product recommendations" },
+              { v: "89%", l: "of businesses that use AI for customer prediction outperform competitors" },
+            ].map(s => (
+              <div key={s.l} style={{ background: "var(--s2)", border: "1px solid var(--e1)", borderRadius: "var(--rl)", padding: "20px 22px" }}>
+                <div style={{ fontSize: 32, fontWeight: 800, color: "var(--c-predict)", fontFamily: "var(--mono)", marginBottom: 8, letterSpacing: "-.04em" }}>{s.v}</div>
+                <div style={{ fontSize: 12, color: "var(--t2)", lineHeight: 1.6 }}>{s.l}</div>
+              </div>
+            ))}
           </div>
 
           <div className="mod-body">
             <div className="mod-card">
-              <div className="mod-card-title">Prospect <span className="mod-card-title-line" /></div>
+              <div className="mod-card-title">Your Business<div className="mod-card-title-line" /></div>
+
               <div className="mod-field">
-                <label className="mod-label">Full name *</label>
-                <input className="mod-input" value={fields.prospectName}
-                  onChange={e => set("prospectName", e.target.value)} placeholder="e.g. James Carter" />
-              </div>
-              <div className="mod-field">
-                <label className="mod-label">Title / role</label>
-                <input className="mod-input" value={fields.prospectTitle}
-                  onChange={e => set("prospectTitle", e.target.value)} placeholder="e.g. Head of Marketing" />
-              </div>
-              <div className="mod-field">
-                <label className="mod-label">Company *</label>
-                <input className="mod-input" value={fields.company}
-                  onChange={e => set("company", e.target.value)} placeholder="e.g. Nova Digital" />
+                <label className="mod-label">Business name</label>
+                <input className="mod-input" placeholder="e.g. NorthStar Retail Ltd" value={fields.businessName} onChange={e => set("businessName", e.target.value)} />
               </div>
               <div className="mod-field">
                 <label className="mod-label">Industry</label>
-                <input className="mod-input" value={fields.industry}
-                  onChange={e => set("industry", e.target.value)} placeholder="e.g. SaaS, eCommerce, Hospitality" />
+                <input className="mod-input" placeholder="e.g. E-commerce, SaaS, Financial Services" value={fields.industry} onChange={e => set("industry", e.target.value)} />
               </div>
               <div className="mod-field">
-                <label className="mod-label">Pain point you're addressing</label>
-                <textarea className="mod-input mod-ta" rows={2} value={fields.painPoint}
-                  onChange={e => set("painPoint", e.target.value)}
-                  placeholder="e.g. inconsistent social media presence and low engagement" />
+                <label className="mod-label">Customer base size</label>
+                <select className="mod-input" value={fields.customerBase} onChange={e => set("customerBase", e.target.value)}>
+                  <option value="">Select size</option>
+                  {["Under 500","500–2,000","2,000–10,000","10,000–50,000","50,000+"].map(o => <option key={o} value={o}>{o}</option>)}
+                </select>
               </div>
-              <div className="mod-card-title" style={{ marginTop: 14 }}>Your Details <span className="mod-card-title-line" /></div>
+              <div className="mod-field">
+                <label className="mod-label">Average order / contract value</label>
+                <input className="mod-input" placeholder="e.g. £85 per order / £1,200/yr SaaS" value={fields.avgOrderValue} onChange={e => set("avgOrderValue", e.target.value)} />
+              </div>
+              <div className="mod-field">
+                <label className="mod-label">Current CRM or data tool</label>
+                <input className="mod-input" placeholder="e.g. Salesforce, HubSpot, Klaviyo, Shopify" value={fields.crmTool} onChange={e => set("crmTool", e.target.value)} />
+              </div>
               <div className="mod-field">
                 <label className="mod-label">Your name</label>
-                <input className="mod-input" value={fields.senderName}
-                  onChange={e => set("senderName", e.target.value)} placeholder="e.g. Alex Reid" />
-              </div>
-              <div className="mod-field">
-                <label className="mod-label">Your title</label>
-                <input className="mod-input" value={fields.senderTitle}
-                  onChange={e => set("senderTitle", e.target.value)} placeholder="e.g. Founder, CAIG" />
+                <input className="mod-input" placeholder="e.g. Marcus Webb" value={fields.contactName} onChange={e => set("contactName", e.target.value)} />
               </div>
             </div>
 
             <div className="mod-card">
-              <div className="mod-card-title">Offer & Angle <span className="mod-card-title-line" /></div>
+              <div className="mod-card-title">What data do you currently collect?<div className="mod-card-title-line" /></div>
+
               <div className="mod-field">
-                <label className="mod-label">What you're offering *</label>
-                <textarea className="mod-input mod-ta" rows={3} value={fields.offer}
-                  onChange={e => set("offer", e.target.value)}
-                  placeholder="e.g. grow their social media presence and generate consistent inbound leads" />
+                <textarea className="mod-input mod-ta" style={{ minHeight: 110 }}
+                  placeholder="e.g. Purchase history, email open rates, support tickets, website behaviour, subscription renewals, NPS scores..."
+                  value={fields.currentData} onChange={e => set("currentData", e.target.value)} />
               </div>
-              <div className="mod-field">
-                <label className="mod-label">Call to action</label>
-                <input className="mod-input" value={fields.cta}
-                  onChange={e => set("cta", e.target.value)} placeholder="e.g. Book a 20-minute call" />
-              </div>
-              <div className="mod-card-title" style={{ marginTop: 14 }}>Tone <span className="mod-card-title-line" /></div>
-              <div className="mod-chips">
-                {OUTREACH_TONES.map(t => (
-                  <button key={t} className={`mod-chip${fields.tone === t ? " on" : ""}`}
-                    onClick={() => set("tone", t)}>{t}</button>
-                ))}
-              </div>
-              <div className="mod-card-title" style={{ marginTop: 16 }}>Goal <span className="mod-card-title-line" /></div>
-              <div className="mod-chips" style={{ flexDirection: "column", gap: 7 }}>
-                {OUTREACH_GOALS.map(g => (
-                  <button key={g} className={`mod-chip${fields.goal === g ? " on" : ""}`}
-                    onClick={() => set("goal", g)} style={{ justifyContent: "flex-start" }}>
-                    {fields.goal === g && IcCheck} {g}
-                  </button>
-                ))}
+
+              <div className="mod-field" style={{ marginTop: 8 }}>
+                <label className="mod-label">Primary goal</label>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 8 }}>
+                  {GOALS.map(g => (
+                    <button
+                      key={g.id}
+                      onClick={() => set("goal", g.id)}
+                      style={{
+                        display: "flex", alignItems: "flex-start", gap: 12, padding: "12px 14px",
+                        borderRadius: "var(--r)", border: `1px solid ${fields.goal === g.id ? "var(--c-predict)" : "var(--e2)"}`,
+                        background: fields.goal === g.id ? "color-mix(in srgb,var(--c-predict) 10%,transparent)" : "var(--s3)",
+                        cursor: "pointer", textAlign: "left", transition: "all .15s",
+                      }}
+                    >
+                      <div style={{ width: 8, height: 8, borderRadius: "50%", background: fields.goal === g.id ? "var(--c-predict)" : "var(--t3)", marginTop: 4, flexShrink: 0 }} />
+                      <div>
+                        <div style={{ fontSize: 12.5, fontWeight: 600, color: fields.goal === g.id ? "var(--t0)" : "var(--t1)", marginBottom: 2 }}>{g.label}</div>
+                        <div style={{ fontSize: 11, color: "var(--t2)" }}>{g.desc}</div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
 
           <div className="mod-action-wrap">
-            <button className={`mod-btn${ready ? " ready" : ""}`} disabled={!ready}
-              onClick={() => setPreview(true)}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.84a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.72 16l.2.92z"/>
+            <button className={`mod-btn${ready ? " ready" : ""}`} disabled={!ready} onClick={() => setSubmitted(true)}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                <line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/>
               </svg>
-              Generate Sequence
+              Generate My Customer Intelligence Plan
             </button>
-            <div className="mod-hint">
-              {ready ? "Ready — click to build your 3-email sequence" : "Name, company and offer are required"}
-            </div>
+            <div className="mod-hint">We'll map out exactly how to implement predictive AI for your customer base.</div>
           </div>
         </>
       ) : (
         <>
           <div className="mod-preview-bar">
-            <button className="btn btn-dim" onClick={() => setPreview(false)}>← Edit</button>
-            <div className="mod-preview-title">3-email sequence · {fields.prospectName} at {fields.company}</div>
+            <div className="mod-preview-title">Customer Intelligence Plan — {fields.businessName}</div>
+            <button className="btn btn-dim" onClick={() => setSubmitted(false)} style={{ fontSize: 12 }}>← Edit</button>
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            <EmailCard label="Email 1 — Initial outreach" body={seq.email1} delay="Send day 1" />
-            <EmailCard label="Email 2 — Follow-up" body={seq.email2} delay="Send day 4–5" />
-            <EmailCard label="Email 3 — Break-up" body={seq.email3} delay="Send day 10–12" />
+
+          <div className="mod-doc">
+            <div className="pd-h1">Customer Intelligence Plan</div>
+            <div style={{ fontSize: 12, color: "var(--t2)", marginBottom: 24 }}>
+              {fields.contactName || fields.businessName} · {fields.industry} · {fields.customerBase} customers
+            </div>
+
+            <div className="pd-h2">The Opportunity</div>
+            <div className="pd-p">
+              With a customer base of <strong>{fields.customerBase}</strong> and an average value of <strong>{fields.avgOrderValue || "significant revenue per customer"}</strong>, even a 5% improvement in retention or conversion through AI prediction delivers material impact to your bottom line.
+            </div>
+            <div className="pd-p">
+              PwC research shows businesses using AI to predict customer needs see up to 35% higher revenue from personalisation alone — and the ability to identify who would pay a premium (for sustainability, features, or exclusivity) is unlocking entirely new pricing strategies.
+            </div>
+
+            <div className="pd-h2">Your Primary Focus: {GOALS.find(g => g.id === fields.goal)?.label}</div>
+            <div className="pd-p">{GOALS.find(g => g.id === fields.goal)?.desc}. This is the right starting point given your profile — it's measurable, fast to implement, and directly tied to revenue.</div>
+
+            {fields.currentData && <>
+              <div className="pd-h2">Your Data Assets</div>
+              <div className="pd-p" style={{ whiteSpace: "pre-wrap" }}>{fields.currentData}</div>
+              <div className="pd-p">This data is sufficient to begin building predictive models. {fields.crmTool && `Your existing ${fields.crmTool} setup can be connected directly to AI tooling without rebuilding your stack.`}</div>
+            </>}
+
+            <div className="pd-h2">Implementation Roadmap</div>
+            {[
+              { phase: "Phase 1 — Data Audit (Week 1–2)", action: `Map all existing data sources${fields.crmTool ? ` in ${fields.crmTool}` : ""}. Identify gaps. Ensure data quality meets AI modelling standards.` },
+              { phase: "Phase 2 — Model Selection (Week 3–4)", action: `Select and configure the right predictive model for ${GOALS.find(g => g.id === fields.goal)?.label}. Options: built-in CRM AI, third-party tools (Pecan, Akkio, MonkeyLearn), or custom ML.` },
+              { phase: "Phase 3 — Pilot (Month 2)", action: `Run model on a segment of your ${fields.customerBase} customer base. Validate predictions against real outcomes. Refine.` },
+              { phase: "Phase 4 — Full Deployment (Month 3)", action: "Automate predictions into your workflow. Set triggers: e.g. churn risk > 70% → automated retention email. High LTV signal → dedicated account manager outreach." },
+            ].map(r => (
+              <div key={r.phase} className="pd-li"><strong>{r.phase}:</strong> {r.action}</div>
+            ))}
+
+            <div className="pd-h2">Tools We Recommend</div>
+            {[
+              { tool: "Pecan AI", use: "Predictive analytics for non-technical teams — plug into your existing data in days" },
+              { tool: "Klaviyo Predictive Analytics", use: "If you're in e-commerce — churn prediction and CLV built in" },
+              { tool: "HubSpot AI (if you use it)", use: "Lead scoring, deal intelligence, and conversation AI in one platform" },
+              { tool: "Segment + Amplitude", use: "Full customer data platform — unified view across every touchpoint" },
+            ].map(r => (
+              <div key={r.tool} className="pd-li"><strong>{r.tool}:</strong> {r.use}</div>
+            ))}
+
+            <div className="pd-h2">Next Step</div>
+            <div className="pd-p">
+              Book a customer intelligence audit with Cornerstone AI Group. We'll analyse your current data setup, identify the highest-value prediction to implement first, and give you a clear technical roadmap — built specifically for your business, not a generic template.
+            </div>
           </div>
         </>
       )}
     </div>
   );
 }
-
 // ─── PROPOSALS ────────────────────────────────────────────────────────────────
 const SERVICES_LIST = [
   "Social Media Management",
@@ -3280,30 +3250,28 @@ function Home({ queue, setView }) {
     },
     {
       id: "outreach",
-      title: "Outreach",
-      desc: "Personalised cold email sequences and LinkedIn messages — built for your ICP.",
-      color: "var(--c-outreach)",
+      title: "Predict Customer Needs",
+      desc: "AI that proactively analyses your customer data to predict churn, score leads, and recommend personalised upsells in real-time.",
+      color: "var(--c-predict)",
       icon: (
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
-          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.84a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.72 16l.2.92z"/>
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          <line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/>
         </svg>
       ),
-      live: false,
+      live: true,
     },
     {
       id: "onboarding",
-      title: "Onboarding",
-      desc: "Auto-generate onboarding packs, welcome sequences and client handbooks.",
-      color: "var(--c-onboarding)",
+      title: "Automate Routine Tasks",
+      desc: "Stop losing hours to admin. AI takes over scheduling, invoice processing, inbox management, and data entry — automatically.",
+      color: "var(--c-automate)",
       icon: (
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
-          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-          <circle cx="9" cy="7" r="4"/>
-          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
         </svg>
       ),
-      live: false,
+      live: true,
     },
   ];
 
@@ -3509,10 +3477,10 @@ export default function App() {
             {IcProposals} Proposals
           </button>
           <button className={`tni${view === "outreach" ? " on" : ""}`} onClick={() => setView("outreach")}>
-            {IcOutreach} Outreach
+            {IcOutreach} Predict Customers
           </button>
           <button className={`tni${view === "onboarding" ? " on" : ""}`} onClick={() => setView("onboarding")}>
-            {IcOnboarding} Onboarding
+            {IcOnboarding} Automate Tasks
           </button>
           <button className={`tni${view === "queue" ? " on" : ""}`} onClick={() => setView("queue")}>
             {Ic.list} Queue {ready > 0 && <span className="nb">{ready}</span>}
