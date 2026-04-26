@@ -621,6 +621,7 @@ function dlFile(content, name, type = "text/plain") {
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800;1,14..32,300&display=swap');
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+/* ── ROOT & BASE ── */
 :root{
   --ink:#03030a;--s1:#07070f;--s2:#0d0d18;--s3:#121220;--s4:#181828;--s5:#202035;--s6:#2a2a42;
   --e1:rgba(255,255,255,.032);--e2:rgba(255,255,255,.058);--e3:rgba(255,255,255,.094);--e4:rgba(255,255,255,.16);
@@ -637,47 +638,37 @@ const CSS = `
   --shadow-lg:0 12px 40px rgba(0,0,0,.6),0 4px 12px rgba(0,0,0,.5);
   --shadow-amber:0 4px 24px rgba(245,166,35,.22),0 1px 4px rgba(245,166,35,.14);
   --shadow-green:0 4px 24px rgba(45,212,160,.18),0 1px 4px rgba(45,212,160,.10);
+  --nav-h:60px;
 }
-html,body,#root{height:100%;overflow:hidden;background:var(--ink);color:var(--t0);font-family:var(--sans);font-size:14px;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
-.app{display:flex;height:100vh;overflow:hidden}
-::-webkit-scrollbar{width:3px;height:3px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--s6);border-radius:4px}::-webkit-scrollbar-thumb:hover{background:var(--t4)}
+html,body,#root{height:100%;background:var(--ink);color:var(--t0);font-family:var(--sans);font-size:14px;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+.app{display:flex;flex-direction:column;height:100vh;overflow:hidden}
+::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--s6);border-radius:4px}::-webkit-scrollbar-thumb:hover{background:var(--t3)}
 
-/* ── SIDEBAR ── */
-.sb{width:256px;min-width:256px;background:var(--s1);border-right:1px solid var(--e1);display:flex;flex-direction:column;position:relative;overflow:hidden}
-.sb::before{content:'';position:absolute;top:0;left:0;right:0;height:220px;background:radial-gradient(ellipse at 40% 0%,rgba(245,166,35,.055),transparent 68%);pointer-events:none;z-index:0}
-.sb::after{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent 10%,rgba(245,166,35,.35) 50%,transparent 90%);pointer-events:none;z-index:1}
-.sb-top{padding:22px 18px 18px;border-bottom:1px solid var(--e1);position:relative;z-index:2}
-.sb-wordmark{font-size:13.5px;font-weight:700;color:var(--t0);letter-spacing:-.035em;display:flex;align-items:center;gap:9px}
-.sb-gem{width:28px;height:28px;border-radius:8px;background:linear-gradient(145deg,#f7b034,#c97a00);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 18px rgba(245,166,35,.28),0 2px 8px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.2)}
-.sb-sub{font-size:9.5px;color:var(--t4);margin-top:4px;letter-spacing:.025em;font-weight:400}
-.nav{padding:12px 8px 4px;position:relative;z-index:2}
-.nl{font-size:7.5px;font-weight:700;color:var(--t4);letter-spacing:.26em;text-transform:uppercase;padding:12px 12px 4px;opacity:.7}
-.ni{display:flex;align-items:center;gap:9px;width:100%;padding:8.5px 12px;border-radius:8px;border:none;background:transparent;color:var(--t3);font-size:12px;font-family:var(--sans);font-weight:400;cursor:pointer;text-align:left;transition:background .12s,color .12s;margin-bottom:1px;position:relative}
-.ni:hover{background:var(--e1);color:var(--t1)}
-.ni.on{background:linear-gradient(90deg,rgba(245,166,35,.08),rgba(245,166,35,.03));color:var(--t0);font-weight:500}
-.ni.on::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:2.5px;height:16px;background:linear-gradient(180deg,#ffd280,var(--amber));border-radius:0 3px 3px 0;box-shadow:0 0 12px rgba(245,166,35,.5)}
-.ni svg{width:14px;height:14px;flex-shrink:0;opacity:.28;transition:opacity .12s}
-.ni:hover svg,.ni.on svg{opacity:.8}
-.ni-accent{display:inline-block;width:6px;height:6px;border-radius:50%;margin-left:auto;flex-shrink:0}
-.nb{margin-left:auto;font-size:9px;color:var(--amber);font-family:var(--mono);background:rgba(245,166,35,.1);border:1px solid rgba(245,166,35,.18);padding:1px 6px;border-radius:4px;font-weight:600;letter-spacing:.02em}
-.sdiv{height:1px;background:var(--e1);margin:5px 0}
-.plist{flex:1;overflow-y:auto;padding:3px 8px 18px;position:relative;z-index:2}
-.plist::-webkit-scrollbar{width:0}
-.pb{display:flex;align-items:center;gap:8px;width:100%;padding:7px 12px;border-radius:8px;border:none;background:transparent;cursor:pointer;text-align:left;transition:background .11s;margin-bottom:1px}
-.pb:hover{background:var(--e1)}
-.pd{width:5px;height:5px;border-radius:50%;flex-shrink:0;transition:box-shadow .2s}
-.pb:hover .pd{box-shadow:0 0 8px var(--pc)}
-.pn{font-size:11.5px;color:var(--t3);font-weight:400;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.pst{font-size:9px;color:var(--t4)}
-
+/* ── TOP NAV ── */
+.topbar{height:var(--nav-h);padding:0 36px;border-bottom:1px solid var(--e1);background:rgba(3,3,10,.92);backdrop-filter:blur(56px) saturate(1.5);-webkit-backdrop-filter:blur(56px) saturate(1.5);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;position:sticky;top:0;z-index:50}
+.topbar::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(245,166,35,.22) 30%,rgba(245,166,35,.22) 70%,transparent)}
+.tb-brand{display:flex;align-items:center;gap:10px;text-decoration:none}
+.tb-gem{width:30px;height:30px;border-radius:9px;background:linear-gradient(145deg,#f7b034,#c97a00);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 18px rgba(245,166,35,.28),0 2px 8px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.2)}
+.tb-wordmark{font-size:13px;font-weight:700;color:var(--t0);letter-spacing:-.03em;line-height:1}
+.tb-wordmark span{display:block;font-size:9px;color:var(--t4);font-weight:400;letter-spacing:.02em;margin-top:1px}
+.tb-nav{display:flex;align-items:center;gap:2px}
+.tni{display:flex;align-items:center;gap:7px;padding:7px 13px;border-radius:8px;border:none;background:transparent;color:var(--t3);font-size:12px;font-family:var(--sans);font-weight:500;cursor:pointer;transition:background .12s,color .12s;white-space:nowrap;position:relative}
+.tni:hover{background:var(--e1);color:var(--t0)}
+.tni.on{background:rgba(245,166,35,.09);color:var(--t0)}
+.tni.on::after{content:'';position:absolute;bottom:-1px;left:50%;transform:translateX(-50%);width:20px;height:2px;background:var(--amber);border-radius:2px 2px 0 0;box-shadow:0 0 10px rgba(245,166,35,.6)}
+.tni svg{width:13px;height:13px;flex-shrink:0;opacity:.5;transition:opacity .12s}
+.tni:hover svg,.tni.on svg{opacity:1}
+.nb{font-size:9px;color:var(--amber);font-family:var(--mono);background:rgba(245,166,35,.1);border:1px solid rgba(245,166,35,.18);padding:1px 6px;border-radius:4px;font-weight:600;letter-spacing:.02em}
+.tb-r{display:flex;align-items:center;gap:10px}
+.tb-counts{display:flex;align-items:center;gap:12px}
+.tb-count-item{text-align:center}
+.tb-count-val{font-size:13px;font-weight:800;line-height:1;font-family:var(--mono)}
+.tb-count-lbl{font-size:8px;color:var(--t4);text-transform:uppercase;letter-spacing:.06em;margin-top:1px}
+.tb-signout{display:flex;align-items:center;gap:6px;padding:7px 11px;border-radius:8px;border:1px solid var(--e1);background:transparent;color:var(--t3);font-size:11.5px;font-family:var(--sans);cursor:pointer;transition:all .12s}
+.tb-signout:hover{background:var(--s3);color:var(--t0);border-color:var(--e2)}
 /* ── MAIN ── */
 .main{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden;background:var(--ink)}
-.topbar{height:54px;padding:0 36px;border-bottom:1px solid var(--e1);background:rgba(3,3,10,.88);backdrop-filter:blur(48px) saturate(1.4);-webkit-backdrop-filter:blur(48px) saturate(1.4);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;position:sticky;top:0;z-index:20}
-.topbar::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--e2) 20%,var(--e2) 80%,transparent)}
-.tb-l{display:flex;flex-direction:column;gap:1px}
-.tb-title{font-size:13.5px;font-weight:600;color:var(--t0);letter-spacing:-.03em}
-.tb-sub{font-size:9.5px;color:var(--t4);font-weight:400}
-.view{flex:1;overflow-y:auto;padding:36px 42px}
+.view{flex:1;overflow-y:auto;padding:40px 48px}
 
 /* ── BUTTONS ── */
 .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--r);font-size:12.5px;font-weight:500;font-family:var(--sans);cursor:pointer;border:none;transition:all .14s cubic-bezier(.22,1,.36,1);white-space:nowrap;letter-spacing:-.012em;position:relative;overflow:hidden}
@@ -1000,7 +991,7 @@ select{cursor:pointer;appearance:none}
 
 /* ── LOGIN GATE ── */
 .login-gate{position:fixed;inset:0;background:var(--ink);display:flex;align-items:center;justify-content:center;z-index:9999;background-image:radial-gradient(ellipse at 50% 0%,rgba(245,166,35,.04),transparent 60%)}
-.login-card{background:var(--s2);border:1px solid var(--e2);border-radius:var(--r2);padding:44px 40px;text-align:center;max-width:360px;width:90%;box-shadow:0 40px 100px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.04) inset}
+.login-card{background:var(--s2);border:1px solid var(--e2);border-radius:var(--r2);padding:44px 40px;text-align:center;max-width:360px;width:90%;box-shadow:0 40px 100px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.04) inset;position:relative}
 .login-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent 10%,rgba(245,166,35,.4) 50%,transparent 90%);border-radius:var(--r2) var(--r2) 0 0}
 .login-logo{width:52px;height:52px;background:linear-gradient(145deg,#f7b034,#c97a00);border-radius:15px;display:flex;align-items:center;justify-content:center;margin:0 auto 22px;box-shadow:0 0 32px rgba(245,166,35,.3),0 4px 12px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.2)}
 .login-title{font-size:21px;font-weight:800;color:var(--t0);letter-spacing:-.04em;margin-bottom:6px}
@@ -1014,19 +1005,14 @@ select{cursor:pointer;appearance:none}
 .bni.on svg{opacity:1;filter:drop-shadow(0 0 5px rgba(245,166,35,.55))}
 .bni.on::after{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:28px;height:2px;background:var(--amber);border-radius:0 0 3px 3px;box-shadow:0 0 14px rgba(245,166,35,.8),0 0 28px rgba(245,166,35,.3)}
 /* ── MOBILE ── */
-.ham{display:none}
-.sb-overlay{display:none}
 @media(max-width:767px){
-  .sb{display:none!important}
+  .tb-nav{display:none}
   .bnav{display:flex}
-  .topbar{padding:0 18px;height:54px}
+  .topbar{padding:0 18px}
   .tb-counts{display:none}
-  .tb-sub{display:none}
   .view{padding:22px 16px calc(72px + env(safe-area-inset-bottom))}
   .home{max-width:100%}
-  .home-head{flex-direction:column;align-items:flex-start;gap:12px}
   .home-greeting{font-size:clamp(20px,6vw,28px)}
-  .home-launch-hero{width:100%;justify-content:center}
   .home-stats{grid-template-columns:repeat(3,1fr);gap:7px}
   .home-grid{grid-template-columns:1fr}
   .home-pgrid{grid-template-columns:repeat(2,1fr)}
@@ -1035,7 +1021,6 @@ select{cursor:pointer;appearance:none}
   .platgrid{grid-template-columns:repeat(2,1fr)!important}
   .gen-btn{padding:20px 14px}
   .step-card{padding:20px 16px}
-  .tb-action-label{display:none}
   .pgrid{grid-template-columns:repeat(2,1fr)}
 }
 @media(max-width:400px){
@@ -3463,15 +3448,14 @@ export default function App() {
 
   if (!authed) return <LoginGate onAuth={() => setAuthed(true)} />;
 
-  // ── Icon helpers for sidebar ───────────────────────────────────────────────
   const IcContent = (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
       <rect x="3" y="3" width="18" height="18" rx="2"/>
       <path d="M3 9h18M9 21V9"/>
     </svg>
   );
   const IcProposals = (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
       <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
       <polyline points="14 2 14 8 20 8"/>
       <line x1="16" y1="13" x2="8" y2="13"/>
@@ -3480,12 +3464,12 @@ export default function App() {
     </svg>
   );
   const IcOutreach = (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
       <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.84a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.72 16l.2.92z"/>
     </svg>
   );
   const IcOnboarding = (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
       <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
       <circle cx="9" cy="7" r="4"/>
       <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
@@ -3496,105 +3480,69 @@ export default function App() {
   return (
     <div className="app">
 
-      {/* ── SIDEBAR ─────────────────────────────────────────────────────────── */}
-      <div className="sb">
-        <div className="sb-top">
-          <div className="sb-wordmark">
-            <div className="sb-gem">
-              {/* Cornerstone mark — pentagon with internal cross */}
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#030206" strokeWidth="2.2">
-                <path d="M4 6 L12 2 L20 6 L20 18 L12 22 L4 18 Z"/>
-                <line x1="12" y1="2" x2="12" y2="22"/>
-                <line x1="4" y1="12" x2="20" y2="12"/>
-              </svg>
-            </div>
-            Autopilot
+      {/* ── TOP NAV ──────────────────────────────────────────────────────────── */}
+      <div className="topbar">
+        {/* Brand */}
+        <div className="tb-brand" style={{ cursor: "pointer" }} onClick={() => setView("home")}>
+          <div className="tb-gem">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#030206" strokeWidth="2.2">
+              <path d="M4 6 L12 2 L20 6 L20 18 L12 22 L4 18 Z"/>
+              <line x1="12" y1="2" x2="12" y2="22"/>
+              <line x1="4" y1="12" x2="20" y2="12"/>
+            </svg>
           </div>
-          <div className="sb-sub">by Cornerstone AI Group</div>
+          <div className="tb-wordmark">
+            Cornerstone AI Group
+            <span>Operator Platform</span>
+          </div>
         </div>
 
-        <div className="nav" style={{ flex: 1, overflowY: "auto" }}>
-          {/* TOOLS group */}
-          <div className="nl">Tools</div>
-          <button className={`ni${view === "home" ? " on" : ""}`} onClick={() => setView("home")}>
+        {/* Nav links */}
+        <div className="tb-nav">
+          <button className={`tni${view === "home" ? " on" : ""}`} onClick={() => setView("home")}>
             {Ic.home} Home
           </button>
-          <button
-            className={`ni${view === "autopilot" ? " on" : ""}`}
-            onClick={() => setView("autopilot")}
-            style={{ "--ni-accent": "var(--c-content)" }}
-          >
+          <button className={`tni${view === "autopilot" ? " on" : ""}`} onClick={() => setView("autopilot")}>
             {IcContent} Content Hub
-            <span className="ni-accent" style={{ background: "var(--c-content)" }} />
           </button>
-          <button
-            className={`ni${view === "proposals" ? " on" : ""}`}
-            onClick={() => setView("proposals")}
-          >
+          <button className={`tni${view === "proposals" ? " on" : ""}`} onClick={() => setView("proposals")}>
             {IcProposals} Proposals
-            <span className="ni-accent" style={{ background: "var(--c-proposals)" }} />
           </button>
-          <button
-            className={`ni${view === "outreach" ? " on" : ""}`}
-            onClick={() => setView("outreach")}
-          >
+          <button className={`tni${view === "outreach" ? " on" : ""}`} onClick={() => setView("outreach")}>
             {IcOutreach} Outreach
-            <span className="ni-accent" style={{ background: "var(--c-outreach)" }} />
           </button>
-          <button
-            className={`ni${view === "onboarding" ? " on" : ""}`}
-            onClick={() => setView("onboarding")}
-          >
+          <button className={`tni${view === "onboarding" ? " on" : ""}`} onClick={() => setView("onboarding")}>
             {IcOnboarding} Onboarding
-            <span className="ni-accent" style={{ background: "var(--c-onboarding)" }} />
           </button>
-
-          {/* CONTENT group */}
-          <div className="nl" style={{ marginTop: 6 }}>Content</div>
-          <button className={`ni${view === "queue" ? " on" : ""}`} onClick={() => setView("queue")}>
-            {Ic.list} Queue
-            {ready > 0 && <span className="nb">{ready}</span>}
+          <button className={`tni${view === "queue" ? " on" : ""}`} onClick={() => setView("queue")}>
+            {Ic.list} Queue {ready > 0 && <span className="nb">{ready}</span>}
           </button>
-          <button className={`ni${view === "calendar" ? " on" : ""}`} onClick={() => setView("calendar")}>
+          <button className={`tni${view === "calendar" ? " on" : ""}`} onClick={() => setView("calendar")}>
             {Ic.cal} Calendar
-            {sched > 0 && <span className="nb">{sched}</span>}
-          </button>
-
-          {/* SYSTEM group */}
-          <div className="nl" style={{ marginTop: 6 }}>System</div>
-          <button className={`ni${view === "settings" ? " on" : ""}`} onClick={() => setView("settings")}>
-            {Ic.cog} Settings
           </button>
         </div>
 
-        {/* Persona list */}
-        <div className="sdiv" />
-        <div className="nl" style={{ paddingBottom: 4 }}>Network</div>
-        <div className="plist">
-          {PERSONAS.map((p) => {
-            const cnt = queue.filter((i) => i.personaId === p.id).length;
-            return (
-              <div key={p.id} className="pb" style={{ "--pc": p.color }}>
-                <div className="pd" style={{ background: p.color }} />
-                <div className="pn">{p.name}</div>
-                {cnt > 0 && (
-                  <span style={{ fontFamily: "var(--mono)", fontSize: 9, color: p.color, fontWeight: 700 }}>
-                    {cnt}
-                  </span>
-                )}
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Sign out */}
-        <div style={{ padding: "10px 8px 14px", borderTop: "1px solid var(--e1)" }}>
+        {/* Right side */}
+        <div className="tb-r">
+          {queue.length > 0 && (
+            <div className="tb-counts">
+              {[
+                { l: "Ready",     v: ready,  c: "var(--c-proposals)" },
+                { l: "Scheduled", v: sched,  c: "var(--gold)" },
+                { l: "Posted",    v: posted, c: "var(--green)" },
+              ].filter(s => s.v > 0).map(s => (
+                <div key={s.l} className="tb-count-item">
+                  <div className="tb-count-val" style={{ color: s.c }}>{s.v}</div>
+                  <div className="tb-count-lbl">{s.l}</div>
+                </div>
+              ))}
+            </div>
+          )}
           <button
-            className="ni"
-            style={{ opacity: 0.55, fontSize: 11.5 }}
+            className="tb-signout"
             onClick={() => { localStorage.removeItem(AUTH_KEY); setAuthed(false); }}
           >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
               <polyline points="16 17 21 12 16 7"/>
               <line x1="21" y1="12" x2="9" y2="12"/>
@@ -3604,41 +3552,8 @@ export default function App() {
         </div>
       </div>
 
-      {/* ── MAIN ────────────────────────────────────────────────────────────── */}
+      {/* ── CONTENT ──────────────────────────────────────────────────────────── */}
       <div className="main">
-        <div className="topbar">
-          <div className="tb-l">
-            <div className="tb-title">{(TB[view] || TB.home).t}</div>
-            <div className="tb-sub">{(TB[view] || TB.home).s}</div>
-          </div>
-          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-            {/* Queue count pill */}
-            {queue.length > 0 && (
-              <div style={{ display: "flex", gap: 10, alignItems: "center", marginRight: 4 }}>
-                {[
-                  { l: "Ready",     v: ready,  c: "var(--c-proposals)" },
-                  { l: "Scheduled", v: sched,  c: "var(--gold)" },
-                  { l: "Posted",    v: posted, c: "var(--green)" },
-                ].filter(s => s.v > 0).map(s => (
-                  <div key={s.l} style={{ textAlign: "center" }}>
-                    <div style={{ fontSize: 14, fontWeight: 800, color: s.c, lineHeight: 1, fontFamily: "var(--mono)" }}>{s.v}</div>
-                    <div style={{ fontSize: 8.5, color: "var(--t4)", marginTop: 1, letterSpacing: ".06em", textTransform: "uppercase" }}>{s.l}</div>
-                  </div>
-                ))}
-              </div>
-            )}
-            {view === "queue" && queue.length > 0 && (
-              <button
-                className="btn btn-dim"
-                style={{ fontSize: 11.5, padding: "6px 12px" }}
-                onClick={() => { dlFile(buildCSV(queue), "CAIG_Schedule.csv", "text/csv"); toast_("CSV exported"); }}
-              >
-                {Ic.up} Export CSV
-              </button>
-            )}
-          </div>
-        </div>
-
         <div className="view">
           {view === "home"       && <Home queue={queue} setView={setView} />}
           {view === "autopilot"  && <Autopilot queue={queue} setQueue={setQueue} setView={setView} toast_={toast_} />}
