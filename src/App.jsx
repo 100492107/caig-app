@@ -3283,13 +3283,19 @@ function LoginGate({ onAuth }) {
       return;
     }
     // Fetch profile to check is_active
-    const { data: profile } = await supabase
+    const { data: profile, error: profileError } = await supabase
       .from("profiles")
       .select("is_active, role, agency_name")
       .eq("id", data.user.id)
       .single();
 
-    if (!profile || !profile.is_active) {
+    if (profileError || !profile) {
+      await supabase.auth.signOut();
+      setErr("Profile error: " + (profileError?.message || "not found") + " | uid: " + data.user.id);
+      setBusy(false);
+      return;
+    }
+    if (!profile.is_active) {
       await supabase.auth.signOut();
       setErr("Your account has been disabled. Contact CAIG support.");
       setBusy(false);
