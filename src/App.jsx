@@ -2410,58 +2410,47 @@ const ONBOARDING_SECTIONS = [
 // ─── AUTOMATE TASKS MODULE ────────────────────────────────────────────────────
 function Onboarding() {
   const [fields, setFields] = useState({
-    businessName: "",
-    industry: "",
-    teamSize: "",
-    topTasks: "",
-    currentTools: "",
-    priority: "scheduling",
-    hoursPerWeek: "",
     contactName: "",
+    bottleneck: "",
+    currentTools: "",
+    priority: "brand-outreach",
+    hoursPerWeek: "",
+    personaCount: "",
   });
   const [submitted, setSubmitted] = useState(false);
-
   const set = (k, v) => setFields(f => ({ ...f, [k]: v }));
 
   const PRIORITIES = [
-    "Scheduling & Calendar",
-    "Invoice Processing",
-    "Data Entry & CRM Updates",
-    "Inbox Management",
-    "Meeting Transcription",
-    "Employee Training",
-    "Customer Service Inquiries",
-    "Reporting & Analytics",
+    { id: "brand-outreach", label: "Brand Outreach Follow-ups", desc: "Tracking leads, sending follow-ups, chasing decisions" },
+    { id: "payment-tracking", label: "Payment & Invoice Tracking", desc: "Knowing who owes what, when, and sending reminders" },
+    { id: "content-approval", label: "Content Approval Workflow", desc: "Getting brand sign-off before posting goes live" },
+    { id: "scheduling", label: "Content Scheduling & Posting", desc: "Getting posts from queue into Later / Buffer on time" },
+    { id: "community", label: "Telegram / Community Management", desc: "Welcoming subscribers, posting updates, handling DMs" },
+    { id: "reporting", label: "Performance Reporting", desc: "Pulling stats, tracking what's working, weekly summaries" },
   ];
 
-  const ready = fields.businessName && fields.industry && fields.topTasks;
-
-  const handleSubmit = () => {
-    if (!ready) return;
-    setSubmitted(true);
-  };
+  const ready = fields.contactName && fields.bottleneck;
 
   return (
     <div className="mod-shell" style={{ "--mod-c": "var(--c-automate)" }}>
       <div className="mod-hero">
         <div className="mod-badge">
           <div className="mod-badge-dot" />
-          Task Automation
+          Creator Workflow
         </div>
-        <div className="mod-title">Automate Routine Tasks</div>
+        <div className="mod-title">Automate Your Creator Ops</div>
         <div className="mod-desc">
-          Stop losing hours to admin. Tell us what's eating your time — we'll map out an AI automation plan that hands it all back to you.
+          Tell us where your time is leaking — we'll map out the automations that hand it back so you can focus on content and deals.
         </div>
       </div>
 
       {!submitted ? (
         <>
-          {/* Stats banner */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 16, marginBottom: 32 }}>
             {[
-              { v: "59%", l: "of SMB owners want AI to handle customer service inquiries" },
-              { v: "56%", l: "want AI to take over employee training and onboarding" },
-              { v: "11h", l: "average hours per week lost to repetitive admin tasks" },
+              { v: "80%", l: "of creator admin tasks are repeatable and automatable" },
+              { v: "6h", l: "average hours per week lost to outreach and scheduling admin" },
+              { v: "3×", l: "faster deal close when follow-up is automated and consistent" },
             ].map(s => (
               <div key={s.l} style={{ background: "var(--s2)", border: "1px solid var(--e1)", borderRadius: "var(--rl)", padding: "20px 22px" }}>
                 <div style={{ fontSize: 32, fontWeight: 800, color: "var(--c-automate)", fontFamily: "var(--mono)", marginBottom: 8, letterSpacing: "-.04em" }}>{s.v}</div>
@@ -2472,55 +2461,55 @@ function Onboarding() {
 
           <div className="mod-body">
             <div className="mod-card">
-              <div className="mod-card-title">Your Business<div className="mod-card-title-line" /></div>
-
+              <div className="mod-card-title">Your Operation <div className="mod-card-title-line" /></div>
               <div className="mod-field">
-                <label className="mod-label">Business name</label>
-                <input className="mod-input" placeholder="e.g. Apex Consulting Ltd" value={fields.businessName} onChange={e => set("businessName", e.target.value)} />
+                <label className="mod-label">Your name *</label>
+                <input className="mod-input" placeholder="e.g. Joseph" value={fields.contactName} onChange={e => set("contactName", e.target.value)} />
               </div>
               <div className="mod-field">
-                <label className="mod-label">Industry</label>
-                <input className="mod-input" placeholder="e.g. Professional Services, Retail, Healthcare" value={fields.industry} onChange={e => set("industry", e.target.value)} />
-              </div>
-              <div className="mod-field">
-                <label className="mod-label">Team size</label>
-                <select className="mod-input" value={fields.teamSize} onChange={e => set("teamSize", e.target.value)}>
-                  <option value="">Select team size</option>
-                  {["Just me","2–5","6–15","16–50","50+"].map(o => <option key={o} value={o}>{o}</option>)}
+                <label className="mod-label">Number of active personas</label>
+                <select className="mod-input" value={fields.personaCount} onChange={e => set("personaCount", e.target.value)}>
+                  <option value="">Select</option>
+                  {["1", "2–3", "4–5", "6–7", "8+"].map(o => <option key={o} value={o}>{o}</option>)}
                 </select>
               </div>
               <div className="mod-field">
                 <label className="mod-label">Hours per week lost to admin (approx.)</label>
-                <input className="mod-input" placeholder="e.g. 10" value={fields.hoursPerWeek} onChange={e => set("hoursPerWeek", e.target.value)} />
+                <input className="mod-input" placeholder="e.g. 8" value={fields.hoursPerWeek} onChange={e => set("hoursPerWeek", e.target.value)} />
               </div>
               <div className="mod-field">
-                <label className="mod-label">Your name</label>
-                <input className="mod-input" placeholder="e.g. Sarah Johnson" value={fields.contactName} onChange={e => set("contactName", e.target.value)} />
+                <label className="mod-label">Tools you currently use</label>
+                <input className="mod-input" placeholder="e.g. Later, Notion, Gmail, Stripe, Telegram" value={fields.currentTools} onChange={e => set("currentTools", e.target.value)} />
               </div>
             </div>
 
             <div className="mod-card">
-              <div className="mod-card-title">Tasks to Automate<div className="mod-card-title-line" /></div>
-
+              <div className="mod-card-title">Where's the bottleneck? <div className="mod-card-title-line" /></div>
               <div className="mod-field">
-                <label className="mod-label">What are your most time-consuming routine tasks?</label>
-                <textarea className="mod-input mod-ta" style={{ minHeight: 100 }} placeholder="e.g. Manually entering client data into our CRM, following up on unpaid invoices, scheduling meetings across time zones..." value={fields.topTasks} onChange={e => set("topTasks", e.target.value)} />
+                <label className="mod-label">Describe what's eating your time *</label>
+                <textarea className="mod-input mod-ta" style={{ minHeight: 100 }}
+                  placeholder="e.g. I'm manually following up with brands every few days, tracking payments in a spreadsheet, and spending hours moving content from the queue into Later every Sunday..."
+                  value={fields.bottleneck} onChange={e => set("bottleneck", e.target.value)} />
               </div>
-
-              <div className="mod-field">
-                <label className="mod-label">Current tools you use</label>
-                <input className="mod-input" placeholder="e.g. HubSpot, Xero, Google Workspace, Slack" value={fields.currentTools} onChange={e => set("currentTools", e.target.value)} />
-              </div>
-
-              <div className="mod-field">
-                <label className="mod-label">Top automation priority</label>
-                <div className="mod-chips" style={{ marginTop: 4 }}>
+              <div className="mod-field" style={{ marginTop: 8 }}>
+                <label className="mod-label">Top priority to automate first</label>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 8 }}>
                   {PRIORITIES.map(p => (
-                    <button
-                      key={p}
-                      className={`mod-chip${fields.priority === p ? " on" : ""}`}
-                      onClick={() => set("priority", p)}
-                    >{p}</button>
+                    <button key={p.id}
+                      onClick={() => set("priority", p.id)}
+                      style={{
+                        display: "flex", alignItems: "flex-start", gap: 12, padding: "12px 14px",
+                        borderRadius: "var(--r)",
+                        border: `1px solid ${fields.priority === p.id ? "var(--c-automate)" : "var(--e2)"}`,
+                        background: fields.priority === p.id ? "color-mix(in srgb,var(--c-automate) 10%,transparent)" : "var(--s3)",
+                        cursor: "pointer", textAlign: "left", transition: "all .15s",
+                      }}>
+                      <div style={{ width: 8, height: 8, borderRadius: "50%", background: fields.priority === p.id ? "var(--c-automate)" : "var(--t3)", marginTop: 4, flexShrink: 0 }} />
+                      <div>
+                        <div style={{ fontSize: 12.5, fontWeight: 600, color: fields.priority === p.id ? "var(--t0)" : "var(--t1)", marginBottom: 2 }}>{p.label}</div>
+                        <div style={{ fontSize: 11, color: "var(--t2)" }}>{p.desc}</div>
+                      </div>
+                    </button>
                   ))}
                 </div>
               </div>
@@ -2528,68 +2517,117 @@ function Onboarding() {
           </div>
 
           <div className="mod-action-wrap">
-            <button className={`mod-btn${ready ? " ready" : ""}`} disabled={!ready} onClick={handleSubmit}>
+            <button className={`mod-btn${ready ? " ready" : ""}`} disabled={!ready} onClick={() => setSubmitted(true)}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                <polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
               </svg>
-              Generate My Automation Blueprint
+              Build My Automation Plan
             </button>
-            <div className="mod-hint">We'll map which tasks to automate first and which AI tools to use.</div>
+            <div className="mod-hint">We'll map out exactly what to automate first and the tools to do it.</div>
           </div>
         </>
       ) : (
         <>
           <div className="mod-preview-bar">
-            <div className="mod-preview-title">Automation Blueprint — {fields.businessName}</div>
+            <div className="mod-preview-title">Creator Automation Plan — {fields.contactName}</div>
             <button className="btn btn-dim" onClick={() => setSubmitted(false)} style={{ fontSize: 12 }}>← Edit</button>
           </div>
 
           <div className="mod-doc">
-            <div className="pd-h1">AI Automation Blueprint</div>
+            <div className="pd-h1">Creator Automation Plan</div>
             <div style={{ fontSize: 12, color: "var(--t2)", marginBottom: 24 }}>
-              Prepared for {fields.contactName || fields.businessName} · {fields.industry} · Team: {fields.teamSize || "n/a"}
+              {fields.contactName} · {fields.personaCount ? `${fields.personaCount} personas` : "Creator operation"} · {fields.hoursPerWeek ? `${fields.hoursPerWeek}h/week in admin` : ""}
             </div>
 
-            <div className="pd-h2">The Opportunity</div>
+            <div className="pd-h2">The Problem</div>
             <div className="pd-p">
-              Based on your profile, your team is spending approximately <strong>{fields.hoursPerWeek || "several"} hours per week</strong> on tasks that AI can handle autonomously. At a conservative £40/hr value, that's <strong>£{fields.hoursPerWeek ? (parseInt(fields.hoursPerWeek) * 40 * 52).toLocaleString() : "significant value"} per year</strong> locked in manual work.
+              {fields.bottleneck || "Manual admin is eating into the time you should be spending on content and brand relationships."}
             </div>
             <div className="pd-p">
-              Industry data shows 59% of business owners like you are already implementing AI for customer service, and 56% for training — the businesses doing this now are pulling ahead.
+              Running {fields.personaCount || "multiple"} personas means the admin compounds. Every task you do manually for one persona, you're doing {fields.personaCount || "multiple"} times. That's where automation earns the most.
             </div>
 
-            <div className="pd-h2">Your Priority: {fields.priority}</div>
-            <div className="pd-p">
-              Starting with <strong>{fields.priority}</strong> is the right call. It's high-frequency, rule-based, and directly measurable — exactly the profile that delivers fast ROI from automation.
-            </div>
+            <div className="pd-h2">Start Here: {PRIORITIES.find(p => p.id === fields.priority)?.label}</div>
+            <div className="pd-p">{PRIORITIES.find(p => p.id === fields.priority)?.desc}. This is the right first move — high frequency, directly tied to revenue, and automatable without rebuilding how you work.</div>
 
-            <div className="pd-h2">Tasks Identified for Automation</div>
-            <div className="pd-p" style={{ whiteSpace: "pre-wrap", color: "var(--t1)" }}>{fields.topTasks}</div>
+            {fields.priority === "brand-outreach" && <>
+              <div className="pd-h2">Brand Outreach Automation Stack</div>
+              {[
+                { tool: "Notion + Zapier", use: "Build a brand CRM in Notion. Zapier auto-updates status, sends you reminders at day 3, 7, and 14 after first contact — no chasing in your head." },
+                { tool: "Gmail Canned Responses + Sequences", use: "Write your follow-up templates once. Use a sequence tool (Mailmeteor, Gmass) to send timed follow-ups automatically — looks personal, costs nothing." },
+                { tool: "Calendly", use: "Stop the back-and-forth. Brand contacts book a 20-min call directly. You show up prepped, not chasing." },
+                { tool: "Airtable Brand Pipeline", use: "One view showing every active deal: stage, persona, value, last contact. Filters by persona so you can see Cara's pipeline vs Maya's." },
+              ].map(r => <div key={r.tool} className="pd-li"><strong>{r.tool}:</strong> {r.use}</div>)}
+            </>}
 
-            <div className="pd-h2">Recommended AI Stack</div>
+            {fields.priority === "payment-tracking" && <>
+              <div className="pd-h2">Payment & Invoice Automation Stack</div>
+              {[
+                { tool: "Stripe / Wise", use: "Issue invoices and collect payment in one click. Auto-reminders go out at 3, 7, and 14 days overdue — without you chasing." },
+                { tool: "Notion Finance Tracker", use: "Log every deal: brand, persona, amount, due date, paid. One view tells you exactly what's outstanding." },
+                { tool: "Zapier: Stripe → Notion", use: "When payment clears in Stripe, Zapier auto-marks it paid in your Notion tracker. Zero manual reconciliation." },
+                { tool: "Google Sheets Payment Dashboard", use: "Monthly income by persona. Copy the CSV from Stripe, drop it in — sheet auto-calculates totals and flags anything overdue." },
+              ].map(r => <div key={r.tool} className="pd-li"><strong>{r.tool}:</strong> {r.use}</div>)}
+            </>}
+
+            {fields.priority === "content-approval" && <>
+              <div className="pd-h2">Content Approval Automation Stack</div>
+              {[
+                { tool: "Notion Approval Board", use: "Each sponsored post gets a card: draft, sent for review, approved, posted. Brand contacts get a shared link — no email chains." },
+                { tool: "Google Drive Shared Folder per Campaign", use: "Drop the draft caption and visual in a folder. Share it with the brand. They comment, you update. One source of truth." },
+                { tool: "Loom for Async Review", use: "Record a 60-second walkthrough of the post for the brand. Speeds up approval from days to hours — they see it in context." },
+                { tool: "Deadline Zapier Alert", use: "Set an approval deadline in Notion. Zapier pings you (and optionally the brand contact) 24h before it expires." },
+              ].map(r => <div key={r.tool} className="pd-li"><strong>{r.tool}:</strong> {r.use}</div>)}
+            </>}
+
+            {fields.priority === "scheduling" && <>
+              <div className="pd-h2">Scheduling Automation Stack</div>
+              {[
+                { tool: "This App → Later.com CSV", use: "Generate your week, export the CSV from Settings, upload to Later.com/bulk. The full week is scheduled in under 10 minutes." },
+                { tool: "Later Auto-publish", use: "Enable auto-publish on Later so approved posts go live without you touching anything. Images pre-attached, time pre-set." },
+                { tool: "Google Drive Sync (in-app)", use: "Push the full schedule to a Google Sheet each week. Share with collaborators so everyone sees what's going live." },
+                { tool: "Sunday System", use: "Generate Sunday → review queue → create visuals → export CSV → upload Later → attach images → approve. Done. Week runs itself." },
+              ].map(r => <div key={r.tool} className="pd-li"><strong>{r.tool}:</strong> {r.use}</div>)}
+            </>}
+
+            {fields.priority === "community" && <>
+              <div className="pd-h2">Community Management Automation Stack</div>
+              {[
+                { tool: "Telegram Bot (Combot / Rose)", use: "Auto-welcome new subscribers with a pinned message. Filter spam. Answer FAQs automatically. Runs 24/7 without you." },
+                { tool: "Notion Content Calendar → Telegram", use: "Schedule your Telegram updates in Notion. Use Zapier to post them automatically at the right time — no manual copy-paste." },
+                { tool: "Gumroad / Whop for Paid Access", use: "Payment → automatic Telegram invite link. No manual adding members, no chasing payments." },
+                { tool: "Monthly Digest Template", use: "Write a monthly community update template once. Fill in the numbers, drop in the new content — done in 10 minutes." },
+              ].map(r => <div key={r.tool} className="pd-li"><strong>{r.tool}:</strong> {r.use}</div>)}
+            </>}
+
+            {fields.priority === "reporting" && <>
+              <div className="pd-h2">Performance Reporting Automation Stack</div>
+              {[
+                { tool: "Later Analytics Export", use: "Export your weekly stats from Later as CSV. Drop into a Google Sheet template that auto-calculates growth, engagement rate, top posts." },
+                { tool: "Google Sheets Dashboard per Persona", use: "One tab per persona. Track followers, views, engagement, and brand deal income monthly. Colour-coded so you see what's working at a glance." },
+                { tool: "Zapier: TikTok/Instagram → Sheet", use: "Auto-pull key metrics into your tracker weekly. No manual logging." },
+                { tool: "Monthly Review Template", use: "30 minutes every month: review stats, identify top-performing pillars, adjust next month's content mix. Systemised, not improvised." },
+              ].map(r => <div key={r.tool} className="pd-li"><strong>{r.tool}:</strong> {r.use}</div>)}
+            </>}
+
+            <div className="pd-h2">90-Day Creator Automation Roadmap</div>
             {[
-              { tool: "Zapier / Make", use: "Connect your existing tools (" + (fields.currentTools || "CRM, email, calendar") + ") without writing code" },
-              { tool: "AI Email Assistant", use: "Triage inbox, draft replies, auto-route enquiries — saves 2–3 hours/week immediately" },
-              { tool: "Meeting Transcription (Otter.ai / Fireflies)", use: "Auto-generate meeting notes, action items, and CRM updates from every call" },
-              { tool: "Invoice Automation (Dext + Xero)", use: "Capture, categorise and process invoices with zero manual data entry" },
-              { tool: "Scheduling AI (Calendly + AI layer)", use: "Eliminate back-and-forth — let prospects book directly, auto-prep briefing docs" },
-            ].map(r => (
-              <div key={r.tool} className="pd-li"><strong>{r.tool}:</strong> {r.use}</div>
-            ))}
-
-            <div className="pd-h2">90-Day Roadmap</div>
-            {[
-              { phase: "Days 1–30", action: "Audit and document every recurring task. Set up " + fields.priority + " automation. Target: 3h/week saved." },
-              { phase: "Days 31–60", action: "Expand to inbox management and CRM auto-update. Train team on new workflow. Target: 6h/week saved." },
-              { phase: "Days 61–90", action: "Layer in reporting automation and customer service AI. Measure time saved vs cost. Target: " + (fields.hoursPerWeek || "8") + "h/week reclaimed." },
+              { phase: "Days 1–30", action: `Implement ${PRIORITIES.find(p => p.id === fields.priority)?.label} automation. Set up your tools, build the templates, test the workflow. Target: ${fields.hoursPerWeek ? Math.round(parseInt(fields.hoursPerWeek) * 0.4) + "h/week" : "40%"} of current admin time eliminated.` },
+              { phase: "Days 31–60", action: "Layer in a second automation — if you started with outreach, add payment tracking next. Or if you started with scheduling, add reporting. Stack the systems." },
+              { phase: "Days 61–90", action: `All six areas systematised. ${fields.personaCount ? `Running ${fields.personaCount} personas` : "Your full operation"} on a repeatable weekly rhythm. Admin drops to under 2h/week. The rest goes to content and deals.` },
             ].map(r => (
               <div key={r.phase} className="pd-li"><strong>{r.phase}:</strong> {r.action}</div>
             ))}
 
             <div className="pd-h2">Next Step</div>
             <div className="pd-p">
-              Book a 30-minute automation audit with Cornerstone AI Group. We'll walk through your current stack, identify the three highest-impact automations, and give you a clear implementation plan — no jargon, no fluff.
+              Start with the one tool that addresses your top priority. Don't try to automate everything at once — pick the highest-pain task, build the system, then stack the next one on top.
             </div>
+            {fields.currentTools && (
+              <div className="pd-p">
+                You're already using {fields.currentTools} — good starting point. Most of these automations connect directly to your existing stack without replacing anything.
+              </div>
+            )}
           </div>
         </>
       )}
@@ -2606,53 +2644,66 @@ const OUTREACH_GOALS = [
   "Re-engage a cold lead",
 ];
 
-// ─── PREDICT CUSTOMER NEEDS MODULE ───────────────────────────────────────────
+// ─── CREATOR INTELLIGENCE MODULE ─────────────────────────────────────────────
 function Outreach() {
   const [fields, setFields] = useState({
-    businessName: "",
-    industry: "",
-    customerBase: "",
-    currentData: "",
-    goal: "churn",
-    avgOrderValue: "",
-    crmTool: "",
-    contactName: "",
+    selectedPersonas: [],
+    monthsActive: "",
+    currentFollowers: "",
+    topPillar: "",
+    weakestPillar: "",
+    revenueStreams: [],
+    nextGoal: "brand-deal",
   });
   const [submitted, setSubmitted] = useState(false);
   const set = (k, v) => setFields(f => ({ ...f, [k]: v }));
 
-  const GOALS = [
-    { id: "churn", label: "Predict Churn", desc: "Identify who's about to leave before they do" },
-    { id: "leads", label: "Score Leads", desc: "Find high-quality prospects in your pipeline" },
-    { id: "upsell", label: "Personalise Upsells", desc: "Recommend the right product at the right time" },
-    { id: "ltv", label: "Maximise LTV", desc: "Predict and increase customer lifetime value" },
-    { id: "segment", label: "Smart Segmentation", desc: "Group customers by behaviour, not just demographics" },
-    { id: "pricing", label: "Premium Willingness", desc: "Find who would pay more for specific features" },
+  const togglePersona = (id) =>
+    set("selectedPersonas", fields.selectedPersonas.includes(id)
+      ? fields.selectedPersonas.filter(x => x !== id)
+      : [...fields.selectedPersonas, id]);
+
+  const toggleRevenue = (r) =>
+    set("revenueStreams", fields.revenueStreams.includes(r)
+      ? fields.revenueStreams.filter(x => x !== r)
+      : [...fields.revenueStreams, r]);
+
+  const REVENUE_STREAMS = [
+    "Brand sponsorships", "Affiliate links", "Digital products",
+    "Telegram subscriptions", "Consultation calls", "None yet",
   ];
 
-  const ready = fields.businessName && fields.industry && fields.customerBase;
+  const NEXT_GOALS = [
+    { id: "brand-deal", label: "Land first brand deal", desc: "Get a paid partnership on one of the personas" },
+    { id: "scale-content", label: "Scale content output", desc: "Grow to more personas or more platforms" },
+    { id: "monetise-audience", label: "Monetise existing audience", desc: "Add digital products, Telegram, or affiliate income" },
+    { id: "grow-followers", label: "Grow follower count", desc: "Build the audience before monetising" },
+    { id: "systematise", label: "Systematise operations", desc: "Make the whole operation run with less input" },
+  ];
+
+  const chosenPersonas = PERSONAS.filter(p => fields.selectedPersonas.includes(p.id));
+  const ready = fields.selectedPersonas.length > 0 && fields.nextGoal;
 
   return (
     <div className="mod-shell" style={{ "--mod-c": "var(--c-predict)" }}>
       <div className="mod-hero">
         <div className="mod-badge">
           <div className="mod-badge-dot" />
-          Customer Intelligence
+          Creator Intelligence
         </div>
-        <div className="mod-title">Predict Customer Needs</div>
+        <div className="mod-title">Network Health Check</div>
         <div className="mod-desc">
-          Move beyond guesswork. Use AI to analyse your customer data, predict behaviour, and take action — before your competitors even know there's an opportunity.
+          Tell us where your personas are right now — we'll diagnose what to focus on next and what the growth playbook looks like.
         </div>
       </div>
 
       {!submitted ? (
         <>
-          {/* Stats banner */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 16, marginBottom: 32 }}>
             {[
-              { v: "5–25×", l: "cheaper to retain an existing customer than acquire a new one" },
-              { v: "35%", l: "of Amazon's revenue comes from AI-powered product recommendations" },
-              { v: "89%", l: "of businesses that use AI for customer prediction outperform competitors" },
+              { v: "6–12m", l: "typical time for a niche creator account to land first paid brand deal" },
+              { v: "10K", l: "follower threshold where brand outreach conversion improves significantly" },
+              { v: "3×", l: "more revenue per follower from a focused niche vs broad lifestyle content" },
             ].map(s => (
               <div key={s.l} style={{ background: "var(--s2)", border: "1px solid var(--e1)", borderRadius: "var(--rl)", padding: "20px 22px" }}>
                 <div style={{ fontSize: 32, fontWeight: 800, color: "var(--c-predict)", fontFamily: "var(--mono)", marginBottom: 8, letterSpacing: "-.04em" }}>{s.v}</div>
@@ -2663,63 +2714,94 @@ function Outreach() {
 
           <div className="mod-body">
             <div className="mod-card">
-              <div className="mod-card-title">Your Business<div className="mod-card-title-line" /></div>
+              <div className="mod-card-title">Your Network <div className="mod-card-title-line" /></div>
 
               <div className="mod-field">
-                <label className="mod-label">Business name</label>
-                <input className="mod-input" placeholder="e.g. NorthStar Retail Ltd" value={fields.businessName} onChange={e => set("businessName", e.target.value)} />
+                <label className="mod-label">Which personas are you running?</label>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 6 }}>
+                  {PERSONAS.map(p => (
+                    <button key={p.id}
+                      onClick={() => togglePersona(p.id)}
+                      style={{
+                        display: "flex", alignItems: "center", gap: 12, padding: "10px 14px",
+                        borderRadius: "var(--r)",
+                        border: "1px solid " + (fields.selectedPersonas.includes(p.id) ? p.color : "var(--e2)"),
+                        background: fields.selectedPersonas.includes(p.id) ? p.color + "15" : "var(--s3)",
+                        cursor: "pointer", textAlign: "left", transition: "all .15s",
+                      }}>
+                      <div style={{ width: 8, height: 8, borderRadius: "50%", background: p.color, flexShrink: 0 }} />
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: "var(--t0)" }}>{p.name}</div>
+                        <div style={{ fontSize: 11, color: "var(--t2)", marginTop: 1 }}>{p.niche} · {p.handle}</div>
+                      </div>
+                      {fields.selectedPersonas.includes(p.id) && (
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={p.color} strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                      )}
+                    </button>
+                  ))}
+                </div>
               </div>
+
               <div className="mod-field">
-                <label className="mod-label">Industry</label>
-                <input className="mod-input" placeholder="e.g. E-commerce, SaaS, Financial Services" value={fields.industry} onChange={e => set("industry", e.target.value)} />
-              </div>
-              <div className="mod-field">
-                <label className="mod-label">Customer base size</label>
-                <select className="mod-input" value={fields.customerBase} onChange={e => set("customerBase", e.target.value)}>
-                  <option value="">Select size</option>
-                  {["Under 500","500–2,000","2,000–10,000","10,000–50,000","50,000+"].map(o => <option key={o} value={o}>{o}</option>)}
+                <label className="mod-label">How many months have you been running?</label>
+                <select className="mod-input" value={fields.monthsActive} onChange={e => set("monthsActive", e.target.value)}>
+                  <option value="">Select</option>
+                  {["Under 1 month","1–2 months","3–4 months","5–6 months","7–12 months","Over a year"].map(o => <option key={o} value={o}>{o}</option>)}
                 </select>
               </div>
+
               <div className="mod-field">
-                <label className="mod-label">Average order / contract value</label>
-                <input className="mod-input" placeholder="e.g. £85 per order / £1,200/yr SaaS" value={fields.avgOrderValue} onChange={e => set("avgOrderValue", e.target.value)} />
-              </div>
-              <div className="mod-field">
-                <label className="mod-label">Current CRM or data tool</label>
-                <input className="mod-input" placeholder="e.g. Salesforce, HubSpot, Klaviyo, Shopify" value={fields.crmTool} onChange={e => set("crmTool", e.target.value)} />
-              </div>
-              <div className="mod-field">
-                <label className="mod-label">Your name</label>
-                <input className="mod-input" placeholder="e.g. Marcus Webb" value={fields.contactName} onChange={e => set("contactName", e.target.value)} />
+                <label className="mod-label">Approx. total followers across all personas</label>
+                <select className="mod-input" value={fields.currentFollowers} onChange={e => set("currentFollowers", e.target.value)}>
+                  <option value="">Select</option>
+                  {["Under 500","500–2K","2K–5K","5K–10K","10K–25K","25K–50K","50K+"].map(o => <option key={o} value={o}>{o}</option>)}
+                </select>
               </div>
             </div>
 
             <div className="mod-card">
-              <div className="mod-card-title">What data do you currently collect?<div className="mod-card-title-line" /></div>
+              <div className="mod-card-title">Content & Revenue <div className="mod-card-title-line" /></div>
 
               <div className="mod-field">
-                <textarea className="mod-input mod-ta" style={{ minHeight: 110 }}
-                  placeholder="e.g. Purchase history, email open rates, support tickets, website behaviour, subscription renewals, NPS scores..."
-                  value={fields.currentData} onChange={e => set("currentData", e.target.value)} />
+                <label className="mod-label">Which content pillar is performing best?</label>
+                <input className="mod-input" value={fields.topPillar}
+                  onChange={e => set("topPillar", e.target.value)}
+                  placeholder="e.g. Budget destination deep-dives, honest product reviews" />
+              </div>
+
+              <div className="mod-field">
+                <label className="mod-label">Which pillar feels weakest or hardest to produce?</label>
+                <input className="mod-input" value={fields.weakestPillar}
+                  onChange={e => set("weakestPillar", e.target.value)}
+                  placeholder="e.g. Behind-the-scenes content, long-form YouTube" />
+              </div>
+
+              <div className="mod-field">
+                <label className="mod-label">Current revenue streams</label>
+                <div className="mod-chips" style={{ marginTop: 6 }}>
+                  {REVENUE_STREAMS.map(r => (
+                    <button key={r} className={"mod-chip" + (fields.revenueStreams.includes(r) ? " on" : "")}
+                      onClick={() => toggleRevenue(r)}>{r}</button>
+                  ))}
+                </div>
               </div>
 
               <div className="mod-field" style={{ marginTop: 8 }}>
-                <label className="mod-label">Primary goal</label>
+                <label className="mod-label">Primary goal right now</label>
                 <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 8 }}>
-                  {GOALS.map(g => (
-                    <button
-                      key={g.id}
-                      onClick={() => set("goal", g.id)}
+                  {NEXT_GOALS.map(g => (
+                    <button key={g.id}
+                      onClick={() => set("nextGoal", g.id)}
                       style={{
                         display: "flex", alignItems: "flex-start", gap: 12, padding: "12px 14px",
-                        borderRadius: "var(--r)", border: `1px solid ${fields.goal === g.id ? "var(--c-predict)" : "var(--e2)"}`,
-                        background: fields.goal === g.id ? "color-mix(in srgb,var(--c-predict) 10%,transparent)" : "var(--s3)",
+                        borderRadius: "var(--r)",
+                        border: "1px solid " + (fields.nextGoal === g.id ? "var(--c-predict)" : "var(--e2)"),
+                        background: fields.nextGoal === g.id ? "color-mix(in srgb,var(--c-predict) 10%,transparent)" : "var(--s3)",
                         cursor: "pointer", textAlign: "left", transition: "all .15s",
-                      }}
-                    >
-                      <div style={{ width: 8, height: 8, borderRadius: "50%", background: fields.goal === g.id ? "var(--c-predict)" : "var(--t3)", marginTop: 4, flexShrink: 0 }} />
+                      }}>
+                      <div style={{ width: 8, height: 8, borderRadius: "50%", background: fields.nextGoal === g.id ? "var(--c-predict)" : "var(--t3)", marginTop: 4, flexShrink: 0 }} />
                       <div>
-                        <div style={{ fontSize: 12.5, fontWeight: 600, color: fields.goal === g.id ? "var(--t0)" : "var(--t1)", marginBottom: 2 }}>{g.label}</div>
+                        <div style={{ fontSize: 12.5, fontWeight: 600, color: fields.nextGoal === g.id ? "var(--t0)" : "var(--t1)", marginBottom: 2 }}>{g.label}</div>
                         <div style={{ fontSize: 11, color: "var(--t2)" }}>{g.desc}</div>
                       </div>
                     </button>
@@ -2730,76 +2812,132 @@ function Outreach() {
           </div>
 
           <div className="mod-action-wrap">
-            <button className={`mod-btn${ready ? " ready" : ""}`} disabled={!ready} onClick={() => setSubmitted(true)}>
+            <button className={"mod-btn" + (ready ? " ready" : "")} disabled={!ready} onClick={() => setSubmitted(true)}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
                 <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
                 <line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/>
               </svg>
-              Generate My Customer Intelligence Plan
+              Run Network Health Check
             </button>
-            <div className="mod-hint">We'll map out exactly how to implement predictive AI for your customer base.</div>
+            <div className="mod-hint">We'll diagnose your network and give you the focused next move.</div>
           </div>
         </>
       ) : (
         <>
           <div className="mod-preview-bar">
-            <div className="mod-preview-title">Customer Intelligence Plan — {fields.businessName}</div>
+            <div className="mod-preview-title">Network Health Check — {chosenPersonas.map(p => p.name).join(", ")}</div>
             <button className="btn btn-dim" onClick={() => setSubmitted(false)} style={{ fontSize: 12 }}>← Edit</button>
           </div>
 
           <div className="mod-doc">
-            <div className="pd-h1">Customer Intelligence Plan</div>
+            <div className="pd-h1">Creator Network Health Check</div>
             <div style={{ fontSize: 12, color: "var(--t2)", marginBottom: 24 }}>
-              {fields.contactName || fields.businessName} · {fields.industry} · {fields.customerBase} customers
+              {chosenPersonas.map(p => p.name).join(" · ")} · {fields.monthsActive || "Early stage"} · {fields.currentFollowers || "Growing"} followers
             </div>
 
-            <div className="pd-h2">The Opportunity</div>
+            <div className="pd-h2">Where You Are</div>
             <div className="pd-p">
-              With a customer base of <strong>{fields.customerBase}</strong> and an average value of <strong>{fields.avgOrderValue || "significant revenue per customer"}</strong>, even a 5% improvement in retention or conversion through AI prediction delivers material impact to your bottom line.
+              You're running <strong>{chosenPersonas.length} persona{chosenPersonas.length > 1 ? "s" : ""}</strong> ({chosenPersonas.map(p => p.name + " in " + p.niche).join(", ")})
+              {fields.monthsActive ? " and you're " + fields.monthsActive + " in" : ""}.
+              {fields.currentFollowers ? " Total reach: approximately " + fields.currentFollowers + " followers." : ""}
             </div>
+            {fields.revenueStreams.length > 0 && !fields.revenueStreams.includes("None yet") && (
+              <div className="pd-p">
+                Current revenue streams: <strong>{fields.revenueStreams.join(", ")}</strong>. The goal now is to systematise and scale what's working.
+              </div>
+            )}
+            {(fields.revenueStreams.includes("None yet") || fields.revenueStreams.length === 0) && (
+              <div className="pd-p">
+                No revenue streams yet — that's fine at this stage. The priority is building the content engine and audience quality before monetising.
+              </div>
+            )}
+
+            <div className="pd-h2">Content Diagnosis</div>
+            {fields.topPillar && (
+              <div className="pd-p">
+                <strong>What's working: {fields.topPillar}.</strong> Double down on this. More frequency, more depth, more angles within this pillar.
+              </div>
+            )}
+            {fields.weakestPillar && (
+              <div className="pd-p">
+                <strong>What's weak: {fields.weakestPillar}.</strong> Either systematise it (batch-produce once a week, make it templated) or drop it entirely and reallocate that time to your stronger pillar.
+              </div>
+            )}
+
+            <div className="pd-h2">Your Primary Focus: {NEXT_GOALS.find(g => g.id === fields.nextGoal)?.label}</div>
+            {fields.nextGoal === "brand-deal" && (
+              <div>
+                <div className="pd-p">You're at the stage where brand outreach makes sense. Here's the exact playbook:</div>
+                {[
+                  { step: "1. Build your outreach list", detail: "Identify 20 brands that already partner with creators in your niche. Look at who's sponsoring accounts at your size — they've proven the budget and model." },
+                  { step: "2. Lead with data, not vibes", detail: "Your pitch needs: persona niche, platform, approx. follower count, engagement indicators, and one strong content example. Keep it under 150 words." },
+                  { step: "3. Start with gifting", detail: "Ask for a gifted collaboration first. No money required — they send product, you create. This gets your first brand name on your portfolio." },
+                  { step: "4. Prove it converts", detail: "Include an affiliate link or discount code. When you can show the brand it drove traffic or sales, the paid deal conversation becomes easy." },
+                  { step: "5. Follow up twice", detail: "First email → 5 days → follow up. 5 more days → final follow up. If no response, move on. Consistent follow-up triples response rates." },
+                ].map(r => <div key={r.step} className="pd-li"><strong>{r.step}:</strong> {r.detail}</div>)}
+              </div>
+            )}
+            {fields.nextGoal === "scale-content" && (
+              <div>
+                <div className="pd-p">Scaling content output without losing quality requires systemisation, not more hours:</div>
+                {[
+                  { step: "Sunday batch generation", detail: "Use the Content Hub to generate a full week for all active personas in one session. Don't generate daily — batch everything." },
+                  { step: "One visual style per persona", detail: "Lock the visual identity. Same filters, same text overlays, same colours. Speed comes from not making design decisions every time." },
+                  { step: "Stagger persona launches", detail: "Don't go live with all personas at once. Prove one first (Cara & Lila), then launch the next." },
+                  { step: "Repurpose systematically", detail: "Every TikTok becomes an Instagram Reel. Every Reel gets a still for feed. One piece of content → three posts." },
+                ].map(r => <div key={r.step} className="pd-li"><strong>{r.step}:</strong> {r.detail}</div>)}
+              </div>
+            )}
+            {fields.nextGoal === "monetise-audience" && (
+              <div>
+                <div className="pd-p">You have an audience — now convert it. The order matters:</div>
+                {[
+                  { step: "1. Telegram first", detail: "Lowest barrier. £5–10/month. Direct relationship with your most engaged followers. Promote it every 5–7 posts." },
+                  { step: "2. Digital products second", detail: "Each persona has a natural product. Price under £25 to remove friction. Sell via Gumroad." },
+                  { step: "3. Affiliate third", detail: "Add affiliate links for products you already mention. Amazon Associates or niche-specific programmes." },
+                  { step: "4. Brand deals fourth", detail: "Once you have proof of sales, your brand pitch becomes significantly stronger." },
+                ].map(r => <div key={r.step} className="pd-li"><strong>{r.step}:</strong> {r.detail}</div>)}
+              </div>
+            )}
+            {fields.nextGoal === "grow-followers" && (
+              <div>
+                <div className="pd-p">Growth before monetisation is the right call at your stage. The lever is content consistency on the right pillars:</div>
+                {[
+                  { step: "Post frequency", detail: "Minimum 4x/week per active persona on TikTok. Drop below 3x and the algorithm deprioritises you." },
+                  { step: "Hook quality", detail: "The first 2 seconds determines whether the post gets pushed. Write hooks that create an open loop or specific promise." },
+                  { step: "Trending audio", detail: "Use sounds in the 200K–2M use range. Too new = no reach. Too saturated = buried." },
+                  { step: "Niche consistency", detail: "Stay strictly within your niche for at least 3 months. The algorithm categorises you — mixed content kills reach." },
+                ].map(r => <div key={r.step} className="pd-li"><strong>{r.step}:</strong> {r.detail}</div>)}
+              </div>
+            )}
+            {fields.nextGoal === "systematise" && (
+              <div>
+                <div className="pd-p">The system is the product. Here's the full operational architecture:</div>
+                {[
+                  { step: "Sunday content loop", detail: "Generate → Review queue → Create visuals → Export CSV → Upload Later → Attach images → Approve. 2–3 hours max for all active personas." },
+                  { step: "Brand pipeline tracker", detail: "Notion board: Prospect → Contacted → In negotiation → Confirmed → Live → Paid. One view per persona." },
+                  { step: "Financial tracking", detail: "Stripe for payments. Notion for tracking by persona, campaign, and date. Monthly review: income, cost, net — per persona." },
+                  { step: "Weekly rhythm", detail: "Sunday: generate. Monday: create visuals. Tuesday: upload and schedule. Wednesday–Saturday: posts go live automatically. Repeat." },
+                ].map(r => <div key={r.step} className="pd-li"><strong>{r.step}:</strong> {r.detail}</div>)}
+              </div>
+            )}
+
+            <div className="pd-h2">Next 30 Days — One Move</div>
             <div className="pd-p">
-              PwC research shows businesses using AI to predict customer needs see up to 35% higher revenue from personalisation alone — and the ability to identify who would pay a premium (for sustainability, features, or exclusivity) is unlocking entirely new pricing strategies.
+              Don't try to do everything. The single highest-leverage action right now is: <strong>{NEXT_GOALS.find(g => g.id === fields.nextGoal)?.label}</strong>. Everything else is secondary until you've made meaningful progress on this.
             </div>
-
-            <div className="pd-h2">Your Primary Focus: {GOALS.find(g => g.id === fields.goal)?.label}</div>
-            <div className="pd-p">{GOALS.find(g => g.id === fields.goal)?.desc}. This is the right starting point given your profile — it's measurable, fast to implement, and directly tied to revenue.</div>
-
-            {fields.currentData && <>
-              <div className="pd-h2">Your Data Assets</div>
-              <div className="pd-p" style={{ whiteSpace: "pre-wrap" }}>{fields.currentData}</div>
-              <div className="pd-p">This data is sufficient to begin building predictive models. {fields.crmTool && `Your existing ${fields.crmTool} setup can be connected directly to AI tooling without rebuilding your stack.`}</div>
-            </>}
-
-            <div className="pd-h2">Implementation Roadmap</div>
-            {[
-              { phase: "Phase 1 — Data Audit (Week 1–2)", action: `Map all existing data sources${fields.crmTool ? ` in ${fields.crmTool}` : ""}. Identify gaps. Ensure data quality meets AI modelling standards.` },
-              { phase: "Phase 2 — Model Selection (Week 3–4)", action: `Select and configure the right predictive model for ${GOALS.find(g => g.id === fields.goal)?.label}. Options: built-in CRM AI, third-party tools (Pecan, Akkio, MonkeyLearn), or custom ML.` },
-              { phase: "Phase 3 — Pilot (Month 2)", action: `Run model on a segment of your ${fields.customerBase} customer base. Validate predictions against real outcomes. Refine.` },
-              { phase: "Phase 4 — Full Deployment (Month 3)", action: "Automate predictions into your workflow. Set triggers: e.g. churn risk > 70% → automated retention email. High LTV signal → dedicated account manager outreach." },
-            ].map(r => (
-              <div key={r.phase} className="pd-li"><strong>{r.phase}:</strong> {r.action}</div>
-            ))}
-
-            <div className="pd-h2">Tools We Recommend</div>
-            {[
-              { tool: "Pecan AI", use: "Predictive analytics for non-technical teams — plug into your existing data in days" },
-              { tool: "Klaviyo Predictive Analytics", use: "If you're in e-commerce — churn prediction and CLV built in" },
-              { tool: "HubSpot AI (if you use it)", use: "Lead scoring, deal intelligence, and conversation AI in one platform" },
-              { tool: "Segment + Amplitude", use: "Full customer data platform — unified view across every touchpoint" },
-            ].map(r => (
-              <div key={r.tool} className="pd-li"><strong>{r.tool}:</strong> {r.use}</div>
-            ))}
-
-            <div className="pd-h2">Next Step</div>
-            <div className="pd-p">
-              Book a customer intelligence audit with Cornerstone AI Group. We'll analyse your current data setup, identify the highest-value prediction to implement first, and give you a clear technical roadmap — built specifically for your business, not a generic template.
-            </div>
+            {chosenPersonas.length > 1 && (
+              <div className="pd-p">
+                You're running {chosenPersonas.length} personas. Prove one first — focus the next 30 days on <strong>{chosenPersonas[0].name}</strong> before splitting attention.
+              </div>
+            )}
           </div>
         </>
       )}
     </div>
   );
 }
+
 // ─── PROPOSALS ────────────────────────────────────────────────────────────────
 const DELIVERABLE_OPTIONS = [
   "Dedicated TikTok post (60s)",
@@ -3260,8 +3398,8 @@ function Home({ queue, setView }) {
     },
     {
       id: "outreach",
-      title: "Predict Customer Needs",
-      desc: "Analyse customer behaviour to predict churn, score leads, and surface upsell opportunities before they happen.",
+      title: "Network Health Check",
+      desc: "Diagnose your persona network — content performance, growth stage, and the one move to focus on next.",
       color: "var(--c-predict)",
       icon: (
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
@@ -3273,8 +3411,8 @@ function Home({ queue, setView }) {
     },
     {
       id: "onboarding",
-      title: "Automate Routine Tasks",
-      desc: "Scheduling, inbox management, invoice processing, data entry — handed off to AI so your team focuses on work that matters.",
+      title: "Automate Creator Ops",
+      desc: "Scheduling, brand outreach, payment tracking, community management — mapped out and handed off so you focus on content.",
       color: "var(--c-automate)",
       icon: (
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
