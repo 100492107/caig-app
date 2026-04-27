@@ -3289,13 +3289,7 @@ function LoginGate({ onAuth }) {
       .eq("id", data.user.id)
       .single();
 
-    if (profileError || !profile) {
-      await supabase.auth.signOut();
-      setErr("Profile error: " + (profileError?.message || "not found") + " | uid: " + data.user.id);
-      setBusy(false);
-      return;
-    }
-    if (!profile.is_active) {
+    if (profileError || !profile || !profile.is_active) {
       await supabase.auth.signOut();
       setErr("Your account has been disabled. Contact CAIG support.");
       setBusy(false);
