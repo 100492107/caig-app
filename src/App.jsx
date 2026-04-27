@@ -1430,6 +1430,30 @@ function Autopilot({ queue, setQueue, setView, toast_, dbCreators = [] }) {
       if (i < slots.length - 1) await new Promise((r) => setTimeout(r, 1500));
     }
     setQueue((prev) => [...results, ...prev]);
+
+    // Sync DB-creator content to Supabase so clients can see it in their portal
+    const dbResults = results.filter(item => item.personaId?.startsWith("db_"));
+    if (dbResults.length > 0) {
+      const rows = dbResults.map(item => {
+        const dbCreator = dbCreators.find(c => `db_${c.id}` === item.personaId);
+        return {
+          id:           item.id,
+          persona_id:   item.personaId,
+          persona_name: item.personaName,
+          platform:     item.platform,
+          pillar:       item.pillar,
+          hook:         item.hook || "",
+          caption:      item.caption || "",
+          hashtags:     item.hashtags || "",
+          status:       "ready",
+          client_id:    dbCreator?.client_id || null,
+        };
+      });
+      supabase.from("content_queue").upsert(rows).then(({ error }) => {
+        if (error) console.warn("content_queue sync error:", error.message);
+      });
+    }
+
     setRunning(false);
     toast_(`${results.length} posts generated — open Queue to review`);
     setTimeout(() => setView("queue"), 700);
@@ -3759,17 +3783,22 @@ function DealPipeline() {
 
 // ─── CLIENT PORTAL ────────────────────────────────────────────────────────────
 function ClientPortal({ profile, onSignOut }) {
-  const [creators, setCreators] = useState([]);
-  const [deals, setDeals]       = useState([]);
-  const [loading, setLoading]   = useState(true);
+  const [creators, setCreators]     = useState([]);
+  const [deals, setDeals]           = useState([]);
+  const [content, setContent]       = useState([]);
+  const [loading, setLoading]       = useState(true);
+  const [tab, setTab]               = useState("overview");
+  const [contentFilter, setContentFilter] = useState("all");
 
   useEffect(() => {
     Promise.all([
       supabase.from("creators").select("*").eq("client_id", profile.id),
       supabase.from("deals").select("*, creators(name, handle)").eq("client_id", profile.id).order("created_at", { ascending: false }),
-    ]).then(([{ data: cr }, { data: de }]) => {
+      supabase.from("content_queue").select("*").eq("client_id", profile.id).order("created_at", { ascending: false }),
+    ]).then(([{ data: cr }, { data: de }, { data: co }]) => {
       setCreators(cr || []);
       setDeals(de || []);
+      setContent(co || []);
       setLoading(false);
     });
   }, [profile.id]);
@@ -3784,6 +3813,26 @@ function ClientPortal({ profile, onSignOut }) {
     Travel: "#34D399", Fitness: "#FB923C", Parenting: "#F472B6",
     Gaming: "#818CF8", Football: "#60A5FA", Lifestyle: "#FBBF24", Wellness: "#A78BFA",
   };
+
+  const STATUS_COLORS = { ready: "var(--green)", scheduled: "var(--gold)", posted: "var(--t3)" };
+
+  const filteredContent = contentFilter === "all"
+    ? content
+    : content.filter(c => c.status === contentFilter);
+
+  const TABS = [
+    { id: "overview", label: "Overview" },
+    { id: "content",  label: `Content${content.length > 0 ? ` (${content.length})` : ""}` },
+    { id: "deals",    label: `Deals${deals.length > 0 ? ` (${deals.length})` : ""}` },
+  ];
+
+  const tabBtn = (t) => ({
+    background: tab === t.id ? "var(--e2)" : "transparent",
+    color: tab === t.id ? "var(--t0)" : "var(--t3)",
+    border: tab === t.id ? "1px solid var(--b1)" : "1px solid transparent",
+    borderRadius: 8, padding: "7px 16px", fontSize: 13, fontWeight: 600,
+    cursor: "pointer", transition: "all .15s",
+  });
 
   return (
     <div className="app">
@@ -3826,107 +3875,175 @@ function ClientPortal({ profile, onSignOut }) {
               <div className="home-greeting">{greeting}, {profile.agency_name || ""}.</div>
             </div>
 
-            {/* Stats */}
-            <div className="home-stats">
-              {[
-                { l: "Creators", v: creators.length, c: "var(--t0)" },
-                { l: "Active",   v: activeCreators.length, c: "var(--green)" },
-                { l: "Paused",   v: creators.length - activeCreators.length, c: "var(--t3)" },
-              ].map((s, i) => (
-                <div className="hs" key={i}>
-                  <div className="hs-val" style={{ color: s.c }}>{s.v}</div>
-                  <div className="hs-lbl">{s.l}</div>
-                </div>
+            {/* Tab bar */}
+            <div style={{ display: "flex", gap: 6, marginBottom: 24 }}>
+              {TABS.map(t => (
+                <button key={t.id} style={tabBtn(t)} onClick={() => setTab(t.id)}>{t.label}</button>
               ))}
             </div>
 
-            {/* Creator roster */}
-            <div className="home-card">
-              <div className="home-sh">
-                <span className="home-sh-t">Your Creator Roster</span>
-                <span className="home-sh-ct">{creators.length} creator{creators.length !== 1 ? "s" : ""}</span>
-              </div>
-              {loading ? (
-                <div style={{ color: "var(--t3)", fontSize: 13, padding: "16px 0" }}>Loading…</div>
-              ) : creators.length === 0 ? (
-                <div style={{ color: "var(--t3)", fontSize: 13, padding: "16px 0" }}>
-                  No creators added yet. Contact CAIG to get your roster set up.
-                </div>
-              ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 4 }}>
-                  {creators.map(c => (
-                    <div key={c.id} style={{
-                      background: "var(--e2)", borderRadius: 10, padding: "14px 16px",
-                      display: "flex", alignItems: "center", gap: 14,
-                    }}>
-                      <div style={{
-                        width: 38, height: 38, borderRadius: "50%", flexShrink: 0,
-                        background: `${NICHE_COLORS[c.niche] || "#888"}22`,
-                        border: `2px solid ${NICHE_COLORS[c.niche] || "#888"}44`,
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        fontSize: 15, fontWeight: 700, color: NICHE_COLORS[c.niche] || "#888",
-                      }}>
-                        {(c.name || "?")[0]}
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 14, fontWeight: 600, color: "var(--t1)" }}>{c.name}</div>
-                        <div style={{ fontSize: 12, color: "var(--t3)", marginTop: 2 }}>
-                          {c.handle && <span style={{ marginRight: 10 }}>{c.handle}</span>}
-                          {c.niche && <span style={{ marginRight: 10 }}>{c.niche}</span>}
-                          {c.platform && <span>{c.platform}</span>}
-                        </div>
-                      </div>
-                      {c.follower_count && (
-                        <div style={{ fontSize: 12, color: "var(--t3)", textAlign: "right" }}>
-                          <div style={{ fontWeight: 600, color: "var(--t2)", fontSize: 13 }}>{Number(c.follower_count).toLocaleString()}</div>
-                          <div>followers</div>
-                        </div>
-                      )}
-                      <div style={{
-                        fontSize: 11, padding: "3px 10px", borderRadius: 20, fontWeight: 600,
-                        background: c.is_active ? "rgba(52,211,153,.12)" : "rgba(239,68,68,.1)",
-                        color: c.is_active ? "var(--green)" : "var(--red)",
-                      }}>
-                        {c.is_active ? "Active" : "Paused"}
-                      </div>
+            {/* ── OVERVIEW TAB ── */}
+            {tab === "overview" && (
+              <>
+                <div className="home-stats">
+                  {[
+                    { l: "Creators",  v: creators.length,       c: "var(--t0)" },
+                    { l: "Active",    v: activeCreators.length,  c: "var(--green)" },
+                    { l: "Deals",     v: deals.length,           c: "var(--gold)" },
+                    { l: "Content",   v: content.length,         c: "var(--c-proposals)" },
+                  ].map((s, i) => (
+                    <div className="hs" key={i}>
+                      <div className="hs-val" style={{ color: s.c }}>{s.v}</div>
+                      <div className="hs-lbl">{s.l}</div>
                     </div>
                   ))}
                 </div>
-              )}
-            </div>
 
-            {/* Brand deals */}
-            {deals.length > 0 && (
-              <div className="home-card">
-                <div className="home-sh">
-                  <span className="home-sh-t">Brand Deal Pipeline</span>
-                  <span className="home-sh-ct">{deals.length} deal{deals.length !== 1 ? "s" : ""}</span>
-                </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 4 }}>
-                  {deals.map(d => (
-                    <div key={d.id} style={{ display: "flex", alignItems: "center", gap: 12, background: "var(--e2)", borderRadius: 9, padding: "11px 14px" }}>
-                      <div style={{ width: 4, alignSelf: "stretch", borderRadius: 4, background: STAGE_COLORS[d.stage] || "#888", flexShrink: 0 }} />
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 13, fontWeight: 700, color: "var(--t0)" }}>{d.brand_name}
-                          {d.deal_value && <span style={{ fontWeight: 600, color: "var(--gold)", marginLeft: 10 }}>£{Number(d.deal_value).toLocaleString()}</span>}
-                        </div>
-                        {d.creators?.name && <div style={{ fontSize: 11, color: "var(--t3)", marginTop: 2 }}>{d.creators.name}{d.creators.handle ? ` · ${d.creators.handle}` : ""}</div>}
-                      </div>
-                      <div style={{ fontSize: 11, padding: "3px 10px", borderRadius: 20, fontWeight: 600, background: `${STAGE_COLORS[d.stage] || "#888"}22`, color: STAGE_COLORS[d.stage] || "#888" }}>
-                        {d.stage}
-                      </div>
+                {/* Creator roster */}
+                <div className="home-card">
+                  <div className="home-sh">
+                    <span className="home-sh-t">Your Creator Roster</span>
+                    <span className="home-sh-ct">{creators.length} creator{creators.length !== 1 ? "s" : ""}</span>
+                  </div>
+                  {loading ? (
+                    <div style={{ color: "var(--t3)", fontSize: 13, padding: "16px 0" }}>Loading…</div>
+                  ) : creators.length === 0 ? (
+                    <div style={{ color: "var(--t3)", fontSize: 13, padding: "16px 0" }}>
+                      No creators added yet. Contact CAIG to get your roster set up.
                     </div>
-                  ))}
+                  ) : (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 4 }}>
+                      {creators.map(c => (
+                        <div key={c.id} style={{ background: "var(--e2)", borderRadius: 10, padding: "14px 16px", display: "flex", alignItems: "center", gap: 14 }}>
+                          <div style={{ width: 38, height: 38, borderRadius: "50%", flexShrink: 0, background: `${NICHE_COLORS[c.niche] || "#888"}22`, border: `2px solid ${NICHE_COLORS[c.niche] || "#888"}44`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, fontWeight: 700, color: NICHE_COLORS[c.niche] || "#888" }}>
+                            {(c.name || "?")[0]}
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: 14, fontWeight: 600, color: "var(--t1)" }}>{c.name}</div>
+                            <div style={{ fontSize: 12, color: "var(--t3)", marginTop: 2 }}>
+                              {c.handle && <span style={{ marginRight: 10 }}>{c.handle}</span>}
+                              {c.niche && <span style={{ marginRight: 10 }}>{c.niche}</span>}
+                              {c.platform && <span>{c.platform}</span>}
+                            </div>
+                          </div>
+                          {c.follower_count && (
+                            <div style={{ fontSize: 12, color: "var(--t3)", textAlign: "right" }}>
+                              <div style={{ fontWeight: 600, color: "var(--t2)", fontSize: 13 }}>{Number(c.follower_count).toLocaleString()}</div>
+                              <div>followers</div>
+                            </div>
+                          )}
+                          <div style={{ fontSize: 11, padding: "3px 10px", borderRadius: 20, fontWeight: 600, background: c.is_active ? "rgba(52,211,153,.12)" : "rgba(239,68,68,.1)", color: c.is_active ? "var(--green)" : "var(--red)" }}>
+                            {c.is_active ? "Active" : "Paused"}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              </div>
+
+                {/* Recent content preview */}
+                {content.length > 0 && (
+                  <div className="home-card">
+                    <div className="home-sh">
+                      <span className="home-sh-t">Recent Content</span>
+                      <button style={{ background: "none", border: "none", color: "var(--gold)", fontSize: 12, fontWeight: 600, cursor: "pointer" }} onClick={() => setTab("content")}>View all →</button>
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 4 }}>
+                      {content.slice(0, 3).map(c => (
+                        <div key={c.id} style={{ background: "var(--e2)", borderRadius: 9, padding: "12px 14px" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                            <div style={{ fontSize: 11, fontWeight: 600, color: "var(--t3)", textTransform: "uppercase", letterSpacing: ".05em" }}>{c.persona_name} · {c.platform}</div>
+                            <div style={{ marginLeft: "auto", fontSize: 11, padding: "2px 8px", borderRadius: 12, fontWeight: 600, background: `${STATUS_COLORS[c.status] || "#888"}22`, color: STATUS_COLORS[c.status] || "#888" }}>{c.status}</div>
+                          </div>
+                          <div style={{ fontSize: 13, fontWeight: 600, color: "var(--t1)", lineHeight: 1.4 }}>{c.hook}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* System status */}
+                <div className="home-status">
+                  <div className="hsb-item"><span className="hsb-dot g" />AI Content Engine · Active</div>
+                  <div className="hsb-item"><span className="hsb-dot g" />Cornerstone AI Group · Managing your system</div>
+                  <div className="hsb-item"><span className="hsb-dot a" />Questions? hello@cornerstoneaigroup.com</div>
+                </div>
+              </>
             )}
 
-            {/* System status */}
-            <div className="home-status">
-              <div className="hsb-item"><span className="hsb-dot g" />AI Content Engine · Active</div>
-              <div className="hsb-item"><span className="hsb-dot g" />Cornerstone AI Group · Managing your system</div>
-              <div className="hsb-item"><span className="hsb-dot a" />Questions? hello@cornerstoneaigroup.com</div>
-            </div>
+            {/* ── CONTENT TAB ── */}
+            {tab === "content" && (
+              <>
+                {/* Filter bar */}
+                <div style={{ display: "flex", gap: 6, marginBottom: 16 }}>
+                  {["all", "ready", "scheduled", "posted"].map(f => (
+                    <button key={f} onClick={() => setContentFilter(f)} style={{ background: contentFilter === f ? "var(--gold)" : "var(--e2)", color: contentFilter === f ? "#000" : "var(--t3)", border: "1px solid var(--b1)", borderRadius: 7, padding: "5px 13px", fontSize: 12, fontWeight: 600, cursor: "pointer", textTransform: "capitalize" }}>
+                      {f}
+                    </button>
+                  ))}
+                </div>
+
+                {loading ? (
+                  <div style={{ color: "var(--t3)", fontSize: 13 }}>Loading…</div>
+                ) : filteredContent.length === 0 ? (
+                  <div style={{ color: "var(--t3)", fontSize: 13, padding: "24px 0" }}>
+                    {content.length === 0
+                      ? "No content generated yet. CAIG will generate content for your creators and it will appear here."
+                      : "No content matching this filter."}
+                  </div>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                    {filteredContent.map(c => (
+                      <div key={c.id} style={{ background: "var(--e1)", border: "1px solid var(--b1)", borderRadius: 12, padding: "18px 20px" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                          <div style={{ fontSize: 11, fontWeight: 700, color: "var(--t3)", textTransform: "uppercase", letterSpacing: ".06em" }}>
+                            {c.persona_name} · {c.platform}
+                          </div>
+                          <div style={{ marginLeft: "auto", fontSize: 11, padding: "3px 10px", borderRadius: 12, fontWeight: 600, background: `${STATUS_COLORS[c.status] || "#888"}22`, color: STATUS_COLORS[c.status] || "#888" }}>
+                            {c.status}
+                          </div>
+                        </div>
+                        {c.pillar && <div style={{ fontSize: 11, color: "var(--t4)", marginBottom: 8, fontStyle: "italic" }}>{c.pillar}</div>}
+                        {c.hook && <div style={{ fontSize: 14, fontWeight: 700, color: "var(--t0)", marginBottom: 8, lineHeight: 1.45 }}>{c.hook}</div>}
+                        {c.caption && <div style={{ fontSize: 13, color: "var(--t2)", lineHeight: 1.6, whiteSpace: "pre-wrap", marginBottom: 8 }}>{c.caption}</div>}
+                        {c.hashtags && <div style={{ fontSize: 11, color: "var(--t3)" }}>{c.hashtags}</div>}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* ── DEALS TAB ── */}
+            {tab === "deals" && (
+              <>
+                {loading ? (
+                  <div style={{ color: "var(--t3)", fontSize: 13 }}>Loading…</div>
+                ) : deals.length === 0 ? (
+                  <div style={{ color: "var(--t3)", fontSize: 13, padding: "24px 0" }}>No deals in pipeline yet.</div>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                    {deals.map(d => (
+                      <div key={d.id} style={{ display: "flex", alignItems: "center", gap: 12, background: "var(--e1)", border: "1px solid var(--b1)", borderRadius: 12, padding: "14px 16px" }}>
+                        <div style={{ width: 4, alignSelf: "stretch", borderRadius: 4, background: STAGE_COLORS[d.stage] || "#888", flexShrink: 0 }} />
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: 14, fontWeight: 700, color: "var(--t0)" }}>
+                            {d.brand_name}
+                            {d.deal_value && <span style={{ fontWeight: 600, color: "var(--gold)", marginLeft: 10 }}>£{Number(d.deal_value).toLocaleString()}</span>}
+                          </div>
+                          {d.creators?.name && <div style={{ fontSize: 12, color: "var(--t3)", marginTop: 3 }}>{d.creators.name}{d.creators.handle ? ` · ${d.creators.handle}` : ""}</div>}
+                          {d.notes && <div style={{ fontSize: 12, color: "var(--t3)", marginTop: 4, fontStyle: "italic" }}>{d.notes}</div>}
+                        </div>
+                        <div style={{ fontSize: 11, padding: "4px 12px", borderRadius: 20, fontWeight: 600, background: `${STAGE_COLORS[d.stage] || "#888"}22`, color: STAGE_COLORS[d.stage] || "#888", flexShrink: 0 }}>
+                          {d.stage}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+
           </div>
         </div>
       </div>
