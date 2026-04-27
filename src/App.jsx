@@ -3536,6 +3536,177 @@ function Home({ queue, setView }) {
   );
 }
 
+// ─── ADMIN PANEL ──────────────────────────────────────────────────────────────
+function AdminPanel() {
+  const [clients, setClients]   = useState([]);
+  const [loading, setLoading]   = useState(true);
+  const [creating, setCreating] = useState(false);
+  const [form, setForm]         = useState({ email: "", agency_name: "", password: "" });
+  const [formErr, setFormErr]   = useState("");
+  const [formOk, setFormOk]     = useState("");
+  const [busy, setBusy]         = useState(false);
+
+  async function load() {
+    setLoading(true);
+    const { data } = await supabase.from("profiles").select("*").order("created_at", { ascending: false });
+    setClients(data || []);
+    setLoading(false);
+  }
+
+  useEffect(() => { load(); }, []);
+
+  async function toggleActive(client) {
+    await supabase.from("profiles").update({ is_active: !client.is_active }).eq("id", client.id);
+    load();
+  }
+
+  async function createClient(e) {
+    e.preventDefault();
+    if (!form.email || !form.agency_name || !form.password) { setFormErr("All fields required."); return; }
+    setBusy(true); setFormErr(""); setFormOk("");
+    // Create auth user via Supabase admin signup
+    const { data, error } = await supabase.auth.signUp({
+      email: form.email,
+      password: form.password,
+      options: { emailRedirectTo: null }
+    });
+    if (error) { setFormErr(error.message); setBusy(false); return; }
+    // Update the auto-created profile row
+    await supabase.from("profiles").update({
+      agency_name: form.agency_name,
+      role: "client",
+      is_active: true,
+    }).eq("id", data.user.id);
+    setFormOk("Client account created successfully.");
+    setForm({ email: "", agency_name: "", password: "" });
+    setBusy(false);
+    setCreating(false);
+    load();
+  }
+
+  return (
+    <div style={{ maxWidth: 900, margin: "0 auto", padding: "0 0 60px" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 28 }}>
+        <div>
+          <div style={{ fontSize: 22, fontWeight: 700, color: "var(--t0)", letterSpacing: "-.02em" }}>Client Accounts</div>
+          <div style={{ fontSize: 13, color: "var(--t3)", marginTop: 3 }}>Manage client access to the portal</div>
+        </div>
+        <button
+          onClick={() => { setCreating(c => !c); setFormErr(""); setFormOk(""); }}
+          style={{
+            background: creating ? "var(--e2)" : "var(--gold)", color: creating ? "var(--t2)" : "#000",
+            border: "none", borderRadius: 8, padding: "9px 18px", fontSize: 13, fontWeight: 600, cursor: "pointer"
+          }}
+        >
+          {creating ? "Cancel" : "+ New Client"}
+        </button>
+      </div>
+
+      {creating && (
+        <form onSubmit={createClient} style={{
+          background: "var(--e1)", border: "1px solid var(--b1)", borderRadius: 12,
+          padding: "24px 28px", marginBottom: 28,
+        }}>
+          <div style={{ fontSize: 14, fontWeight: 600, color: "var(--t1)", marginBottom: 16 }}>Create New Client Account</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
+            <input
+              placeholder="Agency name"
+              value={form.agency_name}
+              onChange={e => setForm(f => ({ ...f, agency_name: e.target.value }))}
+              style={{ background: "var(--e2)", border: "1px solid var(--b1)", borderRadius: 8, padding: "9px 12px", color: "var(--t1)", fontSize: 13, outline: "none" }}
+            />
+            <input
+              placeholder="Email address"
+              type="email"
+              value={form.email}
+              onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+              style={{ background: "var(--e2)", border: "1px solid var(--b1)", borderRadius: 8, padding: "9px 12px", color: "var(--t1)", fontSize: 13, outline: "none" }}
+            />
+          </div>
+          <input
+            placeholder="Temporary password"
+            type="password"
+            value={form.password}
+            onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
+            style={{ width: "100%", boxSizing: "border-box", background: "var(--e2)", border: "1px solid var(--b1)", borderRadius: 8, padding: "9px 12px", color: "var(--t1)", fontSize: 13, outline: "none", marginBottom: 12 }}
+          />
+          {formErr && <div style={{ color: "var(--red)", fontSize: 12, marginBottom: 10 }}>{formErr}</div>}
+          {formOk  && <div style={{ color: "var(--green)", fontSize: 12, marginBottom: 10 }}>{formOk}</div>}
+          <button
+            type="submit"
+            disabled={busy}
+            style={{
+              background: "var(--gold)", color: "#000", border: "none", borderRadius: 8,
+              padding: "9px 20px", fontSize: 13, fontWeight: 600, cursor: busy ? "not-allowed" : "pointer", opacity: busy ? .5 : 1
+            }}
+          >
+            {busy ? "Creating…" : "Create Account"}
+          </button>
+        </form>
+      )}
+
+      {formOk && !creating && (
+        <div style={{ background: "rgba(52,211,153,.1)", border: "1px solid rgba(52,211,153,.25)", borderRadius: 8, padding: "10px 14px", fontSize: 13, color: "var(--green)", marginBottom: 20 }}>{formOk}</div>
+      )}
+
+      {loading ? (
+        <div style={{ color: "var(--t3)", fontSize: 13, padding: 20 }}>Loading…</div>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {clients.map(c => (
+            <div key={c.id} style={{
+              background: "var(--e1)", border: "1px solid var(--b1)", borderRadius: 12,
+              padding: "16px 20px", display: "flex", alignItems: "center", gap: 16,
+            }}>
+              <div style={{
+                width: 36, height: 36, borderRadius: "50%",
+                background: c.role === "admin" ? "rgba(245,166,35,.15)" : "var(--e2)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 14, fontWeight: 700, color: c.role === "admin" ? "var(--gold)" : "var(--t2)",
+                flexShrink: 0,
+              }}>
+                {(c.agency_name || c.email || "?")[0].toUpperCase()}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 14, fontWeight: 600, color: "var(--t1)" }}>{c.agency_name || "—"}</div>
+                <div style={{ fontSize: 12, color: "var(--t3)", marginTop: 2 }}>{c.email}</div>
+              </div>
+              <div style={{
+                fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: ".06em",
+                color: c.role === "admin" ? "var(--gold)" : "var(--t4)", marginRight: 8,
+              }}>
+                {c.role}
+              </div>
+              <div style={{
+                fontSize: 11, padding: "3px 10px", borderRadius: 20, fontWeight: 600,
+                background: c.is_active ? "rgba(52,211,153,.12)" : "rgba(239,68,68,.12)",
+                color: c.is_active ? "var(--green)" : "var(--red)",
+                marginRight: 8,
+              }}>
+                {c.is_active ? "Active" : "Disabled"}
+              </div>
+              {c.role !== "admin" && (
+                <button
+                  onClick={() => toggleActive(c)}
+                  style={{
+                    background: "var(--e2)", border: "1px solid var(--b1)", borderRadius: 7,
+                    padding: "6px 14px", fontSize: 12, fontWeight: 600, color: "var(--t2)", cursor: "pointer",
+                  }}
+                >
+                  {c.is_active ? "Disable" : "Enable"}
+                </button>
+              )}
+            </div>
+          ))}
+          {clients.length === 0 && (
+            <div style={{ color: "var(--t3)", fontSize: 13, padding: 20 }}>No accounts yet.</div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── APP ──────────────────────────────────────────────────────────────────────
 // ─── MODULE ACCENT COLOURS ────────────────────────────────────────────────────
 const MODULE_COLORS = {
@@ -3689,6 +3860,17 @@ export default function App() {
           <button className={`tni${view === "onboarding" ? " on" : ""}`} onClick={() => setView("onboarding")}>
             {IcOnboarding} Automate Tasks
           </button>
+          {profile?.role === "admin" && (
+            <button className={`tni${view === "admin" ? " on" : ""}`} onClick={() => setView("admin")}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+              Clients
+            </button>
+          )}
           <button className={`tni${view === "queue" ? " on" : ""}`} onClick={() => setView("queue")}>
             {Ic.list} Queue {ready > 0 && <span className="nb">{ready}</span>}
           </button>
@@ -3746,6 +3928,7 @@ export default function App() {
           {view === "queue"      && <Queue queue={queue} setQueue={setQueue} toast_={toast_} />}
           {view === "calendar"   && <CalView queue={queue} />}
           {view === "settings"   && <Settings queue={queue} setQueue={setQueue} toast_={toast_} />}
+          {view === "admin"      && profile?.role === "admin" && <AdminPanel />}
         </div>
       </div>
 
