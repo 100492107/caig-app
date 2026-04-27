@@ -3937,7 +3937,7 @@ function ClientPortal({ profile, onSignOut }) {
 // ─── ADMIN PANEL ──────────────────────────────────────────────────────────────
 const BLANK_CREATOR = { name: "", handle: "", niche: "", platform: "", follower_count: "", voice: "", pillars: "", brand_fit: "" };
 const NICHES    = ["Travel", "Fitness", "Parenting", "Gaming", "Football", "Lifestyle", "Wellness", "Finance", "Beauty", "Food", "Tech", "Other"];
-const PLATFORMS = ["TikTok", "Instagram", "YouTube", "Twitter/X", "LinkedIn", "Twitch", "Pinterest", "Multi-platform"];
+const CREATOR_PLATFORMS = ["TikTok", "Instagram", "YouTube", "Twitter/X", "LinkedIn", "Twitch", "Pinterest", "Multi-platform"];
 
 function CreatorForm({ clientId, onSaved, onCancel }) {
   const [form, setForm] = useState(BLANK_CREATOR);
@@ -3987,7 +3987,7 @@ function CreatorForm({ clientId, onSaved, onCancel }) {
         </select>
         <select {...inp("platform")} style={S}>
           <option value="">Platform *</option>
-          {PLATFORMS.map(p => <option key={p} value={p}>{p}</option>)}
+          {CREATOR_PLATFORMS.map(p => <option key={p} value={p}>{p}</option>)}
         </select>
         <input placeholder="Follower count" {...inp("follower_count")} />
       </div>
@@ -4111,6 +4111,191 @@ function ClientRow({ client, onToggle }) {
             </div>
           )}
         </div>
+      )}
+    </div>
+  );
+}
+
+// ─── WEEKLY REPORTS ───────────────────────────────────────────────────────────
+function WeeklyReports() {
+  const [clients, setClients]   = useState([]);
+  const [selected, setSelected] = useState(null); // profile id
+  const [report, setReport]     = useState(null);
+  const [loading, setLoading]   = useState(true);
+  const [building, setBuilding] = useState(false);
+  const [copied, setCopied]     = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("id, agency_name, email")
+        .eq("role", "client")
+        .eq("is_active", true)
+        .order("agency_name");
+      setClients(data || []);
+      setLoading(false);
+    })();
+  }, []);
+
+  async function buildReport(clientId) {
+    setBuilding(true);
+    setReport(null);
+    setCopied(false);
+    const client = clients.find(c => c.id === clientId);
+
+    const [{ data: creators }, { data: deals }] = await Promise.all([
+      supabase.from("creators").select("*").eq("client_id", clientId).eq("is_active", true),
+      supabase.from("deals").select("*, creators(name)").eq("client_id", clientId).order("created_at", { ascending: false }),
+    ]);
+
+    const cr = creators || [];
+    const dl = deals || [];
+
+    const confirmedValue = dl
+      .filter(d => d.stage === "Confirmed" || d.stage === "Live")
+      .reduce((s, d) => s + (d.deal_value || 0), 0);
+
+    const pipelineValue = dl
+      .filter(d => !["Rejected", "Closed"].includes(d.stage))
+      .reduce((s, d) => s + (d.deal_value || 0), 0);
+
+    const stageGroups = {};
+    dl.forEach(d => {
+      if (!stageGroups[d.stage]) stageGroups[d.stage] = [];
+      stageGroups[d.stage].push(d);
+    });
+
+    const weekStr = new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+
+    const lines = [
+      `WEEKLY REPORT — ${(client?.agency_name || "Client").toUpperCase()}`,
+      `Week ending ${weekStr}`,
+      ``,
+      `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+      `CREATOR ROSTER (${cr.length} active)`,
+      `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+      ...cr.map(c =>
+        `• ${c.name} (${c.handle || "—"}) · ${c.niche || "—"} · ${c.platform || "—"}${c.follower_count ? ` · ${Number(c.follower_count).toLocaleString()} followers` : ""}`
+      ),
+      cr.length === 0 ? "  No active creators on roster." : "",
+      ``,
+      `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+      `BRAND DEAL PIPELINE`,
+      `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+      `Pipeline total:  £${pipelineValue.toLocaleString()}`,
+      `Confirmed / Live: £${confirmedValue.toLocaleString()}`,
+      ``,
+      ...Object.entries(stageGroups).map(([stage, ds]) =>
+        [`  ${stage.toUpperCase()} (${ds.length})`,
+          ...ds.map(d => `    - ${d.brand_name}${d.creators?.name ? ` × ${d.creators.name}` : ""}${d.deal_value ? ` · £${Number(d.deal_value).toLocaleString()}` : ""}${d.notes ? `  "${d.notes}"` : ""}`)
+        ].join("\n")
+      ),
+      dl.length === 0 ? "  No deals in pipeline." : "",
+      ``,
+      `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+      `NOTES`,
+      `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+      `[Add your weekly notes here before sending]`,
+      ``,
+      `— Cornerstone AI Group`,
+      `   hello@cornerstoneaigroup.com`,
+    ];
+
+    setReport({ text: lines.join("\n"), client, cr, dl, confirmedValue, pipelineValue });
+    setBuilding(false);
+  }
+
+  function copyReport() {
+    if (!report) return;
+    navigator.clipboard.writeText(report.text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
+
+  const cardStyle = { background: "var(--e1)", border: "1px solid var(--b1)", borderRadius: 12, padding: "20px 24px", marginBottom: 16 };
+  const labelStyle = { fontSize: 11, fontWeight: 600, color: "var(--t3)", textTransform: "uppercase", letterSpacing: ".06em", marginBottom: 6 };
+
+  return (
+    <div style={{ maxWidth: 900, margin: "0 auto", padding: "0 0 60px" }}>
+      <div style={{ marginBottom: 28 }}>
+        <div style={{ fontSize: 22, fontWeight: 700, color: "var(--t0)", letterSpacing: "-.02em" }}>Weekly Reports</div>
+        <div style={{ fontSize: 13, color: "var(--t3)", marginTop: 3 }}>Generate a per-client weekly summary — copy and send via email</div>
+      </div>
+
+      {loading ? (
+        <div style={{ color: "var(--t3)", fontSize: 13 }}>Loading clients…</div>
+      ) : clients.length === 0 ? (
+        <div style={{ color: "var(--t3)", fontSize: 13 }}>No active clients found.</div>
+      ) : (
+        <>
+          {/* Client selector */}
+          <div style={cardStyle}>
+            <div style={labelStyle}>Select Client</div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              {clients.map(c => (
+                <button
+                  key={c.id}
+                  onClick={() => { setSelected(c.id); buildReport(c.id); }}
+                  style={{
+                    background: selected === c.id ? "var(--gold)" : "var(--e2)",
+                    color: selected === c.id ? "#000" : "var(--t1)",
+                    border: "1px solid var(--b1)",
+                    borderRadius: 8, padding: "8px 16px",
+                    fontSize: 13, fontWeight: 600, cursor: "pointer",
+                  }}
+                >
+                  {c.agency_name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {building && (
+            <div style={{ color: "var(--t3)", fontSize: 13, padding: "12px 0" }}>Building report…</div>
+          )}
+
+          {report && (
+            <>
+              {/* Summary cards */}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 12, marginBottom: 16 }}>
+                {[
+                  { l: "Active Creators", v: report.cr.length, c: "var(--t0)" },
+                  { l: "Total Deals", v: report.dl.length, c: "var(--gold)" },
+                  { l: "Pipeline Value", v: `£${report.pipelineValue.toLocaleString()}`, c: "var(--c-proposals)" },
+                  { l: "Confirmed / Live", v: `£${report.confirmedValue.toLocaleString()}`, c: "var(--green)" },
+                ].map(s => (
+                  <div key={s.l} style={{ background: "var(--e1)", border: "1px solid var(--b1)", borderRadius: 10, padding: "14px 18px" }}>
+                    <div style={{ fontSize: 11, color: "var(--t3)", fontWeight: 600, textTransform: "uppercase", letterSpacing: ".06em", marginBottom: 4 }}>{s.l}</div>
+                    <div style={{ fontSize: 22, fontWeight: 700, color: s.c }}>{s.v}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Report text */}
+              <div style={cardStyle}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+                  <div style={labelStyle}>Report — {report.client?.agency_name}</div>
+                  <button
+                    onClick={copyReport}
+                    style={{ background: copied ? "var(--green)" : "var(--gold)", color: "#000", border: "none", borderRadius: 7, padding: "7px 16px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}
+                  >
+                    {copied ? "Copied!" : "Copy Report"}
+                  </button>
+                </div>
+                <pre style={{
+                  fontFamily: "monospace", fontSize: 12, color: "var(--t2)",
+                  background: "var(--e2)", borderRadius: 8, padding: "16px 18px",
+                  whiteSpace: "pre-wrap", wordBreak: "break-word", margin: 0,
+                  lineHeight: 1.7, maxHeight: 520, overflowY: "auto",
+                }}>
+                  {report.text}
+                </pre>
+              </div>
+            </>
+          )}
+        </>
       )}
     </div>
   );
@@ -4398,6 +4583,18 @@ export default function App() {
               Deals
             </button>
           )}
+          {profile?.role === "admin" && (
+            <button className={`tni${view === "reports" ? " on" : ""}`} onClick={() => setView("reports")}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+                <polyline points="10 9 9 9 8 9"/>
+              </svg>
+              Reports
+            </button>
+          )}
           <button className={`tni${view === "queue" ? " on" : ""}`} onClick={() => setView("queue")}>
             {Ic.list} Queue {ready > 0 && <span className="nb">{ready}</span>}
           </button>
@@ -4457,6 +4654,7 @@ export default function App() {
           {view === "settings"   && <Settings queue={queue} setQueue={setQueue} toast_={toast_} />}
           {view === "admin"      && profile?.role === "admin" && <AdminPanel />}
           {view === "deals"      && profile?.role === "admin" && <DealPipeline />}
+          {view === "reports"    && profile?.role === "admin" && <WeeklyReports />}
         </div>
       </div>
 
