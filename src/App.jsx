@@ -2801,17 +2801,19 @@ function Outreach() {
   );
 }
 // ─── PROPOSALS ────────────────────────────────────────────────────────────────
-const SERVICES_LIST = [
-  "Social Media Management",
-  "Content Creation",
-  "SEO & Blogging",
-  "Paid Ads (Meta / Google)",
-  "Email Marketing",
-  "Brand Strategy",
-  "Website Design",
-  "Video Production",
-  "PR & Outreach",
-  "Analytics & Reporting",
+const DELIVERABLE_OPTIONS = [
+  "Dedicated TikTok post (60s)",
+  "Instagram Reel (30s)",
+  "YouTube Short (60s)",
+  "Instagram static post + caption",
+  "Instagram Story sequence (3 frames)",
+  "YouTube integration (60s mid-roll)",
+  "Pinned comment / link-in-bio",
+  "Telegram community mention",
+  "Digital product bundle inclusion",
+  "Dedicated review post",
+  "30-day content series",
+  "Giveaway collaboration",
 ];
 
 const IcCheck = (
@@ -2868,191 +2870,173 @@ function openPrint(title, content, accentHex) {
 
 function Proposals() {
   const [fields, setFields] = useState({
-    clientName: "",
-    company: "",
-    website: "",
-    goals: "",
+    brandName: "",
+    brandWebsite: "",
+    brandContact: "",
+    brandProduct: "",
+    campaignGoal: "",
     budget: "",
     timeline: "",
-    services: [],
-    extra: "",
-    agencyName: "Cornerstone AI Group",
+    selectedPersonas: [],
+    deliverables: [],
+    notes: "",
     preparedBy: "",
     date: new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }),
   });
   const [preview, setPreview] = useState(false);
-
   const set = (k, v) => setFields(f => ({ ...f, [k]: v }));
 
-  const toggleService = (s) =>
-    set("services", fields.services.includes(s)
-      ? fields.services.filter(x => x !== s)
-      : [...fields.services, s]);
+  const togglePersona = (id) =>
+    set("selectedPersonas", fields.selectedPersonas.includes(id)
+      ? fields.selectedPersonas.filter(x => x !== id)
+      : [...fields.selectedPersonas, id]);
 
-  const ready = fields.clientName && fields.company && fields.services.length > 0;
+  const toggleDeliverable = (d) =>
+    set("deliverables", fields.deliverables.includes(d)
+      ? fields.deliverables.filter(x => x !== d)
+      : [...fields.deliverables, d]);
 
-  // ── Proposal text builder ──────────────────────────────────────────────────
-  const buildProposal = () => {
-    const svcList = fields.services.map(s => `  • ${s}`).join("\n");
+  const ready = fields.brandName && fields.selectedPersonas.length > 0 && fields.deliverables.length > 0;
+
+  const chosenPersonas = PERSONAS.filter(p => fields.selectedPersonas.includes(p.id));
+
+  const buildDeck = () => {
+    const personaSection = chosenPersonas.map(p => {
+      const platforms = ["TikTok", "Instagram", "YouTube"].join(", ");
+      return `## ${p.name} — ${p.niche} Creator
+
+**Handle:** ${p.handle}
+**Niche:** ${p.niche}
+**Platforms:** ${platforms}
+**Voice:** ${p.voice}
+**Brand fit:** ${p.b2b}
+
+Content pillars relevant to ${fields.brandName || "your brand"}:
+${p.pillars.slice(0, 5).map(pl => `  • ${pl}`).join("\n")}
+
+---`;
+    }).join("\n\n");
+
+    const deliverableList = fields.deliverables.map(d => `  • ${d}`).join("\n");
+
     const budgetLine = fields.budget ? `**Investment:** ${fields.budget}` : "";
-    const timelineLine = fields.timeline ? `**Timeline:** ${fields.timeline}` : "";
+    const timelineLine = fields.timeline ? `**Campaign Timeline:** ${fields.timeline}` : "";
+
     return `
-# Proposal for ${fields.company}
-**Prepared for:** ${fields.clientName}${fields.website ? ` · ${fields.website}` : ""}
-**Prepared by:** ${fields.agencyName}${fields.preparedBy ? ` · ${fields.preparedBy}` : ""}
+# Brand Partnership Proposal
+
+**Brand:** ${fields.brandName}${fields.brandWebsite ? ` · ${fields.brandWebsite}` : ""}
+**Prepared for:** ${fields.brandContact || fields.brandName}
+**Prepared by:** CAIG Media Network${fields.preparedBy ? ` · ${fields.preparedBy}` : ""}
 **Date:** ${fields.date}
 
 ---
 
-## Executive Summary
+## About the Network
 
-Thank you for considering ${fields.agencyName} as your growth partner. This proposal outlines a tailored strategy designed to help ${fields.company} achieve its objectives through a combination of data-driven marketing, premium content, and intelligent automation.
+CAIG Media Network is a portfolio of AI-powered creator personas reaching highly engaged audiences across TikTok, Instagram, and YouTube. Each persona is built around a specific niche, a consistent voice, and content that earns trust — not just views.
 
-We specialise in working with brands that are serious about growth. Our approach is collaborative, transparent, and built around measurable outcomes — not vanity metrics.
-
----
-
-## Goals & Objectives
-
-${fields.goals || `To establish ${fields.company} as a leading authority in its market, drive consistent inbound leads, and build an engaged online community across key platforms.`}
+We don't do generic sponsored content. Every brand integration is written in the creator's authentic voice, tied to a real content pillar, and designed to convert.
 
 ---
 
-## Proposed Services
+## Campaign Overview
 
-${svcList}
-
-Each service is executed by our in-house team of strategists, creatives, and AI specialists — ensuring consistency, speed, and quality at every step.
+${fields.brandProduct ? `**Product / Service:** ${fields.brandProduct}\n` : ""}${fields.campaignGoal ? `**Campaign Goal:** ${fields.campaignGoal}\n` : ""}${budgetLine ? `${budgetLine}\n` : ""}${timelineLine ? `${timelineLine}\n` : ""}
 
 ---
 
-## Our Approach
+## Proposed Creator${chosenPersonas.length > 1 ? "s" : ""}
 
-**Month 1 — Discovery & Foundation**
-We begin with a deep-dive audit of your current digital presence, competitor landscape, and audience data. From here we establish brand voice, content pillars, and campaign architecture.
+${personaSection}
 
-**Month 2 — Execution & Launch**
-Full rollout of all agreed services. Weekly reports, bi-weekly calls, and real-time dashboard access keep you informed at every stage.
+## Deliverables
 
-**Month 3+ — Optimise & Scale**
-Using performance data, we continuously refine targeting, messaging, and creative to compound results over time.
+${deliverableList}
+
+All content is produced, reviewed, and scheduled through our internal system. Final assets are delivered to you for approval before posting. Full revision round included.
 
 ---
 
-## Investment & Timeline
+## Why This Works
 
-${budgetLine}
-${timelineLine}
-
-All packages include a dedicated account manager, monthly performance reviews, and a 30-day satisfaction guarantee.
-
-${fields.extra ? `---\n\n## Additional Notes\n\n${fields.extra}` : ""}
+  • Audiences trust these voices — every persona is built on authentic, specific content, not aspirational fluff
+  • Niche alignment means your product reaches people who are already in the buying mindset
+  • We control the full production pipeline — no briefing chaos, no missed deadlines
+  • Every post includes a clear CTA and tracked link so you can measure ROI directly
 
 ---
 
 ## Next Steps
 
-1. Review this proposal and share any questions or amendments
-2. Sign the engagement agreement
-3. Complete the onboarding questionnaire
-4. Kick-off call scheduled within 48 hours
+1. Confirm deliverables and campaign timeline
+2. Sign the partnership agreement
+3. Submit brand assets and brief
+4. Content drafted and sent for approval within 5 working days
+5. Live on schedule
 
-We look forward to partnering with ${fields.company}.
+${fields.notes ? `---\n\n## Additional Notes\n\n${fields.notes}` : ""}
 
-— ${fields.agencyName}
+---
+
+We look forward to building something that actually performs.
+
+— CAIG Media Network
 `.trim();
   };
 
-  const proposal = buildProposal();
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(proposal);
-  };
-
-  const handlePrint = () => {
-    const w = window.open("", "_blank");
-    w.document.write(`<!DOCTYPE html><html><head>
-      <title>Proposal — ${fields.company}</title>
-      <style>
-        *{box-sizing:border-box;margin:0;padding:0}
-        body{font-family:'Georgia',serif;color:#111;padding:60px 72px;max-width:860px;margin:0 auto;line-height:1.7}
-        h1{font-size:26px;font-weight:700;margin-bottom:6px}
-        h2{font-size:15px;font-weight:700;margin:32px 0 10px;letter-spacing:.04em;text-transform:uppercase;color:#333}
-        p,li{font-size:13.5px;color:#222;margin-bottom:8px}
-        ul{padding-left:18px;margin-bottom:10px}
-        hr{border:none;border-top:1px solid #ddd;margin:28px 0}
-        .meta{font-size:12px;color:#666;margin-bottom:4px}
-        strong{font-weight:600}
-        @media print{body{padding:40px 52px}}
-      </style></head><body>
-      ${proposal
-        .replace(/^# (.+)$/m, '<h1>$1</h1>')
-        .replace(/^## (.+)$/gm, '<h2>$1</h2>')
-        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-        .replace(/^---$/gm, '<hr/>')
-        .replace(/^  • (.+)$/gm, '<li>$1</li>')
-        .replace(/\n{2,}/g, '</p><p>')
-        .replace(/^(?!<)/gm, '')
-        .replace(/<\/p><p><li>/g, '<ul><li>')
-        .replace(/<\/li><\/p>/g, '</li></ul>')}
-      </body></html>`);
-    w.document.close();
-    setTimeout(() => w.print(), 400);
-  };
+  const deck = buildDeck();
 
   return (
     <div className="mod-shell" style={{ "--mod-c": "var(--c-proposals)" }}>
       {!preview ? (
         <>
-          {/* ── Hero ── */}
           <div className="mod-hero">
-            <div className="mod-badge"><span className="mod-badge-dot" /> Proposals</div>
-            <div className="mod-title">Client Proposals</div>
-            <div className="mod-desc">Fill in the prospect details — we'll generate a polished, ready-to-send proposal document.</div>
+            <div className="mod-badge"><span className="mod-badge-dot" /> Brand Partnerships</div>
+            <div className="mod-title">Sponsorship Deck Builder</div>
+            <div className="mod-desc">Select a persona, pick your deliverables, add the brand details — generate a polished partnership proposal in seconds.</div>
           </div>
 
-          {/* ── Form ── */}
           <div className="mod-body">
-            {/* Left card — client + agency details */}
+            {/* Left — brand details */}
             <div className="mod-card">
-              <div className="mod-card-title">Client Details <span className="mod-card-title-line" /></div>
+              <div className="mod-card-title">Brand Details <span className="mod-card-title-line" /></div>
               <div className="mod-field">
-                <label className="mod-label">Contact name *</label>
-                <input className="mod-input" value={fields.clientName}
-                  onChange={e => set("clientName", e.target.value)} placeholder="e.g. Sarah Johnson" />
+                <label className="mod-label">Brand name *</label>
+                <input className="mod-input" value={fields.brandName}
+                  onChange={e => set("brandName", e.target.value)} placeholder="e.g. BYLT Basics" />
               </div>
               <div className="mod-field">
-                <label className="mod-label">Company *</label>
-                <input className="mod-input" value={fields.company}
-                  onChange={e => set("company", e.target.value)} placeholder="e.g. Acme Ltd" />
+                <label className="mod-label">Brand website</label>
+                <input className="mod-input" value={fields.brandWebsite}
+                  onChange={e => set("brandWebsite", e.target.value)} placeholder="e.g. byltbasics.com" />
               </div>
               <div className="mod-field">
-                <label className="mod-label">Website</label>
-                <input className="mod-input" value={fields.website}
-                  onChange={e => set("website", e.target.value)} placeholder="e.g. acme.com" />
+                <label className="mod-label">Contact name</label>
+                <input className="mod-input" value={fields.brandContact}
+                  onChange={e => set("brandContact", e.target.value)} placeholder="e.g. James Reid, Partnerships Manager" />
               </div>
               <div className="mod-field">
-                <label className="mod-label">Goals & challenges</label>
-                <textarea className="mod-input mod-ta" rows={3} value={fields.goals}
-                  onChange={e => set("goals", e.target.value)}
-                  placeholder="What are they trying to achieve? What's holding them back?" />
+                <label className="mod-label">Product / service being promoted</label>
+                <input className="mod-input" value={fields.brandProduct}
+                  onChange={e => set("brandProduct", e.target.value)} placeholder="e.g. Performance base-layer clothing" />
               </div>
               <div className="mod-field">
-                <label className="mod-label">Budget range</label>
+                <label className="mod-label">Campaign goal</label>
+                <input className="mod-input" value={fields.campaignGoal}
+                  onChange={e => set("campaignGoal", e.target.value)} placeholder="e.g. Drive traffic to launch page, boost UK brand awareness" />
+              </div>
+              <div className="mod-field">
+                <label className="mod-label">Budget / rate</label>
                 <input className="mod-input" value={fields.budget}
-                  onChange={e => set("budget", e.target.value)} placeholder="e.g. £2,000 – £3,500 / month" />
+                  onChange={e => set("budget", e.target.value)} placeholder="e.g. £1,500 flat / £800 per post + 10% affiliate" />
               </div>
               <div className="mod-field">
-                <label className="mod-label">Timeline</label>
+                <label className="mod-label">Campaign timeline</label>
                 <input className="mod-input" value={fields.timeline}
-                  onChange={e => set("timeline", e.target.value)} placeholder="e.g. 3-month engagement" />
+                  onChange={e => set("timeline", e.target.value)} placeholder="e.g. 4 weeks, starting May 2025" />
               </div>
               <div className="mod-card-title" style={{ marginTop: 14 }}>Your Details <span className="mod-card-title-line" /></div>
-              <div className="mod-field">
-                <label className="mod-label">Agency name</label>
-                <input className="mod-input" value={fields.agencyName}
-                  onChange={e => set("agencyName", e.target.value)} />
-              </div>
               <div className="mod-field">
                 <label className="mod-label">Prepared by</label>
                 <input className="mod-input" value={fields.preparedBy}
@@ -3060,26 +3044,50 @@ We look forward to partnering with ${fields.company}.
               </div>
             </div>
 
-            {/* Right card — services + context */}
+            {/* Right — personas + deliverables */}
             <div className="mod-card">
-              <div className="mod-card-title">Services to Include * <span className="mod-card-title-line" /></div>
-              <div className="mod-chips">
-                {SERVICES_LIST.map(s => (
-                  <button key={s} className={`mod-chip${fields.services.includes(s) ? " on" : ""}`}
-                    onClick={() => toggleService(s)}>
-                    {fields.services.includes(s) && IcCheck}
-                    {s}
+              <div className="mod-card-title">Select Persona(s) * <span className="mod-card-title-line" /></div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 8 }}>
+                {PERSONAS.map(p => (
+                  <button key={p.id}
+                    onClick={() => togglePersona(p.id)}
+                    style={{
+                      display: "flex", alignItems: "center", gap: 12, padding: "10px 14px",
+                      borderRadius: "var(--r)",
+                      border: `1px solid ${fields.selectedPersonas.includes(p.id) ? p.color : "var(--e2)"}`,
+                      background: fields.selectedPersonas.includes(p.id) ? `${p.color}15` : "var(--s3)",
+                      cursor: "pointer", textAlign: "left", transition: "all .15s",
+                    }}>
+                    <div style={{ width: 8, height: 8, borderRadius: "50%", background: p.color, flexShrink: 0 }} />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: "var(--t0)" }}>{p.name}</div>
+                      <div style={{ fontSize: 11, color: "var(--t2)", marginTop: 1 }}>{p.handle} · {p.niche} · {p.b2b.split(",")[0]}</div>
+                    </div>
+                    {fields.selectedPersonas.includes(p.id) && (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={p.color} strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                    )}
                   </button>
                 ))}
               </div>
-              <div className="mod-card-title" style={{ marginTop: 18 }}>Additional Context <span className="mod-card-title-line" /></div>
-              <textarea className="mod-input mod-ta" rows={5} value={fields.extra}
-                onChange={e => set("extra", e.target.value)}
-                placeholder="Competitor notes, past agency experience, specific requirements…" />
+
+              <div className="mod-card-title" style={{ marginTop: 18 }}>Deliverables * <span className="mod-card-title-line" /></div>
+              <div className="mod-chips">
+                {DELIVERABLE_OPTIONS.map(d => (
+                  <button key={d} className={`mod-chip${fields.deliverables.includes(d) ? " on" : ""}`}
+                    onClick={() => toggleDeliverable(d)}>
+                    {fields.deliverables.includes(d) && IcCheck}
+                    {d}
+                  </button>
+                ))}
+              </div>
+
+              <div className="mod-card-title" style={{ marginTop: 18 }}>Additional Notes <span className="mod-card-title-line" /></div>
+              <textarea className="mod-input mod-ta" rows={4} value={fields.notes}
+                onChange={e => set("notes", e.target.value)}
+                placeholder="Exclusivity terms, past brand partnerships, specific requirements, affiliate tracking details…" />
             </div>
           </div>
 
-          {/* ── Action button ── */}
           <div className="mod-action-wrap">
             <button className={`mod-btn${ready ? " ready" : ""}`} disabled={!ready}
               onClick={() => setPreview(true)}>
@@ -3087,10 +3095,10 @@ We look forward to partnering with ${fields.company}.
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                 <polyline points="14 2 14 8 20 8"/>
               </svg>
-              Build Proposal
+              Build Partnership Deck
             </button>
             <div className="mod-hint">
-              {ready ? "Ready — click to generate your proposal document" : "Add contact name, company and at least one service to continue"}
+              {ready ? "Ready — click to generate your sponsorship proposal" : "Select a persona, at least one deliverable, and add the brand name"}
             </div>
           </div>
         </>
@@ -3098,23 +3106,25 @@ We look forward to partnering with ${fields.company}.
         <>
           <div className="mod-preview-bar">
             <button className="btn btn-dim" onClick={() => setPreview(false)}>← Edit</button>
-            <div className="mod-preview-title">Proposal — {fields.company}</div>
-            <button className="btn btn-dim" onClick={() => navigator.clipboard.writeText(proposal)}>
+            <div className="mod-preview-title">Partnership Deck — {fields.brandName}</div>
+            <button className="btn btn-dim" onClick={() => navigator.clipboard.writeText(deck)}>
               {IcCopy} Copy text
             </button>
             <button className="btn" style={{ background: "var(--c-proposals)", color: "#fff", fontSize: 12 }}
-              onClick={() => openPrint(`Proposal — ${fields.company}`, proposal, "#818cf8")}>
+              onClick={() => openPrint(`Partnership Deck — ${fields.brandName}`, deck, "#818cf8")}>
               {IcPrint} Save as PDF
             </button>
           </div>
           <div className="mod-doc">
-            {renderDoc(proposal, "var(--c-proposals)")}
+            {renderDoc(deck, "var(--c-proposals)")}
           </div>
         </>
       )}
     </div>
   );
 }
+
+
 
 // ─── LOGIN GATE ───────────────────────────────────────────────────────────────
 const AUTH_KEY = "caig_authed_v1";
@@ -3235,8 +3245,8 @@ function Home({ queue, setView }) {
     },
     {
       id: "proposals",
-      title: "Proposals",
-      desc: "AI-generated client proposals with pricing, deliverables and branding in seconds.",
+      title: "Brand Partnerships",
+      desc: "Generate a polished sponsorship deck for any persona — deliverables, brand fit, and pricing in seconds.",
       color: "var(--c-proposals)",
       icon: (
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
