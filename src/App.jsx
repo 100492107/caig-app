@@ -1435,7 +1435,7 @@ function Autopilot({ queue, setQueue, setView, toast_ }) {
     <div className="fu">
       <div className="ap">
         <div className="ap-header">
-          <div className="ap-header-title">Autopilot</div>
+          <div className="ap-header-title">Content Hub</div>
           <div className="ap-header-sub">Select personas and platforms — the engine handles the rest.</div>
         </div>
 
@@ -3155,7 +3155,7 @@ function LoginGate({ onAuth }) {
             <polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5" />
           </svg>
         </div>
-        <div className="login-title">Autopilot</div>
+        <div className="login-title">Cornerstone AI Group</div>
         <div className="login-sub">
           AI Content Engine &middot; Restricted access<br />Enter your password to continue.
         </div>
@@ -3223,7 +3223,7 @@ function Home({ queue, setView }) {
     {
       id: "autopilot",
       title: "Content Hub",
-      desc: "Generate, schedule and publish social media content across your entire network.",
+      desc: "Generate on-brand social content, LinkedIn posts, and blogs across every persona and platform — in seconds.",
       color: "var(--c-content)",
       icon: (
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
@@ -3251,7 +3251,7 @@ function Home({ queue, setView }) {
     {
       id: "outreach",
       title: "Predict Customer Needs",
-      desc: "AI that proactively analyses your customer data to predict churn, score leads, and recommend personalised upsells in real-time.",
+      desc: "Analyse customer behaviour to predict churn, score leads, and surface upsell opportunities before they happen.",
       color: "var(--c-predict)",
       icon: (
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
@@ -3264,7 +3264,7 @@ function Home({ queue, setView }) {
     {
       id: "onboarding",
       title: "Automate Routine Tasks",
-      desc: "Stop losing hours to admin. AI takes over scheduling, invoice processing, inbox management, and data entry — automatically.",
+      desc: "Scheduling, inbox management, invoice processing, data entry — handed off to AI so your team focuses on work that matters.",
       color: "var(--c-automate)",
       icon: (
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
