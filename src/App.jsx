@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef, memo } from "react";
+import { supabase } from "./supabase";
 
 
 // ─── CONFIGURATION ────────────────────────────────────────────────────────────
@@ -3265,34 +3266,36 @@ We look forward to building something that actually performs.
 
 
 // ─── LOGIN GATE ───────────────────────────────────────────────────────────────
-const AUTH_KEY = "caig_authed_v1";
-
 function LoginGate({ onAuth }) {
-  const [pw, setPw]       = useState("");
-  const [err, setErr]     = useState("");
-  const [busy, setBusy]   = useState(false);
+  const [email, setEmail]   = useState("");
+  const [pw, setPw]         = useState("");
+  const [err, setErr]       = useState("");
+  const [busy, setBusy]     = useState(false);
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!pw.trim()) return;
+    if (!email.trim() || !pw.trim()) return;
     setBusy(true); setErr("");
-    try {
-      const res = await fetch("/api/auth", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password: pw }),
-      });
-      if (res.ok) {
-        localStorage.setItem(AUTH_KEY, "1");
-        onAuth();
-      } else {
-        setErr("Incorrect password.");
-      }
-    } catch {
-      setErr("Network error — please try again.");
-    } finally {
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password: pw });
+    if (error) {
+      setErr("Incorrect email or password.");
       setBusy(false);
+      return;
     }
+    // Fetch profile to check is_active
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("is_active, role, agency_name")
+      .eq("id", data.user.id)
+      .single();
+
+    if (!profile || !profile.is_active) {
+      await supabase.auth.signOut();
+      setErr("Your account has been disabled. Contact CAIG support.");
+      setBusy(false);
+      return;
+    }
+    onAuth(data.user, profile);
   }
 
   return (
@@ -3305,9 +3308,23 @@ function LoginGate({ onAuth }) {
         </div>
         <div className="login-title">Cornerstone AI Group</div>
         <div className="login-sub">
-          AI Content Engine &middot; Restricted access<br />Enter your password to continue.
+          AI Content Engine &middot; Client Portal<br />Sign in to access your creator system.
         </div>
         <form onSubmit={handleSubmit} style={{ width: "100%", marginTop: 8 }}>
+          <input
+            type="email"
+            placeholder="Email address"
+            value={email}
+            onChange={e => { setEmail(e.target.value); setErr(""); }}
+            style={{
+              width: "100%", boxSizing: "border-box",
+              padding: "10px 14px", marginBottom: 8,
+              background: "var(--e1)", border: "1px solid var(--b1)",
+              borderRadius: 8, color: "var(--t1)", fontSize: 14,
+              outline: "none",
+            }}
+            autoFocus
+          />
           <input
             type="password"
             placeholder="Password"
@@ -3320,7 +3337,6 @@ function LoginGate({ onAuth }) {
               borderRadius: 8, color: "var(--t1)", fontSize: 14,
               outline: "none",
             }}
-            autoFocus
           />
           {err && <div style={{ color: "#f87171", fontSize: 12, marginBottom: 8 }}>{err}</div>}
           <button
@@ -3328,9 +3344,13 @@ function LoginGate({ onAuth }) {
             className="btn btn-amber login-btn"
             disabled={busy}
           >
-            {busy ? "Checking…" : "Sign in"}
+            {busy ? "Signing in…" : "Sign in"}
           </button>
         </form>
+        <div style={{ marginTop: 18, fontSize: 11.5, color: "var(--t4)", lineHeight: 1.6 }}>
+          Access is by invitation only.<br />
+          Contact <span style={{ color: "var(--gold)" }}>hello@cornerstoneaigroup.com</span> to get started.
+        </div>
       </div>
     </div>
   );
@@ -3534,16 +3554,49 @@ export default function App() {
     return () => document.head.removeChild(el);
   }, []);
 
-  const [authed, setAuthed] = useState(() => localStorage.getItem(AUTH_KEY) === "1");
-  const [view, setView]     = useState("home");
-  const [queue, setQueue]   = useState(() => stor.get("caig_queue", []));
-  const [toast, setToast]   = useState(null);
+  const [session, setSession]   = useState(null);   // supabase user
+  const [profile, setProfile]   = useState(null);   // profiles row
+  const [authLoading, setAuthLoading] = useState(true);
+  const [view, setView]         = useState("home");
+  const [queue, setQueue]       = useState(() => stor.get("caig_queue", []));
+  const [toast, setToast]       = useState(null);
+
+  // Restore session on load
+  useEffect(() => {
+    supabase.auth.getSession().then(async ({ data: { session: s } }) => {
+      if (s) {
+        const { data: p } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", s.user.id)
+          .single();
+        if (p && p.is_active) {
+          setSession(s.user);
+          setProfile(p);
+        } else {
+          await supabase.auth.signOut();
+        }
+      }
+      setAuthLoading(false);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
+      if (!s) { setSession(null); setProfile(null); }
+    });
+    return () => subscription.unsubscribe();
+  }, []);
 
   useEffect(() => stor.set("caig_queue", queue), [queue]);
 
   const toast_ = useCallback((msg) => {
     setToast(msg);
     setTimeout(() => setToast(null), 2800);
+  }, []);
+
+  const signOut = useCallback(async () => {
+    await supabase.auth.signOut();
+    setSession(null);
+    setProfile(null);
   }, []);
 
   const ready  = queue.filter((i) => i.status === "ready").length;
@@ -3562,7 +3615,13 @@ export default function App() {
     settings:   { t: "Settings",        s: "Network · Principles · Export" },
   };
 
-  if (!authed) return <LoginGate onAuth={() => setAuthed(true)} />;
+  if (authLoading) return (
+    <div style={{ position: "fixed", inset: 0, background: "var(--ink)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ color: "var(--t3)", fontSize: 13 }}>Loading…</div>
+    </div>
+  );
+
+  if (!session) return <LoginGate onAuth={(user, p) => { setSession(user); setProfile(p); }} />;
 
   const IcContent = (
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
@@ -3640,6 +3699,14 @@ export default function App() {
 
         {/* Right side */}
         <div className="tb-r">
+          {profile && (
+            <div style={{ fontSize: 11.5, color: "var(--t3)", marginRight: 8, textAlign: "right", lineHeight: 1.4 }}>
+              <div style={{ color: "var(--t1)", fontWeight: 600 }}>{profile.agency_name || profile.email}</div>
+              <div style={{ textTransform: "uppercase", letterSpacing: ".06em", fontSize: 10, color: profile.role === "admin" ? "var(--gold)" : "var(--t4)" }}>
+                {profile.role === "admin" ? "Admin" : "Client"}
+              </div>
+            </div>
+          )}
           {queue.length > 0 && (
             <div className="tb-counts">
               {[
@@ -3656,7 +3723,7 @@ export default function App() {
           )}
           <button
             className="tb-signout"
-            onClick={() => { localStorage.removeItem(AUTH_KEY); setAuthed(false); }}
+          onClick={signOut}
           >
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
