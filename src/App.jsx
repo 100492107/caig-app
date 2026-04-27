@@ -1319,10 +1319,8 @@ const QueueItem = memo(function QueueItem({ item, onDelete, onStatus }) {
 });
 
 // ─── AUTOPILOT VIEW ───────────────────────────────────────────────────────────
-function Autopilot({ queue, setQueue, setView, toast_ }) {
-  const [selP, setSelP] = useState(
-    PERSONAS.map((p) => p.id)
-  );
+function Autopilot({ queue, setQueue, setView, toast_, dbCreators = [] }) {
+  const [selP, setSelP] = useState(PERSONAS.map((p) => p.id));
   const [selPl, setSelPl] = useState(["tiktok", "youtube"]);
   const [step, setStep] = useState(1);
   const [running, setRunning] = useState(false);
@@ -1331,6 +1329,28 @@ function Autopilot({ queue, setQueue, setView, toast_ }) {
   const [ideaSeed, setIdeaSeed] = useState("");
   const [customP, setCustomP] = useState({ name: "", handle: "", niche: "", voice: "" });
   const [customSaved, setCustomSaved] = useState(false);
+
+  // Convert DB creators into persona-shaped objects
+  const dbPersonas = dbCreators.map(c => ({
+    id: `db_${c.id}`,
+    name: c.name,
+    handle: c.handle || `@${c.name.toLowerCase().replace(/\s+/g, "_")}`,
+    niche: c.niche || "General",
+    color: "#818CF8",
+    char: `${c.name}. A UGC content creator in the ${c.niche || "general"} space.`,
+    voice: c.voice || "Authentic, engaging, conversational.",
+    pillars: c.pillars ? c.pillars.split(",").map(p => p.trim()).filter(Boolean) : [
+      `${c.niche || "content"} tips and advice`,
+      `${c.niche || "content"} honest reviews and takes`,
+      `${c.niche || "content"} behind the scenes`,
+      `day in the life — ${c.niche || "content"} creator`,
+      `${c.niche || "content"} myths debunked`,
+    ],
+    products: [],
+    b2b: c.brand_fit || "",
+    statusKey: "live",
+    isDb: true,
+  }));
 
   const CUSTOM_ID = "custom_persona";
   const customPersonaObj = customSaved && customP.name ? {
@@ -1351,15 +1371,12 @@ function Autopilot({ queue, setQueue, setView, toast_ }) {
       `${customP.niche} product, tool, or resource recommendations`,
       `${customP.niche} myths debunked`,
       `day in the life of someone in ${customP.niche}`,
-    ] : [
-      "share your story", "give practical tips", "discuss current trends",
-      "share personal insights", "behind the scenes",
-    ],
+    ] : ["share your story", "give practical tips", "discuss current trends", "share personal insights", "behind the scenes"],
     color: "#a78bfa",
     statusKey: "live",
   } : null;
 
-  const allPersonas = customPersonaObj ? [...PERSONAS, customPersonaObj] : PERSONAS;
+  const allPersonas = [...PERSONAS, ...dbPersonas, ...(customPersonaObj ? [customPersonaObj] : [])];
 
   const toggleP = (id) => setSelP((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
   const togglePl = (id) =>
@@ -3366,7 +3383,7 @@ const PLAT_NAMES_H = {
   facebook: "Facebook", tiktok: "TikTok", youtube: "YouTube",
 };
 
-function Home({ queue, setView }) {
+function Home({ queue, setView, dbStats = {}, dbCreators = [] }) {
   const now = new Date();
   const h = now.getHours();
   const greeting = h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
@@ -3380,11 +3397,13 @@ function Home({ queue, setView }) {
   const recent = [...queue].reverse().slice(0, 5);
 
   const stats = [
-    { l: "In Queue",  v: queue.length,    c: "var(--t0)" },
-    { l: "Ready",     v: ready,           c: "var(--green)" },
-    { l: "Scheduled", v: sched,           c: "var(--c-proposals)" },
-    { l: "Published", v: posted,          c: "var(--amber)" },
-    { l: "Personas",  v: PERSONAS.length, c: "var(--t1)" },
+    { l: "In Queue",  v: queue.length,                                           c: "var(--t0)" },
+    { l: "Ready",     v: ready,                                                  c: "var(--green)" },
+    { l: "Scheduled", v: sched,                                                  c: "var(--c-proposals)" },
+    { l: "Published", v: posted,                                                 c: "var(--amber)" },
+    { l: "Clients",   v: dbStats.clients ?? 0,                                   c: "var(--gold)" },
+    { l: "Creators",  v: dbStats.creators ?? PERSONAS.length,                    c: "var(--t1)" },
+    { l: "Deals",     v: dbStats.deals ?? 0,                                     c: "var(--c-proposals)" },
   ];
 
   const MODULES = [
@@ -3485,7 +3504,7 @@ function Home({ queue, setView }) {
       <div className="home-card">
         <div className="home-sh">
           <span className="home-sh-t">Media Network</span>
-          <span className="home-sh-ct">{PERSONAS.length} personas</span>
+          <span className="home-sh-ct">{PERSONAS.length + dbCreators.length} creators</span>
         </div>
         <div className="home-pgrid">
           {PERSONAS.map(p => {
@@ -3499,6 +3518,14 @@ function Home({ queue, setView }) {
               </div>
             );
           })}
+          {dbCreators.map(c => (
+            <div className="hpc" key={c.id} style={{ "--pc": "#818CF8" }}>
+              <div className="hpc-dot" />
+              <div className="hpc-name">{c.name}</div>
+              <div className="hpc-niche">{c.niche}</div>
+              <div className="hpc-cnt">{c.handle || "client creator"}</div>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -4201,12 +4228,24 @@ export default function App() {
     return () => document.head.removeChild(el);
   }, []);
 
-  const [session, setSession]   = useState(null);   // supabase user
-  const [profile, setProfile]   = useState(null);   // profiles row
+  const [session, setSession]       = useState(null);
+  const [profile, setProfile]       = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
-  const [view, setView]         = useState("home");
-  const [queue, setQueue]       = useState(() => stor.get("caig_queue", []));
-  const [toast, setToast]       = useState(null);
+  const [view, setView]             = useState("home");
+  const [queue, setQueue]           = useState(() => stor.get("caig_queue", []));
+  const [toast, setToast]           = useState(null);
+  const [dbCreators, setDbCreators] = useState([]);
+  const [dbStats, setDbStats]       = useState({ clients: 0, creators: 0, deals: 0 });
+
+  async function loadNetworkData() {
+    const [{ data: cr }, { data: cl }, { data: de }] = await Promise.all([
+      supabase.from("creators").select("id, name, handle, niche, platform, voice, pillars, brand_fit, follower_count, is_active, client_id").eq("is_active", true),
+      supabase.from("profiles").select("id").eq("role", "client").eq("is_active", true),
+      supabase.from("deals").select("id"),
+    ]);
+    setDbCreators(cr || []);
+    setDbStats({ clients: (cl || []).length, creators: (cr || []).length, deals: (de || []).length });
+  }
 
   // Restore session on load
   useEffect(() => {
@@ -4220,6 +4259,7 @@ export default function App() {
         if (p && p.is_active) {
           setSession(s.user);
           setProfile(p);
+          loadNetworkData();
         } else {
           await supabase.auth.signOut();
         }
@@ -4407,8 +4447,8 @@ export default function App() {
       {/* ── CONTENT ──────────────────────────────────────────────────────────── */}
       <div className="main">
         <div className="view">
-          {view === "home"       && <Home queue={queue} setView={setView} />}
-          {view === "autopilot"  && <Autopilot queue={queue} setQueue={setQueue} setView={setView} toast_={toast_} />}
+          {view === "home"       && <Home queue={queue} setView={setView} dbStats={dbStats} dbCreators={dbCreators} />}
+          {view === "autopilot"  && <Autopilot queue={queue} setQueue={setQueue} setView={setView} toast_={toast_} dbCreators={dbCreators} />}
           {view === "proposals"  && <Proposals />}
           {view === "outreach"   && <Outreach />}
           {view === "onboarding" && <Onboarding />}
