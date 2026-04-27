@@ -3536,6 +3536,200 @@ function Home({ queue, setView }) {
   );
 }
 
+// ─── BRAND DEAL PIPELINE ──────────────────────────────────────────────────────
+const DEAL_STAGES = ["Outreach", "In Talks", "Negotiating", "Contract Sent", "Confirmed", "Live", "Completed", "Rejected"];
+const STAGE_COLORS = {
+  "Outreach":      "#64748b",
+  "In Talks":      "#818CF8",
+  "Negotiating":   "#FBBF24",
+  "Contract Sent": "#FB923C",
+  "Confirmed":     "#34D399",
+  "Live":          "#10B981",
+  "Completed":     "#059669",
+  "Rejected":      "#EF4444",
+};
+
+const BLANK_DEAL = { brand_name: "", deal_value: "", stage: "Outreach", notes: "", creator_id: "", client_id: "" };
+
+function DealPipeline() {
+  const [deals, setDeals]       = useState([]);
+  const [creators, setCreators] = useState([]);
+  const [clients, setClients]   = useState([]);
+  const [loading, setLoading]   = useState(true);
+  const [adding, setAdding]     = useState(false);
+  const [form, setForm]         = useState(BLANK_DEAL);
+  const [busy, setBusy]         = useState(false);
+  const [err, setErr]           = useState("");
+  const [filterStage, setFilterStage] = useState("All");
+  const [filterClient, setFilterClient] = useState("All");
+
+  async function load() {
+    setLoading(true);
+    const [{ data: d }, { data: cr }, { data: cl }] = await Promise.all([
+      supabase.from("deals").select("*, creators(name, handle, niche), profiles(agency_name)").order("created_at", { ascending: false }),
+      supabase.from("creators").select("id, name, handle, client_id").order("name"),
+      supabase.from("profiles").select("id, agency_name").eq("role", "client").order("agency_name"),
+    ]);
+    setDeals(d || []);
+    setCreators(cr || []);
+    setClients(cl || []);
+    setLoading(false);
+  }
+
+  useEffect(() => { load(); }, []);
+
+  async function addDeal(e) {
+    e.preventDefault();
+    if (!form.brand_name || !form.creator_id) { setErr("Brand name and creator are required."); return; }
+    setBusy(true); setErr("");
+    // get client_id from creator
+    const creator = creators.find(c => c.id === form.creator_id);
+    const { error } = await supabase.from("deals").insert({
+      brand_name:  form.brand_name,
+      deal_value:  form.deal_value ? parseFloat(form.deal_value) : null,
+      stage:       form.stage,
+      notes:       form.notes,
+      creator_id:  form.creator_id,
+      client_id:   creator?.client_id || null,
+    });
+    setBusy(false);
+    if (error) { setErr(error.message); return; }
+    setForm(BLANK_DEAL);
+    setAdding(false);
+    load();
+  }
+
+  async function updateStage(deal, stage) {
+    await supabase.from("deals").update({ stage, updated_at: new Date().toISOString() }).eq("id", deal.id);
+    load();
+  }
+
+  async function deleteDeal(deal) {
+    if (!window.confirm(`Remove deal with ${deal.brand_name}?`)) return;
+    await supabase.from("deals").delete().eq("id", deal.id);
+    load();
+  }
+
+  const filtered = deals.filter(d =>
+    (filterStage === "All" || d.stage === filterStage) &&
+    (filterClient === "All" || d.client_id === filterClient)
+  );
+
+  const totalValue = filtered.filter(d => d.deal_value && !["Rejected"].includes(d.stage))
+    .reduce((s, d) => s + Number(d.deal_value), 0);
+
+  const confirmedValue = filtered.filter(d => d.deal_value && ["Confirmed", "Live", "Completed"].includes(d.stage))
+    .reduce((s, d) => s + Number(d.deal_value), 0);
+
+  const S = { background: "var(--e2)", border: "1px solid var(--b1)", borderRadius: 8, padding: "9px 12px", color: "var(--t1)", fontSize: 13, outline: "none", width: "100%", boxSizing: "border-box" };
+
+  return (
+    <div style={{ maxWidth: 1000, margin: "0 auto", padding: "0 0 60px" }}>
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
+        <div>
+          <div style={{ fontSize: 22, fontWeight: 700, color: "var(--t0)", letterSpacing: "-.02em" }}>Brand Deal Pipeline</div>
+          <div style={{ fontSize: 13, color: "var(--t3)", marginTop: 3 }}>Track every brand partnership across the network</div>
+        </div>
+        <button onClick={() => { setAdding(a => !a); setErr(""); }} style={{ background: adding ? "var(--e2)" : "var(--gold)", color: adding ? "var(--t2)" : "#000", border: "none", borderRadius: 8, padding: "9px 18px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+          {adding ? "Cancel" : "+ New Deal"}
+        </button>
+      </div>
+
+      {/* Stats */}
+      <div className="home-stats" style={{ marginBottom: 24 }}>
+        {[
+          { l: "Total Deals",   v: filtered.length,                                              c: "var(--t0)" },
+          { l: "Pipeline Value", v: totalValue ? `£${totalValue.toLocaleString()}` : "—",        c: "var(--gold)" },
+          { l: "Confirmed",     v: confirmedValue ? `£${confirmedValue.toLocaleString()}` : "—", c: "var(--green)" },
+          { l: "Active Stages", v: [...new Set(filtered.map(d => d.stage))].length,              c: "var(--t2)" },
+        ].map((s, i) => (
+          <div className="hs" key={i}>
+            <div className="hs-val" style={{ color: s.c, fontSize: typeof s.v === "string" ? 18 : 28 }}>{s.v}</div>
+            <div className="hs-lbl">{s.l}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Add deal form */}
+      {adding && (
+        <form onSubmit={addDeal} style={{ background: "var(--e1)", border: "1px solid var(--b1)", borderRadius: 12, padding: "22px 24px", marginBottom: 24 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: "var(--t1)", marginBottom: 14 }}>New Brand Deal</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 10 }}>
+            <input placeholder="Brand name *" value={form.brand_name} onChange={e => setForm(f => ({ ...f, brand_name: e.target.value }))} style={S} />
+            <input placeholder="Deal value £" type="number" value={form.deal_value} onChange={e => setForm(f => ({ ...f, deal_value: e.target.value }))} style={S} />
+            <select value={form.stage} onChange={e => setForm(f => ({ ...f, stage: e.target.value }))} style={S}>
+              {DEAL_STAGES.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
+            <select value={form.creator_id} onChange={e => setForm(f => ({ ...f, creator_id: e.target.value }))} style={S}>
+              <option value="">Select creator *</option>
+              {creators.map(c => <option key={c.id} value={c.id}>{c.name} {c.handle || ""}</option>)}
+            </select>
+            <textarea placeholder="Notes (optional)" value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} rows={1} style={{ ...S, resize: "none" }} />
+          </div>
+          {err && <div style={{ color: "var(--red)", fontSize: 12, marginBottom: 10 }}>{err}</div>}
+          <button type="submit" disabled={busy} style={{ background: "var(--gold)", color: "#000", border: "none", borderRadius: 8, padding: "8px 18px", fontSize: 13, fontWeight: 600, cursor: busy ? "not-allowed" : "pointer", opacity: busy ? .5 : 1 }}>
+            {busy ? "Saving…" : "Add Deal"}
+          </button>
+        </form>
+      )}
+
+      {/* Filters */}
+      <div style={{ display: "flex", gap: 10, marginBottom: 20, flexWrap: "wrap" }}>
+        <select value={filterStage} onChange={e => setFilterStage(e.target.value)} style={{ background: "var(--e1)", border: "1px solid var(--b1)", borderRadius: 7, padding: "7px 12px", color: "var(--t2)", fontSize: 12, outline: "none" }}>
+          <option value="All">All Stages</option>
+          {DEAL_STAGES.map(s => <option key={s} value={s}>{s}</option>)}
+        </select>
+        <select value={filterClient} onChange={e => setFilterClient(e.target.value)} style={{ background: "var(--e1)", border: "1px solid var(--b1)", borderRadius: 7, padding: "7px 12px", color: "var(--t2)", fontSize: 12, outline: "none" }}>
+          <option value="All">All Clients</option>
+          {clients.map(c => <option key={c.id} value={c.id}>{c.agency_name}</option>)}
+        </select>
+      </div>
+
+      {/* Deal list */}
+      {loading ? (
+        <div style={{ color: "var(--t3)", fontSize: 13 }}>Loading…</div>
+      ) : filtered.length === 0 ? (
+        <div style={{ color: "var(--t3)", fontSize: 13, padding: 20 }}>No deals yet. Click + New Deal to add one.</div>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {filtered.map(deal => (
+            <div key={deal.id} style={{ background: "var(--e1)", border: "1px solid var(--b1)", borderRadius: 11, padding: "14px 18px", display: "flex", alignItems: "center", gap: 14 }}>
+              {/* Stage colour bar */}
+              <div style={{ width: 4, alignSelf: "stretch", borderRadius: 4, background: STAGE_COLORS[deal.stage] || "#888", flexShrink: 0 }} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 3 }}>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: "var(--t0)" }}>{deal.brand_name}</span>
+                  {deal.deal_value && <span style={{ fontSize: 13, fontWeight: 600, color: "var(--gold)" }}>£{Number(deal.deal_value).toLocaleString()}</span>}
+                </div>
+                <div style={{ fontSize: 12, color: "var(--t3)" }}>
+                  {deal.creators?.name && <span style={{ marginRight: 10 }}>{deal.creators.name}{deal.creators.handle ? ` ${deal.creators.handle}` : ""}</span>}
+                  {deal.profiles?.agency_name && <span style={{ marginRight: 10 }}>· {deal.profiles.agency_name}</span>}
+                  {deal.creators?.niche && <span>· {deal.creators.niche}</span>}
+                </div>
+                {deal.notes && <div style={{ fontSize: 12, color: "var(--t4)", marginTop: 4, fontStyle: "italic" }}>{deal.notes}</div>}
+              </div>
+              {/* Stage selector */}
+              <select
+                value={deal.stage}
+                onChange={e => updateStage(deal, e.target.value)}
+                style={{ background: `${STAGE_COLORS[deal.stage]}22`, border: `1px solid ${STAGE_COLORS[deal.stage]}55`, borderRadius: 7, padding: "5px 10px", color: STAGE_COLORS[deal.stage], fontSize: 12, fontWeight: 600, outline: "none", cursor: "pointer" }}
+              >
+                {DEAL_STAGES.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+              <button onClick={() => deleteDeal(deal)} style={{ background: "rgba(239,68,68,.1)", border: "1px solid rgba(239,68,68,.2)", borderRadius: 6, padding: "5px 10px", fontSize: 11, color: "var(--red)", cursor: "pointer" }}>
+                Remove
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── CLIENT PORTAL ────────────────────────────────────────────────────────────
 function ClientPortal({ profile, onSignOut }) {
   const [creators, setCreators] = useState([]);
@@ -4126,6 +4320,14 @@ export default function App() {
               Clients
             </button>
           )}
+          {profile?.role === "admin" && (
+            <button className={`tni${view === "deals" ? " on" : ""}`} onClick={() => setView("deals")}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+                <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+              </svg>
+              Deals
+            </button>
+          )}
           <button className={`tni${view === "queue" ? " on" : ""}`} onClick={() => setView("queue")}>
             {Ic.list} Queue {ready > 0 && <span className="nb">{ready}</span>}
           </button>
@@ -4184,6 +4386,7 @@ export default function App() {
           {view === "calendar"   && <CalView queue={queue} />}
           {view === "settings"   && <Settings queue={queue} setQueue={setQueue} toast_={toast_} />}
           {view === "admin"      && profile?.role === "admin" && <AdminPanel />}
+          {view === "deals"      && profile?.role === "admin" && <DealPipeline />}
         </div>
       </div>
 
