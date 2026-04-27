@@ -3733,14 +3733,18 @@ function DealPipeline() {
 // ─── CLIENT PORTAL ────────────────────────────────────────────────────────────
 function ClientPortal({ profile, onSignOut }) {
   const [creators, setCreators] = useState([]);
+  const [deals, setDeals]       = useState([]);
   const [loading, setLoading]   = useState(true);
 
   useEffect(() => {
-    supabase
-      .from("creators")
-      .select("*")
-      .eq("client_id", profile.id)
-      .then(({ data }) => { setCreators(data || []); setLoading(false); });
+    Promise.all([
+      supabase.from("creators").select("*").eq("client_id", profile.id),
+      supabase.from("deals").select("*, creators(name, handle)").eq("client_id", profile.id).order("created_at", { ascending: false }),
+    ]).then(([{ data: cr }, { data: de }]) => {
+      setCreators(cr || []);
+      setDeals(de || []);
+      setLoading(false);
+    });
   }, [profile.id]);
 
   const now = new Date();
@@ -3863,6 +3867,32 @@ function ClientPortal({ profile, onSignOut }) {
                 </div>
               )}
             </div>
+
+            {/* Brand deals */}
+            {deals.length > 0 && (
+              <div className="home-card">
+                <div className="home-sh">
+                  <span className="home-sh-t">Brand Deal Pipeline</span>
+                  <span className="home-sh-ct">{deals.length} deal{deals.length !== 1 ? "s" : ""}</span>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 4 }}>
+                  {deals.map(d => (
+                    <div key={d.id} style={{ display: "flex", alignItems: "center", gap: 12, background: "var(--e2)", borderRadius: 9, padding: "11px 14px" }}>
+                      <div style={{ width: 4, alignSelf: "stretch", borderRadius: 4, background: STAGE_COLORS[d.stage] || "#888", flexShrink: 0 }} />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: "var(--t0)" }}>{d.brand_name}
+                          {d.deal_value && <span style={{ fontWeight: 600, color: "var(--gold)", marginLeft: 10 }}>£{Number(d.deal_value).toLocaleString()}</span>}
+                        </div>
+                        {d.creators?.name && <div style={{ fontSize: 11, color: "var(--t3)", marginTop: 2 }}>{d.creators.name}{d.creators.handle ? ` · ${d.creators.handle}` : ""}</div>}
+                      </div>
+                      <div style={{ fontSize: 11, padding: "3px 10px", borderRadius: 20, fontWeight: 600, background: `${STAGE_COLORS[d.stage] || "#888"}22`, color: STAGE_COLORS[d.stage] || "#888" }}>
+                        {d.stage}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* System status */}
             <div className="home-status">
