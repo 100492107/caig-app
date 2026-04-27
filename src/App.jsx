@@ -3684,6 +3684,187 @@ function ClientPortal({ profile, onSignOut }) {
 }
 
 // ─── ADMIN PANEL ──────────────────────────────────────────────────────────────
+const BLANK_CREATOR = { name: "", handle: "", niche: "", platform: "", follower_count: "", voice: "", pillars: "", brand_fit: "" };
+const NICHES    = ["Travel", "Fitness", "Parenting", "Gaming", "Football", "Lifestyle", "Wellness", "Finance", "Beauty", "Food", "Tech", "Other"];
+const PLATFORMS = ["TikTok", "Instagram", "YouTube", "Twitter/X", "LinkedIn", "Twitch", "Pinterest", "Multi-platform"];
+
+function CreatorForm({ clientId, onSaved, onCancel }) {
+  const [form, setForm] = useState(BLANK_CREATOR);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr]   = useState("");
+  const inp = (field, extra = {}) => ({
+    value: form[field],
+    onChange: e => setForm(f => ({ ...f, [field]: e.target.value })),
+    style: { background: "var(--e2)", border: "1px solid var(--b1)", borderRadius: 8, padding: "9px 12px", color: "var(--t1)", fontSize: 13, outline: "none", width: "100%", boxSizing: "border-box", ...extra.style },
+    ...extra,
+  });
+
+  async function save(e) {
+    e.preventDefault();
+    if (!form.name || !form.niche || !form.platform) { setErr("Name, niche and platform are required."); return; }
+    setBusy(true); setErr("");
+    const { error } = await supabase.from("creators").insert({
+      client_id:      clientId,
+      name:           form.name,
+      handle:         form.handle,
+      niche:          form.niche,
+      platform:       form.platform,
+      follower_count: form.follower_count ? parseInt(form.follower_count.replace(/,/g, "")) : null,
+      voice:          form.voice,
+      pillars:        form.pillars,
+      brand_fit:      form.brand_fit,
+      is_active:      true,
+    });
+    setBusy(false);
+    if (error) { setErr(error.message); return; }
+    onSaved();
+  }
+
+  const S = { background: "var(--e2)", border: "1px solid var(--b1)", borderRadius: 8, padding: "9px 12px", color: "var(--t1)", fontSize: 13, outline: "none", width: "100%", boxSizing: "border-box" };
+
+  return (
+    <form onSubmit={save} style={{ background: "var(--e1)", border: "1px solid var(--b1)", borderRadius: 12, padding: "22px 24px", marginTop: 12 }}>
+      <div style={{ fontSize: 13, fontWeight: 600, color: "var(--t1)", marginBottom: 14 }}>Add Creator</div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
+        <input placeholder="Creator name *" {...inp("name")} />
+        <input placeholder="Handle (e.g. @handle)" {...inp("handle")} />
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 10 }}>
+        <select {...inp("niche")} style={S}>
+          <option value="">Niche *</option>
+          {NICHES.map(n => <option key={n} value={n}>{n}</option>)}
+        </select>
+        <select {...inp("platform")} style={S}>
+          <option value="">Platform *</option>
+          {PLATFORMS.map(p => <option key={p} value={p}>{p}</option>)}
+        </select>
+        <input placeholder="Follower count" {...inp("follower_count")} />
+      </div>
+      <textarea placeholder="Voice / tone of voice" {...inp("voice")} rows={2} style={{ ...S, resize: "vertical", marginBottom: 10 }} />
+      <textarea placeholder="Content pillars (comma separated)" {...inp("pillars")} rows={2} style={{ ...S, resize: "vertical", marginBottom: 10 }} />
+      <textarea placeholder="Brand fit / ideal partners" {...inp("brand_fit")} rows={2} style={{ ...S, resize: "vertical", marginBottom: 12 }} />
+      {err && <div style={{ color: "var(--red)", fontSize: 12, marginBottom: 10 }}>{err}</div>}
+      <div style={{ display: "flex", gap: 10 }}>
+        <button type="submit" disabled={busy} style={{ background: "var(--gold)", color: "#000", border: "none", borderRadius: 8, padding: "8px 18px", fontSize: 13, fontWeight: 600, cursor: busy ? "not-allowed" : "pointer", opacity: busy ? .5 : 1 }}>
+          {busy ? "Saving…" : "Save Creator"}
+        </button>
+        <button type="button" onClick={onCancel} style={{ background: "var(--e2)", color: "var(--t2)", border: "1px solid var(--b1)", borderRadius: 8, padding: "8px 16px", fontSize: 13, cursor: "pointer" }}>
+          Cancel
+        </button>
+      </div>
+    </form>
+  );
+}
+
+function ClientRow({ client, onToggle }) {
+  const [expanded, setExpanded]     = useState(false);
+  const [creators, setCreators]     = useState([]);
+  const [loadingC, setLoadingC]     = useState(false);
+  const [addingCreator, setAdding]  = useState(false);
+
+  async function loadCreators() {
+    setLoadingC(true);
+    const { data } = await supabase.from("creators").select("*").eq("client_id", client.id).order("created_at", { ascending: false });
+    setCreators(data || []);
+    setLoadingC(false);
+  }
+
+  function toggle() {
+    if (!expanded) loadCreators();
+    setExpanded(e => !e);
+    setAdding(false);
+  }
+
+  async function toggleCreator(creator) {
+    await supabase.from("creators").update({ is_active: !creator.is_active }).eq("id", creator.id);
+    loadCreators();
+  }
+
+  async function deleteCreator(creator) {
+    if (!window.confirm(`Remove ${creator.name}?`)) return;
+    await supabase.from("creators").delete().eq("id", creator.id);
+    loadCreators();
+  }
+
+  return (
+    <div style={{ background: "var(--e1)", border: "1px solid var(--b1)", borderRadius: 12, overflow: "hidden" }}>
+      {/* Client header row */}
+      <div style={{ padding: "16px 20px", display: "flex", alignItems: "center", gap: 14 }}>
+        <div style={{
+          width: 36, height: 36, borderRadius: "50%", flexShrink: 0,
+          background: client.role === "admin" ? "rgba(245,166,35,.15)" : "var(--e2)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          fontSize: 14, fontWeight: 700, color: client.role === "admin" ? "var(--gold)" : "var(--t2)",
+        }}>
+          {(client.agency_name || client.email || "?")[0].toUpperCase()}
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 14, fontWeight: 600, color: "var(--t1)" }}>{client.agency_name || "—"}</div>
+          <div style={{ fontSize: 12, color: "var(--t3)", marginTop: 1 }}>{client.email}</div>
+        </div>
+        <div style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: ".06em", color: client.role === "admin" ? "var(--gold)" : "var(--t4)", marginRight: 6 }}>
+          {client.role}
+        </div>
+        <div style={{ fontSize: 11, padding: "3px 10px", borderRadius: 20, fontWeight: 600, background: client.is_active ? "rgba(52,211,153,.12)" : "rgba(239,68,68,.12)", color: client.is_active ? "var(--green)" : "var(--red)", marginRight: 8 }}>
+          {client.is_active ? "Active" : "Disabled"}
+        </div>
+        {client.role !== "admin" && (
+          <>
+            <button onClick={() => onToggle(client)} style={{ background: "var(--e2)", border: "1px solid var(--b1)", borderRadius: 7, padding: "6px 12px", fontSize: 12, fontWeight: 600, color: "var(--t2)", cursor: "pointer", marginRight: 6 }}>
+              {client.is_active ? "Disable" : "Enable"}
+            </button>
+            <button onClick={toggle} style={{ background: expanded ? "var(--e3)" : "var(--e2)", border: "1px solid var(--b1)", borderRadius: 7, padding: "6px 12px", fontSize: 12, fontWeight: 600, color: "var(--t2)", cursor: "pointer" }}>
+              {expanded ? "▲ Creators" : "▼ Creators"}
+            </button>
+          </>
+        )}
+      </div>
+
+      {/* Expanded creator section */}
+      {expanded && (
+        <div style={{ borderTop: "1px solid var(--b1)", padding: "16px 20px", background: "var(--e0)" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: "var(--t3)", textTransform: "uppercase", letterSpacing: ".06em" }}>Creator Roster</div>
+            <button onClick={() => setAdding(a => !a)} style={{ background: addingCreator ? "var(--e2)" : "var(--gold)", color: addingCreator ? "var(--t2)" : "#000", border: "none", borderRadius: 7, padding: "5px 12px", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
+              {addingCreator ? "Cancel" : "+ Add Creator"}
+            </button>
+          </div>
+
+          {addingCreator && (
+            <CreatorForm clientId={client.id} onSaved={() => { setAdding(false); loadCreators(); }} onCancel={() => setAdding(false)} />
+          )}
+
+          {loadingC ? (
+            <div style={{ color: "var(--t3)", fontSize: 13, padding: "8px 0" }}>Loading…</div>
+          ) : creators.length === 0 && !addingCreator ? (
+            <div style={{ color: "var(--t3)", fontSize: 13, padding: "8px 0" }}>No creators yet. Click + Add Creator to get started.</div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: addingCreator ? 12 : 0 }}>
+              {creators.map(cr => (
+                <div key={cr.id} style={{ background: "var(--e1)", borderRadius: 9, padding: "12px 14px", display: "flex", alignItems: "center", gap: 12, border: "1px solid var(--b1)" }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: "var(--t1)" }}>{cr.name} {cr.handle && <span style={{ fontWeight: 400, color: "var(--t3)" }}>{cr.handle}</span>}</div>
+                    <div style={{ fontSize: 11, color: "var(--t4)", marginTop: 2 }}>{cr.niche} · {cr.platform}{cr.follower_count ? ` · ${Number(cr.follower_count).toLocaleString()} followers` : ""}</div>
+                  </div>
+                  <div style={{ fontSize: 11, padding: "2px 8px", borderRadius: 20, fontWeight: 600, background: cr.is_active ? "rgba(52,211,153,.12)" : "rgba(239,68,68,.1)", color: cr.is_active ? "var(--green)" : "var(--red)" }}>
+                    {cr.is_active ? "Active" : "Paused"}
+                  </div>
+                  <button onClick={() => toggleCreator(cr)} style={{ background: "var(--e2)", border: "1px solid var(--b1)", borderRadius: 6, padding: "4px 10px", fontSize: 11, color: "var(--t2)", cursor: "pointer" }}>
+                    {cr.is_active ? "Pause" : "Activate"}
+                  </button>
+                  <button onClick={() => deleteCreator(cr)} style={{ background: "rgba(239,68,68,.1)", border: "1px solid rgba(239,68,68,.2)", borderRadius: 6, padding: "4px 10px", fontSize: 11, color: "var(--red)", cursor: "pointer" }}>
+                    Remove
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function AdminPanel() {
   const [clients, setClients]   = useState([]);
   const [loading, setLoading]   = useState(true);
@@ -3711,14 +3892,12 @@ function AdminPanel() {
     e.preventDefault();
     if (!form.email || !form.agency_name || !form.password) { setFormErr("All fields required."); return; }
     setBusy(true); setFormErr(""); setFormOk("");
-    // Create auth user via Supabase admin signup
     const { data, error } = await supabase.auth.signUp({
       email: form.email,
       password: form.password,
       options: { emailRedirectTo: null }
     });
     if (error) { setFormErr(error.message); setBusy(false); return; }
-    // Update the auto-created profile row
     await supabase.from("profiles").update({
       agency_name: form.agency_name,
       role: "client",
@@ -3736,57 +3915,27 @@ function AdminPanel() {
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 28 }}>
         <div>
           <div style={{ fontSize: 22, fontWeight: 700, color: "var(--t0)", letterSpacing: "-.02em" }}>Client Accounts</div>
-          <div style={{ fontSize: 13, color: "var(--t3)", marginTop: 3 }}>Manage client access to the portal</div>
+          <div style={{ fontSize: 13, color: "var(--t3)", marginTop: 3 }}>Manage clients, creators and access</div>
         </div>
         <button
           onClick={() => { setCreating(c => !c); setFormErr(""); setFormOk(""); }}
-          style={{
-            background: creating ? "var(--e2)" : "var(--gold)", color: creating ? "var(--t2)" : "#000",
-            border: "none", borderRadius: 8, padding: "9px 18px", fontSize: 13, fontWeight: 600, cursor: "pointer"
-          }}
+          style={{ background: creating ? "var(--e2)" : "var(--gold)", color: creating ? "var(--t2)" : "#000", border: "none", borderRadius: 8, padding: "9px 18px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
         >
           {creating ? "Cancel" : "+ New Client"}
         </button>
       </div>
 
       {creating && (
-        <form onSubmit={createClient} style={{
-          background: "var(--e1)", border: "1px solid var(--b1)", borderRadius: 12,
-          padding: "24px 28px", marginBottom: 28,
-        }}>
+        <form onSubmit={createClient} style={{ background: "var(--e1)", border: "1px solid var(--b1)", borderRadius: 12, padding: "24px 28px", marginBottom: 28 }}>
           <div style={{ fontSize: 14, fontWeight: 600, color: "var(--t1)", marginBottom: 16 }}>Create New Client Account</div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
-            <input
-              placeholder="Agency name"
-              value={form.agency_name}
-              onChange={e => setForm(f => ({ ...f, agency_name: e.target.value }))}
-              style={{ background: "var(--e2)", border: "1px solid var(--b1)", borderRadius: 8, padding: "9px 12px", color: "var(--t1)", fontSize: 13, outline: "none" }}
-            />
-            <input
-              placeholder="Email address"
-              type="email"
-              value={form.email}
-              onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
-              style={{ background: "var(--e2)", border: "1px solid var(--b1)", borderRadius: 8, padding: "9px 12px", color: "var(--t1)", fontSize: 13, outline: "none" }}
-            />
+            <input placeholder="Agency name" value={form.agency_name} onChange={e => setForm(f => ({ ...f, agency_name: e.target.value }))} style={{ background: "var(--e2)", border: "1px solid var(--b1)", borderRadius: 8, padding: "9px 12px", color: "var(--t1)", fontSize: 13, outline: "none" }} />
+            <input placeholder="Email address" type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} style={{ background: "var(--e2)", border: "1px solid var(--b1)", borderRadius: 8, padding: "9px 12px", color: "var(--t1)", fontSize: 13, outline: "none" }} />
           </div>
-          <input
-            placeholder="Temporary password"
-            type="password"
-            value={form.password}
-            onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
-            style={{ width: "100%", boxSizing: "border-box", background: "var(--e2)", border: "1px solid var(--b1)", borderRadius: 8, padding: "9px 12px", color: "var(--t1)", fontSize: 13, outline: "none", marginBottom: 12 }}
-          />
+          <input placeholder="Temporary password" type="password" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} style={{ width: "100%", boxSizing: "border-box", background: "var(--e2)", border: "1px solid var(--b1)", borderRadius: 8, padding: "9px 12px", color: "var(--t1)", fontSize: 13, outline: "none", marginBottom: 12 }} />
           {formErr && <div style={{ color: "var(--red)", fontSize: 12, marginBottom: 10 }}>{formErr}</div>}
           {formOk  && <div style={{ color: "var(--green)", fontSize: 12, marginBottom: 10 }}>{formOk}</div>}
-          <button
-            type="submit"
-            disabled={busy}
-            style={{
-              background: "var(--gold)", color: "#000", border: "none", borderRadius: 8,
-              padding: "9px 20px", fontSize: 13, fontWeight: 600, cursor: busy ? "not-allowed" : "pointer", opacity: busy ? .5 : 1
-            }}
-          >
+          <button type="submit" disabled={busy} style={{ background: "var(--gold)", color: "#000", border: "none", borderRadius: 8, padding: "9px 20px", fontSize: 13, fontWeight: 600, cursor: busy ? "not-allowed" : "pointer", opacity: busy ? .5 : 1 }}>
             {busy ? "Creating…" : "Create Account"}
           </button>
         </form>
@@ -3801,53 +3950,9 @@ function AdminPanel() {
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {clients.map(c => (
-            <div key={c.id} style={{
-              background: "var(--e1)", border: "1px solid var(--b1)", borderRadius: 12,
-              padding: "16px 20px", display: "flex", alignItems: "center", gap: 16,
-            }}>
-              <div style={{
-                width: 36, height: 36, borderRadius: "50%",
-                background: c.role === "admin" ? "rgba(245,166,35,.15)" : "var(--e2)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 14, fontWeight: 700, color: c.role === "admin" ? "var(--gold)" : "var(--t2)",
-                flexShrink: 0,
-              }}>
-                {(c.agency_name || c.email || "?")[0].toUpperCase()}
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 14, fontWeight: 600, color: "var(--t1)" }}>{c.agency_name || "—"}</div>
-                <div style={{ fontSize: 12, color: "var(--t3)", marginTop: 2 }}>{c.email}</div>
-              </div>
-              <div style={{
-                fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: ".06em",
-                color: c.role === "admin" ? "var(--gold)" : "var(--t4)", marginRight: 8,
-              }}>
-                {c.role}
-              </div>
-              <div style={{
-                fontSize: 11, padding: "3px 10px", borderRadius: 20, fontWeight: 600,
-                background: c.is_active ? "rgba(52,211,153,.12)" : "rgba(239,68,68,.12)",
-                color: c.is_active ? "var(--green)" : "var(--red)",
-                marginRight: 8,
-              }}>
-                {c.is_active ? "Active" : "Disabled"}
-              </div>
-              {c.role !== "admin" && (
-                <button
-                  onClick={() => toggleActive(c)}
-                  style={{
-                    background: "var(--e2)", border: "1px solid var(--b1)", borderRadius: 7,
-                    padding: "6px 14px", fontSize: 12, fontWeight: 600, color: "var(--t2)", cursor: "pointer",
-                  }}
-                >
-                  {c.is_active ? "Disable" : "Enable"}
-                </button>
-              )}
-            </div>
+            <ClientRow key={c.id} client={c} onToggle={toggleActive} />
           ))}
-          {clients.length === 0 && (
-            <div style={{ color: "var(--t3)", fontSize: 13, padding: 20 }}>No accounts yet.</div>
-          )}
+          {clients.length === 0 && <div style={{ color: "var(--t3)", fontSize: 13, padding: 20 }}>No accounts yet.</div>}
         </div>
       )}
     </div>
