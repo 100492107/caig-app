@@ -4366,6 +4366,182 @@ function ClientRow({ client, onToggle }) {
   );
 }
 
+// ─── LEAD TRACKER ─────────────────────────────────────────────────────────────
+const LEAD_STAGES  = ["New", "Contacted", "Call Booked", "Demo Done", "Proposal Sent", "Negotiating", "Won", "Lost"];
+const LEAD_STAGE_COLORS = {
+  "New":             "#818CF8",
+  "Contacted":       "#60A5FA",
+  "Call Booked":     "#FBBF24",
+  "Demo Done":       "#FB923C",
+  "Proposal Sent":   "#A78BFA",
+  "Negotiating":     "#34D399",
+  "Won":             "#10B981",
+  "Lost":            "#71717a",
+};
+const BLANK_LEAD = { agency_name: "", contact_name: "", email: "", linkedin: "", stage: "New", notes: "", plan: "Starter" };
+
+function LeadTracker() {
+  const [leads, setLeads]       = useState(() => {
+    try { return JSON.parse(localStorage.getItem("caig_leads") || "[]"); } catch { return []; }
+  });
+  const [adding, setAdding]     = useState(false);
+  const [form, setForm]         = useState(BLANK_LEAD);
+  const [filter, setFilter]     = useState("All");
+  const [expanded, setExpanded] = useState(null);
+
+  function save(updated) {
+    setLeads(updated);
+    localStorage.setItem("caig_leads", JSON.stringify(updated));
+  }
+
+  function addLead(e) {
+    e.preventDefault();
+    if (!form.agency_name) return;
+    const lead = { ...form, id: `${Date.now()}`, created_at: new Date().toISOString() };
+    save([lead, ...leads]);
+    setForm(BLANK_LEAD);
+    setAdding(false);
+  }
+
+  function updateStage(id, stage) {
+    save(leads.map(l => l.id === id ? { ...l, stage } : l));
+  }
+
+  function updateNotes(id, notes) {
+    save(leads.map(l => l.id === id ? { ...l, notes } : l));
+  }
+
+  function deleteLead(id) {
+    save(leads.filter(l => l.id !== id));
+    if (expanded === id) setExpanded(null);
+  }
+
+  const filtered = filter === "All" ? leads : leads.filter(l => l.stage === filter);
+
+  const wonValue = leads.filter(l => l.stage === "Won").length * 2000;
+  const pipeline = leads.filter(l => !["Won","Lost"].includes(l.stage)).length;
+
+  const inp = (field) => ({
+    value: form[field],
+    onChange: e => setForm(f => ({ ...f, [field]: e.target.value })),
+    style: { background: "var(--e2)", border: "1px solid var(--b1)", borderRadius: 8, padding: "9px 12px", color: "var(--t1)", fontSize: 13, outline: "none", width: "100%", boxSizing: "border-box" },
+  });
+
+  const card = { background: "var(--e1)", border: "1px solid var(--b1)", borderRadius: 12, padding: "20px 24px", marginBottom: 16 };
+
+  return (
+    <div style={{ maxWidth: 900, margin: "0 auto", padding: "0 0 60px" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 28 }}>
+        <div>
+          <div style={{ fontSize: 22, fontWeight: 700, color: "var(--t0)", letterSpacing: "-.02em" }}>Lead Tracker</div>
+          <div style={{ fontSize: 13, color: "var(--t3)", marginTop: 3 }}>Track prospects from first contact to signed client</div>
+        </div>
+        <button onClick={() => { setAdding(a => !a); setForm(BLANK_LEAD); }} style={{ background: adding ? "var(--e2)" : "var(--gold)", color: adding ? "var(--t2)" : "#000", border: "none", borderRadius: 8, padding: "9px 18px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+          {adding ? "Cancel" : "+ Add Lead"}
+        </button>
+      </div>
+
+      {/* Stats */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 12, marginBottom: 20 }}>
+        {[
+          { l: "Total Leads",  v: leads.length,                                           c: "var(--t0)" },
+          { l: "In Pipeline",  v: pipeline,                                               c: "var(--c-proposals)" },
+          { l: "Won",          v: leads.filter(l => l.stage === "Won").length,            c: "var(--green)" },
+          { l: "Lost",         v: leads.filter(l => l.stage === "Lost").length,           c: "var(--t3)" },
+          { l: "Won MRR",      v: `£${wonValue.toLocaleString()}/mo`,                     c: "var(--gold)" },
+        ].map(s => (
+          <div key={s.l} style={{ background: "var(--e1)", border: "1px solid var(--b1)", borderRadius: 10, padding: "14px 18px" }}>
+            <div style={{ fontSize: 11, color: "var(--t3)", fontWeight: 600, textTransform: "uppercase", letterSpacing: ".06em", marginBottom: 4 }}>{s.l}</div>
+            <div style={{ fontSize: 20, fontWeight: 700, color: s.c }}>{s.v}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Add form */}
+      {adding && (
+        <form onSubmit={addLead} style={card}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: "var(--t1)", marginBottom: 14 }}>New Lead</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
+            <input placeholder="Agency name *" {...inp("agency_name")} />
+            <input placeholder="Contact name" {...inp("contact_name")} />
+            <input placeholder="Email" type="email" {...inp("email")} />
+            <input placeholder="LinkedIn URL" {...inp("linkedin")} />
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
+            <select {...inp("stage")} style={{ ...inp("stage").style }}>
+              {LEAD_STAGES.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+            <select {...inp("plan")} style={{ ...inp("plan").style }}>
+              {["Starter", "Growth", "Agency"].map(p => <option key={p} value={p}>{p} — £{p === "Starter" ? "2,000" : p === "Growth" ? "3,500" : "6,000"}/mo</option>)}
+            </select>
+          </div>
+          <textarea placeholder="Notes / next action" {...inp("notes")} style={{ ...inp("notes").style, minHeight: 70, resize: "vertical", marginBottom: 10 }} />
+          <button type="submit" style={{ background: "var(--gold)", color: "#000", border: "none", borderRadius: 8, padding: "9px 20px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>Save Lead</button>
+        </form>
+      )}
+
+      {/* Filter bar */}
+      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 16 }}>
+        {["All", ...LEAD_STAGES].map(f => (
+          <button key={f} onClick={() => setFilter(f)} style={{ background: filter === f ? "var(--gold)" : "var(--e2)", color: filter === f ? "#000" : "var(--t3)", border: "1px solid var(--b1)", borderRadius: 7, padding: "5px 13px", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
+            {f}{f !== "All" ? ` (${leads.filter(l => l.stage === f).length})` : ` (${leads.length})`}
+          </button>
+        ))}
+      </div>
+
+      {/* Lead list */}
+      {filtered.length === 0 ? (
+        <div style={{ color: "var(--t3)", fontSize: 13, padding: "24px 0" }}>
+          {leads.length === 0 ? "No leads yet — add your first prospect above." : "No leads in this stage."}
+        </div>
+      ) : (
+        filtered.map(lead => (
+          <div key={lead.id} style={{ background: "var(--e1)", border: `1px solid ${expanded === lead.id ? "var(--gold)" : "var(--b1)"}`, borderRadius: 12, marginBottom: 10, overflow: "hidden" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 18px", cursor: "pointer" }} onClick={() => setExpanded(expanded === lead.id ? null : lead.id)}>
+              <div style={{ width: 4, alignSelf: "stretch", borderRadius: 4, background: LEAD_STAGE_COLORS[lead.stage] || "#888", flexShrink: 0 }} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "var(--t0)" }}>{lead.agency_name}
+                  {lead.contact_name && <span style={{ fontWeight: 400, color: "var(--t3)", marginLeft: 8 }}>{lead.contact_name}</span>}
+                </div>
+                <div style={{ fontSize: 12, color: "var(--t3)", marginTop: 2 }}>
+                  {lead.plan} plan · £{lead.plan === "Starter" ? "2,000" : lead.plan === "Growth" ? "3,500" : "6,000"}/mo
+                  {lead.email && <span style={{ marginLeft: 10 }}>{lead.email}</span>}
+                </div>
+              </div>
+              <select
+                value={lead.stage}
+                onClick={e => e.stopPropagation()}
+                onChange={e => updateStage(lead.id, e.target.value)}
+                style={{ background: `${LEAD_STAGE_COLORS[lead.stage]}22`, border: `1px solid ${LEAD_STAGE_COLORS[lead.stage]}55`, borderRadius: 7, padding: "5px 10px", color: LEAD_STAGE_COLORS[lead.stage], fontSize: 12, fontWeight: 600, outline: "none", cursor: "pointer" }}
+              >
+                {LEAD_STAGES.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
+            {expanded === lead.id && (
+              <div style={{ padding: "0 18px 16px 18px", borderTop: "1px solid var(--b1)" }}>
+                <div style={{ fontSize: 11, fontWeight: 600, color: "var(--t3)", textTransform: "uppercase", letterSpacing: ".06em", margin: "14px 0 8px" }}>Notes / Next Action</div>
+                <textarea
+                  value={lead.notes}
+                  onChange={e => updateNotes(lead.id, e.target.value)}
+                  placeholder="Add notes or next action..."
+                  style={{ background: "var(--e2)", border: "1px solid var(--b1)", borderRadius: 8, padding: "10px 12px", color: "var(--t1)", fontSize: 13, outline: "none", width: "100%", boxSizing: "border-box", minHeight: 80, resize: "vertical" }}
+                />
+                <div style={{ display: "flex", gap: 10, marginTop: 10, alignItems: "center" }}>
+                  {lead.linkedin && <a href={lead.linkedin} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: "var(--gold)", textDecoration: "none", fontWeight: 600 }}>LinkedIn →</a>}
+                  {lead.email && <a href={`mailto:${lead.email}`} style={{ fontSize: 12, color: "var(--gold)", textDecoration: "none", fontWeight: 600 }}>Email →</a>}
+                  <div style={{ marginLeft: "auto" }}>
+                    <button onClick={() => deleteLead(lead.id)} style={{ background: "rgba(239,68,68,.1)", border: "1px solid rgba(239,68,68,.2)", borderRadius: 6, padding: "5px 12px", fontSize: 11, color: "var(--red)", cursor: "pointer" }}>Remove</button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        ))
+      )}
+    </div>
+  );
+}
+
 // ─── WEEKLY REPORTS ───────────────────────────────────────────────────────────
 function WeeklyReports() {
   const [clients, setClients]   = useState([]);
@@ -4845,6 +5021,17 @@ export default function App() {
               Reports
             </button>
           )}
+          {profile?.role === "admin" && (
+            <button className={`tni${view === "leads" ? " on" : ""}`} onClick={() => setView("leads")}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+              Leads
+            </button>
+          )}
           <button className={`tni${view === "queue" ? " on" : ""}`} onClick={() => setView("queue")}>
             {Ic.list} Queue {ready > 0 && <span className="nb">{ready}</span>}
           </button>
@@ -4905,6 +5092,7 @@ export default function App() {
           {view === "admin"      && profile?.role === "admin" && <AdminPanel />}
           {view === "deals"      && profile?.role === "admin" && <DealPipeline />}
           {view === "reports"    && profile?.role === "admin" && <WeeklyReports />}
+          {view === "leads"      && profile?.role === "admin" && <LeadTracker />}
         </div>
       </div>
 
