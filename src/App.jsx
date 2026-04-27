@@ -3781,6 +3781,135 @@ function DealPipeline() {
   );
 }
 
+// ─── CLIENT ONBOARDING ────────────────────────────────────────────────────────
+function OnboardingWelcome({ profile, onComplete }) {
+  const [step, setStep] = useState(0);
+  const [busy, setBusy] = useState(false);
+
+  const STEPS = [
+    {
+      icon: (
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="1.5">
+          <path d="M4 6 L12 2 L20 6 L20 18 L12 22 L4 18 Z"/>
+          <line x1="12" y1="2" x2="12" y2="22"/>
+          <line x1="4" y1="12" x2="20" y2="12"/>
+        </svg>
+      ),
+      title: `Welcome to your portal, ${profile.agency_name || ""}`,
+      body: "This is your Cornerstone AI Group client portal. Everything we build and manage for your creator roster lives here — content, brand deals, and your full team overview. We'll walk you through what's available in the next 60 seconds.",
+      cta: "Show me what's here →",
+    },
+    {
+      icon: (
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="1.5">
+          <rect x="3" y="3" width="18" height="18" rx="2"/>
+          <path d="M3 9h18M9 21V9"/>
+        </svg>
+      ),
+      title: "Three sections. One portal.",
+      body: (
+        <div style={{ display: "flex", flexDirection: "column", gap: 14, textAlign: "left" }}>
+          {[
+            { label: "Overview", desc: "Your creator roster, live stats, and a snapshot of recent content and deals at a glance." },
+            { label: "Content",  desc: "Every piece of AI-generated content for your creators — hooks, captions, hashtags — ready to review and use. Filterable by status." },
+            { label: "Deals",    desc: "Your full brand deal pipeline. See every opportunity, its stage, value, and which creator it's attached to." },
+          ].map(s => (
+            <div key={s.label} style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
+              <div style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--gold)", marginTop: 5, flexShrink: 0 }} />
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "var(--t0)", marginBottom: 3 }}>{s.label}</div>
+                <div style={{ fontSize: 13, color: "var(--t3)", lineHeight: 1.5 }}>{s.desc}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ),
+      cta: "Got it →",
+    },
+    {
+      icon: (
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="1.5">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+      ),
+      title: "You're all set.",
+      body: "Your portal is live and we're actively managing your system. If you ever have questions, reach us directly at hello@cornerstoneaigroup.com — we respond same day.",
+      cta: "Go to my portal",
+    },
+  ];
+
+  const current = STEPS[step];
+
+  async function handleCta() {
+    if (step < STEPS.length - 1) {
+      setStep(s => s + 1);
+      return;
+    }
+    setBusy(true);
+    await supabase.from("profiles").update({ onboarded: true }).eq("id", profile.id);
+    onComplete();
+  }
+
+  return (
+    <div style={{
+      position: "fixed", inset: 0, background: "rgba(0,0,0,.7)", backdropFilter: "blur(6px)",
+      display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 24,
+    }}>
+      <div style={{
+        background: "var(--e1)", border: "1px solid var(--b1)", borderRadius: 20,
+        padding: "48px 44px", maxWidth: 520, width: "100%", textAlign: "center",
+        boxShadow: "0 32px 80px rgba(0,0,0,.5)",
+      }}>
+        {/* Step dots */}
+        <div style={{ display: "flex", gap: 6, justifyContent: "center", marginBottom: 40 }}>
+          {STEPS.map((_, i) => (
+            <div key={i} style={{
+              width: i === step ? 20 : 6, height: 6, borderRadius: 3,
+              background: i === step ? "var(--gold)" : "var(--b1)",
+              transition: "all .3s",
+            }} />
+          ))}
+        </div>
+
+        {/* Icon */}
+        <div style={{ marginBottom: 24 }}>{current.icon}</div>
+
+        {/* Title */}
+        <div style={{ fontSize: 22, fontWeight: 700, color: "var(--t0)", letterSpacing: "-.02em", marginBottom: 16, lineHeight: 1.3 }}>
+          {current.title}
+        </div>
+
+        {/* Body */}
+        <div style={{ fontSize: 14, color: "var(--t3)", lineHeight: 1.65, marginBottom: 36 }}>
+          {current.body}
+        </div>
+
+        {/* CTA */}
+        <button
+          onClick={handleCta}
+          disabled={busy}
+          style={{
+            background: "var(--gold)", color: "#000", border: "none", borderRadius: 10,
+            padding: "13px 32px", fontSize: 14, fontWeight: 700, cursor: busy ? "wait" : "pointer",
+            width: "100%", opacity: busy ? .7 : 1, transition: "opacity .15s",
+          }}
+        >
+          {busy ? "Loading…" : current.cta}
+        </button>
+
+        {step > 0 && (
+          <button
+            onClick={() => setStep(s => s - 1)}
+            style={{ background: "none", border: "none", color: "var(--t4)", fontSize: 12, cursor: "pointer", marginTop: 14 }}
+          >
+            ← Back
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── CLIENT PORTAL ────────────────────────────────────────────────────────────
 function ClientPortal({ profile, onSignOut }) {
   const [creators, setCreators]     = useState([]);
@@ -3789,6 +3918,7 @@ function ClientPortal({ profile, onSignOut }) {
   const [loading, setLoading]       = useState(true);
   const [tab, setTab]               = useState("overview");
   const [contentFilter, setContentFilter] = useState("all");
+  const [showOnboarding, setShowOnboarding] = useState(!profile.onboarded);
 
   useEffect(() => {
     Promise.all([
@@ -3836,6 +3966,9 @@ function ClientPortal({ profile, onSignOut }) {
 
   return (
     <div className="app">
+      {showOnboarding && (
+        <OnboardingWelcome profile={profile} onComplete={() => setShowOnboarding(false)} />
+      )}
       {/* Top nav */}
       <div className="topbar">
         <div className="tb-brand">
