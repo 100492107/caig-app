@@ -3536,6 +3536,153 @@ function Home({ queue, setView }) {
   );
 }
 
+// ─── CLIENT PORTAL ────────────────────────────────────────────────────────────
+function ClientPortal({ profile, onSignOut }) {
+  const [creators, setCreators] = useState([]);
+  const [loading, setLoading]   = useState(true);
+
+  useEffect(() => {
+    supabase
+      .from("creators")
+      .select("*")
+      .eq("client_id", profile.id)
+      .then(({ data }) => { setCreators(data || []); setLoading(false); });
+  }, [profile.id]);
+
+  const now = new Date();
+  const h = now.getHours();
+  const greeting = h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
+  const dateStr = now.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+  const activeCreators = creators.filter(c => c.is_active);
+
+  const NICHE_COLORS = {
+    Travel: "#34D399", Fitness: "#FB923C", Parenting: "#F472B6",
+    Gaming: "#818CF8", Football: "#60A5FA", Lifestyle: "#FBBF24", Wellness: "#A78BFA",
+  };
+
+  return (
+    <div className="app">
+      {/* Top nav */}
+      <div className="topbar">
+        <div className="tb-brand">
+          <div className="tb-gem">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#030206" strokeWidth="2.2">
+              <path d="M4 6 L12 2 L20 6 L20 18 L12 22 L4 18 Z"/>
+              <line x1="12" y1="2" x2="12" y2="22"/>
+              <line x1="4" y1="12" x2="20" y2="12"/>
+            </svg>
+          </div>
+          <div className="tb-wordmark">
+            Cornerstone AI Group
+            <span>Client Portal</span>
+          </div>
+        </div>
+        <div style={{ flex: 1 }} />
+        <div style={{ fontSize: 11.5, color: "var(--t3)", marginRight: 12, textAlign: "right", lineHeight: 1.4 }}>
+          <div style={{ color: "var(--t1)", fontWeight: 600 }}>{profile.agency_name || profile.email}</div>
+          <div style={{ textTransform: "uppercase", letterSpacing: ".06em", fontSize: 10, color: "var(--t4)" }}>Client</div>
+        </div>
+        <button className="tb-signout" onClick={onSignOut}>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+          Sign out
+        </button>
+      </div>
+
+      <div className="main">
+        <div className="view">
+          <div className="home">
+            {/* Header */}
+            <div className="home-head">
+              <div className="home-date">{dateStr}</div>
+              <div className="home-greeting">{greeting}, {profile.agency_name || ""}.</div>
+            </div>
+
+            {/* Stats */}
+            <div className="home-stats">
+              {[
+                { l: "Creators", v: creators.length, c: "var(--t0)" },
+                { l: "Active",   v: activeCreators.length, c: "var(--green)" },
+                { l: "Paused",   v: creators.length - activeCreators.length, c: "var(--t3)" },
+              ].map((s, i) => (
+                <div className="hs" key={i}>
+                  <div className="hs-val" style={{ color: s.c }}>{s.v}</div>
+                  <div className="hs-lbl">{s.l}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Creator roster */}
+            <div className="home-card">
+              <div className="home-sh">
+                <span className="home-sh-t">Your Creator Roster</span>
+                <span className="home-sh-ct">{creators.length} creator{creators.length !== 1 ? "s" : ""}</span>
+              </div>
+              {loading ? (
+                <div style={{ color: "var(--t3)", fontSize: 13, padding: "16px 0" }}>Loading…</div>
+              ) : creators.length === 0 ? (
+                <div style={{ color: "var(--t3)", fontSize: 13, padding: "16px 0" }}>
+                  No creators added yet. Contact CAIG to get your roster set up.
+                </div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 4 }}>
+                  {creators.map(c => (
+                    <div key={c.id} style={{
+                      background: "var(--e2)", borderRadius: 10, padding: "14px 16px",
+                      display: "flex", alignItems: "center", gap: 14,
+                    }}>
+                      <div style={{
+                        width: 38, height: 38, borderRadius: "50%", flexShrink: 0,
+                        background: `${NICHE_COLORS[c.niche] || "#888"}22`,
+                        border: `2px solid ${NICHE_COLORS[c.niche] || "#888"}44`,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        fontSize: 15, fontWeight: 700, color: NICHE_COLORS[c.niche] || "#888",
+                      }}>
+                        {(c.name || "?")[0]}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 14, fontWeight: 600, color: "var(--t1)" }}>{c.name}</div>
+                        <div style={{ fontSize: 12, color: "var(--t3)", marginTop: 2 }}>
+                          {c.handle && <span style={{ marginRight: 10 }}>{c.handle}</span>}
+                          {c.niche && <span style={{ marginRight: 10 }}>{c.niche}</span>}
+                          {c.platform && <span>{c.platform}</span>}
+                        </div>
+                      </div>
+                      {c.follower_count && (
+                        <div style={{ fontSize: 12, color: "var(--t3)", textAlign: "right" }}>
+                          <div style={{ fontWeight: 600, color: "var(--t2)", fontSize: 13 }}>{Number(c.follower_count).toLocaleString()}</div>
+                          <div>followers</div>
+                        </div>
+                      )}
+                      <div style={{
+                        fontSize: 11, padding: "3px 10px", borderRadius: 20, fontWeight: 600,
+                        background: c.is_active ? "rgba(52,211,153,.12)" : "rgba(239,68,68,.1)",
+                        color: c.is_active ? "var(--green)" : "var(--red)",
+                      }}>
+                        {c.is_active ? "Active" : "Paused"}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* System status */}
+            <div className="home-status">
+              <div className="hsb-item"><span className="hsb-dot g" />AI Content Engine · Active</div>
+              <div className="hsb-item"><span className="hsb-dot g" />Cornerstone AI Group · Managing your system</div>
+              <div className="hsb-item"><span className="hsb-dot a" />Questions? hello@cornerstoneaigroup.com</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── ADMIN PANEL ──────────────────────────────────────────────────────────────
 function AdminPanel() {
   const [clients, setClients]   = useState([]);
@@ -3793,6 +3940,9 @@ export default function App() {
   );
 
   if (!session) return <LoginGate onAuth={(user, p) => { setSession(user); setProfile(p); }} />;
+
+  // Client portal — non-admin users see a different, restricted view
+  if (profile?.role !== "admin") return <ClientPortal profile={profile} onSignOut={signOut} />;
 
   const IcContent = (
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
