@@ -4751,15 +4751,7 @@ export default function App() {
           <button className={`tni${view === "autopilot" ? " on" : ""}`} onClick={() => setView("autopilot")}>
             {IcContent} Content Hub
           </button>
-          <button className={`tni${view === "proposals" ? " on" : ""}`} onClick={() => setView("proposals")}>
-            {IcProposals} Proposals
-          </button>
-          <button className={`tni${view === "outreach" ? " on" : ""}`} onClick={() => setView("outreach")}>
-            {IcOutreach} Health Check
-          </button>
-          <button className={`tni${view === "onboarding" ? " on" : ""}`} onClick={() => setView("onboarding")}>
-            {IcOnboarding} Automate Ops
-          </button>
+
           {profile?.role === "admin" && (
             <button className={`tni${view === "admin" ? " on" : ""}`} onClick={() => setView("admin")}>
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
@@ -4869,11 +4861,8 @@ export default function App() {
       {/* ── BOTTOM NAV (mobile) ─────────────────────────────────────────────── */}
       <nav className="bnav">
         {[
-          { id: "home",       label: "Home",      ic: Ic.home      },
-          { id: "autopilot",  label: "Content",   ic: IcContent    },
-          { id: "proposals",  label: "Proposals", ic: IcProposals  },
-          { id: "outreach",   label: "Health",    ic: IcOutreach   },
-          { id: "onboarding", label: "Automate",  ic: IcOnboarding },
+          { id: "home",       label: "Home",    ic: Ic.home   },
+          { id: "autopilot",  label: "Content", ic: IcContent },
         ].map(n => (
           <button key={n.id} className={`bni${view === n.id ? " on" : ""}`} onClick={() => setView(n.id)}>
             {n.ic}
