@@ -2734,6 +2734,42 @@ Write at least 500 words. Be direct, specific, and senior in tone. Avoid platitu
 }
 
 // ─── PROPOSALS ────────────────────────────────────────────────────────────────
+// ─── TIER ACCESS ──────────────────────────────────────────────────────────────
+const TIER_MODULES = {
+  foundation: ["autopilot", "proposals"],
+  growth:     ["autopilot", "proposals", "outreach", "onboarding"],
+  enterprise: ["autopilot", "proposals", "outreach", "onboarding"],
+};
+
+const TIER_LABEL = { foundation: "Foundation", growth: "Growth", enterprise: "Enterprise" };
+const TIER_UPGRADE = { foundation: "Growth", growth: "Enterprise", enterprise: null };
+const TIER_COLOR = { foundation: "var(--gold)", growth: "#34d399", enterprise: "#a78bfa" };
+
+function canAccess(tier, view) {
+  return TIER_MODULES[tier || "foundation"]?.includes(view) ?? false;
+}
+
+function LockedModule({ moduleName, currentTier }) {
+  const upgrade = TIER_UPGRADE[currentTier || "foundation"];
+  return (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "80px 40px", gap: 20, textAlign: "center" }}>
+      <div style={{ width: 56, height: 56, borderRadius: "50%", background: "var(--e2)", border: "1px solid var(--e3)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 4 }}>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" strokeWidth="1.8">
+          <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+      </div>
+      <div style={{ fontSize: 18, fontWeight: 700, color: "var(--t1)" }}>{moduleName}</div>
+      <div style={{ fontSize: 13, color: "var(--t3)", maxWidth: 320, lineHeight: 1.7 }}>
+        This module is not included in your <strong style={{ color: TIER_COLOR[currentTier || "foundation"] }}>{TIER_LABEL[currentTier || "foundation"]}</strong> plan.
+        {upgrade && <> Upgrade to <strong>{upgrade}</strong> to unlock it.</>}
+      </div>
+      <div style={{ fontSize: 12, color: "var(--t4)", marginTop: 4 }}>
+        Contact <a href="mailto:hello@cornerstoneaigroup.com" style={{ color: "var(--amber)", textDecoration: "none" }}>hello@cornerstoneaigroup.com</a> to upgrade your plan.
+      </div>
+    </div>
+  );
+}
+
 const DELIVERABLE_OPTIONS = [
   "Strategy & Planning Session",
   "AI Workflow Build",
@@ -3054,7 +3090,7 @@ function LoginGate({ onAuth }) {
     // Fetch profile to check is_active
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
-      .select("is_active, role, agency_name")
+      .select("is_active, role, agency_name, tier")
       .eq("id", data.user.id)
       .single();
 
@@ -3973,11 +4009,21 @@ function CreatorForm({ clientId, onSaved, onCancel }) {
   );
 }
 
-function ClientRow({ client, onToggle }) {
+function ClientRow({ client, onToggle, onTierChange }) {
   const [expanded, setExpanded]     = useState(false);
   const [creators, setCreators]     = useState([]);
   const [loadingC, setLoadingC]     = useState(false);
   const [addingCreator, setAdding]  = useState(false);
+  const [tier, setTier]             = useState(client.tier || "foundation");
+  const [savingTier, setSavingTier] = useState(false);
+
+  async function changeTier(newTier) {
+    setSavingTier(true);
+    await supabase.from("profiles").update({ tier: newTier }).eq("id", client.id);
+    setTier(newTier);
+    setSavingTier(false);
+    onTierChange && onTierChange(client.id, newTier);
+  }
 
   async function loadCreators() {
     setLoadingC(true);
@@ -4022,6 +4068,23 @@ function ClientRow({ client, onToggle }) {
         <div style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: ".06em", color: client.role === "admin" ? "var(--gold)" : "var(--t4)", marginRight: 6 }}>
           {client.role}
         </div>
+        {client.role !== "admin" && (
+          <select
+            value={tier}
+            disabled={savingTier}
+            onChange={e => changeTier(e.target.value)}
+            style={{
+              fontSize: 11, fontWeight: 600, borderRadius: 20, padding: "3px 10px",
+              border: "1px solid var(--b1)", background: "var(--e2)", color:
+                tier === "enterprise" ? "#a78bfa" :
+                tier === "growth"     ? "#34d399" : "var(--gold)",
+              cursor: "pointer", marginRight: 8, appearance: "none",
+            }}>
+            <option value="foundation">Foundation</option>
+            <option value="growth">Growth</option>
+            <option value="enterprise">Enterprise</option>
+          </select>
+        )}
         <div style={{ fontSize: 11, padding: "3px 10px", borderRadius: 20, fontWeight: 600, background: client.is_active ? "rgba(52,211,153,.12)" : "rgba(239,68,68,.12)", color: client.is_active ? "var(--green)" : "var(--red)", marginRight: 8 }}>
           {client.is_active ? "Active" : "Disabled"}
         </div>
@@ -4528,7 +4591,7 @@ function AdminPanel() {
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {clients.map(c => (
-            <ClientRow key={c.id} client={c} onToggle={toggleActive} />
+            <ClientRow key={c.id} client={c} onToggle={toggleActive} onTierChange={() => {}} />
           ))}
           {clients.length === 0 && <div style={{ color: "var(--t3)", fontSize: 13, padding: 20 }}>No accounts yet.</div>}
         </div>
@@ -4788,10 +4851,10 @@ export default function App() {
       <div className="main">
         <div className="view">
           {view === "home"       && <Home queue={queue} setView={setView} dbStats={dbStats} dbCreators={dbCreators} />}
-          {view === "autopilot"  && <Autopilot queue={queue} setQueue={setQueue} setView={setView} toast_={toast_} dbCreators={dbCreators} />}
-          {view === "proposals"  && <Proposals />}
-          {view === "outreach"   && <Outreach />}
-          {view === "onboarding" && <Onboarding />}
+          {view === "autopilot"  && (canAccess(profile?.tier, "autopilot")  ? <Autopilot queue={queue} setQueue={setQueue} setView={setView} toast_={toast_} dbCreators={dbCreators} /> : <LockedModule moduleName="Content Engine"    currentTier={profile?.tier} />)}
+          {view === "proposals"  && (canAccess(profile?.tier, "proposals")  ? <Proposals />  : <LockedModule moduleName="Proposal Builder"   currentTier={profile?.tier} />)}
+          {view === "outreach"   && (canAccess(profile?.tier, "outreach")   ? <Outreach />   : <LockedModule moduleName="Business Health Check" currentTier={profile?.tier} />)}
+          {view === "onboarding" && (canAccess(profile?.tier, "onboarding") ? <Onboarding /> : <LockedModule moduleName="Automate Ops"        currentTier={profile?.tier} />)}
           {view === "queue"      && <Queue queue={queue} setQueue={setQueue} toast_={toast_} />}
           {view === "calendar"   && <CalView queue={queue} />}
           {view === "settings"   && <Settings queue={queue} setQueue={setQueue} toast_={toast_} />}
