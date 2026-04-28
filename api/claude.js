@@ -40,7 +40,16 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    const { system, user, maxTokens = 8000 } = req.body || {};
+    // Vercel doesn't auto-parse bodies — read and parse manually
+    let body = req.body;
+    if (typeof body === "string") {
+      body = JSON.parse(body);
+    } else if (!body) {
+      const chunks = [];
+      for await (const chunk of req) chunks.push(chunk);
+      body = JSON.parse(Buffer.concat(chunks).toString());
+    }
+    const { system, user, maxTokens = 8000 } = body;
 
     if (!system || !user) {
       return res.status(400).json({ error: "Missing required fields: system, user" });
