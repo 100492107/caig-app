@@ -648,26 +648,27 @@ html,body,#root{height:100%;background:var(--ink);color:var(--t0);font-family:va
 ::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--s6);border-radius:4px}::-webkit-scrollbar-thumb:hover{background:var(--t3)}
 
 /* ── TOP NAV ── */
-.topbar{height:var(--nav-h);padding:0 36px;border-bottom:1px solid var(--e1);background:rgba(3,3,10,.92);backdrop-filter:blur(56px) saturate(1.5);-webkit-backdrop-filter:blur(56px) saturate(1.5);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;position:sticky;top:0;z-index:50}
-.topbar::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(245,166,35,.22) 30%,rgba(245,166,35,.22) 70%,transparent)}
-.tb-brand{display:flex;align-items:center;gap:10px;text-decoration:none}
+.topbar{height:var(--nav-h);padding:0 24px;border-bottom:1px solid var(--e1);background:rgba(3,3,10,.92);backdrop-filter:blur(56px) saturate(1.5);-webkit-backdrop-filter:blur(56px) saturate(1.5);display:flex;align-items:center;gap:8px;flex-shrink:0;position:sticky;top:0;z-index:50;overflow:hidden}
+.topbar::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(245,166,35,.22) 30%,rgba(245,166,35,.22) 70%,transparent);pointer-events:none}
+.tb-brand{display:flex;align-items:center;gap:10px;text-decoration:none;flex-shrink:0}
 .tb-gem{width:30px;height:30px;border-radius:9px;background:linear-gradient(145deg,#f7b034,#c97a00);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 18px rgba(245,166,35,.28),0 2px 8px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.2)}
 .tb-wordmark{font-size:13px;font-weight:700;color:var(--t0);letter-spacing:-.03em;line-height:1}
 .tb-wordmark span{display:block;font-size:9px;color:var(--t4);font-weight:400;letter-spacing:.02em;margin-top:1px}
-.tb-nav{display:flex;align-items:center;gap:2px}
-.tni{display:flex;align-items:center;gap:7px;padding:7px 13px;border-radius:8px;border:none;background:transparent;color:var(--t3);font-size:12px;font-family:var(--sans);font-weight:500;cursor:pointer;transition:background .12s,color .12s;white-space:nowrap;position:relative}
+.tb-nav{display:flex;align-items:center;gap:1px;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none}
+.tb-nav::-webkit-scrollbar{display:none}
+.tni{display:flex;align-items:center;gap:6px;padding:6px 11px;border-radius:8px;border:none;background:transparent;color:var(--t3);font-size:11.5px;font-family:var(--sans);font-weight:500;cursor:pointer;transition:background .12s,color .12s;white-space:nowrap;position:relative;flex-shrink:0}
 .tni:hover{background:var(--e1);color:var(--t0)}
 .tni.on{background:rgba(245,166,35,.09);color:var(--t0)}
 .tni.on::after{content:'';position:absolute;bottom:-1px;left:50%;transform:translateX(-50%);width:20px;height:2px;background:var(--amber);border-radius:2px 2px 0 0;box-shadow:0 0 10px rgba(245,166,35,.6)}
 .tni svg{width:13px;height:13px;flex-shrink:0;opacity:.5;transition:opacity .12s}
 .tni:hover svg,.tni.on svg{opacity:1}
 .nb{font-size:9px;color:var(--amber);font-family:var(--mono);background:rgba(245,166,35,.1);border:1px solid rgba(245,166,35,.18);padding:1px 6px;border-radius:4px;font-weight:600;letter-spacing:.02em}
-.tb-r{display:flex;align-items:center;gap:10px}
-.tb-counts{display:flex;align-items:center;gap:12px}
+.tb-r{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.tb-counts{display:flex;align-items:center;gap:10px}
 .tb-count-item{text-align:center}
 .tb-count-val{font-size:13px;font-weight:800;line-height:1;font-family:var(--mono)}
 .tb-count-lbl{font-size:8px;color:var(--t4);text-transform:uppercase;letter-spacing:.06em;margin-top:1px}
-.tb-signout{display:flex;align-items:center;gap:6px;padding:7px 11px;border-radius:8px;border:1px solid var(--e1);background:transparent;color:var(--t3);font-size:11.5px;font-family:var(--sans);cursor:pointer;transition:all .12s}
+.tb-signout{display:flex;align-items:center;gap:6px;padding:6px 11px;border-radius:8px;border:1px solid var(--e1);background:transparent;color:var(--t3);font-size:11px;font-family:var(--sans);cursor:pointer;transition:all .12s;flex-shrink:0;white-space:nowrap}
 .tb-signout:hover{background:var(--s3);color:var(--t0);border-color:var(--e2)}
 /* ── MAIN ── */
 .main{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden;background:var(--ink)}
@@ -2303,18 +2304,68 @@ function Onboarding() {
     personaCount: "",
   });
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading]     = useState(false);
+  const [aiDoc, setAiDoc]         = useState("");
+  const [aiError, setAiError]     = useState("");
   const set = (k, v) => setFields(f => ({ ...f, [k]: v }));
 
   const PRIORITIES = [
-    { id: "brand-outreach", label: "Lead & Client Follow-ups", desc: "Tracking leads, sending follow-ups, chasing decisions" },
-    { id: "payment-tracking", label: "Payment & Invoice Tracking", desc: "Knowing who owes what, when, and sending reminders" },
-    { id: "content-approval", label: "Content Approval Workflow", desc: "Getting sign-off before content goes live" },
-    { id: "scheduling", label: "Content Scheduling & Publishing", desc: "Getting content from draft to published on time, every time" },
-    { id: "community", label: "Community & Inbox Management", desc: "Welcoming new members, sending updates, handling messages" },
-    { id: "reporting", label: "Performance Reporting", desc: "Pulling stats, tracking what's working, weekly summaries" },
+    { id: "brand-outreach",   label: "Lead & Client Follow-ups",         desc: "Tracking leads, sending follow-ups, chasing decisions" },
+    { id: "payment-tracking", label: "Payment & Invoice Tracking",        desc: "Knowing who owes what, when, and sending reminders" },
+    { id: "content-approval", label: "Content Approval Workflow",         desc: "Getting sign-off before content goes live" },
+    { id: "scheduling",       label: "Content Scheduling & Publishing",   desc: "Getting content from draft to published on time, every time" },
+    { id: "community",        label: "Community & Inbox Management",      desc: "Welcoming new members, sending updates, handling messages" },
+    { id: "reporting",        label: "Performance Reporting",             desc: "Pulling stats, tracking what's working, weekly summaries" },
   ];
 
+  const priorityLabel = PRIORITIES.find(p => p.id === fields.priority)?.label || "";
   const ready = fields.contactName && fields.bottleneck;
+
+  async function generate() {
+    setLoading(true);
+    setAiError("");
+    setSubmitted(true);
+    try {
+      const system = `You are a senior business operations consultant and automation expert. Your job is to produce a detailed, specific, actionable automation plan for the client. Write in clear, direct British English. Use markdown formatting: # for the main title, ## for section headers, **bold** for tool names and key points, and bullet points (•) for lists. Do NOT use generic advice — be specific about tools, workflows, triggers, and outcomes. The plan should feel like it was written by someone who has built hundreds of these systems.`;
+
+      const user = `Produce a full Operations Automation Plan for the following business:
+
+Name: ${fields.contactName}
+Team size: ${fields.personaCount || "Not specified"}
+Hours/week lost to admin: ${fields.hoursPerWeek || "Not specified"}
+Tools currently in use: ${fields.currentTools || "Not specified"}
+Biggest bottleneck (in their own words): "${fields.bottleneck}"
+Top priority to automate first: ${priorityLabel}
+
+The plan must include:
+
+1. **The Problem** — restate and diagnose their specific bottleneck in 2-3 paragraphs. Be direct. Name what's costing them money and time. Reference the specific hours/week figure if given.
+
+2. **Root Cause Analysis** — what is actually causing this? Not just "too much admin" — go deeper. Is it missing tools? No process documented? Wrong tool for the job? Human dependency on one person?
+
+3. **The Automation Stack for ${priorityLabel}** — list 4-6 specific tools with exact use cases. For each tool: name it, explain the exact workflow it automates, what the trigger is, what the outcome is, and what it replaces. Include real tool names (e.g. Zapier, Make, HubSpot, Notion, Airtable, Stripe, Calendly, etc.) chosen based on their existing stack: ${fields.currentTools || "unspecified"}.
+
+4. **Step-by-Step Implementation** — exact steps to go from zero to live. Number them. Be specific: "Create a Notion database with these columns: Name, Status, Last Contact, Next Action." Not vague platitudes.
+
+5. **What Gets Automated vs What Stays Human** — a clear breakdown. Some things should never be automated. Explain what to keep human and why.
+
+6. **90-Day Roadmap** — 3 phases (Days 1–30, 31–60, 61–90). Specific milestones per phase. What gets built when. What the measurable outcome of each phase is (hours saved, process eliminated, etc.).
+
+7. **Expected ROI** — calculate the time/money value. If they're losing ${fields.hoursPerWeek || "X"} hours/week and an employee/contractor costs £25/hr, what does this automation save per month? Per year? Be specific.
+
+8. **Next Action** — one clear thing to do in the next 48 hours to start. Not a list. One action.
+
+Write at least 600 words. Make it dense, specific, and immediately useful. This is a paid deliverable.`;
+
+      const text = await callLLM({ system, user, maxTokens: 8000 });
+      setAiDoc(text);
+    } catch (e) {
+      setAiError(e.message || "Generation failed — please try again.");
+      setSubmitted(false);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <div className="mod-shell" style={{ "--mod-c": "var(--c-automate)" }}>
@@ -2334,8 +2385,8 @@ function Onboarding() {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 16, marginBottom: 32 }}>
             {[
               { v: "80%", l: "of business admin tasks are repeatable and automatable" },
-              { v: "6h", l: "average hours per week lost to follow-ups and scheduling admin" },
-              { v: "3×", l: "faster deal close when follow-up is automated and consistent" },
+              { v: "6h",  l: "average hours per week lost to follow-ups and scheduling admin" },
+              { v: "3×",  l: "faster deal close when follow-up is automated and consistent" },
             ].map(s => (
               <div key={s.l} style={{ background: "var(--s2)", border: "1px solid var(--e1)", borderRadius: "var(--rl)", padding: "20px 22px" }}>
                 <div style={{ fontSize: 32, fontWeight: 800, color: "var(--c-automate)", fontFamily: "var(--mono)", marginBottom: 8, letterSpacing: "-.04em" }}>{s.v}</div>
@@ -2372,8 +2423,8 @@ function Onboarding() {
               <div className="mod-card-title">Where's the bottleneck? <div className="mod-card-title-line" /></div>
               <div className="mod-field">
                 <label className="mod-label">Describe what's eating your time *</label>
-                <textarea className="mod-input mod-ta" style={{ minHeight: 100 }}
-                  placeholder="e.g. I'm manually following up with leads every few days, tracking payments in a spreadsheet, and spending hours moving tasks between tools that don't talk to each other..."
+                <textarea className="mod-input mod-ta" style={{ minHeight: 120 }}
+                  placeholder="Be specific — e.g. I'm manually following up with leads every few days, tracking invoices in a spreadsheet, and spending hours moving tasks between tools that don't talk to each other. Every week I'm doing the same things that should be automated..."
                   value={fields.bottleneck} onChange={e => set("bottleneck", e.target.value)} />
               </div>
               <div className="mod-field" style={{ marginTop: 8 }}>
@@ -2401,118 +2452,39 @@ function Onboarding() {
             </div>
           </div>
 
+          {aiError && <div style={{ color: "#f87171", fontSize: 12, marginBottom: 12, padding: "10px 14px", background: "rgba(248,113,113,.08)", borderRadius: "var(--r)", border: "1px solid rgba(248,113,113,.2)" }}>{aiError}</div>}
+
           <div className="mod-action-wrap">
-            <button className={`mod-btn${ready ? " ready" : ""}`} disabled={!ready} onClick={() => setSubmitted(true)}>
+            <button className={`mod-btn${ready ? " ready" : ""}`} disabled={!ready} onClick={generate}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
                 <polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
               </svg>
-              Build My Automation Plan
+              Generate Automation Plan
             </button>
-            <div className="mod-hint">We'll map out exactly what to automate first and the tools to do it.</div>
+            <div className="mod-hint">AI generates a detailed, specific plan for your exact operation — takes ~20 seconds.</div>
           </div>
         </>
+      ) : loading ? (
+        <AiLoader color="var(--c-automate)" label="Building your automation plan…" />
       ) : (
         <>
           <div className="mod-preview-bar">
             <div className="mod-preview-title">Automation Plan — {fields.contactName}</div>
-            <button className="btn btn-dim" onClick={() => setSubmitted(false)} style={{ fontSize: 12 }}>← Edit</button>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button className="btn btn-dim" onClick={() => { setSubmitted(false); setAiDoc(""); }} style={{ fontSize: 12 }}>← Edit</button>
+              <button className="btn btn-dim" onClick={() => navigator.clipboard.writeText(aiDoc)} style={{ fontSize: 12 }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+              <button className="btn" style={{ background: "var(--c-automate)", color: "#fff", fontSize: 12 }}
+                onClick={() => openPrint(`Automation Plan — ${fields.contactName}`, aiDoc, "#fb923c")}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                Save PDF
+              </button>
+            </div>
           </div>
-
           <div className="mod-doc">
-            <div className="pd-h1">Operations Automation Plan</div>
-            <div style={{ fontSize: 12, color: "var(--t2)", marginBottom: 24 }}>
-              {fields.contactName} · {fields.personaCount ? `Team: ${fields.personaCount}` : "Your operation"} · {fields.hoursPerWeek ? `${fields.hoursPerWeek}h/week in admin` : ""}
-            </div>
-
-            <div className="pd-h2">The Problem</div>
-            <div className="pd-p">
-              {fields.bottleneck || "Manual admin is eating into the time your team should be spending on the work that drives revenue."}
-            </div>
-            <div className="pd-p">
-              {fields.personaCount ? `A team of ${fields.personaCount} means every repeated manual task multiplies across people. That's where automation pays back fastest.` : "Every task done manually is a task that could be systematised — once built, it runs without you."}
-            </div>
-
-            <div className="pd-h2">Start Here: {PRIORITIES.find(p => p.id === fields.priority)?.label}</div>
-            <div className="pd-p">{PRIORITIES.find(p => p.id === fields.priority)?.desc}. This is the right first move — high frequency, directly tied to revenue, and automatable without rebuilding how you work.</div>
-
-            {fields.priority === "brand-outreach" && <>
-              <div className="pd-h2">Lead & Client Follow-up Automation Stack</div>
-              {[
-                { tool: "Notion + Zapier", use: "Build a lead CRM in Notion. Zapier auto-updates status and sends you reminders at day 3, 7, and 14 after first contact — no chasing in your head." },
-                { tool: "Gmail Sequences (Mailmeteor / Gmass)", use: "Write your follow-up templates once. Use a sequence tool to send timed follow-ups automatically — looks personal, costs nothing." },
-                { tool: "Calendly", use: "Stop the back-and-forth on scheduling. Prospects book directly. You show up prepped, not chasing." },
-                { tool: "HubSpot Free CRM / Airtable Pipeline", use: "One view showing every active deal: stage, contact, value, last touchpoint. At a glance you know exactly where each lead stands." },
-              ].map(r => <div key={r.tool} className="pd-li"><strong>{r.tool}:</strong> {r.use}</div>)}
-            </>}
-
-            {fields.priority === "payment-tracking" && <>
-              <div className="pd-h2">Payment & Invoice Automation Stack</div>
-              {[
-                { tool: "Stripe / Wise", use: "Issue invoices and collect payment in one click. Auto-reminders go out at 3, 7, and 14 days overdue — without you chasing." },
-                { tool: "Notion Finance Tracker", use: "Log every deal: brand, persona, amount, due date, paid. One view tells you exactly what's outstanding." },
-                { tool: "Zapier: Stripe → Notion", use: "When payment clears in Stripe, Zapier auto-marks it paid in your Notion tracker. Zero manual reconciliation." },
-                { tool: "Google Sheets Payment Dashboard", use: "Monthly income by persona. Copy the CSV from Stripe, drop it in — sheet auto-calculates totals and flags anything overdue." },
-              ].map(r => <div key={r.tool} className="pd-li"><strong>{r.tool}:</strong> {r.use}</div>)}
-            </>}
-
-            {fields.priority === "content-approval" && <>
-              <div className="pd-h2">Content Approval Automation Stack</div>
-              {[
-                { tool: "Notion Approval Board", use: "Each sponsored post gets a card: draft, sent for review, approved, posted. Brand contacts get a shared link — no email chains." },
-                { tool: "Google Drive Shared Folder per Campaign", use: "Drop the draft caption and visual in a folder. Share it with the brand. They comment, you update. One source of truth." },
-                { tool: "Loom for Async Review", use: "Record a 60-second walkthrough of the post for the brand. Speeds up approval from days to hours — they see it in context." },
-                { tool: "Deadline Zapier Alert", use: "Set an approval deadline in Notion. Zapier pings you (and optionally the brand contact) 24h before it expires." },
-              ].map(r => <div key={r.tool} className="pd-li"><strong>{r.tool}:</strong> {r.use}</div>)}
-            </>}
-
-            {fields.priority === "scheduling" && <>
-              <div className="pd-h2">Scheduling & Publishing Automation Stack</div>
-              {[
-                { tool: "Buffer / Later / Publer", use: "Draft your week's content in one session, schedule it, and let the tool publish automatically. No logging in each day to post manually." },
-                { tool: "Notion Content Calendar → Zapier", use: "Build your content calendar in Notion. Zapier triggers publication or alerts to Buffer/Later when a post is marked ready." },
-                { tool: "Google Drive Asset Sync", use: "Store visuals in Drive. Share the folder with collaborators so everyone knows what's live and what's queued." },
-                { tool: "Weekly Batch System", use: "One session per week: draft → review → schedule → done. Content runs itself for the next 7 days without anyone touching it." },
-              ].map(r => <div key={r.tool} className="pd-li"><strong>{r.tool}:</strong> {r.use}</div>)}
-            </>}
-
-            {fields.priority === "community" && <>
-              <div className="pd-h2">Community & Inbox Automation Stack</div>
-              {[
-                { tool: "Intercom / Crisp / Tidio", use: "Auto-welcome new members. Answer FAQs automatically with trained responses. Escalate complex queries to a human. Runs 24/7." },
-                { tool: "Notion Content Calendar → Zapier", use: "Schedule your community updates in Notion. Zapier posts them automatically at the right time — no manual copy-paste." },
-                { tool: "Gumroad / Whop for Paid Access", use: "Payment → automatic access granted. No manual onboarding, no chasing payments." },
-                { tool: "Monthly Digest Template", use: "Write a monthly update template once. Fill in the numbers, add the new content — done in 10 minutes." },
-              ].map(r => <div key={r.tool} className="pd-li"><strong>{r.tool}:</strong> {r.use}</div>)}
-            </>}
-
-            {fields.priority === "reporting" && <>
-              <div className="pd-h2">Performance Reporting Automation Stack</div>
-              {[
-                { tool: "Analytics Platform Export", use: "Export your weekly or monthly stats as CSV. Drop into a Google Sheet template that auto-calculates growth, engagement, and top performers." },
-                { tool: "Google Sheets Dashboard", use: "One tab per channel or product line. Track revenue, traffic, leads, conversion monthly. Colour-coded so you see what's working at a glance." },
-                { tool: "Zapier: Platform → Sheet", use: "Auto-pull key metrics into your tracker on a schedule. No manual data entry." },
-                { tool: "Monthly Review Template", use: "30 minutes every month: review stats, identify what's working, adjust next month's plan. Systemised, not improvised." },
-              ].map(r => <div key={r.tool} className="pd-li"><strong>{r.tool}:</strong> {r.use}</div>)}
-            </>}
-
-            <div className="pd-h2">90-Day Automation Roadmap</div>
-            {[
-              { phase: "Days 1–30", action: `Implement ${PRIORITIES.find(p => p.id === fields.priority)?.label} automation. Set up the tools, build the templates, test the workflow. Target: ${fields.hoursPerWeek ? Math.round(parseInt(fields.hoursPerWeek) * 0.4) + "h/week" : "40%"} of current admin time eliminated.` },
-              { phase: "Days 31–60", action: "Layer in a second automation — if you started with follow-ups, add payment tracking next. Or if you started with scheduling, add reporting. Stack the systems." },
-              { phase: "Days 61–90", action: `All six areas systematised. ${fields.personaCount ? `Your team of ${fields.personaCount}` : "Your operation"} running on a repeatable weekly rhythm. Admin drops to under 2h/week. The rest goes to the work that grows the business.` },
-            ].map(r => (
-              <div key={r.phase} className="pd-li"><strong>{r.phase}:</strong> {r.action}</div>
-            ))}
-
-            <div className="pd-h2">Next Step</div>
-            <div className="pd-p">
-              Start with the one tool that addresses your top priority. Don't try to automate everything at once — pick the highest-pain task, build the system, then stack the next one on top.
-            </div>
-            {fields.currentTools && (
-              <div className="pd-p">
-                You're already using {fields.currentTools} — good starting point. Most of these automations connect directly to your existing stack without replacing anything.
-              </div>
-            )}
+            {renderDoc(aiDoc, "var(--c-automate)")}
           </div>
         </>
       )}
@@ -2541,6 +2513,9 @@ function Outreach() {
     nextGoal: "win-clients",
   });
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading]     = useState(false);
+  const [aiDoc, setAiDoc]         = useState("");
+  const [aiError, setAiError]     = useState("");
   const set = (k, v) => setFields(f => ({ ...f, [k]: v }));
 
   const toggleRevenue = (r) =>
@@ -2554,14 +2529,60 @@ function Outreach() {
   ];
 
   const NEXT_GOALS = [
-    { id: "win-clients", label: "Win new clients", desc: "Improve lead generation and close more business" },
-    { id: "scale-output", label: "Scale output without adding headcount", desc: "Deliver more with the same team through systems" },
-    { id: "monetise-audience", label: "Monetise existing audience or network", desc: "Add a product, service, or revenue stream" },
-    { id: "grow-visibility", label: "Build authority and visibility", desc: "Become the known name in your niche" },
-    { id: "systematise", label: "Systematise the operation", desc: "Make the whole business run with less owner input" },
+    { id: "win-clients",        label: "Win new clients",                        desc: "Improve lead generation and close more business" },
+    { id: "scale-output",       label: "Scale output without adding headcount",   desc: "Deliver more with the same team through systems" },
+    { id: "monetise-audience",  label: "Monetise existing audience or network",   desc: "Add a product, service, or revenue stream" },
+    { id: "grow-visibility",    label: "Build authority and visibility",           desc: "Become the known name in your niche" },
+    { id: "systematise",        label: "Systematise the operation",               desc: "Make the whole business run with less owner input" },
   ];
 
+  const goalLabel = NEXT_GOALS.find(g => g.id === fields.nextGoal)?.label || "";
   const ready = fields.businessType && fields.nextGoal;
+
+  async function generate() {
+    setLoading(true);
+    setAiError("");
+    setSubmitted(true);
+    try {
+      const system = `You are a senior business strategist and operations consultant with 20 years of experience scaling service businesses. You write with clarity, authority, and precision. Use markdown: # for title, ## for sections, **bold** for emphasis. Use numbered lists or bullet points (•) where appropriate. Be direct, specific, and immediately useful — this is a paid deliverable, not a blog post.`;
+
+      const user = `Produce a full Business Health Check Report for the following business:
+
+Business type: ${fields.businessType}
+Time operating: ${fields.monthsActive || "Not specified"}
+Team size: ${fields.teamSize || "Not specified"}
+What's working best: ${fields.topChannel || "Not specified"}
+Biggest drag or gap: ${fields.weakestArea || "Not specified"}
+Revenue streams: ${fields.revenueStreams.length ? fields.revenueStreams.join(", ") : "None specified"}
+Primary goal: ${goalLabel}
+
+The report must include:
+
+1. **Where You Are** — a 2-3 paragraph honest assessment of this business at this stage. Reference the specific business type, team size, and time operating. Be direct about what stage this is and what that means.
+
+2. **What's Working** — analyse the channel/approach they've identified as working. Why is it working? What does that signal about the business? What's the risk of over-relying on it? How should they double down intelligently?
+
+3. **The Real Problem** — diagnose the gap or drag they've identified. Go deeper than the surface symptom. What is actually causing it? What will happen in 6 months if it's not fixed?
+
+4. **Revenue Model Analysis** — assess their current revenue mix. Is it healthy? What's missing? What's the highest-leverage addition to the model right now given their stage?
+
+5. **The Priority Focus: ${goalLabel}** — give a detailed, step-by-step playbook for this specific goal. At least 5 specific action steps. Name real tools where relevant. Be prescriptive, not general.
+
+6. **The 30/60/90 Plan** — three clear phases. What to do in the next 30 days, 60 days, and 90 days. Specific milestones. What "done" looks like at each stage.
+
+7. **The One Move** — if they could only do one thing in the next 7 days, what is it? One clear, specific action. No lists. One sentence.
+
+Write at least 500 words. Be direct, specific, and senior in tone. Avoid platitudes.`;
+
+      const text = await callLLM({ system, user, maxTokens: 6000 });
+      setAiDoc(text);
+    } catch (e) {
+      setAiError(e.message || "Generation failed — please try again.");
+      setSubmitted(false);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <div className="mod-shell" style={{ "--mod-c": "var(--c-predict)" }}>
@@ -2672,120 +2693,39 @@ function Outreach() {
           </div>
 
           <div className="mod-action-wrap">
-            <button className={"mod-btn" + (ready ? " ready" : "")} disabled={!ready} onClick={() => setSubmitted(true)}>
+            <button className={"mod-btn" + (ready ? " ready" : "")} disabled={!ready} onClick={generate}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
                 <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
                 <line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/>
               </svg>
               Run Business Health Check
             </button>
-            <div className="mod-hint">We'll diagnose your operation and give you the focused next move.</div>
+            <div className="mod-hint">AI diagnoses your operation and maps the highest-leverage next move — takes ~20 seconds.</div>
           </div>
+
+          {aiError && <div style={{ color: "#f87171", fontSize: 12, marginTop: 12, padding: "10px 14px", background: "rgba(248,113,113,.08)", borderRadius: "var(--r)", border: "1px solid rgba(248,113,113,.2)" }}>{aiError}</div>}
         </>
+      ) : loading ? (
+        <AiLoader color="var(--c-predict)" label="Running your business health check…" />
       ) : (
         <>
           <div className="mod-preview-bar">
             <div className="mod-preview-title">Business Health Check — {fields.businessType || "Your Business"}</div>
-            <button className="btn btn-dim" onClick={() => setSubmitted(false)} style={{ fontSize: 12 }}>← Edit</button>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button className="btn btn-dim" onClick={() => { setSubmitted(false); setAiDoc(""); }} style={{ fontSize: 12 }}>← Edit</button>
+              <button className="btn btn-dim" onClick={() => navigator.clipboard.writeText(aiDoc)} style={{ fontSize: 12 }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+              <button className="btn" style={{ background: "var(--c-predict)", color: "#fff", fontSize: 12 }}
+                onClick={() => openPrint(`Business Health Check — ${fields.businessType}`, aiDoc, "#818cf8")}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                Save PDF
+              </button>
+            </div>
           </div>
-
           <div className="mod-doc">
-            <div className="pd-h1">Business Health Check</div>
-            <div style={{ fontSize: 12, color: "var(--t2)", marginBottom: 24 }}>
-              {fields.businessType} · {fields.monthsActive || "Established"} · Team: {fields.teamSize || "—"}
-            </div>
-
-            <div className="pd-h2">Where You Are</div>
-            <div className="pd-p">
-              You're running <strong>{fields.businessType}</strong>
-              {fields.monthsActive ? `, ${fields.monthsActive} in` : ""}.
-              {fields.teamSize ? ` Team size: ${fields.teamSize}.` : ""}
-            </div>
-            {fields.revenueStreams.length > 0 && !fields.revenueStreams.includes("None yet") && (
-              <div className="pd-p">
-                Current revenue streams: <strong>{fields.revenueStreams.join(", ")}</strong>. The goal now is to systematise and scale what's working.
-              </div>
-            )}
-            {(fields.revenueStreams.includes("None yet") || fields.revenueStreams.length === 0) && (
-              <div className="pd-p">
-                No formalised revenue streams yet — the priority is proving the model before scaling distribution.
-              </div>
-            )}
-
-            <div className="pd-h2">Performance Diagnosis</div>
-            {fields.topChannel && (
-              <div className="pd-p">
-                <strong>What's working: {fields.topChannel}.</strong> Double down on this. More consistency, more depth, more deliberate execution within this channel.
-              </div>
-            )}
-            {fields.weakestArea && (
-              <div className="pd-p">
-                <strong>What's weak: {fields.weakestArea}.</strong> Either systematise it (build a process, delegate, or automate) or make a deliberate decision to stop doing it — don't leave it half-done.
-              </div>
-            )}
-
-            <div className="pd-h2">Your Primary Focus: {NEXT_GOALS.find(g => g.id === fields.nextGoal)?.label}</div>
-            {fields.nextGoal === "win-clients" && (
-              <div>
-                <div className="pd-p">You're at the stage where your pipeline is the constraint. Here's the exact playbook:</div>
-                {[
-                  { step: "1. Build your outreach list", detail: "Identify 20 ideal clients — businesses already buying what you sell, at the size you want to work with. Target by industry, title, and company size." },
-                  { step: "2. Lead with insight, not a pitch", detail: "Your first message should show you understand their world. Reference something specific. Offer a useful observation. Not: 'We help companies like yours…'" },
-                  { step: "3. Make the ask small", detail: "Ask for 20 minutes, not a proposal. Lower friction = higher response rate. Get them on a call, then qualify." },
-                  { step: "4. Follow up twice", detail: "First message → 5 days → follow up. 5 more days → final. If no response, move on. Consistent follow-up triples response rates." },
-                  { step: "5. Systematise the whole loop", detail: "Build this into a CRM. Track every contact, every status, every next action. When it's tracked, nothing falls through the cracks." },
-                ].map(r => <div key={r.step} className="pd-li"><strong>{r.step}:</strong> {r.detail}</div>)}
-              </div>
-            )}
-            {fields.nextGoal === "scale-output" && (
-              <div>
-                <div className="pd-p">Scaling output without adding headcount requires systems, not more hours:</div>
-                {[
-                  { step: "Document every repeatable process", detail: "If your team does it more than once, it needs a written SOP. Use Notion or Loom. Documented = delegatable." },
-                  { step: "Identify what only you can do", detail: "List every task you do in a week. Highlight what only you can do. Everything else is a delegation or automation candidate." },
-                  { step: "Batch similar work", detail: "Stop context-switching. Batch all calls in one block, all writing in another. Output quality improves and time drops." },
-                  { step: "Automate the handoffs", detail: "The biggest time loss is between steps — waiting, chasing, re-explaining. Automate handoffs with Zapier, Make, or a proper project management tool." },
-                ].map(r => <div key={r.step} className="pd-li"><strong>{r.step}:</strong> {r.detail}</div>)}
-              </div>
-            )}
-            {fields.nextGoal === "monetise-audience" && (
-              <div>
-                <div className="pd-p">You have an audience or network — now convert it. The order matters:</div>
-                {[
-                  { step: "1. Low-ticket digital product first", detail: "Lowest barrier. Prove there's a buyer before building anything complex. Price under £50, sell via Gumroad." },
-                  { step: "2. Paid community second", detail: "If your audience wants ongoing access to you or your insights, a subscription community is the highest-margin model. Whop or Circle." },
-                  { step: "3. High-ticket service third", detail: "Once you've proven demand at low price points, use that social proof to close premium engagements at 10x the price." },
-                  { step: "4. Referral programme", detail: "Your best clients know others like them. Build a formal referral incentive and ask for introductions actively, not occasionally." },
-                ].map(r => <div key={r.step} className="pd-li"><strong>{r.step}:</strong> {r.detail}</div>)}
-              </div>
-            )}
-            {fields.nextGoal === "grow-visibility" && (
-              <div>
-                <div className="pd-p">Authority is built through consistent, specific, useful content — not volume:</div>
-                {[
-                  { step: "Pick one channel", detail: "LinkedIn if B2B. YouTube if your audience researches before buying. Newsletter if you want owned reach. Master one before adding another." },
-                  { step: "Post on a schedule you can sustain", detail: "3x/week on LinkedIn beats 10x for two weeks then nothing. Consistency is the only algorithm that matters." },
-                  { step: "Be specific, not broad", detail: "The most shared content makes one specific, useful point — not a generic take. Narrow down to your exact niche and own it." },
-                  { step: "Engage before you broadcast", detail: "Comment meaningfully on 5 posts before you post your own. Build a reputation as someone worth following before asking for attention." },
-                ].map(r => <div key={r.step} className="pd-li"><strong>{r.step}:</strong> {r.detail}</div>)}
-              </div>
-            )}
-            {fields.nextGoal === "systematise" && (
-              <div>
-                <div className="pd-p">The system is the product. Here's the full operational architecture:</div>
-                {[
-                  { step: "Weekly operating rhythm", detail: "Define the recurring structure of your week. When does pipeline review happen? When does client work get done? Build the rhythm, then protect it." },
-                  { step: "Client delivery pipeline", detail: "Map every step from signed contract to delivered outcome. Identify where delays happen. Build a system that moves clients through without chasing." },
-                  { step: "Financial visibility", detail: "Monthly: revenue, costs, net. Forecast 90 days forward. You can't make good decisions without accurate numbers in front of you." },
-                  { step: "Remove yourself from the critical path", detail: "If the business stops when you stop, it's not a system — it's a job. Document, delegate, and test: can it run for two weeks without you?" },
-                ].map(r => <div key={r.step} className="pd-li"><strong>{r.step}:</strong> {r.detail}</div>)}
-              </div>
-            )}
-
-            <div className="pd-h2">Next 30 Days — One Move</div>
-            <div className="pd-p">
-              Don't try to do everything. The single highest-leverage action right now is: <strong>{NEXT_GOALS.find(g => g.id === fields.nextGoal)?.label}</strong>. Everything else is secondary until you've made meaningful progress here.
-            </div>
+            {renderDoc(aiDoc, "var(--c-predict)")}
           </div>
         </>
       )}
@@ -2826,6 +2766,27 @@ const IcPrint = (
     <rect x="6" y="14" width="12" height="8"/>
   </svg>
 );
+
+function AiLoader({ color = "var(--amber)", label = "Generating…" }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "80px 40px", gap: 20 }}>
+      <div style={{ position: "relative", width: 48, height: 48 }}>
+        <svg viewBox="0 0 48 48" fill="none" style={{ width: 48, height: 48, animation: "spin 1.4s linear infinite" }}>
+          <circle cx="24" cy="24" r="20" stroke="var(--e2)" strokeWidth="3" />
+          <circle cx="24" cy="24" r="20" stroke={color} strokeWidth="3" strokeLinecap="round"
+            strokeDasharray="62.8" strokeDashoffset="47" />
+        </svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: 18, height: 18, opacity: 0.8 }}>
+          <polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+        </svg>
+      </div>
+      <div style={{ fontSize: 13, color: "var(--t2)", fontWeight: 500 }}>{label}</div>
+      <div style={{ fontSize: 11, color: "var(--t4)", maxWidth: 280, textAlign: "center", lineHeight: 1.6 }}>
+        The AI is analysing your inputs and building a detailed, specific plan. This takes 15–30 seconds.
+      </div>
+    </div>
+  );
+}
 
 function renderDoc(text, accentVar) {
   return text.split("\n").map((line, i) => {
@@ -2875,7 +2836,10 @@ function Proposals() {
     preparedBy: "",
     date: new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }),
   });
-  const [preview, setPreview] = useState(false);
+  const [preview, setPreview]   = useState(false);
+  const [loading, setLoading]   = useState(false);
+  const [aiDoc, setAiDoc]       = useState("");
+  const [aiError, setAiError]   = useState("");
   const set = (k, v) => setFields(f => ({ ...f, [k]: v }));
 
   const toggleDeliverable = (d) =>
@@ -2885,71 +2849,71 @@ function Proposals() {
 
   const ready = fields.brandName && fields.deliverables.length > 0;
 
-  const buildDeck = () => {
-    const deliverableList = fields.deliverables.map(d => `  • ${d}`).join("\n");
-    const budgetLine = fields.budget ? `**Investment:** ${fields.budget}` : "";
-    const timelineLine = fields.timeline ? `**Engagement Timeline:** ${fields.timeline}` : "";
+  async function generate() {
+    setLoading(true);
+    setAiError("");
+    setPreview(true);
+    try {
+      const system = `You are a senior consultant at Cornerstone AI Group, writing a polished, persuasive client proposal. Write in clear, confident British English. Use markdown: # for the title, ## for section headers, **bold** for key terms. The proposal must read like a premium professional document — direct, outcome-led, and tailored to the specific client. Never use generic filler language.`;
 
-    return `
-# Client Proposal
+      const user = `Write a full client proposal for Cornerstone AI Group with the following details:
 
-**Client:** ${fields.brandName}${fields.brandWebsite ? ` · ${fields.brandWebsite}` : ""}
-**Prepared for:** ${fields.brandContact || fields.brandName}
-**Prepared by:** Cornerstone AI Group${fields.preparedBy ? ` · ${fields.preparedBy}` : ""}
-**Date:** ${fields.date}
+Client: ${fields.brandName}${fields.brandWebsite ? ` (${fields.brandWebsite})` : ""}
+Contact: ${fields.brandContact || fields.brandName}
+Prepared by: Cornerstone AI Group${fields.preparedBy ? ` · ${fields.preparedBy}` : ""}
+Date: ${fields.date}
+Client's challenge / problem: ${fields.brandProduct || "Not specified"}
+Engagement goal: ${fields.campaignGoal || "Not specified"}
+Investment: ${fields.budget || "To be confirmed"}
+Timeline: ${fields.timeline || "To be confirmed"}
+Scope of work: ${fields.deliverables.join(", ")}
+Additional notes: ${fields.notes || "None"}
 
----
+The proposal must include these sections:
+
+# Client Proposal — ${fields.brandName}
+
+A subtitle line with: Client name · Contact · Prepared by Cornerstone AI Group · Date
 
 ## About Cornerstone AI Group
+2-3 sentences. We build AI-powered operational systems for businesses — not tools, outcomes. We design, build, and manage the systems.
 
-Cornerstone AI Group builds AI-powered systems that eliminate the manual work slowing down operations-heavy businesses. We design, build, and manage the systems — so your team can focus on the work that actually grows the business.
+## The Challenge
+Restate the client's problem (from: "${fields.brandProduct || "their stated challenge"}") in 2-3 paragraphs. Be specific. Name what it's costing them — time, revenue, opportunity. Show you understand their world.
 
-We don't sell tools. We deliver outcomes: time recovered, leads followed up, reporting automated, decisions made faster.
-
----
-
-## Engagement Overview
-
-${fields.brandProduct ? `**Challenge:** ${fields.brandProduct}\n` : ""}${fields.campaignGoal ? `**Goal:** ${fields.campaignGoal}\n` : ""}${budgetLine ? `${budgetLine}\n` : ""}${timelineLine ? `${timelineLine}\n` : ""}
-
----
+## Our Proposed Solution
+How Cornerstone AI Group will solve this. Reference the goal: "${fields.campaignGoal || "their stated goal"}". Explain the approach, not just the deliverables.
 
 ## Scope of Work
+List each deliverable (${fields.deliverables.join(", ")}) as a clear line item. For each one, add one sentence explaining exactly what it includes and what it delivers for the client.
 
-${deliverableList}
+## Investment & Timeline
+${fields.budget ? `Investment: ${fields.budget}` : "Investment: [To be confirmed following discovery call]"}
+${fields.timeline ? `Timeline: ${fields.timeline}` : "Timeline: [To be agreed]"}
+Include a brief note on what the investment covers and the payment structure (setup + monthly retainer model).
 
-All work is scoped, built, and managed by our team. You'll receive regular progress updates, and every system is documented so you maintain full visibility throughout.
+## How We Work Together
+5 steps: Discovery → Proposal confirmed → Build → Go-live → Ongoing management. One sentence per step. Specific and reassuring.
 
----
+## Why Cornerstone AI Group
+4 bullet points. Specific differentiators: bespoke systems not templates, we own delivery, one point of contact, documented handover.
 
-## Why This Works
+${fields.notes ? `## Additional Notes\n${fields.notes}` : ""}
 
-  • We build for your specific operation — no off-the-shelf templates, no generic playbooks
-  • Systems are designed to run with minimal owner input within 30–60 days
-  • We own the delivery — one point of contact, no project management overhead on your side
-  • Every engagement includes a clear handover and documentation so you're never dependent on us
+## Next Steps
+One clear paragraph. What happens after they sign. End with a confident closing line from Cornerstone AI Group.
 
----
+Write the full document. Make it feel worth £3,000/month.`;
 
-## How It Works
-
-1. Discovery call — we map your current workflow and identify the highest-leverage automation
-2. Proposal confirmed — scope, timeline, and investment agreed
-3. Build phase — systems designed, built, and tested
-4. Go-live — we hand over a working system and train your team
-5. Ongoing management (if retainer) — we monitor, optimise, and expand as you grow
-
-${fields.notes ? `---\n\n## Additional Notes\n\n${fields.notes}` : ""}
-
----
-
-We look forward to building something that actually performs.
-
-— Cornerstone AI Group
-`.trim();
-  };
-
-  const deck = buildDeck();
+      const text = await callLLM({ system, user, maxTokens: 5000 });
+      setAiDoc(text);
+    } catch (e) {
+      setAiError(e.message || "Generation failed — please try again.");
+      setPreview(false);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <div className="mod-shell" style={{ "--mod-c": "var(--c-proposals)" }}>
@@ -3030,7 +2994,7 @@ We look forward to building something that actually performs.
 
           <div className="mod-action-wrap">
             <button className={`mod-btn${ready ? " ready" : ""}`} disabled={!ready}
-              onClick={() => setPreview(true)}>
+              onClick={generate}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                 <polyline points="14 2 14 8 20 8"/>
@@ -3038,25 +3002,29 @@ We look forward to building something that actually performs.
                Build Proposal
             </button>
             <div className="mod-hint">
-              {ready ? "Ready — click to generate your client proposal" : "Add the client name, select at least one deliverable"}
+              {ready ? "AI generates a tailored, polished proposal — takes ~20 seconds." : "Add the client name, select at least one deliverable"}
             </div>
           </div>
+
+          {aiError && <div style={{ color: "#f87171", fontSize: 12, marginTop: 12, padding: "10px 14px", background: "rgba(248,113,113,.08)", borderRadius: "var(--r)", border: "1px solid rgba(248,113,113,.2)" }}>{aiError}</div>}
         </>
+      ) : loading ? (
+        <AiLoader color="var(--c-proposals)" label="Writing your client proposal…" />
       ) : (
         <>
           <div className="mod-preview-bar">
-            <button className="btn btn-dim" onClick={() => setPreview(false)}>← Edit</button>
+            <button className="btn btn-dim" onClick={() => { setPreview(false); setAiDoc(""); }}>← Edit</button>
             <div className="mod-preview-title">Proposal — {fields.brandName}</div>
-            <button className="btn btn-dim" onClick={() => navigator.clipboard.writeText(deck)}>
+            <button className="btn btn-dim" onClick={() => navigator.clipboard.writeText(aiDoc)}>
               {IcCopy} Copy text
             </button>
             <button className="btn" style={{ background: "var(--c-proposals)", color: "#fff", fontSize: 12 }}
-              onClick={() => openPrint(`Proposal — ${fields.brandName}`, deck, "#818cf8")}>
+              onClick={() => openPrint(`Proposal — ${fields.brandName}`, aiDoc, "#818cf8")}>
               {IcPrint} Save as PDF
             </button>
           </div>
           <div className="mod-doc">
-            {renderDoc(deck, "var(--c-proposals)")}
+            {renderDoc(aiDoc, "var(--c-proposals)")}
           </div>
         </>
       )}
