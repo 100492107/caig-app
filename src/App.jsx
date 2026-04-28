@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef, memo } from "react";
 import { supabase } from "./supabase";
+import { LogoMark, Logo } from "./Logo";
 
 
 // ─── CONFIGURATION ────────────────────────────────────────────────────────────
@@ -3342,10 +3343,8 @@ function LoginGate({ onAuth }) {
   return (
     <div className="login-gate">
       <div className="login-card">
-        <div className="login-logo">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#030206" strokeWidth="2.5">
-            <polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5" />
-          </svg>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 22 }}>
+          <LogoMark size={52} />
         </div>
         <div className="login-title">Cornerstone AI Group</div>
         <div className="login-sub">
@@ -3457,7 +3456,7 @@ function Home({ queue, setView, dbStats = {}, dbCreators = [] }) {
           <line x1="16" y1="17" x2="8" y2="17"/>
         </svg>
       ),
-      live: false,
+      live: true,
     },
     {
       id: "outreach",
@@ -3972,17 +3971,7 @@ function ClientPortal({ profile, onSignOut }) {
       {/* Top nav */}
       <div className="topbar">
         <div className="tb-brand">
-          <div className="tb-gem">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#030206" strokeWidth="2.2">
-              <path d="M4 6 L12 2 L20 6 L20 18 L12 22 L4 18 Z"/>
-              <line x1="12" y1="2" x2="12" y2="22"/>
-              <line x1="4" y1="12" x2="20" y2="12"/>
-            </svg>
-          </div>
-          <div className="tb-wordmark">
-            Cornerstone AI Group
-            <span>Client Portal</span>
-          </div>
+          <Logo size={28} sub="Client Portal" />
         </div>
         <div style={{ flex: 1 }} />
         <div style={{ fontSize: 11.5, color: "var(--t3)", marginRight: 12, textAlign: "right", lineHeight: 1.4 }}>
@@ -4960,17 +4949,7 @@ export default function App() {
       <div className="topbar">
         {/* Brand */}
         <div className="tb-brand" style={{ cursor: "pointer" }} onClick={() => setView("home")}>
-          <div className="tb-gem">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#030206" strokeWidth="2.2">
-              <path d="M4 6 L12 2 L20 6 L20 18 L12 22 L4 18 Z"/>
-              <line x1="12" y1="2" x2="12" y2="22"/>
-              <line x1="4" y1="12" x2="20" y2="12"/>
-            </svg>
-          </div>
-          <div className="tb-wordmark">
-            Cornerstone AI Group
-            <span>Operator Platform</span>
-          </div>
+          <Logo size={28} sub="Operator Platform" />
         </div>
 
         {/* Nav links */}
