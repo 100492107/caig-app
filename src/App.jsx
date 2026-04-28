@@ -1352,7 +1352,7 @@ function Autopilot({ queue, setQueue, setView, toast_, dbCreators = [] }) {
     handle: c.handle || `@${c.name.toLowerCase().replace(/\s+/g, "_")}`,
     niche: c.niche || "General",
     color: "#818CF8",
-    char: `${c.name}. A UGC content creator in the ${c.niche || "general"} space.`,
+    char: `${c.name}. A content specialist in the ${c.niche || "general"} space.`,
     voice: c.voice || "Authentic, engaging, conversational.",
     pillars: c.pillars ? c.pillars.split(",").map(p => p.trim()).filter(Boolean) : [
       `${c.niche || "content"} tips and advice`,
@@ -1492,8 +1492,8 @@ function Autopilot({ queue, setQueue, setView, toast_, dbCreators = [] }) {
     <div className="fu">
       <div className="ap">
         <div className="ap-header">
-          <div className="ap-header-title">Content Hub</div>
-          <div className="ap-header-sub">Select personas and platforms — the engine handles the rest.</div>
+          <div className="ap-header-title">Content Engine</div>
+          <div className="ap-header-sub">Select a persona and platform — the engine generates on-brand content in seconds.</div>
         </div>
 
         <div className="steps">
@@ -2306,11 +2306,11 @@ function Onboarding() {
   const set = (k, v) => setFields(f => ({ ...f, [k]: v }));
 
   const PRIORITIES = [
-    { id: "brand-outreach", label: "Brand Outreach Follow-ups", desc: "Tracking leads, sending follow-ups, chasing decisions" },
+    { id: "brand-outreach", label: "Lead & Client Follow-ups", desc: "Tracking leads, sending follow-ups, chasing decisions" },
     { id: "payment-tracking", label: "Payment & Invoice Tracking", desc: "Knowing who owes what, when, and sending reminders" },
-    { id: "content-approval", label: "Content Approval Workflow", desc: "Getting brand sign-off before posting goes live" },
-    { id: "scheduling", label: "Content Scheduling & Posting", desc: "Getting posts from queue into Later / Buffer on time" },
-    { id: "community", label: "Telegram / Community Management", desc: "Welcoming subscribers, posting updates, handling DMs" },
+    { id: "content-approval", label: "Content Approval Workflow", desc: "Getting sign-off before content goes live" },
+    { id: "scheduling", label: "Content Scheduling & Publishing", desc: "Getting content from draft to published on time, every time" },
+    { id: "community", label: "Community & Inbox Management", desc: "Welcoming new members, sending updates, handling messages" },
     { id: "reporting", label: "Performance Reporting", desc: "Pulling stats, tracking what's working, weekly summaries" },
   ];
 
@@ -2321,11 +2321,11 @@ function Onboarding() {
       <div className="mod-hero">
         <div className="mod-badge">
           <div className="mod-badge-dot" />
-          Creator Workflow
+          Operations
         </div>
-        <div className="mod-title">Automate Your Creator Ops</div>
+        <div className="mod-title">Automate Your Ops</div>
         <div className="mod-desc">
-          Tell us where your time is leaking — we'll map out the automations that hand it back so you can focus on content and deals.
+          Tell us where your time is leaking — we'll map out the automations that hand it back so your team can focus on the work that matters.
         </div>
       </div>
 
@@ -2333,8 +2333,8 @@ function Onboarding() {
         <>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 16, marginBottom: 32 }}>
             {[
-              { v: "80%", l: "of creator admin tasks are repeatable and automatable" },
-              { v: "6h", l: "average hours per week lost to outreach and scheduling admin" },
+              { v: "80%", l: "of business admin tasks are repeatable and automatable" },
+              { v: "6h", l: "average hours per week lost to follow-ups and scheduling admin" },
               { v: "3×", l: "faster deal close when follow-up is automated and consistent" },
             ].map(s => (
               <div key={s.l} style={{ background: "var(--s2)", border: "1px solid var(--e1)", borderRadius: "var(--rl)", padding: "20px 22px" }}>
@@ -2352,10 +2352,10 @@ function Onboarding() {
                 <input className="mod-input" placeholder="e.g. Joseph" value={fields.contactName} onChange={e => set("contactName", e.target.value)} />
               </div>
               <div className="mod-field">
-                <label className="mod-label">Number of active personas</label>
+                <label className="mod-label">Size of your team</label>
                 <select className="mod-input" value={fields.personaCount} onChange={e => set("personaCount", e.target.value)}>
                   <option value="">Select</option>
-                  {["1", "2–3", "4–5", "6–7", "8+"].map(o => <option key={o} value={o}>{o}</option>)}
+                  {["Just me", "2–3 people", "4–5 people", "6–10 people", "10+"].map(o => <option key={o} value={o}>{o}</option>)}
                 </select>
               </div>
               <div className="mod-field">
@@ -2364,7 +2364,7 @@ function Onboarding() {
               </div>
               <div className="mod-field">
                 <label className="mod-label">Tools you currently use</label>
-                <input className="mod-input" placeholder="e.g. Later, Notion, Gmail, Stripe, Telegram" value={fields.currentTools} onChange={e => set("currentTools", e.target.value)} />
+                <input className="mod-input" placeholder="e.g. Notion, Gmail, Stripe, Slack, HubSpot" value={fields.currentTools} onChange={e => set("currentTools", e.target.value)} />
               </div>
             </div>
 
@@ -2373,7 +2373,7 @@ function Onboarding() {
               <div className="mod-field">
                 <label className="mod-label">Describe what's eating your time *</label>
                 <textarea className="mod-input mod-ta" style={{ minHeight: 100 }}
-                  placeholder="e.g. I'm manually following up with brands every few days, tracking payments in a spreadsheet, and spending hours moving content from the queue into Later every Sunday..."
+                  placeholder="e.g. I'm manually following up with leads every few days, tracking payments in a spreadsheet, and spending hours moving tasks between tools that don't talk to each other..."
                   value={fields.bottleneck} onChange={e => set("bottleneck", e.target.value)} />
               </div>
               <div className="mod-field" style={{ marginTop: 8 }}>
@@ -2414,34 +2414,34 @@ function Onboarding() {
       ) : (
         <>
           <div className="mod-preview-bar">
-            <div className="mod-preview-title">Creator Automation Plan — {fields.contactName}</div>
+            <div className="mod-preview-title">Automation Plan — {fields.contactName}</div>
             <button className="btn btn-dim" onClick={() => setSubmitted(false)} style={{ fontSize: 12 }}>← Edit</button>
           </div>
 
           <div className="mod-doc">
-            <div className="pd-h1">Creator Automation Plan</div>
+            <div className="pd-h1">Operations Automation Plan</div>
             <div style={{ fontSize: 12, color: "var(--t2)", marginBottom: 24 }}>
-              {fields.contactName} · {fields.personaCount ? `${fields.personaCount} personas` : "Creator operation"} · {fields.hoursPerWeek ? `${fields.hoursPerWeek}h/week in admin` : ""}
+              {fields.contactName} · {fields.personaCount ? `Team: ${fields.personaCount}` : "Your operation"} · {fields.hoursPerWeek ? `${fields.hoursPerWeek}h/week in admin` : ""}
             </div>
 
             <div className="pd-h2">The Problem</div>
             <div className="pd-p">
-              {fields.bottleneck || "Manual admin is eating into the time you should be spending on content and brand relationships."}
+              {fields.bottleneck || "Manual admin is eating into the time your team should be spending on the work that drives revenue."}
             </div>
             <div className="pd-p">
-              Running {fields.personaCount || "multiple"} personas means the admin compounds. Every task you do manually for one persona, you're doing {fields.personaCount || "multiple"} times. That's where automation earns the most.
+              {fields.personaCount ? `A team of ${fields.personaCount} means every repeated manual task multiplies across people. That's where automation pays back fastest.` : "Every task done manually is a task that could be systematised — once built, it runs without you."}
             </div>
 
             <div className="pd-h2">Start Here: {PRIORITIES.find(p => p.id === fields.priority)?.label}</div>
             <div className="pd-p">{PRIORITIES.find(p => p.id === fields.priority)?.desc}. This is the right first move — high frequency, directly tied to revenue, and automatable without rebuilding how you work.</div>
 
             {fields.priority === "brand-outreach" && <>
-              <div className="pd-h2">Brand Outreach Automation Stack</div>
+              <div className="pd-h2">Lead & Client Follow-up Automation Stack</div>
               {[
-                { tool: "Notion + Zapier", use: "Build a brand CRM in Notion. Zapier auto-updates status, sends you reminders at day 3, 7, and 14 after first contact — no chasing in your head." },
-                { tool: "Gmail Canned Responses + Sequences", use: "Write your follow-up templates once. Use a sequence tool (Mailmeteor, Gmass) to send timed follow-ups automatically — looks personal, costs nothing." },
-                { tool: "Calendly", use: "Stop the back-and-forth. Brand contacts book a 20-min call directly. You show up prepped, not chasing." },
-                { tool: "Airtable Brand Pipeline", use: "One view showing every active deal: stage, persona, value, last contact. Filters by persona so you can see Cara's pipeline vs Maya's." },
+                { tool: "Notion + Zapier", use: "Build a lead CRM in Notion. Zapier auto-updates status and sends you reminders at day 3, 7, and 14 after first contact — no chasing in your head." },
+                { tool: "Gmail Sequences (Mailmeteor / Gmass)", use: "Write your follow-up templates once. Use a sequence tool to send timed follow-ups automatically — looks personal, costs nothing." },
+                { tool: "Calendly", use: "Stop the back-and-forth on scheduling. Prospects book directly. You show up prepped, not chasing." },
+                { tool: "HubSpot Free CRM / Airtable Pipeline", use: "One view showing every active deal: stage, contact, value, last touchpoint. At a glance you know exactly where each lead stands." },
               ].map(r => <div key={r.tool} className="pd-li"><strong>{r.tool}:</strong> {r.use}</div>)}
             </>}
 
@@ -2466,40 +2466,40 @@ function Onboarding() {
             </>}
 
             {fields.priority === "scheduling" && <>
-              <div className="pd-h2">Scheduling Automation Stack</div>
+              <div className="pd-h2">Scheduling & Publishing Automation Stack</div>
               {[
-                { tool: "This App → Later.com CSV", use: "Generate your week, export the CSV from Settings, upload to Later.com/bulk. The full week is scheduled in under 10 minutes." },
-                { tool: "Later Auto-publish", use: "Enable auto-publish on Later so approved posts go live without you touching anything. Images pre-attached, time pre-set." },
-                { tool: "Google Drive Sync (in-app)", use: "Push the full schedule to a Google Sheet each week. Share with collaborators so everyone sees what's going live." },
-                { tool: "Sunday System", use: "Generate Sunday → review queue → create visuals → export CSV → upload Later → attach images → approve. Done. Week runs itself." },
+                { tool: "Buffer / Later / Publer", use: "Draft your week's content in one session, schedule it, and let the tool publish automatically. No logging in each day to post manually." },
+                { tool: "Notion Content Calendar → Zapier", use: "Build your content calendar in Notion. Zapier triggers publication or alerts to Buffer/Later when a post is marked ready." },
+                { tool: "Google Drive Asset Sync", use: "Store visuals in Drive. Share the folder with collaborators so everyone knows what's live and what's queued." },
+                { tool: "Weekly Batch System", use: "One session per week: draft → review → schedule → done. Content runs itself for the next 7 days without anyone touching it." },
               ].map(r => <div key={r.tool} className="pd-li"><strong>{r.tool}:</strong> {r.use}</div>)}
             </>}
 
             {fields.priority === "community" && <>
-              <div className="pd-h2">Community Management Automation Stack</div>
+              <div className="pd-h2">Community & Inbox Automation Stack</div>
               {[
-                { tool: "Telegram Bot (Combot / Rose)", use: "Auto-welcome new subscribers with a pinned message. Filter spam. Answer FAQs automatically. Runs 24/7 without you." },
-                { tool: "Notion Content Calendar → Telegram", use: "Schedule your Telegram updates in Notion. Use Zapier to post them automatically at the right time — no manual copy-paste." },
-                { tool: "Gumroad / Whop for Paid Access", use: "Payment → automatic Telegram invite link. No manual adding members, no chasing payments." },
-                { tool: "Monthly Digest Template", use: "Write a monthly community update template once. Fill in the numbers, drop in the new content — done in 10 minutes." },
+                { tool: "Intercom / Crisp / Tidio", use: "Auto-welcome new members. Answer FAQs automatically with trained responses. Escalate complex queries to a human. Runs 24/7." },
+                { tool: "Notion Content Calendar → Zapier", use: "Schedule your community updates in Notion. Zapier posts them automatically at the right time — no manual copy-paste." },
+                { tool: "Gumroad / Whop for Paid Access", use: "Payment → automatic access granted. No manual onboarding, no chasing payments." },
+                { tool: "Monthly Digest Template", use: "Write a monthly update template once. Fill in the numbers, add the new content — done in 10 minutes." },
               ].map(r => <div key={r.tool} className="pd-li"><strong>{r.tool}:</strong> {r.use}</div>)}
             </>}
 
             {fields.priority === "reporting" && <>
               <div className="pd-h2">Performance Reporting Automation Stack</div>
               {[
-                { tool: "Later Analytics Export", use: "Export your weekly stats from Later as CSV. Drop into a Google Sheet template that auto-calculates growth, engagement rate, top posts." },
-                { tool: "Google Sheets Dashboard per Persona", use: "One tab per persona. Track followers, views, engagement, and brand deal income monthly. Colour-coded so you see what's working at a glance." },
-                { tool: "Zapier: TikTok/Instagram → Sheet", use: "Auto-pull key metrics into your tracker weekly. No manual logging." },
-                { tool: "Monthly Review Template", use: "30 minutes every month: review stats, identify top-performing pillars, adjust next month's content mix. Systemised, not improvised." },
+                { tool: "Analytics Platform Export", use: "Export your weekly or monthly stats as CSV. Drop into a Google Sheet template that auto-calculates growth, engagement, and top performers." },
+                { tool: "Google Sheets Dashboard", use: "One tab per channel or product line. Track revenue, traffic, leads, conversion monthly. Colour-coded so you see what's working at a glance." },
+                { tool: "Zapier: Platform → Sheet", use: "Auto-pull key metrics into your tracker on a schedule. No manual data entry." },
+                { tool: "Monthly Review Template", use: "30 minutes every month: review stats, identify what's working, adjust next month's plan. Systemised, not improvised." },
               ].map(r => <div key={r.tool} className="pd-li"><strong>{r.tool}:</strong> {r.use}</div>)}
             </>}
 
-            <div className="pd-h2">90-Day Creator Automation Roadmap</div>
+            <div className="pd-h2">90-Day Automation Roadmap</div>
             {[
-              { phase: "Days 1–30", action: `Implement ${PRIORITIES.find(p => p.id === fields.priority)?.label} automation. Set up your tools, build the templates, test the workflow. Target: ${fields.hoursPerWeek ? Math.round(parseInt(fields.hoursPerWeek) * 0.4) + "h/week" : "40%"} of current admin time eliminated.` },
-              { phase: "Days 31–60", action: "Layer in a second automation — if you started with outreach, add payment tracking next. Or if you started with scheduling, add reporting. Stack the systems." },
-              { phase: "Days 61–90", action: `All six areas systematised. ${fields.personaCount ? `Running ${fields.personaCount} personas` : "Your full operation"} on a repeatable weekly rhythm. Admin drops to under 2h/week. The rest goes to content and deals.` },
+              { phase: "Days 1–30", action: `Implement ${PRIORITIES.find(p => p.id === fields.priority)?.label} automation. Set up the tools, build the templates, test the workflow. Target: ${fields.hoursPerWeek ? Math.round(parseInt(fields.hoursPerWeek) * 0.4) + "h/week" : "40%"} of current admin time eliminated.` },
+              { phase: "Days 31–60", action: "Layer in a second automation — if you started with follow-ups, add payment tracking next. Or if you started with scheduling, add reporting. Stack the systems." },
+              { phase: "Days 61–90", action: `All six areas systematised. ${fields.personaCount ? `Your team of ${fields.personaCount}` : "Your operation"} running on a repeatable weekly rhythm. Admin drops to under 2h/week. The rest goes to the work that grows the business.` },
             ].map(r => (
               <div key={r.phase} className="pd-li"><strong>{r.phase}:</strong> {r.action}</div>
             ))}
@@ -2529,24 +2529,19 @@ const OUTREACH_GOALS = [
   "Re-engage a cold lead",
 ];
 
-// ─── CREATOR INTELLIGENCE MODULE ─────────────────────────────────────────────
+// ─── BUSINESS INTELLIGENCE MODULE ────────────────────────────────────────────
 function Outreach() {
   const [fields, setFields] = useState({
-    selectedPersonas: [],
+    businessType: "",
     monthsActive: "",
-    currentFollowers: "",
-    topPillar: "",
-    weakestPillar: "",
+    teamSize: "",
+    topChannel: "",
+    weakestArea: "",
     revenueStreams: [],
-    nextGoal: "brand-deal",
+    nextGoal: "win-clients",
   });
   const [submitted, setSubmitted] = useState(false);
   const set = (k, v) => setFields(f => ({ ...f, [k]: v }));
-
-  const togglePersona = (id) =>
-    set("selectedPersonas", fields.selectedPersonas.includes(id)
-      ? fields.selectedPersonas.filter(x => x !== id)
-      : [...fields.selectedPersonas, id]);
 
   const toggleRevenue = (r) =>
     set("revenueStreams", fields.revenueStreams.includes(r)
@@ -2554,31 +2549,30 @@ function Outreach() {
       : [...fields.revenueStreams, r]);
 
   const REVENUE_STREAMS = [
-    "Brand sponsorships", "Affiliate links", "Digital products",
-    "Telegram subscriptions", "Consultation calls", "None yet",
+    "Retainer clients", "Project-based fees", "Digital products",
+    "Affiliate / referral income", "Subscription / SaaS", "None yet",
   ];
 
   const NEXT_GOALS = [
-    { id: "brand-deal", label: "Land first brand deal", desc: "Get a paid partnership on one of the personas" },
-    { id: "scale-content", label: "Scale content output", desc: "Grow to more personas or more platforms" },
-    { id: "monetise-audience", label: "Monetise existing audience", desc: "Add digital products, Telegram, or affiliate income" },
-    { id: "grow-followers", label: "Grow follower count", desc: "Build the audience before monetising" },
-    { id: "systematise", label: "Systematise operations", desc: "Make the whole operation run with less input" },
+    { id: "win-clients", label: "Win new clients", desc: "Improve lead generation and close more business" },
+    { id: "scale-output", label: "Scale output without adding headcount", desc: "Deliver more with the same team through systems" },
+    { id: "monetise-audience", label: "Monetise existing audience or network", desc: "Add a product, service, or revenue stream" },
+    { id: "grow-visibility", label: "Build authority and visibility", desc: "Become the known name in your niche" },
+    { id: "systematise", label: "Systematise the operation", desc: "Make the whole business run with less owner input" },
   ];
 
-  const chosenPersonas = PERSONAS.filter(p => fields.selectedPersonas.includes(p.id));
-  const ready = fields.selectedPersonas.length > 0 && fields.nextGoal;
+  const ready = fields.businessType && fields.nextGoal;
 
   return (
     <div className="mod-shell" style={{ "--mod-c": "var(--c-predict)" }}>
       <div className="mod-hero">
         <div className="mod-badge">
           <div className="mod-badge-dot" />
-          Creator Intelligence
+          Business Intelligence
         </div>
-        <div className="mod-title">Network Health Check</div>
+        <div className="mod-title">Business Health Check</div>
         <div className="mod-desc">
-          Tell us where your personas are right now — we'll diagnose what to focus on next and what the growth playbook looks like.
+          Tell us where your business is right now — we'll diagnose what to focus on next and map out the highest-leverage move.
         </div>
       </div>
 
@@ -2586,9 +2580,9 @@ function Outreach() {
         <>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 16, marginBottom: 32 }}>
             {[
-              { v: "6–12m", l: "typical time for a niche creator account to land first paid brand deal" },
-              { v: "10K", l: "follower threshold where brand outreach conversion improves significantly" },
-              { v: "3×", l: "more revenue per follower from a focused niche vs broad lifestyle content" },
+              { v: "68%", l: "of businesses have no documented lead follow-up process" },
+              { v: "5×", l: "more likely to close when a lead is followed up within 5 minutes" },
+              { v: "3×", l: "revenue uplift for businesses that systematise before scaling" },
             ].map(s => (
               <div key={s.l} style={{ background: "var(--s2)", border: "1px solid var(--e1)", borderRadius: "var(--rl)", padding: "20px 22px" }}>
                 <div style={{ fontSize: 32, fontWeight: 800, color: "var(--c-predict)", fontFamily: "var(--mono)", marginBottom: 8, letterSpacing: "-.04em" }}>{s.v}</div>
@@ -2599,66 +2593,47 @@ function Outreach() {
 
           <div className="mod-body">
             <div className="mod-card">
-              <div className="mod-card-title">Your Network <div className="mod-card-title-line" /></div>
+              <div className="mod-card-title">Your Business <div className="mod-card-title-line" /></div>
 
               <div className="mod-field">
-                <label className="mod-label">Which personas are you running?</label>
-                <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 6 }}>
-                  {PERSONAS.map(p => (
-                    <button key={p.id}
-                      onClick={() => togglePersona(p.id)}
-                      style={{
-                        display: "flex", alignItems: "center", gap: 12, padding: "10px 14px",
-                        borderRadius: "var(--r)",
-                        border: "1px solid " + (fields.selectedPersonas.includes(p.id) ? p.color : "var(--e2)"),
-                        background: fields.selectedPersonas.includes(p.id) ? p.color + "15" : "var(--s3)",
-                        cursor: "pointer", textAlign: "left", transition: "all .15s",
-                      }}>
-                      <div style={{ width: 8, height: 8, borderRadius: "50%", background: p.color, flexShrink: 0 }} />
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: 13, fontWeight: 600, color: "var(--t0)" }}>{p.name}</div>
-                        <div style={{ fontSize: 11, color: "var(--t2)", marginTop: 1 }}>{p.niche} · {p.handle}</div>
-                      </div>
-                      {fields.selectedPersonas.includes(p.id) && (
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={p.color} strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                      )}
-                    </button>
-                  ))}
-                </div>
+                <label className="mod-label">What type of business are you running? *</label>
+                <input className="mod-input" value={fields.businessType}
+                  onChange={e => set("businessType", e.target.value)}
+                  placeholder="e.g. Marketing agency, SaaS startup, professional services firm" />
               </div>
 
               <div className="mod-field">
-                <label className="mod-label">How many months have you been running?</label>
+                <label className="mod-label">How long have you been operating?</label>
                 <select className="mod-input" value={fields.monthsActive} onChange={e => set("monthsActive", e.target.value)}>
                   <option value="">Select</option>
-                  {["Under 1 month","1–2 months","3–4 months","5–6 months","7–12 months","Over a year"].map(o => <option key={o} value={o}>{o}</option>)}
+                  {["Under 6 months","6–12 months","1–2 years","2–5 years","5+ years"].map(o => <option key={o} value={o}>{o}</option>)}
                 </select>
               </div>
 
               <div className="mod-field">
-                <label className="mod-label">Approx. total followers across all personas</label>
-                <select className="mod-input" value={fields.currentFollowers} onChange={e => set("currentFollowers", e.target.value)}>
+                <label className="mod-label">Team size</label>
+                <select className="mod-input" value={fields.teamSize} onChange={e => set("teamSize", e.target.value)}>
                   <option value="">Select</option>
-                  {["Under 500","500–2K","2K–5K","5K–10K","10K–25K","25K–50K","50K+"].map(o => <option key={o} value={o}>{o}</option>)}
+                  {["Just me","2–3","4–10","11–25","25+"].map(o => <option key={o} value={o}>{o}</option>)}
                 </select>
               </div>
             </div>
 
             <div className="mod-card">
-              <div className="mod-card-title">Content & Revenue <div className="mod-card-title-line" /></div>
+              <div className="mod-card-title">Performance & Goals <div className="mod-card-title-line" /></div>
 
               <div className="mod-field">
-                <label className="mod-label">Which content pillar is performing best?</label>
-                <input className="mod-input" value={fields.topPillar}
-                  onChange={e => set("topPillar", e.target.value)}
-                  placeholder="e.g. Budget destination deep-dives, honest product reviews" />
+                <label className="mod-label">What's working best right now?</label>
+                <input className="mod-input" value={fields.topChannel}
+                  onChange={e => set("topChannel", e.target.value)}
+                  placeholder="e.g. Referrals, LinkedIn content, inbound SEO" />
               </div>
 
               <div className="mod-field">
-                <label className="mod-label">Which pillar feels weakest or hardest to produce?</label>
-                <input className="mod-input" value={fields.weakestPillar}
-                  onChange={e => set("weakestPillar", e.target.value)}
-                  placeholder="e.g. Behind-the-scenes content, long-form YouTube" />
+                <label className="mod-label">What feels like the biggest drag or gap?</label>
+                <input className="mod-input" value={fields.weakestArea}
+                  onChange={e => set("weakestArea", e.target.value)}
+                  placeholder="e.g. Lead follow-up, proposal turnaround, team coordination" />
               </div>
 
               <div className="mod-field">
@@ -2702,29 +2677,29 @@ function Outreach() {
                 <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
                 <line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/>
               </svg>
-              Run Network Health Check
+              Run Business Health Check
             </button>
-            <div className="mod-hint">We'll diagnose your network and give you the focused next move.</div>
+            <div className="mod-hint">We'll diagnose your operation and give you the focused next move.</div>
           </div>
         </>
       ) : (
         <>
           <div className="mod-preview-bar">
-            <div className="mod-preview-title">Network Health Check — {chosenPersonas.map(p => p.name).join(", ")}</div>
+            <div className="mod-preview-title">Business Health Check — {fields.businessType || "Your Business"}</div>
             <button className="btn btn-dim" onClick={() => setSubmitted(false)} style={{ fontSize: 12 }}>← Edit</button>
           </div>
 
           <div className="mod-doc">
-            <div className="pd-h1">Creator Network Health Check</div>
+            <div className="pd-h1">Business Health Check</div>
             <div style={{ fontSize: 12, color: "var(--t2)", marginBottom: 24 }}>
-              {chosenPersonas.map(p => p.name).join(" · ")} · {fields.monthsActive || "Early stage"} · {fields.currentFollowers || "Growing"} followers
+              {fields.businessType} · {fields.monthsActive || "Established"} · Team: {fields.teamSize || "—"}
             </div>
 
             <div className="pd-h2">Where You Are</div>
             <div className="pd-p">
-              You're running <strong>{chosenPersonas.length} persona{chosenPersonas.length > 1 ? "s" : ""}</strong> ({chosenPersonas.map(p => p.name + " in " + p.niche).join(", ")})
-              {fields.monthsActive ? " and you're " + fields.monthsActive + " in" : ""}.
-              {fields.currentFollowers ? " Total reach: approximately " + fields.currentFollowers + " followers." : ""}
+              You're running <strong>{fields.businessType}</strong>
+              {fields.monthsActive ? `, ${fields.monthsActive} in` : ""}.
+              {fields.teamSize ? ` Team size: ${fields.teamSize}.` : ""}
             </div>
             {fields.revenueStreams.length > 0 && !fields.revenueStreams.includes("None yet") && (
               <div className="pd-p">
@@ -2733,65 +2708,65 @@ function Outreach() {
             )}
             {(fields.revenueStreams.includes("None yet") || fields.revenueStreams.length === 0) && (
               <div className="pd-p">
-                No revenue streams yet — that's fine at this stage. The priority is building the content engine and audience quality before monetising.
+                No formalised revenue streams yet — the priority is proving the model before scaling distribution.
               </div>
             )}
 
-            <div className="pd-h2">Content Diagnosis</div>
-            {fields.topPillar && (
+            <div className="pd-h2">Performance Diagnosis</div>
+            {fields.topChannel && (
               <div className="pd-p">
-                <strong>What's working: {fields.topPillar}.</strong> Double down on this. More frequency, more depth, more angles within this pillar.
+                <strong>What's working: {fields.topChannel}.</strong> Double down on this. More consistency, more depth, more deliberate execution within this channel.
               </div>
             )}
-            {fields.weakestPillar && (
+            {fields.weakestArea && (
               <div className="pd-p">
-                <strong>What's weak: {fields.weakestPillar}.</strong> Either systematise it (batch-produce once a week, make it templated) or drop it entirely and reallocate that time to your stronger pillar.
+                <strong>What's weak: {fields.weakestArea}.</strong> Either systematise it (build a process, delegate, or automate) or make a deliberate decision to stop doing it — don't leave it half-done.
               </div>
             )}
 
             <div className="pd-h2">Your Primary Focus: {NEXT_GOALS.find(g => g.id === fields.nextGoal)?.label}</div>
-            {fields.nextGoal === "brand-deal" && (
+            {fields.nextGoal === "win-clients" && (
               <div>
-                <div className="pd-p">You're at the stage where brand outreach makes sense. Here's the exact playbook:</div>
+                <div className="pd-p">You're at the stage where your pipeline is the constraint. Here's the exact playbook:</div>
                 {[
-                  { step: "1. Build your outreach list", detail: "Identify 20 brands that already partner with creators in your niche. Look at who's sponsoring accounts at your size — they've proven the budget and model." },
-                  { step: "2. Lead with data, not vibes", detail: "Your pitch needs: persona niche, platform, approx. follower count, engagement indicators, and one strong content example. Keep it under 150 words." },
-                  { step: "3. Start with gifting", detail: "Ask for a gifted collaboration first. No money required — they send product, you create. This gets your first brand name on your portfolio." },
-                  { step: "4. Prove it converts", detail: "Include an affiliate link or discount code. When you can show the brand it drove traffic or sales, the paid deal conversation becomes easy." },
-                  { step: "5. Follow up twice", detail: "First email → 5 days → follow up. 5 more days → final follow up. If no response, move on. Consistent follow-up triples response rates." },
+                  { step: "1. Build your outreach list", detail: "Identify 20 ideal clients — businesses already buying what you sell, at the size you want to work with. Target by industry, title, and company size." },
+                  { step: "2. Lead with insight, not a pitch", detail: "Your first message should show you understand their world. Reference something specific. Offer a useful observation. Not: 'We help companies like yours…'" },
+                  { step: "3. Make the ask small", detail: "Ask for 20 minutes, not a proposal. Lower friction = higher response rate. Get them on a call, then qualify." },
+                  { step: "4. Follow up twice", detail: "First message → 5 days → follow up. 5 more days → final. If no response, move on. Consistent follow-up triples response rates." },
+                  { step: "5. Systematise the whole loop", detail: "Build this into a CRM. Track every contact, every status, every next action. When it's tracked, nothing falls through the cracks." },
                 ].map(r => <div key={r.step} className="pd-li"><strong>{r.step}:</strong> {r.detail}</div>)}
               </div>
             )}
-            {fields.nextGoal === "scale-content" && (
+            {fields.nextGoal === "scale-output" && (
               <div>
-                <div className="pd-p">Scaling content output without losing quality requires systemisation, not more hours:</div>
+                <div className="pd-p">Scaling output without adding headcount requires systems, not more hours:</div>
                 {[
-                  { step: "Sunday batch generation", detail: "Use the Content Hub to generate a full week for all active personas in one session. Don't generate daily — batch everything." },
-                  { step: "One visual style per persona", detail: "Lock the visual identity. Same filters, same text overlays, same colours. Speed comes from not making design decisions every time." },
-                  { step: "Stagger persona launches", detail: "Don't go live with all personas at once. Prove one first (Cara & Lila), then launch the next." },
-                  { step: "Repurpose systematically", detail: "Every TikTok becomes an Instagram Reel. Every Reel gets a still for feed. One piece of content → three posts." },
+                  { step: "Document every repeatable process", detail: "If your team does it more than once, it needs a written SOP. Use Notion or Loom. Documented = delegatable." },
+                  { step: "Identify what only you can do", detail: "List every task you do in a week. Highlight what only you can do. Everything else is a delegation or automation candidate." },
+                  { step: "Batch similar work", detail: "Stop context-switching. Batch all calls in one block, all writing in another. Output quality improves and time drops." },
+                  { step: "Automate the handoffs", detail: "The biggest time loss is between steps — waiting, chasing, re-explaining. Automate handoffs with Zapier, Make, or a proper project management tool." },
                 ].map(r => <div key={r.step} className="pd-li"><strong>{r.step}:</strong> {r.detail}</div>)}
               </div>
             )}
             {fields.nextGoal === "monetise-audience" && (
               <div>
-                <div className="pd-p">You have an audience — now convert it. The order matters:</div>
+                <div className="pd-p">You have an audience or network — now convert it. The order matters:</div>
                 {[
-                  { step: "1. Telegram first", detail: "Lowest barrier. £5–10/month. Direct relationship with your most engaged followers. Promote it every 5–7 posts." },
-                  { step: "2. Digital products second", detail: "Each persona has a natural product. Price under £25 to remove friction. Sell via Gumroad." },
-                  { step: "3. Affiliate third", detail: "Add affiliate links for products you already mention. Amazon Associates or niche-specific programmes." },
-                  { step: "4. Brand deals fourth", detail: "Once you have proof of sales, your brand pitch becomes significantly stronger." },
+                  { step: "1. Low-ticket digital product first", detail: "Lowest barrier. Prove there's a buyer before building anything complex. Price under £50, sell via Gumroad." },
+                  { step: "2. Paid community second", detail: "If your audience wants ongoing access to you or your insights, a subscription community is the highest-margin model. Whop or Circle." },
+                  { step: "3. High-ticket service third", detail: "Once you've proven demand at low price points, use that social proof to close premium engagements at 10x the price." },
+                  { step: "4. Referral programme", detail: "Your best clients know others like them. Build a formal referral incentive and ask for introductions actively, not occasionally." },
                 ].map(r => <div key={r.step} className="pd-li"><strong>{r.step}:</strong> {r.detail}</div>)}
               </div>
             )}
-            {fields.nextGoal === "grow-followers" && (
+            {fields.nextGoal === "grow-visibility" && (
               <div>
-                <div className="pd-p">Growth before monetisation is the right call at your stage. The lever is content consistency on the right pillars:</div>
+                <div className="pd-p">Authority is built through consistent, specific, useful content — not volume:</div>
                 {[
-                  { step: "Post frequency", detail: "Minimum 4x/week per active persona on TikTok. Drop below 3x and the algorithm deprioritises you." },
-                  { step: "Hook quality", detail: "The first 2 seconds determines whether the post gets pushed. Write hooks that create an open loop or specific promise." },
-                  { step: "Trending audio", detail: "Use sounds in the 200K–2M use range. Too new = no reach. Too saturated = buried." },
-                  { step: "Niche consistency", detail: "Stay strictly within your niche for at least 3 months. The algorithm categorises you — mixed content kills reach." },
+                  { step: "Pick one channel", detail: "LinkedIn if B2B. YouTube if your audience researches before buying. Newsletter if you want owned reach. Master one before adding another." },
+                  { step: "Post on a schedule you can sustain", detail: "3x/week on LinkedIn beats 10x for two weeks then nothing. Consistency is the only algorithm that matters." },
+                  { step: "Be specific, not broad", detail: "The most shared content makes one specific, useful point — not a generic take. Narrow down to your exact niche and own it." },
+                  { step: "Engage before you broadcast", detail: "Comment meaningfully on 5 posts before you post your own. Build a reputation as someone worth following before asking for attention." },
                 ].map(r => <div key={r.step} className="pd-li"><strong>{r.step}:</strong> {r.detail}</div>)}
               </div>
             )}
@@ -2799,23 +2774,18 @@ function Outreach() {
               <div>
                 <div className="pd-p">The system is the product. Here's the full operational architecture:</div>
                 {[
-                  { step: "Sunday content loop", detail: "Generate → Review queue → Create visuals → Export CSV → Upload Later → Attach images → Approve. 2–3 hours max for all active personas." },
-                  { step: "Brand pipeline tracker", detail: "Notion board: Prospect → Contacted → In negotiation → Confirmed → Live → Paid. One view per persona." },
-                  { step: "Financial tracking", detail: "Stripe for payments. Notion for tracking by persona, campaign, and date. Monthly review: income, cost, net — per persona." },
-                  { step: "Weekly rhythm", detail: "Sunday: generate. Monday: create visuals. Tuesday: upload and schedule. Wednesday–Saturday: posts go live automatically. Repeat." },
+                  { step: "Weekly operating rhythm", detail: "Define the recurring structure of your week. When does pipeline review happen? When does client work get done? Build the rhythm, then protect it." },
+                  { step: "Client delivery pipeline", detail: "Map every step from signed contract to delivered outcome. Identify where delays happen. Build a system that moves clients through without chasing." },
+                  { step: "Financial visibility", detail: "Monthly: revenue, costs, net. Forecast 90 days forward. You can't make good decisions without accurate numbers in front of you." },
+                  { step: "Remove yourself from the critical path", detail: "If the business stops when you stop, it's not a system — it's a job. Document, delegate, and test: can it run for two weeks without you?" },
                 ].map(r => <div key={r.step} className="pd-li"><strong>{r.step}:</strong> {r.detail}</div>)}
               </div>
             )}
 
             <div className="pd-h2">Next 30 Days — One Move</div>
             <div className="pd-p">
-              Don't try to do everything. The single highest-leverage action right now is: <strong>{NEXT_GOALS.find(g => g.id === fields.nextGoal)?.label}</strong>. Everything else is secondary until you've made meaningful progress on this.
+              Don't try to do everything. The single highest-leverage action right now is: <strong>{NEXT_GOALS.find(g => g.id === fields.nextGoal)?.label}</strong>. Everything else is secondary until you've made meaningful progress here.
             </div>
-            {chosenPersonas.length > 1 && (
-              <div className="pd-p">
-                You're running {chosenPersonas.length} personas. Prove one first — focus the next 30 days on <strong>{chosenPersonas[0].name}</strong> before splitting attention.
-              </div>
-            )}
           </div>
         </>
       )}
@@ -2825,18 +2795,18 @@ function Outreach() {
 
 // ─── PROPOSALS ────────────────────────────────────────────────────────────────
 const DELIVERABLE_OPTIONS = [
-  "Dedicated TikTok post (60s)",
-  "Instagram Reel (30s)",
-  "YouTube Short (60s)",
-  "Instagram static post + caption",
-  "Instagram Story sequence (3 frames)",
-  "YouTube integration (60s mid-roll)",
-  "Pinned comment / link-in-bio",
-  "Telegram community mention",
-  "Digital product bundle inclusion",
-  "Dedicated review post",
-  "30-day content series",
-  "Giveaway collaboration",
+  "Strategy & Planning Session",
+  "AI Workflow Build",
+  "Content system setup",
+  "Automation pipeline (Zapier / Make)",
+  "CRM & pipeline build",
+  "Reporting dashboard",
+  "Dedicated LinkedIn post series",
+  "Email sequence build",
+  "Monthly retainer management",
+  "Performance review & optimisation",
+  "Team training & documentation",
+  "Custom integration",
 ];
 
 const IcCheck = (
@@ -2900,7 +2870,6 @@ function Proposals() {
     campaignGoal: "",
     budget: "",
     timeline: "",
-    selectedPersonas: [],
     deliverables: [],
     notes: "",
     preparedBy: "",
@@ -2909,94 +2878,66 @@ function Proposals() {
   const [preview, setPreview] = useState(false);
   const set = (k, v) => setFields(f => ({ ...f, [k]: v }));
 
-  const togglePersona = (id) =>
-    set("selectedPersonas", fields.selectedPersonas.includes(id)
-      ? fields.selectedPersonas.filter(x => x !== id)
-      : [...fields.selectedPersonas, id]);
-
   const toggleDeliverable = (d) =>
     set("deliverables", fields.deliverables.includes(d)
       ? fields.deliverables.filter(x => x !== d)
       : [...fields.deliverables, d]);
 
-  const ready = fields.brandName && fields.selectedPersonas.length > 0 && fields.deliverables.length > 0;
-
-  const chosenPersonas = PERSONAS.filter(p => fields.selectedPersonas.includes(p.id));
+  const ready = fields.brandName && fields.deliverables.length > 0;
 
   const buildDeck = () => {
-    const personaSection = chosenPersonas.map(p => {
-      const platforms = ["TikTok", "Instagram", "YouTube"].join(", ");
-      return `## ${p.name} — ${p.niche} Creator
-
-**Handle:** ${p.handle}
-**Niche:** ${p.niche}
-**Platforms:** ${platforms}
-**Voice:** ${p.voice}
-**Brand fit:** ${p.b2b}
-
-Content pillars relevant to ${fields.brandName || "your brand"}:
-${p.pillars.slice(0, 5).map(pl => `  • ${pl}`).join("\n")}
-
----`;
-    }).join("\n\n");
-
     const deliverableList = fields.deliverables.map(d => `  • ${d}`).join("\n");
-
     const budgetLine = fields.budget ? `**Investment:** ${fields.budget}` : "";
-    const timelineLine = fields.timeline ? `**Campaign Timeline:** ${fields.timeline}` : "";
+    const timelineLine = fields.timeline ? `**Engagement Timeline:** ${fields.timeline}` : "";
 
     return `
-# Brand Partnership Proposal
+# Client Proposal
 
-**Brand:** ${fields.brandName}${fields.brandWebsite ? ` · ${fields.brandWebsite}` : ""}
+**Client:** ${fields.brandName}${fields.brandWebsite ? ` · ${fields.brandWebsite}` : ""}
 **Prepared for:** ${fields.brandContact || fields.brandName}
-**Prepared by:** CAIG Media Network${fields.preparedBy ? ` · ${fields.preparedBy}` : ""}
+**Prepared by:** Cornerstone AI Group${fields.preparedBy ? ` · ${fields.preparedBy}` : ""}
 **Date:** ${fields.date}
 
 ---
 
-## About the Network
+## About Cornerstone AI Group
 
-CAIG Media Network is a portfolio of AI-powered creator personas reaching highly engaged audiences across TikTok, Instagram, and YouTube. Each persona is built around a specific niche, a consistent voice, and content that earns trust — not just views.
+Cornerstone AI Group builds AI-powered systems that eliminate the manual work slowing down operations-heavy businesses. We design, build, and manage the systems — so your team can focus on the work that actually grows the business.
 
-We don't do generic sponsored content. Every brand integration is written in the creator's authentic voice, tied to a real content pillar, and designed to convert.
-
----
-
-## Campaign Overview
-
-${fields.brandProduct ? `**Product / Service:** ${fields.brandProduct}\n` : ""}${fields.campaignGoal ? `**Campaign Goal:** ${fields.campaignGoal}\n` : ""}${budgetLine ? `${budgetLine}\n` : ""}${timelineLine ? `${timelineLine}\n` : ""}
+We don't sell tools. We deliver outcomes: time recovered, leads followed up, reporting automated, decisions made faster.
 
 ---
 
-## Proposed Creator${chosenPersonas.length > 1 ? "s" : ""}
+## Engagement Overview
 
-${personaSection}
+${fields.brandProduct ? `**Challenge:** ${fields.brandProduct}\n` : ""}${fields.campaignGoal ? `**Goal:** ${fields.campaignGoal}\n` : ""}${budgetLine ? `${budgetLine}\n` : ""}${timelineLine ? `${timelineLine}\n` : ""}
 
-## Deliverables
+---
+
+## Scope of Work
 
 ${deliverableList}
 
-All content is produced, reviewed, and scheduled through our internal system. Final assets are delivered to you for approval before posting. Full revision round included.
+All work is scoped, built, and managed by our team. You'll receive regular progress updates, and every system is documented so you maintain full visibility throughout.
 
 ---
 
 ## Why This Works
 
-  • Audiences trust these voices — every persona is built on authentic, specific content, not aspirational fluff
-  • Niche alignment means your product reaches people who are already in the buying mindset
-  • We control the full production pipeline — no briefing chaos, no missed deadlines
-  • Every post includes a clear CTA and tracked link so you can measure ROI directly
+  • We build for your specific operation — no off-the-shelf templates, no generic playbooks
+  • Systems are designed to run with minimal owner input within 30–60 days
+  • We own the delivery — one point of contact, no project management overhead on your side
+  • Every engagement includes a clear handover and documentation so you're never dependent on us
 
 ---
 
-## Next Steps
+## How It Works
 
-1. Confirm deliverables and campaign timeline
-2. Sign the partnership agreement
-3. Submit brand assets and brief
-4. Content drafted and sent for approval within 5 working days
-5. Live on schedule
+1. Discovery call — we map your current workflow and identify the highest-leverage automation
+2. Proposal confirmed — scope, timeline, and investment agreed
+3. Build phase — systems designed, built, and tested
+4. Go-live — we hand over a working system and train your team
+5. Ongoing management (if retainer) — we monitor, optimise, and expand as you grow
 
 ${fields.notes ? `---\n\n## Additional Notes\n\n${fields.notes}` : ""}
 
@@ -3004,7 +2945,7 @@ ${fields.notes ? `---\n\n## Additional Notes\n\n${fields.notes}` : ""}
 
 We look forward to building something that actually performs.
 
-— CAIG Media Network
+— Cornerstone AI Group
 `.trim();
   };
 
@@ -3015,49 +2956,49 @@ We look forward to building something that actually performs.
       {!preview ? (
         <>
           <div className="mod-hero">
-            <div className="mod-badge"><span className="mod-badge-dot" /> Brand Partnerships</div>
-            <div className="mod-title">Sponsorship Deck Builder</div>
-            <div className="mod-desc">Select a persona, pick your deliverables, add the brand details — generate a polished partnership proposal in seconds.</div>
+            <div className="mod-badge"><span className="mod-badge-dot" /> Proposals</div>
+            <div className="mod-title">Proposal Builder</div>
+            <div className="mod-desc">Add the client details, select your deliverables — generate a polished proposal in seconds.</div>
           </div>
 
           <div className="mod-body">
             {/* Left — brand details */}
             <div className="mod-card">
-              <div className="mod-card-title">Brand Details <span className="mod-card-title-line" /></div>
+              <div className="mod-card-title">Client Details <span className="mod-card-title-line" /></div>
               <div className="mod-field">
-                <label className="mod-label">Brand name *</label>
+                <label className="mod-label">Client / company name *</label>
                 <input className="mod-input" value={fields.brandName}
-                  onChange={e => set("brandName", e.target.value)} placeholder="e.g. BYLT Basics" />
+                  onChange={e => set("brandName", e.target.value)} placeholder="e.g. Acme Solutions Ltd" />
               </div>
               <div className="mod-field">
-                <label className="mod-label">Brand website</label>
+                <label className="mod-label">Client website</label>
                 <input className="mod-input" value={fields.brandWebsite}
-                  onChange={e => set("brandWebsite", e.target.value)} placeholder="e.g. byltbasics.com" />
+                  onChange={e => set("brandWebsite", e.target.value)} placeholder="e.g. acmesolutions.com" />
               </div>
               <div className="mod-field">
                 <label className="mod-label">Contact name</label>
                 <input className="mod-input" value={fields.brandContact}
-                  onChange={e => set("brandContact", e.target.value)} placeholder="e.g. James Reid, Partnerships Manager" />
+                  onChange={e => set("brandContact", e.target.value)} placeholder="e.g. Sarah Mitchell, Operations Director" />
               </div>
               <div className="mod-field">
-                <label className="mod-label">Product / service being promoted</label>
+                <label className="mod-label">Problem / challenge to solve</label>
                 <input className="mod-input" value={fields.brandProduct}
-                  onChange={e => set("brandProduct", e.target.value)} placeholder="e.g. Performance base-layer clothing" />
+                  onChange={e => set("brandProduct", e.target.value)} placeholder="e.g. Manual reporting taking 8h/week, no lead follow-up system" />
               </div>
               <div className="mod-field">
-                <label className="mod-label">Campaign goal</label>
+                <label className="mod-label">Engagement goal</label>
                 <input className="mod-input" value={fields.campaignGoal}
-                  onChange={e => set("campaignGoal", e.target.value)} placeholder="e.g. Drive traffic to launch page, boost UK brand awareness" />
+                  onChange={e => set("campaignGoal", e.target.value)} placeholder="e.g. Reduce admin by 60%, build a functioning sales pipeline" />
               </div>
               <div className="mod-field">
-                <label className="mod-label">Budget / rate</label>
+                <label className="mod-label">Investment / retainer</label>
                 <input className="mod-input" value={fields.budget}
-                  onChange={e => set("budget", e.target.value)} placeholder="e.g. £1,500 flat / £800 per post + 10% affiliate" />
+                  onChange={e => set("budget", e.target.value)} placeholder="e.g. £3,000/mo Foundation / £2,500 setup fee" />
               </div>
               <div className="mod-field">
                 <label className="mod-label">Campaign timeline</label>
                 <input className="mod-input" value={fields.timeline}
-                  onChange={e => set("timeline", e.target.value)} placeholder="e.g. 4 weeks, starting May 2025" />
+                  onChange={e => set("timeline", e.target.value)} placeholder="e.g. 3-month engagement, starting June 2025" />
               </div>
               <div className="mod-card-title" style={{ marginTop: 14 }}>Your Details <span className="mod-card-title-line" /></div>
               <div className="mod-field">
@@ -3067,33 +3008,9 @@ We look forward to building something that actually performs.
               </div>
             </div>
 
-            {/* Right — personas + deliverables */}
+            {/* Right — deliverables + notes */}
             <div className="mod-card">
-              <div className="mod-card-title">Select Persona(s) * <span className="mod-card-title-line" /></div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 8 }}>
-                {PERSONAS.map(p => (
-                  <button key={p.id}
-                    onClick={() => togglePersona(p.id)}
-                    style={{
-                      display: "flex", alignItems: "center", gap: 12, padding: "10px 14px",
-                      borderRadius: "var(--r)",
-                      border: `1px solid ${fields.selectedPersonas.includes(p.id) ? p.color : "var(--e2)"}`,
-                      background: fields.selectedPersonas.includes(p.id) ? `${p.color}15` : "var(--s3)",
-                      cursor: "pointer", textAlign: "left", transition: "all .15s",
-                    }}>
-                    <div style={{ width: 8, height: 8, borderRadius: "50%", background: p.color, flexShrink: 0 }} />
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: "var(--t0)" }}>{p.name}</div>
-                      <div style={{ fontSize: 11, color: "var(--t2)", marginTop: 1 }}>{p.handle} · {p.niche} · {p.b2b.split(",")[0]}</div>
-                    </div>
-                    {fields.selectedPersonas.includes(p.id) && (
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={p.color} strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                    )}
-                  </button>
-                ))}
-              </div>
-
-              <div className="mod-card-title" style={{ marginTop: 18 }}>Deliverables * <span className="mod-card-title-line" /></div>
+              <div className="mod-card-title">Deliverables * <span className="mod-card-title-line" /></div>
               <div className="mod-chips">
                 {DELIVERABLE_OPTIONS.map(d => (
                   <button key={d} className={`mod-chip${fields.deliverables.includes(d) ? " on" : ""}`}
@@ -3107,7 +3024,7 @@ We look forward to building something that actually performs.
               <div className="mod-card-title" style={{ marginTop: 18 }}>Additional Notes <span className="mod-card-title-line" /></div>
               <textarea className="mod-input mod-ta" rows={4} value={fields.notes}
                 onChange={e => set("notes", e.target.value)}
-                placeholder="Exclusivity terms, past brand partnerships, specific requirements, affiliate tracking details…" />
+                placeholder="Specific constraints, prior context, exclusivity terms, integration requirements…" />
             </div>
           </div>
 
@@ -3118,10 +3035,10 @@ We look forward to building something that actually performs.
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                 <polyline points="14 2 14 8 20 8"/>
               </svg>
-              Build Partnership Deck
+               Build Proposal
             </button>
             <div className="mod-hint">
-              {ready ? "Ready — click to generate your sponsorship proposal" : "Select a persona, at least one deliverable, and add the brand name"}
+              {ready ? "Ready — click to generate your client proposal" : "Add the client name, select at least one deliverable"}
             </div>
           </div>
         </>
@@ -3129,12 +3046,12 @@ We look forward to building something that actually performs.
         <>
           <div className="mod-preview-bar">
             <button className="btn btn-dim" onClick={() => setPreview(false)}>← Edit</button>
-            <div className="mod-preview-title">Partnership Deck — {fields.brandName}</div>
+            <div className="mod-preview-title">Proposal — {fields.brandName}</div>
             <button className="btn btn-dim" onClick={() => navigator.clipboard.writeText(deck)}>
               {IcCopy} Copy text
             </button>
             <button className="btn" style={{ background: "var(--c-proposals)", color: "#fff", fontSize: 12 }}
-              onClick={() => openPrint(`Partnership Deck — ${fields.brandName}`, deck, "#818cf8")}>
+              onClick={() => openPrint(`Proposal — ${fields.brandName}`, deck, "#818cf8")}>
               {IcPrint} Save as PDF
             </button>
           </div>
@@ -3190,7 +3107,7 @@ function LoginGate({ onAuth }) {
         </div>
         <div className="login-title">Cornerstone AI Group</div>
         <div className="login-sub">
-          AI Content Engine &middot; Client Portal<br />Sign in to access your creator system.
+          AI Content Engine &middot; Client Portal<br />Sign in to access your portal.
         </div>
         <form onSubmit={handleSubmit} style={{ width: "100%", marginTop: 8 }}>
           <input
@@ -3271,61 +3188,61 @@ function Home({ queue, setView, dbStats = {}, dbCreators = [] }) {
     { l: "Deals",     v: dbStats.deals ?? 0,                                     c: "var(--c-proposals)" },
   ];
 
-  const MODULES = [
-    {
-      id: "autopilot",
-      title: "Content Hub",
-      desc: "Generate on-brand social content, LinkedIn posts, and blogs across every persona and platform — in seconds.",
-      color: "var(--c-content)",
-      icon: (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
-          <rect x="3" y="3" width="18" height="18" rx="2"/>
-          <path d="M3 9h18M9 21V9"/>
-        </svg>
-      ),
-      live: true,
-    },
-    {
-      id: "proposals",
-      title: "Brand Partnerships",
-      desc: "Generate a polished sponsorship deck for any persona — deliverables, brand fit, and pricing in seconds.",
-      color: "var(--c-proposals)",
-      icon: (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-          <polyline points="14 2 14 8 20 8"/>
-          <line x1="16" y1="13" x2="8" y2="13"/>
-          <line x1="16" y1="17" x2="8" y2="17"/>
-        </svg>
-      ),
-      live: true,
-    },
-    {
-      id: "outreach",
-      title: "Network Health Check",
-      desc: "Diagnose your persona network — content performance, growth stage, and the one move to focus on next.",
-      color: "var(--c-predict)",
-      icon: (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
-          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-          <line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/>
-        </svg>
-      ),
-      live: true,
-    },
-    {
-      id: "onboarding",
-      title: "Automate Creator Ops",
-      desc: "Scheduling, brand outreach, payment tracking, community management — mapped out and handed off so you focus on content.",
-      color: "var(--c-automate)",
-      icon: (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
-          <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
-        </svg>
-      ),
-      live: true,
-    },
-  ];
+   const MODULES = [
+     {
+       id: "autopilot",
+       title: "Content Engine",
+       desc: "Generate on-brand content across any channel, voice, or format — social, LinkedIn, email, blogs — in seconds.",
+       color: "var(--c-content)",
+       icon: (
+         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+           <rect x="3" y="3" width="18" height="18" rx="2"/>
+           <path d="M3 9h18M9 21V9"/>
+         </svg>
+       ),
+       live: true,
+     },
+     {
+       id: "proposals",
+       title: "Proposal Builder",
+       desc: "Generate a polished client or partnership proposal — scope, deliverables, pricing, and brand fit — in seconds.",
+       color: "var(--c-proposals)",
+       icon: (
+         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+           <polyline points="14 2 14 8 20 8"/>
+           <line x1="16" y1="13" x2="8" y2="13"/>
+           <line x1="16" y1="17" x2="8" y2="17"/>
+         </svg>
+       ),
+       live: true,
+     },
+     {
+       id: "outreach",
+       title: "Business Health Check",
+       desc: "Diagnose your operation — where time is being lost, what's performing, and the single highest-impact move to make next.",
+       color: "var(--c-predict)",
+       icon: (
+         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+           <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+           <line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/>
+         </svg>
+       ),
+       live: true,
+     },
+     {
+       id: "onboarding",
+       title: "Automate Ops",
+       desc: "Scheduling, follow-ups, reporting, payment tracking — mapped and automated so your team focuses on the work that matters.",
+       color: "var(--c-automate)",
+       icon: (
+         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+           <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+         </svg>
+       ),
+       live: true,
+     },
+   ];
 
   return (
     <div className="home">
@@ -3388,7 +3305,7 @@ function Home({ queue, setView, dbStats = {}, dbCreators = [] }) {
               <div className="hpc-dot" />
               <div className="hpc-name">{c.name}</div>
               <div className="hpc-niche">{c.niche}</div>
-              <div className="hpc-cnt">{c.handle || "client creator"}</div>
+              <div className="hpc-cnt">{c.handle || "content account"}</div>
             </div>
           ))}
         </div>
@@ -4738,10 +4655,10 @@ export default function App() {
 
   const TB = {
     home:       { t: "Dashboard",       s: TODAY_LABEL },
-    autopilot:  { t: "Content Hub",     s: "Social media · Generate, schedule and publish" },
-    queue:      { t: "Publish Queue",   s: `${queue.length} item${queue.length !== 1 ? "s" : ""} across all modules` },
-    calendar:   { t: "Calendar",        s: "Full content schedule" },
-    settings:   { t: "Settings",        s: "Account" },
+    autopilot:  { t: "Content Engine",   s: "Generate on-brand content across any channel or format" },
+    queue:      { t: "Publish Queue",    s: `${queue.length} item${queue.length !== 1 ? "s" : ""} ready to publish` },
+    calendar:   { t: "Calendar",         s: "Full content schedule" },
+    settings:   { t: "Settings",         s: "Account" },
   };
 
   if (authLoading) return (
