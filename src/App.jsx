@@ -2745,7 +2745,8 @@ const TIER_LABEL = { foundation: "Foundation", growth: "Growth", enterprise: "En
 const TIER_UPGRADE = { foundation: "Growth", growth: "Enterprise", enterprise: null };
 const TIER_COLOR = { foundation: "var(--gold)", growth: "#34d399", enterprise: "#a78bfa" };
 
-function canAccess(tier, view) {
+function canAccess(tier, view, role) {
+  if (role === "admin") return true;
   return TIER_MODULES[tier || "foundation"]?.includes(view) ?? false;
 }
 
@@ -4851,10 +4852,10 @@ export default function App() {
       <div className="main">
         <div className="view">
           {view === "home"       && <Home queue={queue} setView={setView} dbStats={dbStats} dbCreators={dbCreators} />}
-          {view === "autopilot"  && (canAccess(profile?.tier, "autopilot")  ? <Autopilot queue={queue} setQueue={setQueue} setView={setView} toast_={toast_} dbCreators={dbCreators} /> : <LockedModule moduleName="Content Engine"    currentTier={profile?.tier} />)}
-          {view === "proposals"  && (canAccess(profile?.tier, "proposals")  ? <Proposals />  : <LockedModule moduleName="Proposal Builder"   currentTier={profile?.tier} />)}
-          {view === "outreach"   && (canAccess(profile?.tier, "outreach")   ? <Outreach />   : <LockedModule moduleName="Business Health Check" currentTier={profile?.tier} />)}
-          {view === "onboarding" && (canAccess(profile?.tier, "onboarding") ? <Onboarding /> : <LockedModule moduleName="Automate Ops"        currentTier={profile?.tier} />)}
+          {view === "autopilot"  && (canAccess(profile?.tier, "autopilot",  profile?.role) ? <Autopilot queue={queue} setQueue={setQueue} setView={setView} toast_={toast_} dbCreators={dbCreators} /> : <LockedModule moduleName="Content Engine"    currentTier={profile?.tier} />)}
+          {view === "proposals"  && (canAccess(profile?.tier, "proposals",  profile?.role) ? <Proposals />  : <LockedModule moduleName="Proposal Builder"   currentTier={profile?.tier} />)}
+          {view === "outreach"   && (canAccess(profile?.tier, "outreach",   profile?.role) ? <Outreach />   : <LockedModule moduleName="Business Health Check" currentTier={profile?.tier} />)}
+          {view === "onboarding" && (canAccess(profile?.tier, "onboarding", profile?.role) ? <Onboarding /> : <LockedModule moduleName="Automate Ops"        currentTier={profile?.tier} />)}
           {view === "queue"      && <Queue queue={queue} setQueue={setQueue} toast_={toast_} />}
           {view === "calendar"   && <CalView queue={queue} />}
           {view === "settings"   && <Settings queue={queue} setQueue={setQueue} toast_={toast_} />}
