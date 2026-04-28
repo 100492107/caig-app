@@ -2246,10 +2246,6 @@ function Settings({ queue, setQueue, toast_ }) {
       <div>
         {[
           { id: "account", l: "Account" },
-          { id: "network", l: "Network" },
-          { id: "principles", l: "Principles" },
-          { id: "howto", l: "How to post" },
-          { id: "export", l: "Export" },
         ].map((t) => (
           <button
             key={t.id}
@@ -2273,174 +2269,6 @@ function Settings({ queue, setQueue, toast_ }) {
               <div key={l} className="sr">
                 <div className="srl">{l}</div>
                 <div className="srv">{v}</div>
-              </div>
-            ))}
-          </div>
-        )}
-        {tab === "network" && (
-          <div className="sc">
-            <div className="sc-t">Media Network</div>
-            <div className="sc-d">All {PERSONAS.length} personas</div>
-            {PERSONAS.map((p) => {
-              const cnt = queue.filter((i) => i.personaId === p.id).length;
-              return (
-                <div key={p.id} className="sr">
-                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <div
-                      style={{
-                        width: 8,
-                        height: 8,
-                        borderRadius: "50%",
-                        background: p.color,
-                        flexShrink: 0,
-                      }}
-                    />
-                    <div>
-                      <div className="srl">
-                        {p.name}{" "}
-                        <span style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--t3)" }}>
-                          {p.handle}
-                        </span>
-                      </div>
-                      <div style={{ fontSize: 11, color: "var(--t3)", marginTop: 1, fontWeight: 300 }}>
-                        {p.niche} &middot; {cnt} posts in queue
-                      </div>
-                    </div>
-                  </div>
-                  <span style={{ fontSize: 9, padding: "2px 8px", borderRadius: 5, background: `${p.color}18`, color: p.color, fontWeight: 600 }}>
-                    {p.niche}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        )}
-        {tab === "principles" && (
-          <div className="sc">
-            <div className="sc-t">System Principles</div>
-            <div className="sc-d">Master Plan v10.0</div>
-            {[
-              "THE SYSTEM IS THE PRODUCT. Build it properly. Document everything.",
-              "PROVE ONE ACCOUNT FIRST. Cara & Lila must earn before the next account launches.",
-              "B2B IS THE EXIT. Start outreach now. Do not wait for the perfect pitch.",
-              "OWNED BEATS RENTED. Email, digital products, Telegram subscriptions. These are assets.",
-              "QUICK WINS FIRST. Find the smallest thing that counts as progress. Do it today.",
-              "DISCLOSE EVERYTHING. Transparency with clients builds trust. Be honest in every meeting.",
-              "EXIT ON PROVEN REVENUE. Two consecutive months at 2\u00D7 net salary. Not projections.",
-            ].map((p, i) => (
-              <div key={i} className="princ">
-                <span className="pnum">{String(i + 1).padStart(2, "0")}</span>
-                {p}
-              </div>
-            ))}
-          </div>
-        )}
-        {tab === "howto" && (
-          <div className="sc">
-            <div className="sc-t">How to post the content</div>
-            <div className="sc-d">
-              Your Sunday workflow — generate, export, schedule, done.
-            </div>
-            {[
-              [
-                "Step 1 — Run Autopilot",
-                "Select your live personas and platforms. Hit Generate. Autopilot searches for what\u2019s trending in each niche right now and writes 12 fresh posts per platform — all optimized for visual content tools.",
-              ],
-              [
-                "Step 2 — Review the Queue",
-                "Go to Queue. Each post shows the hook, caption, hashtags, and exact visual direction. Check it, copy it, mark it scheduled.",
-              ],
-              [
-                "Step 3 — Create your images/videos",
-                "Each post has a Visual Direction note packed with your 9:16 and identity locks. Use Nano Banana 2 or your content tools to mass-produce the visuals.",
-              ],
-              [
-                "Step 4 — Export for Later.com",
-                "Hit Export for Later.com in the Queue view. Upload the CSV at later.com/bulk. Later places every post at the right time on the right day.",
-              ],
-              [
-                "Step 5 — Attach images in Later",
-                "Go through each scheduled post in Later and attach the photo/video you created. Approve. Done.",
-              ],
-              [
-                "Step 6 — Sync to Google Drive",
-                "Use the Drive Sync view to push the full schedule to a Google Sheet. Share it with your team or client so everyone can see what\u2019s coming.",
-              ],
-              [
-                "The full loop",
-                "Sunday: generate \u2192 review \u2192 create photos \u2192 export to Later \u2192 attach images \u2192 approve. Monday to Sunday runs itself.",
-              ],
-            ].map(([title, body]) => (
-              <div
-                key={title}
-                className="sr"
-                style={{ flexDirection: "column", alignItems: "flex-start", gap: 5 }}
-              >
-                <div style={{ fontSize: 13.5, fontWeight: 600, color: "var(--t0)" }}>
-                  {title}
-                </div>
-                <div
-                  style={{
-                    fontSize: 12.5,
-                    color: "var(--t2)",
-                    fontWeight: 300,
-                    lineHeight: 1.75,
-                  }}
-                >
-                  {body}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-        {tab === "export" && (
-          <div className="sc">
-            <div className="sc-t">Export</div>
-            <div className="sc-d">Download your content.</div>
-            {[
-              {
-                l: "Later.com CSV",
-                s: `${queue.length} posts — upload at later.com/bulk`,
-                cls: "btn-amber",
-                lbl: "Download CSV",
-                fn: () => {
-                  dlFile(buildCSV(queue), "CAIG_Schedule.csv", "text/csv");
-                  toast_("Exported");
-                },
-              },
-              {
-                l: "Clear all",
-                s: "Remove everything from the queue permanently",
-                cls: "btn-danger",
-                lbl: "Clear",
-                fn: () => {
-                  if (!window.confirm("Delete all queue content?")) return;
-                  setQueue([]);
-                  toast_("Cleared");
-                },
-              },
-            ].map((r) => (
-              <div key={r.l} className="sr">
-                <div>
-                  <div className="srl">{r.l}</div>
-                  <div
-                    style={{
-                      fontSize: 11,
-                      color: "var(--t3)",
-                      marginTop: 2,
-                      fontWeight: 300,
-                    }}
-                  >
-                    {r.s}
-                  </div>
-                </div>
-                <button
-                  className={`btn ${r.cls}`}
-                  style={{ fontSize: 12, padding: "6px 13px" }}
-                  onClick={r.fn}
-                >
-                  {r.lbl}
-                </button>
               </div>
             ))}
           </div>
@@ -4913,7 +4741,7 @@ export default function App() {
     autopilot:  { t: "Content Hub",     s: "Social media · Generate, schedule and publish" },
     queue:      { t: "Publish Queue",   s: `${queue.length} item${queue.length !== 1 ? "s" : ""} across all modules` },
     calendar:   { t: "Calendar",        s: "Full content schedule" },
-    settings:   { t: "Settings",        s: "Network · Principles · Export" },
+    settings:   { t: "Settings",        s: "Account" },
   };
 
   if (authLoading) return (
