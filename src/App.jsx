@@ -4691,10 +4691,10 @@ export default function App() {
             {IcProposals} Proposals
           </button>
           <button className={`tni${view === "outreach" ? " on" : ""}`} onClick={() => setView("outreach")}>
-            {IcOutreach} Predict Customers
+            {IcOutreach} Health Check
           </button>
           <button className={`tni${view === "onboarding" ? " on" : ""}`} onClick={() => setView("onboarding")}>
-            {IcOnboarding} Automate Tasks
+            {IcOnboarding} Automate Ops
           </button>
           {profile?.role === "admin" && (
             <button className={`tni${view === "admin" ? " on" : ""}`} onClick={() => setView("admin")}>
@@ -4805,11 +4805,11 @@ export default function App() {
       {/* ── BOTTOM NAV (mobile) ─────────────────────────────────────────────── */}
       <nav className="bnav">
         {[
-          { id: "home",      label: "Home",    ic: Ic.home   },
-          { id: "autopilot", label: "Content", ic: IcContent },
-          { id: "queue",     label: "Queue",   ic: Ic.list   },
-          { id: "calendar",  label: "Cal",     ic: Ic.cal    },
-          { id: "settings",  label: "System",  ic: Ic.cog    },
+          { id: "home",       label: "Home",      ic: Ic.home      },
+          { id: "autopilot",  label: "Content",   ic: IcContent    },
+          { id: "proposals",  label: "Proposals", ic: IcProposals  },
+          { id: "outreach",   label: "Health",    ic: IcOutreach   },
+          { id: "onboarding", label: "Automate",  ic: IcOnboarding },
         ].map(n => (
           <button key={n.id} className={`bni${view === n.id ? " on" : ""}`} onClick={() => setView(n.id)}>
             {n.ic}
