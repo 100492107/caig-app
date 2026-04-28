@@ -283,7 +283,7 @@ const stor = {
 
 // ─── LLM API (via Netlify serverless function → Google Gemini) ────────────────
 async function callLLM({ system, user, maxTokens = 4000, signal }) {
-  const res = await fetch("/.netlify/functions/claude", {
+  const res = await fetch("/api/claude", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     signal,
