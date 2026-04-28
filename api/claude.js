@@ -1,6 +1,5 @@
 // Vercel serverless function — proxies LLM API calls so the API key stays server-side.
 // Uses Google Gemini 2.5 Pro. Key is read from GEMINI_API_KEY environment variable.
-// Includes automatic retry on rate limit (429) errors.
 
 const MAX_RETRIES = 3;
 
@@ -15,7 +14,7 @@ async function callGemini(url, body) {
     const data = await res.json();
 
     if (res.status === 429 && attempt < MAX_RETRIES) {
-      const waitSec = Math.pow(2, attempt + 1); // 2s, 4s, 8s
+      const waitSec = Math.pow(2, attempt + 1);
       await new Promise((r) => setTimeout(r, waitSec * 1000));
       continue;
     }
@@ -24,7 +23,13 @@ async function callGemini(url, body) {
   }
 }
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  if (req.method === "OPTIONS") return res.status(200).end();
+
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
@@ -35,22 +40,15 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { system, user, maxTokens = 8000 } = req.body;
+    const { system, user, maxTokens = 8000 } = req.body || {};
 
     if (!system || !user) {
       return res.status(400).json({ error: "Missing required fields: system, user" });
     }
 
-    const body = {
-      contents: [
-        {
-          role: "user",
-          parts: [{ text: user }],
-        },
-      ],
-      systemInstruction: {
-        parts: [{ text: system }],
-      },
+    const geminiBody = {
+      contents: [{ role: "user", parts: [{ text: user }] }],
+      systemInstruction: { parts: [{ text: system }] },
       generationConfig: {
         maxOutputTokens: maxTokens,
         temperature: 1.0,
@@ -59,7 +57,7 @@ export default async function handler(req, res) {
 
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${apiKey}`;
 
-    const { res: geminiRes, data } = await callGemini(url, body);
+    const { res: geminiRes, data } = await callGemini(url, geminiBody);
 
     if (!geminiRes.ok) {
       const errMsg = data?.error?.message || `Gemini API error ${geminiRes.status}`;
@@ -79,4 +77,4 @@ export default async function handler(req, res) {
   } catch (err) {
     return res.status(500).json({ error: err.message || "Internal server error" });
   }
-}
+};
