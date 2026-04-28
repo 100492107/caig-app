@@ -1011,13 +1011,19 @@ select{cursor:pointer;appearance:none}
 @media(max-width:767px){
   .tb-nav{display:none}
   .bnav{display:flex}
-  .topbar{padding:0 18px}
+  .topbar{padding:0 14px;gap:8px}
   .tb-counts{display:none}
-  .view{padding:22px 16px calc(72px + env(safe-area-inset-bottom))}
+  .tb-wordmark span{display:none}
+  .view{padding:18px 14px calc(78px + env(safe-area-inset-bottom))}
   .home{max-width:100%}
-  .home-greeting{font-size:clamp(20px,6vw,28px)}
+  .home-greeting{font-size:clamp(18px,5.5vw,26px)}
   .home-stats{grid-template-columns:repeat(3,1fr);gap:7px}
   .home-grid{grid-template-columns:1fr}
+  .home-modules{grid-template-columns:1fr 1fr;gap:12px}
+  .hmc{padding:18px 16px 14px;min-height:0}
+  .hmc-icon{width:36px;height:36px;margin-bottom:12px}
+  .hmc-title{font-size:13px}
+  .hmc-desc{font-size:11.5px}
   .home-pgrid{grid-template-columns:repeat(2,1fr)}
   .home-status{flex-wrap:wrap;gap:9px}
   .ap{max-width:100%}
@@ -1025,9 +1031,17 @@ select{cursor:pointer;appearance:none}
   .gen-btn{padding:20px 14px}
   .step-card{padding:20px 16px}
   .pgrid{grid-template-columns:repeat(2,1fr)}
+  .mod-title{font-size:28px}
+  .mod-hero{padding:24px 16px 20px}
+  .rg-form-grid{grid-template-columns:1fr!important}
+  .dp-form-grid{grid-template-columns:1fr!important}
+  .lt-form-grid{grid-template-columns:1fr!important}
+  .bni{font-size:8px;gap:3px}
+  .bni svg{width:22px;height:22px}
 }
 @media(max-width:400px){
   .home-stats{grid-template-columns:repeat(2,1fr)}
+  .home-modules{grid-template-columns:1fr}
   .home-pgrid{grid-template-columns:1fr}
   .pgrid{grid-template-columns:1fr 1fr}
 }
@@ -3705,14 +3719,14 @@ function DealPipeline() {
       {adding && (
         <form onSubmit={addDeal} style={{ background: "var(--e1)", border: "1px solid var(--b1)", borderRadius: 12, padding: "22px 24px", marginBottom: 24 }}>
           <div style={{ fontSize: 13, fontWeight: 600, color: "var(--t1)", marginBottom: 14 }}>New Brand Deal</div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 10 }}>
+          <div className="dp-form-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 10 }}>
             <input placeholder="Brand name *" value={form.brand_name} onChange={e => setForm(f => ({ ...f, brand_name: e.target.value }))} style={S} />
             <input placeholder="Deal value £" type="number" value={form.deal_value} onChange={e => setForm(f => ({ ...f, deal_value: e.target.value }))} style={S} />
             <select value={form.stage} onChange={e => setForm(f => ({ ...f, stage: e.target.value }))} style={S}>
               {DEAL_STAGES.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
+          <div className="dp-form-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
             <select value={form.creator_id} onChange={e => setForm(f => ({ ...f, creator_id: e.target.value }))} style={S}>
               <option value="">Select creator *</option>
               {creators.map(c => <option key={c.id} value={c.id}>{c.name} {c.handle || ""}</option>)}
@@ -4450,13 +4464,13 @@ function LeadTracker() {
       {adding && (
         <form onSubmit={addLead} style={card}>
           <div style={{ fontSize: 13, fontWeight: 600, color: "var(--t1)", marginBottom: 14 }}>New Lead</div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
+          <div className="lt-form-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
             <input placeholder="Agency name *" {...inp("agency_name")} />
             <input placeholder="Contact name" {...inp("contact_name")} />
             <input placeholder="Email" type="email" {...inp("email")} />
             <input placeholder="LinkedIn URL" {...inp("linkedin")} />
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
+          <div className="lt-form-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
             <select {...inp("stage")} style={{ ...inp("stage").style }}>
               {LEAD_STAGES.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
