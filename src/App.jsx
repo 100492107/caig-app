@@ -4472,7 +4472,7 @@ function LeadTracker() {
               {LEAD_STAGES.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
             <select {...inp("plan")} style={{ ...inp("plan").style }}>
-              {["Starter", "Growth", "Agency"].map(p => <option key={p} value={p}>{p} — £{p === "Starter" ? "2,000" : p === "Growth" ? "3,500" : "6,000"}/mo</option>)}
+              {["Starter", "Growth", "Agency"].map(p => <option key={p} value={p}>{p} — £{p === "Starter" ? "3,000" : p === "Growth" ? "5,000" : "8,500"}/mo</option>)}
             </select>
           </div>
           <textarea placeholder="Notes / next action" {...inp("notes")} style={{ ...inp("notes").style, minHeight: 70, resize: "vertical", marginBottom: 10 }} />
@@ -4504,7 +4504,7 @@ function LeadTracker() {
                   {lead.contact_name && <span style={{ fontWeight: 400, color: "var(--t3)", marginLeft: 8 }}>{lead.contact_name}</span>}
                 </div>
                 <div style={{ fontSize: 12, color: "var(--t3)", marginTop: 2 }}>
-                  {lead.plan} plan · £{lead.plan === "Starter" ? "2,000" : lead.plan === "Growth" ? "3,500" : "6,000"}/mo
+                  {lead.plan} plan · £{lead.plan === "Starter" ? "3,000" : lead.plan === "Growth" ? "5,000" : "8,500"}/mo
                   {lead.email && <span style={{ marginLeft: 10 }}>{lead.email}</span>}
                 </div>
               </div>
