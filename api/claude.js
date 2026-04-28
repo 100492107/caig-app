@@ -23,33 +23,31 @@ async function callGemini(url, body) {
   }
 }
 
+function readBody(req) {
+  return new Promise((resolve, reject) => {
+    let data = "";
+    req.on("data", (chunk) => { data += chunk; });
+    req.on("end", () => {
+      try { resolve(JSON.parse(data)); }
+      catch (e) { reject(new Error("Invalid JSON body")); }
+    });
+    req.on("error", reject);
+  });
+}
+
 module.exports = async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
   if (req.method === "OPTIONS") return res.status(200).end();
-
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
+  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
   const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    return res.status(500).json({ error: "GEMINI_API_KEY not configured on the server" });
-  }
+  if (!apiKey) return res.status(500).json({ error: "GEMINI_API_KEY not configured on the server" });
 
   try {
-    // Vercel doesn't auto-parse bodies — read and parse manually
-    let body = req.body;
-    if (typeof body === "string") {
-      body = JSON.parse(body);
-    } else if (!body) {
-      const chunks = [];
-      for await (const chunk of req) chunks.push(chunk);
-      body = JSON.parse(Buffer.concat(chunks).toString());
-    }
-    const { system, user, maxTokens = 8000 } = body;
+    const { system, user, maxTokens = 8000 } = await readBody(req);
 
     if (!system || !user) {
       return res.status(400).json({ error: "Missing required fields: system, user" });
@@ -58,14 +56,10 @@ module.exports = async function handler(req, res) {
     const geminiBody = {
       contents: [{ role: "user", parts: [{ text: user }] }],
       systemInstruction: { parts: [{ text: system }] },
-      generationConfig: {
-        maxOutputTokens: maxTokens,
-        temperature: 1.0,
-      },
+      generationConfig: { maxOutputTokens: maxTokens, temperature: 1.0 },
     };
 
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${apiKey}`;
-
     const { res: geminiRes, data } = await callGemini(url, geminiBody);
 
     if (!geminiRes.ok) {
@@ -78,9 +72,7 @@ module.exports = async function handler(req, res) {
       .join("")
       .trim();
 
-    if (!text) {
-      return res.status(502).json({ error: "Empty response from Gemini" });
-    }
+    if (!text) return res.status(502).json({ error: "Empty response from Gemini" });
 
     return res.status(200).json({ text });
   } catch (err) {
