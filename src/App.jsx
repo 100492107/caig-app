@@ -371,6 +371,7 @@ Be concrete. NOT "fitness trends are popular" — instead "the 75 Hard challenge
 CHARACTER: ${persona.char}
 VOICE: ${persona.voice}
 PLATFORM CONTEXT: You are posting on ${platform.name}. ${platform.purpose}
+NICHE LOCK: Every single word of this post must be rooted in ${persona.niche}. The examples, references, terminology, humour, pain points, and culture must all come from inside the ${persona.niche} world. A reader who knows nothing about ${persona.niche} should feel like an outsider reading this. Do NOT produce generic lifestyle, motivation, or self-improvement content that could belong to any niche. If it could be posted by someone in a completely different niche with minor edits, it is wrong.
 RULES: Write entirely in character as a real person. Never mention AI, never hint that you are AI-generated. Content pillars: ${persona.pillars.join(", ")}.${isSage ? " CRITICAL: Financial education only — never personalised advice. Disclaimer required." : ""}
 FORMAT: Return ONLY a raw JSON object. No markdown. No explanation. No code fences.`;
 
@@ -1335,7 +1336,7 @@ const QueueItem = memo(function QueueItem({ item, onDelete, onStatus }) {
 });
 
 // ─── AUTOPILOT VIEW ───────────────────────────────────────────────────────────
-function Autopilot({ queue, setQueue, setView, toast_, dbCreators = [] }) {
+function Autopilot({ queue, setQueue, setView, toast_, dbCreators = [], onDeleteCreator }) {
   const [selP, setSelP] = useState(PERSONAS.map((p) => p.id));
   const [selPl, setSelPl] = useState(["tiktok", "youtube"]);
   const [step, setStep] = useState(1);
@@ -1347,26 +1348,36 @@ function Autopilot({ queue, setQueue, setView, toast_, dbCreators = [] }) {
   const [customSaved, setCustomSaved] = useState(false);
 
   // Convert DB creators into persona-shaped objects
-  const dbPersonas = dbCreators.map(c => ({
-    id: `db_${c.id}`,
-    name: c.name,
-    handle: c.handle || `@${c.name.toLowerCase().replace(/\s+/g, "_")}`,
-    niche: c.niche || "General",
-    color: "#818CF8",
-    char: `${c.name}. A content specialist in the ${c.niche || "general"} space.`,
-    voice: c.voice || "Authentic, engaging, conversational.",
-    pillars: c.pillars ? c.pillars.split(",").map(p => p.trim()).filter(Boolean) : [
-      `${c.niche || "content"} tips and advice`,
-      `${c.niche || "content"} honest reviews and takes`,
-      `${c.niche || "content"} behind the scenes`,
-      `day in the life — ${c.niche || "content"} creator`,
-      `${c.niche || "content"} myths debunked`,
-    ],
-    products: [],
-    b2b: c.brand_fit || "",
-    statusKey: "live",
-    isDb: true,
-  }));
+  const dbPersonas = dbCreators.map(c => {
+    const niche = c.niche || "General";
+    const platform = c.platform || "social media";
+    return {
+      id: `db_${c.id}`,
+      name: c.name,
+      handle: c.handle || `@${c.name.toLowerCase().replace(/\s+/g, "_")}`,
+      niche,
+      color: "#818CF8",
+      char: c.voice
+        ? `${c.name}. ${c.voice}`
+        : `${c.name}. A ${niche} content creator on ${platform}. Every post is rooted in ${niche} — the topics, the language, the references, the culture. Nothing generic. Nothing that could belong to a different niche. Speaks to people already inside the ${niche} world.`,
+      voice: c.voice || `Authentic ${niche} creator voice. Specific, direct, and deeply embedded in ${niche} culture. Uses real ${niche} terminology, references real ${niche} events, speaks to real ${niche} audiences.`,
+      pillars: c.pillars ? c.pillars.split(",").map(p => p.trim()).filter(Boolean) : [
+        `${niche} tips that only someone deep in ${niche} would know`,
+        `honest takes and controversial opinions about ${niche}`,
+        `personal stories and experiences from inside the ${niche} world`,
+        `${niche} myths debunked with specifics`,
+        `day in the life of a ${niche} creator — real and unfiltered`,
+        `${niche} trends, news, and what's actually changing`,
+        `${niche} recommendations — products, people, places, events`,
+        `behind the scenes of the ${niche} journey`,
+      ],
+      products: [],
+      b2b: c.brand_fit || "",
+      statusKey: "live",
+      isDb: true,
+      dbId: c.id,
+    };
+  });
 
   const CUSTOM_ID = "custom_persona";
   const customPersonaObj = customSaved && customP.name ? {
@@ -1542,6 +1553,26 @@ function Autopilot({ queue, setQueue, setView, toast_, dbCreators = [] }) {
                         <div className="pcard-em">{p.niche}</div>
                         <div className="pcard-name">{p.name}</div>
                         <div className="pcard-niche">{p.handle}</div>
+                        {p.isDb && (
+                          <button
+                            onClick={e => {
+                              e.stopPropagation();
+                              if (!window.confirm(`Remove ${p.name} from your roster?`)) return;
+                              supabase.from("creators").delete().eq("id", p.dbId).then(() => {
+                                setSelP(s => s.filter(x => x !== p.id));
+                                onDeleteCreator && onDeleteCreator(p.dbId);
+                              });
+                            }}
+                            style={{
+                              position: "absolute", top: 6, right: 6,
+                              background: "rgba(239,68,68,.15)", border: "1px solid rgba(239,68,68,.25)",
+                              borderRadius: 5, padding: "2px 6px", fontSize: 10, color: "var(--red)",
+                              cursor: "pointer", lineHeight: 1.4, zIndex: 2,
+                            }}
+                          >
+                            ✕
+                          </button>
+                        )}
                       </div>
                     );
                   })}
@@ -4844,7 +4875,7 @@ export default function App() {
       <div className="main">
         <div className="view">
           {view === "home"       && <Home queue={queue} setView={setView} dbStats={dbStats} dbCreators={dbCreators} />}
-          {view === "autopilot"  && (canAccess(profile?.tier, "autopilot",  profile?.role) ? <Autopilot queue={queue} setQueue={setQueue} setView={setView} toast_={toast_} dbCreators={dbCreators} /> : <LockedModule moduleName="Content Engine"    currentTier={profile?.tier} />)}
+          {view === "autopilot"  && (canAccess(profile?.tier, "autopilot",  profile?.role) ? <Autopilot queue={queue} setQueue={setQueue} setView={setView} toast_={toast_} dbCreators={dbCreators} onDeleteCreator={id => setDbCreators(prev => prev.filter(c => c.id !== id))} /> : <LockedModule moduleName="Content Engine"    currentTier={profile?.tier} />)}
           {view === "proposals"  && (canAccess(profile?.tier, "proposals",  profile?.role) ? <Proposals />  : <LockedModule moduleName="Proposal Builder"   currentTier={profile?.tier} />)}
           {view === "outreach"   && (canAccess(profile?.tier, "outreach",   profile?.role) ? <Outreach />   : <LockedModule moduleName="Business Health Check" currentTier={profile?.tier} />)}
           {view === "onboarding" && (canAccess(profile?.tier, "onboarding", profile?.role) ? <Onboarding /> : <LockedModule moduleName="Automate Ops"        currentTier={profile?.tier} />)}
