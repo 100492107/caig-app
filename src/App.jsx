@@ -3766,7 +3766,7 @@ function ClientPortal({ profile, onSignOut }) {
       {/* Top nav */}
       <div className="topbar">
         <div className="tb-brand">
-          <Logo size={28} sub="Client Portal" />
+          <Logo height={36} />
         </div>
         <div style={{ flex: 1 }} />
         <div style={{ fontSize: 11.5, color: "var(--t3)", marginRight: 12, textAlign: "right", lineHeight: 1.4 }}>
@@ -4771,7 +4771,7 @@ export default function App() {
       <div className="topbar">
         {/* Brand */}
         <div className="tb-brand" style={{ cursor: "pointer" }} onClick={() => setView("home")}>
-          <Logo size={28} sub="Operator Platform" />
+          <Logo height={36} />
         </div>
 
         {/* Nav links */}
