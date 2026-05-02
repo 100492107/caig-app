@@ -837,6 +837,9 @@ select{cursor:pointer;appearance:none}
 .qfv.accent{border-left:2px solid var(--qc,var(--amber));border-radius:0 9px 9px 0;font-size:13.5px;font-weight:600;color:var(--t0)}
 .qfv.mono{font-family:var(--mono);font-size:11px;color:var(--t2)}
 .qi-actions{display:flex;gap:6px;margin-top:12px;padding-top:12px;border-top:1px solid var(--e1);flex-wrap:wrap}
+.qi-asset-input{flex:1;background:var(--s3);border:1px solid var(--e1);border-radius:8px;padding:7px 11px;font-size:12px;color:var(--t1);outline:none;font-family:var(--mono);min-width:0;transition:border-color .15s}
+.qi-asset-input::placeholder{color:var(--t4)}
+.qi-asset-input:focus{border-color:var(--green)}
 .q-empty{text-align:center;padding:72px 20px;background:var(--s2);border-radius:var(--rl);border:1px solid var(--e1)}
 .q-empty-icon{font-size:32px;margin-bottom:14px;opacity:.05;display:block}
 .q-empty-t{font-size:17px;font-weight:700;color:var(--t0);letter-spacing:-.04em;margin-bottom:6px}
@@ -1221,8 +1224,10 @@ const CopyBtn = memo(function CopyBtn({ text, label }) {
 });
 
 // ─── QUEUE ITEM ───────────────────────────────────────────────────────────────
-const QueueItem = memo(function QueueItem({ item, onDelete, onStatus }) {
+const QueueItem = memo(function QueueItem({ item, onDelete, onStatus, onAsset }) {
   const [open, setOpen] = useState(false);
+  const [assetVal, setAssetVal] = useState(item.visualAsset || "");
+  const [assetSaved, setAssetSaved] = useState(false);
   const plat = PLATFORMS.find((p) => p.id === item.platformId);
   const stMap = {
     pending: { bg: "rgba(255,255,255,.06)", c: "var(--t3)", l: "Pending" },
@@ -1231,6 +1236,15 @@ const QueueItem = memo(function QueueItem({ item, onDelete, onStatus }) {
     posted: { bg: "rgba(52,211,153,.12)", c: "var(--green)", l: "Posted" },
   };
   const st = stMap[item.status] || stMap.pending;
+  const hasAsset = !!item.visualAsset;
+  const isUrl = assetVal.startsWith("http://") || assetVal.startsWith("https://");
+
+  const saveAsset = () => {
+    onAsset(item.id, assetVal.trim());
+    setAssetSaved(true);
+    setTimeout(() => setAssetSaved(false), 2000);
+  };
+
   return (
     <div className={`qi${open ? " exp" : ""}`}>
       <div className="qi-hd" onClick={() => setOpen((v) => !v)}>
@@ -1249,6 +1263,15 @@ const QueueItem = memo(function QueueItem({ item, onDelete, onStatus }) {
           {item.scheduledDate} · {item.scheduledTime}
         </span>
         {(item.content_label || item.post_type) && <span className="qi-type">{item.content_label || item.post_type}</span>}
+        {hasAsset && (
+          <span title="Visual asset attached" style={{
+            fontSize: 10, fontWeight: 700, letterSpacing: .4,
+            background: "rgba(52,211,153,.15)", color: "var(--green)",
+            borderRadius: 5, padding: "2px 7px", flexShrink: 0,
+          }}>
+            📎 Visual
+          </span>
+        )}
         <span className="qi-st" style={{ background: st.bg, color: st.c }}>
           {st.l}
         </span>
@@ -1302,6 +1325,45 @@ const QueueItem = memo(function QueueItem({ item, onDelete, onStatus }) {
               Trend angle: {item.trend_hook}
             </div>
           )}
+
+          {/* ── VISUAL ASSET ── */}
+          <div className="qfield" style={{ marginTop: 12 }}>
+            <div className="qfl" style={{ marginBottom: 6 }}>
+              Flow Labs Visual Asset
+              {hasAsset && isUrl && (
+                <a
+                  href={item.visualAsset}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{ fontSize: 11, color: "var(--green)", marginLeft: 8, textDecoration: "none" }}
+                >
+                  Open ↗
+                </a>
+              )}
+            </div>
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <input
+                className="qi-asset-input"
+                placeholder="Paste Flow Labs URL or asset filename…"
+                value={assetVal}
+                onChange={(e) => { setAssetVal(e.target.value); setAssetSaved(false); }}
+                onKeyDown={(e) => e.key === "Enter" && saveAsset()}
+              />
+              <button
+                className="btn btn-dim"
+                style={{ fontSize: 12, padding: "5px 13px", flexShrink: 0, color: assetSaved ? "var(--green)" : undefined }}
+                onClick={saveAsset}
+              >
+                {assetSaved ? "✓ Saved" : "Save"}
+              </button>
+            </div>
+            {hasAsset && !isUrl && (
+              <div style={{ fontSize: 11, color: "var(--t3)", marginTop: 4 }}>
+                Asset: <span style={{ color: "var(--t1)" }}>{item.visualAsset}</span>
+              </div>
+            )}
+          </div>
+
           <div className="qi-actions">
             <CopyBtn
               text={`${item.hook}\n\n${item.caption}\n\n${item.hashtags}`}
@@ -1845,6 +1907,7 @@ function Autopilot({ queue, setQueue, setView, toast_, dbCreators = [], onDelete
 function Queue({ queue, setQueue, toast_ }) {
   const [filt, setFilt] = useState("all");
   const upSt = (id, st) => setQueue((q) => q.map((i) => (i.id === id ? { ...i, status: st } : i)));
+  const upAsset = (id, visualAsset) => setQueue((q) => q.map((i) => (i.id === id ? { ...i, visualAsset } : i)));
   const del = (id) => {
     setQueue((q) => q.filter((i) => i.id !== id));
     toast_("Removed");
@@ -1915,7 +1978,7 @@ function Queue({ queue, setQueue, toast_ }) {
       ) : (
         <div className="q-list">
           {filtered.map((item) => (
-            <QueueItem key={item.id} item={item} onDelete={del} onStatus={upSt} />
+            <QueueItem key={item.id} item={item} onDelete={del} onStatus={upSt} onAsset={upAsset} />
           ))}
         </div>
       )}
