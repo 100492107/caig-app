@@ -2130,25 +2130,44 @@ function PersonaNicheEditor({ toast_ }) {
   const base = PERSONAS[0]; // Cara & Lila
   const current = overrides[base.id] ? { ...base, ...overrides[base.id] } : base;
 
-  const [niche, setNiche] = useState(current.niche);
-  const [desc, setDesc]   = useState(current.char);
-  const [voice, setVoice] = useState(current.voice);
+  const [name,    setName]    = useState(current.name);
+  const [handle,  setHandle]  = useState(current.handle);
+  const [niche,   setNiche]   = useState(current.niche);
+  const [desc,    setDesc]    = useState(current.char);
+  const [voice,   setVoice]   = useState(current.voice);
   const [pillars, setPillars] = useState(current.pillars.join("\n"));
   const [loading, setLoading] = useState(false);
-  const [saved, setSaved]     = useState(false);
+  const [saved,   setSaved]   = useState(false);
+  const [mode,    setMode]    = useState("social"); // "social" | "fanvue"
+
+  const FANVUE_PRESET = {
+    niche: "Subscription / Fanvue Creator",
+    char: "A confident, flirtatious female creator in her 20s. Runs a successful Fanvue page. Open, warm, and genuine — her fans feel like they actually know her. Every post builds the parasocial connection that keeps subscribers paying.",
+    voice: `Confident, teasing, personal. "I just posted something on my page that I've never done before — go find out 👀"`,
+    pillars: FANVUE_PILLARS,
+  };
+
+  const applyFanvuePreset = () => {
+    setMode("fanvue");
+    setNiche(FANVUE_PRESET.niche);
+    setDesc(FANVUE_PRESET.char);
+    setVoice(FANVUE_PRESET.voice);
+    setPillars(FANVUE_PRESET.pillars.join("\n"));
+    toast_("Fanvue preset applied — edit name/handle then save");
+  };
 
   const regenerate = async () => {
     if (!niche.trim()) return;
     setLoading(true);
     try {
+      const isFanvue = mode === "fanvue" || niche.toLowerCase().includes("fanvue") || niche.toLowerCase().includes("subscription");
       const text = await callLLM({
         system: `You are a content strategy expert. Given a creator persona and a new niche, you rewrite their character profile, voice description, and content pillars to perfectly match the new niche. Output valid JSON only — no markdown, no explanation.`,
-        user: `Persona: ${base.name} (${base.handle})
-Current niche: ${current.niche}
+        user: `Persona: ${name} (${handle})
 New niche: ${niche}
-Creator description: ${base.char}
+${isFanvue ? `This is a SUBSCRIPTION CREATOR (Fanvue/OnlyFans style). All pillars must be teaser-focused, parasocial, and subscription-driving. Suggestive but never explicit. Focus on: behind the scenes, exclusive previews, fan connection, day-in-life, PPV teasers, personality moments.` : `This is a social media content creator. All pillars must be deeply embedded in the ${niche} niche.`}
 
-Rewrite the following fields for the new niche. Keep the creator's identity (${base.name}, dual female creators, honest/specific tone) but pivot everything to the new niche.
+Rewrite the following fields. Keep the creator's core identity but pivot everything to the new niche.
 
 Return JSON with exactly these keys:
 {
@@ -2159,7 +2178,6 @@ Return JSON with exactly these keys:
         maxTokens: 2000,
       });
 
-      // Strip markdown code fences if present
       const cleaned = text.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
       const parsed = JSON.parse(cleaned);
       setDesc(parsed.char);
@@ -2176,33 +2194,81 @@ Return JSON with exactly these keys:
 
   const save = () => {
     const pillarArr = pillars.split("\n").map(p => p.trim()).filter(Boolean);
-    savePersonaOverride(base.id, { niche, char: desc, voice, pillars: pillarArr });
+    savePersonaOverride(base.id, { name, handle, niche, char: desc, voice, pillars: pillarArr });
     setSaved(true);
     setTimeout(() => setSaved(false), 2500);
-    toast_("Persona updated — new content will use this niche");
+    toast_("Persona updated — reload Content Hub to see changes");
+  };
+
+  const reset = () => {
+    savePersonaOverride(base.id, { name: base.name, handle: base.handle, niche: base.niche, char: base.char, voice: base.voice, pillars: base.pillars });
+    setName(base.name); setHandle(base.handle); setNiche(base.niche);
+    setDesc(base.char); setVoice(base.voice);
+    setPillars(base.pillars.join("\n"));
+    setMode("social");
+    toast_("Reset to default — Cara & Lila, Travel");
   };
 
   return (
     <div className="sc">
-      <div className="sc-t">Persona Niche</div>
-      <div className="sc-d">Change the niche and regenerate — the content engine will use the updated profile for all future generation.</div>
+      <div className="sc-t">Persona Editor</div>
+      <div className="sc-d">Change the name, niche, and voice — the content engine uses this profile for all generation. Hit Regenerate to have AI rewrite everything for the new niche.</div>
 
-      <div className="sr" style={{ flexDirection: "column", alignItems: "flex-start", gap: 10 }}>
-        <div className="srl" style={{ marginBottom: 2 }}>Current Persona</div>
-        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-          <div className="hpc-dot" style={{ background: base.color, width: 10, height: 10, borderRadius: "50%", flexShrink: 0 }} />
-          <span style={{ fontWeight: 600, color: "var(--t0)", fontSize: 13 }}>{base.name}</span>
-          <span style={{ color: "var(--t3)", fontSize: 12 }}>{base.handle}</span>
+      {/* Quick preset buttons */}
+      <div style={{ display: "flex", gap: 8, marginBottom: 4, flexWrap: "wrap" }}>
+        <button
+          className="btn"
+          style={{ fontSize: 11, padding: "6px 14px", background: mode === "social" ? "var(--s4)" : "var(--s3)", border: "1px solid var(--e2)", color: "var(--t1)" }}
+          onClick={() => setMode("social")}
+        >
+          Social Media Mode
+        </button>
+        <button
+          className="btn"
+          style={{ fontSize: 11, padding: "6px 14px", background: mode === "fanvue" ? "rgba(124,58,237,.2)" : "var(--s3)", border: `1px solid ${mode === "fanvue" ? "#7c3aed" : "var(--e2)"}`, color: mode === "fanvue" ? "#c4b5fd" : "var(--t1)" }}
+          onClick={applyFanvuePreset}
+        >
+          ⚡ Apply Fanvue Preset
+        </button>
+      </div>
+      {mode === "fanvue" && (
+        <div style={{ fontSize: 11, color: "#a78bfa", background: "rgba(124,58,237,.08)", border: "1px solid rgba(124,58,237,.2)", borderRadius: 8, padding: "8px 12px", marginBottom: 12 }}>
+          Fanvue preset active — pillars, voice and character are set for subscription creator content. Update the name and handle below to match your client, then Save.
+        </div>
+      )}
+
+      {/* Name + Handle */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 4 }}>
+        <div className="sr" style={{ flexDirection: "column", alignItems: "flex-start", gap: 6 }}>
+          <div className="srl">Creator Name</div>
+          <input
+            className="qi-asset-input"
+            style={{ width: "100%", fontSize: 13 }}
+            placeholder="e.g. Sophie Rose"
+            value={name}
+            onChange={e => setName(e.target.value)}
+          />
+        </div>
+        <div className="sr" style={{ flexDirection: "column", alignItems: "flex-start", gap: 6 }}>
+          <div className="srl">Handle</div>
+          <input
+            className="qi-asset-input"
+            style={{ width: "100%", fontSize: 13 }}
+            placeholder="e.g. @sophierose"
+            value={handle}
+            onChange={e => setHandle(e.target.value)}
+          />
         </div>
       </div>
 
+      {/* Niche + Regenerate */}
       <div className="sr" style={{ flexDirection: "column", alignItems: "flex-start", gap: 8 }}>
         <div className="srl">Niche</div>
         <div style={{ display: "flex", gap: 8, width: "100%" }}>
           <input
             className="qi-asset-input"
             style={{ flex: 1, fontSize: 13 }}
-            placeholder="e.g. Fitness, Fashion, Gaming, Finance…"
+            placeholder="e.g. Fitness, Travel, Fanvue / Subscription Creator…"
             value={niche}
             onChange={e => setNiche(e.target.value)}
           />
@@ -2212,68 +2278,37 @@ Return JSON with exactly these keys:
             onClick={regenerate}
             disabled={loading || !niche.trim()}
           >
-            {loading ? "Generating…" : "Regenerate Profile"}
+            {loading ? "Generating…" : "Regenerate"}
           </button>
         </div>
         <div style={{ fontSize: 11, color: "var(--t4)" }}>
-          Clicking Regenerate rewrites the character, voice, and all 20 content pillars for the new niche via AI. Review before saving.
+          Regenerate rewrites the character, voice and all 20 content pillars for the new niche via AI. Review before saving.
         </div>
       </div>
 
       <div className="sr" style={{ flexDirection: "column", alignItems: "flex-start", gap: 6 }}>
         <div className="srl">Character Description</div>
-        <textarea
-          className="ft"
-          rows={2}
-          value={desc}
-          onChange={e => setDesc(e.target.value)}
-          style={{ width: "100%", fontSize: 12.5 }}
-        />
+        <textarea className="ft" rows={2} value={desc} onChange={e => setDesc(e.target.value)} style={{ width: "100%", fontSize: 12.5 }} />
       </div>
 
       <div className="sr" style={{ flexDirection: "column", alignItems: "flex-start", gap: 6 }}>
         <div className="srl">Voice</div>
-        <textarea
-          className="ft"
-          rows={2}
-          value={voice}
-          onChange={e => setVoice(e.target.value)}
-          style={{ width: "100%", fontSize: 12.5 }}
-        />
+        <textarea className="ft" rows={2} value={voice} onChange={e => setVoice(e.target.value)} style={{ width: "100%", fontSize: 12.5 }} />
       </div>
 
       <div className="sr" style={{ flexDirection: "column", alignItems: "flex-start", gap: 6 }}>
-        <div className="srl">Content Pillars (one per line)</div>
-        <textarea
-          className="ft"
-          rows={10}
-          value={pillars}
-          onChange={e => setPillars(e.target.value)}
-          style={{ width: "100%", fontSize: 12, fontFamily: "var(--mono)" }}
-        />
+        <div className="srl">Content Pillars <span style={{ color: "var(--t4)", fontWeight: 400 }}>(one per line)</span></div>
+        <textarea className="ft" rows={10} value={pillars} onChange={e => setPillars(e.target.value)} style={{ width: "100%", fontSize: 12, fontFamily: "var(--mono)" }} />
         <div style={{ fontSize: 11, color: "var(--t4)" }}>
           {pillars.split("\n").filter(p => p.trim()).length} pillars · edit freely before saving
         </div>
       </div>
 
       <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
-        <button
-          className="btn btn-amber"
-          style={{ fontSize: 13, padding: "9px 22px" }}
-          onClick={save}
-        >
+        <button className="btn btn-amber" style={{ fontSize: 13, padding: "9px 22px" }} onClick={save}>
           {saved ? "✓ Saved" : "Save Changes"}
         </button>
-        <button
-          className="btn btn-ghost"
-          style={{ fontSize: 12 }}
-          onClick={() => {
-            savePersonaOverride(base.id, { niche: base.niche, char: base.char, voice: base.voice, pillars: base.pillars });
-            setNiche(base.niche); setDesc(base.char); setVoice(base.voice);
-            setPillars(base.pillars.join("\n"));
-            toast_("Reset to default Travel niche");
-          }}
-        >
+        <button className="btn btn-ghost" style={{ fontSize: 12 }} onClick={reset}>
           Reset to default
         </button>
       </div>
