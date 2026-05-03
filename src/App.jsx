@@ -300,6 +300,7 @@ Return this exact JSON format:
   "caption": "${contentType.type === "lifestyle" || contentType.type === "personal_moment" ? "Short, casual caption. 80-150 chars. Like something you'd text a friend. Personal, warm, real." : contentType.type === "deep_story" || contentType.type === "day_in_life" || contentType.type === "deep_dive" ? "Full narrative caption or video script outline. 300-500 chars. Story arc: setup, tension, resolution." : "Full caption ready to paste. 180-260 chars. In character voice. Feels personal and authentic."}",
   "hashtags": "12-15 hashtags as one string, mix of niche and broad",
   "photo_direction": "9:16 aspect ratio. ${contentType.direction}",
+  "photo_idea": "${fanvueMode ? "Concrete shoot brief for this post. Include: outfit or lack thereof (suggestive, tasteful — describe without being explicit), setting/backdrop, lighting mood, pose or body language, camera angle, and ONE specific detail that makes it feel unique and on-brand. 2-3 sentences. This is a direct brief for the creator." : "Concrete photo or video shoot brief. Include: specific location or backdrop, outfit/clothing details, lighting (golden hour / ring light / natural window etc), pose or action, props if relevant, camera angle. Be specific enough that a photographer could shoot it with no further briefing. 2-3 sentences."}",
   "cta": "${contentType.type === "lifestyle" || contentType.type === "personal_moment" ? "Casual, low-key — a question or emoji reaction prompt, not a hard sell" : contentType.type === "tag_friend" ? "Tag someone who needs to see this" : "One specific, low-friction ask"}",
   "post_type": "${contentType.type}",
   "content_label": "${contentType.label}",
@@ -428,6 +429,7 @@ async function exportToDrive(queue, clientId) {
     "Hook",
     "Caption",
     "Hashtags",
+    "Photo / Shoot Brief",
     "Photo Direction",
     "CTA",
   ];
@@ -446,6 +448,7 @@ async function exportToDrive(queue, clientId) {
         esc(item.hook),
         esc(item.caption),
         esc(item.hashtags),
+        esc(item.photo_idea),
         esc(item.photo_direction),
         esc(item.cta),
       ].join("\t")
@@ -496,6 +499,7 @@ function buildCSV(queue) {
         e(item.handle),
         e(item.caption),
         e(item.hashtags),
+        e(item.photo_idea),
         e(item.photo_direction),
         e(item.cta),
       ].join(",")
@@ -732,9 +736,10 @@ select{cursor:pointer;appearance:none}
 .qi-st{font-size:9.5px;padding:2px 8px;border-radius:5px;font-weight:600;letter-spacing:.03em;flex-shrink:0}
 .qi-body{padding:16px 18px;background:rgba(0,0,0,.22)}
 .qfield{margin-bottom:12px}
-.qfield:last-child{margin-bottom:0}
+.qfield-photo{margin-bottom:16px}
 .qfl{font-size:8.5px;font-weight:700;color:var(--t4);letter-spacing:.16em;text-transform:uppercase;margin-bottom:5px;display:flex;align-items:center;justify-content:space-between}
 .qfv{font-size:12.5px;color:var(--t1);line-height:1.75;background:var(--s3);border-radius:9px;padding:11px 13px;font-weight:300}
+.qfv.photo{background:rgba(16,185,129,.07);border:1px solid rgba(16,185,129,.18);color:var(--t0);font-size:12.5px;font-weight:400;line-height:1.75;border-radius:9px;padding:12px 14px}
 .qfv.accent{border-left:2px solid var(--qc,var(--amber));border-radius:0 9px 9px 0;font-size:13.5px;font-weight:600;color:var(--t0)}
 .qfv.mono{font-family:var(--mono);font-size:11px;color:var(--t2)}
 .qi-actions{display:flex;gap:6px;margin-top:12px;padding-top:12px;border-top:1px solid var(--e1);flex-wrap:wrap}
@@ -1193,18 +1198,19 @@ const QueueItem = memo(function QueueItem({ item, onDelete, onStatus, onAsset })
             { k: "hook", l: "Hook", accent: true, val: item.hook },
             { k: "caption", l: "Caption", accent: false, val: item.caption },
             { k: "hashtags", l: "Hashtags", mono: true, val: item.hashtags },
+            { k: "photo_idea", l: "📸 Photo / Shoot Brief", accent: false, photo: true, val: item.photo_idea },
             { k: "photo_direction", l: "Visual Direction", accent: false, val: item.photo_direction },
             { k: "cta", l: "Call to Action", accent: false, val: item.cta },
           ]
             .filter((f) => f.val)
             .map((f) => (
-              <div key={f.k} className="qfield">
+              <div key={f.k} className={`qfield${f.photo ? " qfield-photo" : ""}`}>
                 <div className="qfl">
                   {f.l}
                   <CopyBtn text={f.val} />
                 </div>
                 <div
-                  className={`qfv${f.accent ? " accent" : ""}${f.mono ? " mono" : ""}`}
+                  className={`qfv${f.accent ? " accent" : ""}${f.mono ? " mono" : ""}${f.photo ? " photo" : ""}`}
                   style={f.accent ? { "--qc": plat?.color } : {}}
                 >
                   {f.val}
