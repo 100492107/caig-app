@@ -689,7 +689,18 @@ select{cursor:pointer;appearance:none}
 .platcard-check{position:absolute;top:9px;right:10px;width:18px;height:18px;border-radius:50%;background:var(--plc);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .16s;box-shadow:0 0 8px var(--plc)}
 .platcard.on .platcard-check{opacity:1}
 
-/* ── HOME ── */
+/* ── GENERATE STEP ── */
+.gen-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
+.gen-stat{background:var(--s3);border:1px solid var(--e2);border-radius:12px;padding:16px 18px;display:flex;flex-direction:column;gap:5px}
+.gen-stat-l{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.13em;color:var(--t4)}
+.gen-stat-v{font-size:13px;font-weight:600;color:var(--t0);letter-spacing:-.02em;line-height:1.3}
+.gen-btn{width:100%;padding:22px 24px;border-radius:14px;border:1.5px solid var(--e2);background:var(--s3);color:var(--t2);font-size:15px;font-weight:600;font-family:var(--sans);cursor:not-allowed;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .2s;letter-spacing:-.02em}
+.gen-btn.ready{background:linear-gradient(135deg,#f5a623 0%,#e8960f 100%);border-color:#f5a623;color:#030206;cursor:pointer;box-shadow:0 4px 24px rgba(245,166,35,.35),0 0 0 0 rgba(245,166,35,0)}
+.gen-btn.ready:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(245,166,35,.5),0 0 0 0 rgba(245,166,35,0)}
+.gen-btn.running{background:var(--s4);border-color:var(--amber);color:var(--amber);cursor:pointer;animation:none}
+.gen-sub{text-align:center;font-size:11px;color:var(--t4);margin-top:12px;line-height:1.6}
+
+
 .home{width:100%;display:flex;flex-direction:column;gap:24px}
 .home-head{display:flex;flex-direction:column;gap:4px;padding-bottom:4px}
 .home-date{font-size:11px;color:var(--t2);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px;font-weight:500}
@@ -1591,18 +1602,41 @@ function Autopilot({ queue, setQueue, setView, toast_, dbCreators = [], onDelete
             </div>
             {step === 3 && (
               <div className="step-body">
+                {/* Summary stat cards */}
                 <div className="gen-summary">
-                  {[
-                    { l: "Personas", v: personaNames },
-                    { l: "Platforms", v: platNames },
-                    { l: "Posts", v: `${total} total — 12 per platform` },
-                  ].map((r) => (
-                    <div key={r.l} className="gen-stat">
-                      <div className="gen-stat-l">{r.l}</div>
-                      <div className="gen-stat-v">{r.v}</div>
+                  <div className="gen-stat">
+                    <div className="gen-stat-l">Persona</div>
+                    <div className="gen-stat-v">{personaNames}</div>
+                  </div>
+                  <div className="gen-stat">
+                    <div className="gen-stat-l">Platforms</div>
+                    <div className="gen-stat-v" style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
+                      {selPl.map(id => {
+                        const pl = activePlatforms.find(p => p.id === id);
+                        if (!pl) return null;
+                        return (
+                          <span key={id} style={{
+                            display: "inline-block", fontSize: 10, fontWeight: 700,
+                            padding: "2px 8px", borderRadius: 20,
+                            background: `color-mix(in srgb,${pl.color} 15%,transparent)`,
+                            border: `1px solid color-mix(in srgb,${pl.color} 35%,transparent)`,
+                            color: pl.color, letterSpacing: ".03em"
+                          }}>
+                            {pl.name}
+                          </span>
+                        );
+                      })}
                     </div>
-                  ))}
+                  </div>
+                  <div className="gen-stat">
+                    <div className="gen-stat-l">Total Posts</div>
+                    <div className="gen-stat-v" style={{ fontSize: 22, fontFamily: "var(--mono)", color: "var(--amber)" }}>
+                      {total} <span style={{ fontSize: 11, color: "var(--t3)", fontFamily: "var(--sans)", fontWeight: 400 }}>posts</span>
+                    </div>
+                  </div>
                 </div>
+
+                {/* Generate button */}
                 <button
                   className={`gen-btn${canRun ? " ready" : ""}${running ? " running" : ""}`}
                   disabled={!canRun && !running}
@@ -1610,22 +1644,45 @@ function Autopilot({ queue, setQueue, setView, toast_, dbCreators = [], onDelete
                 >
                   {running ? (
                     <>
-                      <div className="spinner" /> Writing {done}/{prog.length} posts — tap to stop
+                      <div className="spinner" />
+                      Writing {done}/{prog.length} — tap to stop
                     </>
                   ) : (
                     <>
-                      {Ic.rocket}{" "}
-                      {total > 0
-                        ? `Generate ${total} posts for next week`
-                        : "Select personas & platforms first"}
+                      {Ic.rocket}
+                      {total > 0 ? `Generate ${total} posts for next week` : "Select personas & platforms first"}
                     </>
                   )}
                 </button>
+
                 {total > 0 && !running && (
                   <div className="gen-sub">
-                    Each post is researched fresh · {selP.length} persona
-                    {selP.length !== 1 ? "s" : ""} · {selPl.length} platform
-                    {selPl.length !== 1 ? "s" : ""} · photos, videos &amp; carousels
+                    Each post is researched live with trending topics · {selP.length} persona{selP.length !== 1 ? "s" : ""} · {selPl.length} platform{selPl.length !== 1 ? "s" : ""} · photo posts &amp; carousels
+                  </div>
+                )}
+
+                {/* Progress list while running */}
+                {running && prog.length > 0 && (
+                  <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 4 }}>
+                    {prog.map((s, i) => (
+                      <div key={i} style={{
+                        display: "flex", alignItems: "center", gap: 10,
+                        background: "var(--s3)", borderRadius: 9, padding: "8px 12px",
+                        border: "1px solid var(--e1)", fontSize: 11,
+                        opacity: s.genStatus === "pending" ? 0.4 : 1,
+                        transition: "opacity .2s"
+                      }}>
+                        <span style={{
+                          width: 7, height: 7, borderRadius: "50%", flexShrink: 0,
+                          background: s.genStatus === "done" ? "var(--green)" : s.genStatus === "running" ? "var(--amber)" : s.genStatus === "error" ? "var(--red)" : "var(--e2)",
+                          boxShadow: s.genStatus === "running" ? "0 0 6px var(--amber)" : "none"
+                        }} />
+                        <span style={{ color: "var(--t2)", flex: 1 }}>{s.personaName} · {s.platform}</span>
+                        <span style={{ color: "var(--t4)", fontFamily: "var(--mono)", fontSize: 10 }}>{s.scheduledDate}</span>
+                        {s.genStatus === "done" && <span style={{ color: "var(--green)", fontSize: 10 }}>✓</span>}
+                        {s.genStatus === "error" && <span style={{ color: "var(--red)", fontSize: 10 }}>✗</span>}
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
@@ -1638,7 +1695,7 @@ function Autopilot({ queue, setQueue, setView, toast_, dbCreators = [], onDelete
             <div className="prog-hd">
               <div className="prog-title">
                 {running
-                  ? "Writing posts and generating 9:16 scene prompts\u2026"
+                  ? "Writing posts and generating content briefs…"
                   : `Done — ${done} posts ready in your queue`}
               </div>
               <div className="prog-pct">{pct}%</div>
