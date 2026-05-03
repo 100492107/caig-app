@@ -90,6 +90,68 @@ const PLATFORMS = [
   },
 ];
 
+// ─── FANVUE / SUBSCRIPTION PLATFORMS ─────────────────────────────────────────
+const FANVUE_PLATFORMS = [
+  {
+    id: "fv_reddit", name: "Reddit", color: "#FF4500", times: ["12:00", "20:00"],
+    purpose: "The highest-intent discovery platform for subscription creators. Subreddits are where new subscribers are found. Content must feel authentic, not like an ad.",
+    contentMix: [
+      { type: "fv_tease", label: "Tease post — hint at premium content", weight: 4, format: "photo post with caption", direction: "Suggestive but tasteful. The image does the work — the caption teases what's on the page without being explicit. Creates curiosity and urgency. Link in bio or comment." },
+      { type: "fv_personality", label: "Personality post — real and relatable", weight: 3, format: "selfie or candid with caption", direction: "Show personality, not just body. Funny, relatable, or revealing something personal. Builds the parasocial connection that converts lurkers into subscribers." },
+      { type: "fv_ppv", label: "PPV tease — this just dropped on my page", weight: 3, format: "cropped/blurred preview image", direction: "Preview of a PPV post. Cropped or partially obscured. Caption describes what it is in suggestive terms without being explicit. Direct CTA to the page." },
+    ],
+  },
+  {
+    id: "fv_telegram", name: "Telegram", color: "#2AABEE", times: ["11:00", "21:00"],
+    purpose: "Your warm audience. Telegram followers are already fans — this is where you reward loyalty, share previews, and push to Fanvue for the full content.",
+    contentMix: [
+      { type: "fv_preview", label: "Exclusive preview — subscribers only tease", weight: 4, format: "photo or short clip with message", direction: "Give Telegram followers a preview of something on or coming to the Fanvue page. Creates exclusivity and urgency. Warm, personal tone — like a message to a friend." },
+      { type: "fv_dm", label: "DM-style message — personal and direct", weight: 3, format: "text message or voice note style", direction: "Written like a personal message from the creator to the fan. Intimate, warm, flirtatious but not explicit. Builds the parasocial relationship that keeps subscribers renewing." },
+      { type: "fv_announce", label: "New content announcement", weight: 3, format: "text + image preview", direction: "Announce new content on the Fanvue page. What it is, why it's special, direct link. Urgency through limited time or exclusive framing." },
+    ],
+  },
+  {
+    id: "fv_x", name: "X (Twitter)", color: "#000000", times: ["13:00", "22:00"],
+    purpose: "High-volume teaser content and community engagement. X is the best free platform for adult creators — more permissive than Instagram, massive creator community.",
+    contentMix: [
+      { type: "fv_tease", label: "Tease post — suggestive with CTA", weight: 4, format: "photo + short caption", direction: "Suggestive, confident. The caption alludes to what's on the page without spelling it out. Hook is bold and scroll-stopping. CTA is clear — link in bio." },
+      { type: "fv_personality", label: "Personality / opinion post", weight: 3, format: "text or photo + text", direction: "Hot take, funny observation, or relatable moment. Not about the content — about the person. This is what makes followers feel like they know you. Engagement driver." },
+      { type: "fv_interact", label: "Fan interaction — question or poll", weight: 3, format: "text post or poll", direction: "Ask fans something. A question about preferences, a poll about upcoming content, a 'tell me something' prompt. Builds community and signals algorithm that account is active and engaging." },
+    ],
+  },
+  {
+    id: "fv_page", name: "Fanvue Page", color: "#7C3AED", times: ["10:00", "20:00"],
+    purpose: "Content that lives on the Fanvue page itself — welcome messages, PPV captions, and subscriber posts. These convert new visitors and retain existing subscribers.",
+    contentMix: [
+      { type: "fv_welcome", label: "Welcome message — new subscriber DM", weight: 3, format: "DM text message", direction: "Warm, personal welcome to a new subscriber. Introduces the creator, what's on the page, and what to expect. Ends with a soft PPV push or content recommendation. Feels personal, not automated." },
+      { type: "fv_ppv_caption", label: "PPV caption — unlockable content", weight: 4, format: "caption for locked post", direction: "Describes the PPV content in enticing, suggestive terms without being explicit. Creates curiosity and desire. Clear on what the fan gets when they unlock. Confident, not desperate." },
+      { type: "fv_wall_post", label: "Free wall post — subscriber retention", weight: 3, format: "photo post with caption", direction: "Content that goes on the free wall to keep subscribers engaged between PPV drops. Personal, behind-the-scenes, or tease content. Reminds subscribers why they're paying." },
+    ],
+  },
+];
+
+const FANVUE_PILLARS = [
+  "Behind the scenes — what I'm doing today that isn't on the page yet",
+  "This just dropped on my Fanvue — here's a tease",
+  "Getting ready content — the before that leads to the after on my page",
+  "Personal Q&A — fans ask, I answer (the ones I can answer here)",
+  "What I'm wearing today — and what I'm not wearing on my page",
+  "Mood check — relatable moment that makes fans feel close to me",
+  "New PPV just posted — here's what it is (suggestive, no spoilers)",
+  "Fan appreciation — shouting out loyal subscribers without naming them",
+  "Day in my life — the real, unglamorous parts that build parasocial connection",
+  "Subscriber milestone — celebrating with the community",
+  "Upcoming content teaser — vote on what I should post next",
+  "The question everyone DMs me — answered publicly for once",
+  "This made me laugh today — relatable / funny personal moment",
+  "Why I started creating — the real story, not the polished version",
+  "Rate my look — engagement post that also drives profile visits",
+  "What I'm listening to / watching / obsessed with right now",
+  "Honest moment — something real and vulnerable that builds trust",
+  "Exclusive for [platform] — content that makes this audience feel special",
+  "New subscriber welcome — making new followers feel immediately seen",
+  "End of month round-up — what was on my page this month",
+];
 
 
 
@@ -153,8 +215,9 @@ const CREATIVE_ANGLES = [
   { label: "timeline reveal", instruction: "Show a real timeline of progress or change. Specific dates, specific moments, specific results. Make the audience feel the passage of time." },
 ];
 
-async function generatePost(persona, platformId, pillar, postIndex, signal, usedHooks = [], ideaSeed = "") {
-  const platform = PLATFORMS.find((p) => p.id === platformId);
+async function generatePost(persona, platformId, pillar, postIndex, signal, usedHooks = [], ideaSeed = "", fanvueMode = false) {
+  const allPlatforms = fanvueMode ? FANVUE_PLATFORMS : PLATFORMS;
+  const platform = allPlatforms.find((p) => p.id === platformId);
   const isSage = persona.id === "sage";
 
   // Pick content type based on weighted random selection per platform
@@ -198,11 +261,11 @@ Be concrete. NOT "fitness trends are popular" — instead "the 75 Hard challenge
     }
   }
 
-  const system = `You are ${persona.name}, a ${persona.niche} content creator.
+  const system = `You are ${persona.name}, a ${fanvueMode ? "Fanvue subscription creator" : persona.niche + " content creator"}.
 CHARACTER: ${persona.char}
 VOICE: ${persona.voice}
 PLATFORM CONTEXT: You are posting on ${platform.name}. ${platform.purpose}
-NICHE LOCK: Every single word of this post must be rooted in ${persona.niche}. The examples, references, terminology, humour, pain points, and culture must all come from inside the ${persona.niche} world. A reader who knows nothing about ${persona.niche} should feel like an outsider reading this. Do NOT produce generic lifestyle, motivation, or self-improvement content that could belong to any niche. If it could be posted by someone in a completely different niche with minor edits, it is wrong.
+${fanvueMode ? `FANVUE MODE: You are a subscription content creator driving traffic to your Fanvue page. All content is suggestive and teaser-focused — never explicit. The goal of every post is to build parasocial connection and drive Fanvue subscriptions or PPV unlocks. You are flirtatious, confident, and personal. You NEVER produce explicit content here — this is the free platform teaser funnel.` : `NICHE LOCK: Every single word of this post must be rooted in ${persona.niche}. The examples, references, terminology, humour, pain points, and culture must all come from inside the ${persona.niche} world. A reader who knows nothing about ${persona.niche} should feel like an outsider reading this. Do NOT produce generic lifestyle, motivation, or self-improvement content that could belong to any niche. If it could be posted by someone in a completely different niche with minor edits, it is wrong.`}
 RULES: Write entirely in character as a real person. Never mention AI, never hint that you are AI-generated. Content pillars: ${persona.pillars.join(", ")}.${isSage ? " CRITICAL: Financial education only — never personalised advice. Disclaimer required." : ""}
 FORMAT: Return ONLY a raw JSON object. No markdown. No explanation. No code fences.`;
 
@@ -265,7 +328,7 @@ Return this exact JSON format:
 // ─── SCHEDULE BUILDER ─────────────────────────────────────────────────────────
 const POSTS_PER_PLATFORM = 12;
 
-function buildSchedule(selectedPersonas, selectedPlatforms) {
+function buildSchedule(selectedPersonas, selectedPlatforms, platformList = PLATFORMS) {
   const now = new Date();
   const dow = now.getDay();
   const monday = new Date(now);
@@ -277,7 +340,7 @@ function buildSchedule(selectedPersonas, selectedPlatforms) {
 
   selectedPersonas.forEach((p) => {
     selectedPlatforms.forEach((platId) => {
-      const plat = PLATFORMS.find((x) => x.id === platId);
+      const plat = platformList.find((x) => x.id === platId);
       let postNum = 0;
       for (let d = 0; d < 7; d++) {
         const count = dayPostCounts[d];
@@ -554,6 +617,13 @@ select{cursor:pointer;appearance:none}
 .ap-header{margin-bottom:28px}
 .ap-header-title{font-size:20px;font-weight:700;color:var(--t0);letter-spacing:-.04em;margin-bottom:3px}
 .ap-header-sub{font-size:12.5px;color:var(--t3);font-weight:300;line-height:1.6}
+.fanvue-toggle-row{display:flex;align-items:center;gap:10px;margin-top:14px;flex-wrap:wrap}
+.fanvue-toggle-btn{display:flex;align-items:center;gap:7px;background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.25);border-radius:20px;padding:5px 14px 5px 8px;font-size:12px;font-weight:600;color:#a78bfa;cursor:pointer;transition:all .2s;letter-spacing:.01em}
+.fanvue-toggle-btn:hover{background:rgba(124,58,237,.15);border-color:rgba(124,58,237,.45)}
+.fanvue-toggle-btn.fv-on{background:rgba(124,58,237,.2);border-color:#7c3aed;color:#c4b5fd}
+.fanvue-toggle-dot{width:8px;height:8px;border-radius:50%;background:rgba(124,58,237,.4);transition:background .2s}
+.fanvue-toggle-btn.fv-on .fanvue-toggle-dot{background:#a78bfa;box-shadow:0 0 6px #7c3aed}
+.fanvue-toggle-note{font-size:11px;color:var(--t3);font-style:italic}
 .module-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;margin-bottom:18px;border:1px solid;border-color:var(--badge-border,var(--amberb));background:var(--badge-bg,var(--amber2));color:var(--badge-c,var(--amber))}
 .ap-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:20px;background:var(--amber2);border:1px solid var(--amberb);font-size:10px;font-weight:700;color:var(--amber);letter-spacing:.07em;text-transform:uppercase;margin-bottom:18px}
 .ap-title{font-size:48px;font-weight:800;letter-spacing:-.055em;line-height:1.04;margin-bottom:16px;background:linear-gradient(155deg,#fff 0%,#ccc8f0 55%,#9d95e8 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
@@ -1237,6 +1307,7 @@ function Autopilot({ queue, setQueue, setView, toast_, dbCreators = [], onDelete
   const [prog, setProg] = useState([]);
   const abortRef = useRef(null);
   const [ideaSeed, setIdeaSeed] = useState("");
+  const [fanvueMode, setFanvueMode] = useState(false);
   const [customP, setCustomP] = useState({ name: "", handle: "", niche: "", voice: "" });
   const [customSaved, setCustomSaved] = useState(false);
 
@@ -1313,8 +1384,11 @@ function Autopilot({ queue, setQueue, setView, toast_, dbCreators = [], onDelete
     const ctrl = new AbortController();
     abortRef.current = ctrl;
     const slots = buildSchedule(
-      allPersonas.filter((p) => selP.includes(p.id)),
-      selPl
+      allPersonas.filter((p) => selP.includes(p.id)).map(p =>
+        fanvueMode ? { ...p, pillars: FANVUE_PILLARS } : p
+      ),
+      selPl,
+      activePlatforms
     );
     setProg(slots.map((s) => ({ ...s, genStatus: "pending" })));
     const results = [];
@@ -1333,6 +1407,7 @@ function Autopilot({ queue, setQueue, setView, toast_, dbCreators = [], onDelete
           ctrl.signal,
           [...usedHooks],
           ideaSeed,
+          fanvueMode,
         );
         if (post.hook) usedHooks.push(post.hook);
         const item = {
@@ -1379,7 +1454,7 @@ function Autopilot({ queue, setQueue, setView, toast_, dbCreators = [], onDelete
     setRunning(false);
     toast_(`${results.length} posts generated — open Queue to review`);
     setTimeout(() => setView("queue"), 700);
-  }, [canRun, selP, selPl, setQueue, setView, toast_, allPersonas, ideaSeed]);
+  }, [canRun, selP, selPl, setQueue, setView, toast_, allPersonas, ideaSeed, fanvueMode]);
 
   const stop = () => {
     abortRef.current?.abort();
@@ -1392,8 +1467,10 @@ function Autopilot({ queue, setQueue, setView, toast_, dbCreators = [], onDelete
     allPersonas.filter((p) => selP.includes(p.id))
       .map((p) => p.name)
       .join(", ") || "None";
+  const activePlatforms = fanvueMode ? FANVUE_PLATFORMS : PLATFORMS;
+
   const platNames =
-    selPl.map((id) => PLATFORMS.find((p) => p.id === id)?.name).join(" + ") || "None";
+    selPl.map((id) => activePlatforms.find((p) => p.id === id)?.name).join(" + ") || "None";
 
   return (
     <div className="fu">
@@ -1401,6 +1478,22 @@ function Autopilot({ queue, setQueue, setView, toast_, dbCreators = [], onDelete
         <div className="ap-header">
           <div className="ap-header-title">Content Engine</div>
           <div className="ap-header-sub">Select a persona and platform — the engine generates on-brand content in seconds.</div>
+          <div className="fanvue-toggle-row">
+            <button
+              className={`fanvue-toggle-btn${fanvueMode ? " fv-on" : ""}`}
+              onClick={() => {
+                const next = !fanvueMode;
+                setFanvueMode(next);
+                setSelPl(next ? ["fv_reddit", "fv_x"] : ["tiktok", "youtube"]);
+              }}
+            >
+              <span className="fanvue-toggle-dot" />
+              {fanvueMode ? "Fanvue Mode ON" : "Fanvue Mode"}
+            </button>
+            {fanvueMode && (
+              <span className="fanvue-toggle-note">Teaser content for Reddit, Telegram, X &amp; Fanvue page — no explicit output</span>
+            )}
+          </div>
         </div>
 
         <div className="steps">
@@ -1588,7 +1681,7 @@ function Autopilot({ queue, setQueue, setView, toast_, dbCreators = [], onDelete
             {step === 2 && (
               <div className="step-body">
                 <div className="platgrid">
-                  {PLATFORMS.map((p) => {
+                  {activePlatforms.map((p) => {
                     const on = selPl.includes(p.id);
                     return (
                       <div
