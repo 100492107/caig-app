@@ -6,6 +6,17 @@ import { LogoMark, Logo } from "./Logo";
 // ─── CONFIGURATION ────────────────────────────────────────────────────────────
 // API key is stored server-side only (Netlify function). Never exposed to the browser.
 
+// ─── PERSONA OVERRIDES (persisted in localStorage) ────────────────────────────
+const PERSONA_OVERRIDES_KEY = "caig_persona_overrides";
+function getPersonaOverrides() {
+  try { return JSON.parse(localStorage.getItem(PERSONA_OVERRIDES_KEY) || "{}"); } catch { return {}; }
+}
+function savePersonaOverride(id, patch) {
+  const all = getPersonaOverrides();
+  all[id] = { ...(all[id] || {}), ...patch };
+  localStorage.setItem(PERSONA_OVERRIDES_KEY, JSON.stringify(all));
+}
+
 // ─── DATA ─────────────────────────────────────────────────────────────────────
 const PERSONAS = [
   {
@@ -1285,7 +1296,9 @@ function Autopilot({ queue, setQueue, setView, toast_, dbCreators = [], onDelete
     statusKey: "live",
   } : null;
 
-  const allPersonas = [...PERSONAS, ...dbPersonas, ...(customPersonaObj ? [customPersonaObj] : [])];
+  const overrides = getPersonaOverrides();
+  const basePersonas = PERSONAS.map(p => overrides[p.id] ? { ...p, ...overrides[p.id] } : p);
+  const allPersonas = [...basePersonas, ...dbPersonas, ...(customPersonaObj ? [customPersonaObj] : [])];
 
   const toggleP = (id) => setSelP((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
   const togglePl = (id) =>
@@ -2154,12 +2167,169 @@ function DriveView({ queue, toast_ }) {
 }
 
 // ─── SETTINGS VIEW ────────────────────────────────────────────────────────────
+function PersonaNicheEditor({ toast_ }) {
+  const overrides = getPersonaOverrides();
+  const base = PERSONAS[0]; // Cara & Lila
+  const current = overrides[base.id] ? { ...base, ...overrides[base.id] } : base;
+
+  const [niche, setNiche] = useState(current.niche);
+  const [desc, setDesc]   = useState(current.char);
+  const [voice, setVoice] = useState(current.voice);
+  const [pillars, setPillars] = useState(current.pillars.join("\n"));
+  const [loading, setLoading] = useState(false);
+  const [saved, setSaved]     = useState(false);
+
+  const regenerate = async () => {
+    if (!niche.trim()) return;
+    setLoading(true);
+    try {
+      const text = await callLLM({
+        system: `You are a content strategy expert. Given a creator persona and a new niche, you rewrite their character profile, voice description, and content pillars to perfectly match the new niche. Output valid JSON only — no markdown, no explanation.`,
+        user: `Persona: ${base.name} (${base.handle})
+Current niche: ${current.niche}
+New niche: ${niche}
+Creator description: ${base.char}
+
+Rewrite the following fields for the new niche. Keep the creator's identity (${base.name}, dual female creators, honest/specific tone) but pivot everything to the new niche.
+
+Return JSON with exactly these keys:
+{
+  "char": "one sentence character description",
+  "voice": "one sentence voice description with a short example quote",
+  "pillars": ["pillar 1", "pillar 2", ... 20 pillars total]
+}`,
+        maxTokens: 2000,
+      });
+
+      // Strip markdown code fences if present
+      const cleaned = text.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+      const parsed = JSON.parse(cleaned);
+      setDesc(parsed.char);
+      setVoice(parsed.voice);
+      setPillars(Array.isArray(parsed.pillars) ? parsed.pillars.join("\n") : parsed.pillars);
+      toast_("Regenerated — review and save");
+    } catch (e) {
+      toast_("Generation failed — try again");
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const save = () => {
+    const pillarArr = pillars.split("\n").map(p => p.trim()).filter(Boolean);
+    savePersonaOverride(base.id, { niche, char: desc, voice, pillars: pillarArr });
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2500);
+    toast_("Persona updated — new content will use this niche");
+  };
+
+  return (
+    <div className="sc">
+      <div className="sc-t">Persona Niche</div>
+      <div className="sc-d">Change the niche and regenerate — the content engine will use the updated profile for all future generation.</div>
+
+      <div className="sr" style={{ flexDirection: "column", alignItems: "flex-start", gap: 10 }}>
+        <div className="srl" style={{ marginBottom: 2 }}>Current Persona</div>
+        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+          <div className="hpc-dot" style={{ background: base.color, width: 10, height: 10, borderRadius: "50%", flexShrink: 0 }} />
+          <span style={{ fontWeight: 600, color: "var(--t0)", fontSize: 13 }}>{base.name}</span>
+          <span style={{ color: "var(--t3)", fontSize: 12 }}>{base.handle}</span>
+        </div>
+      </div>
+
+      <div className="sr" style={{ flexDirection: "column", alignItems: "flex-start", gap: 8 }}>
+        <div className="srl">Niche</div>
+        <div style={{ display: "flex", gap: 8, width: "100%" }}>
+          <input
+            className="qi-asset-input"
+            style={{ flex: 1, fontSize: 13 }}
+            placeholder="e.g. Fitness, Fashion, Gaming, Finance…"
+            value={niche}
+            onChange={e => setNiche(e.target.value)}
+          />
+          <button
+            className="btn btn-amber"
+            style={{ fontSize: 12, padding: "7px 16px", flexShrink: 0 }}
+            onClick={regenerate}
+            disabled={loading || !niche.trim()}
+          >
+            {loading ? "Generating…" : "Regenerate Profile"}
+          </button>
+        </div>
+        <div style={{ fontSize: 11, color: "var(--t4)" }}>
+          Clicking Regenerate rewrites the character, voice, and all 20 content pillars for the new niche via AI. Review before saving.
+        </div>
+      </div>
+
+      <div className="sr" style={{ flexDirection: "column", alignItems: "flex-start", gap: 6 }}>
+        <div className="srl">Character Description</div>
+        <textarea
+          className="ft"
+          rows={2}
+          value={desc}
+          onChange={e => setDesc(e.target.value)}
+          style={{ width: "100%", fontSize: 12.5 }}
+        />
+      </div>
+
+      <div className="sr" style={{ flexDirection: "column", alignItems: "flex-start", gap: 6 }}>
+        <div className="srl">Voice</div>
+        <textarea
+          className="ft"
+          rows={2}
+          value={voice}
+          onChange={e => setVoice(e.target.value)}
+          style={{ width: "100%", fontSize: 12.5 }}
+        />
+      </div>
+
+      <div className="sr" style={{ flexDirection: "column", alignItems: "flex-start", gap: 6 }}>
+        <div className="srl">Content Pillars (one per line)</div>
+        <textarea
+          className="ft"
+          rows={10}
+          value={pillars}
+          onChange={e => setPillars(e.target.value)}
+          style={{ width: "100%", fontSize: 12, fontFamily: "var(--mono)" }}
+        />
+        <div style={{ fontSize: 11, color: "var(--t4)" }}>
+          {pillars.split("\n").filter(p => p.trim()).length} pillars · edit freely before saving
+        </div>
+      </div>
+
+      <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
+        <button
+          className="btn btn-amber"
+          style={{ fontSize: 13, padding: "9px 22px" }}
+          onClick={save}
+        >
+          {saved ? "✓ Saved" : "Save Changes"}
+        </button>
+        <button
+          className="btn btn-ghost"
+          style={{ fontSize: 12 }}
+          onClick={() => {
+            savePersonaOverride(base.id, { niche: base.niche, char: base.char, voice: base.voice, pillars: base.pillars });
+            setNiche(base.niche); setDesc(base.char); setVoice(base.voice);
+            setPillars(base.pillars.join("\n"));
+            toast_("Reset to default Travel niche");
+          }}
+        >
+          Reset to default
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function Settings({ queue, setQueue, toast_ }) {
-  const [tab, setTab] = useState("account");
+  const [tab, setTab] = useState("persona");
   return (
     <div className="stg-layout fu">
       <div>
         {[
+          { id: "persona", l: "Persona" },
           { id: "account", l: "Account" },
         ].map((t) => (
           <button
@@ -2172,6 +2342,7 @@ function Settings({ queue, setQueue, toast_ }) {
         ))}
       </div>
       <div>
+        {tab === "persona" && <PersonaNicheEditor toast_={toast_} />}
         {tab === "account" && (
           <div className="sc">
             <div className="sc-t">Account</div>
