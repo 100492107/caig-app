@@ -674,6 +674,21 @@ select{cursor:pointer;appearance:none}
 .pcard.on .pcard-status{background:var(--pc);color:#030206}
 .pcard.custom{border-style:dashed}
 
+/* ── PLATFORM GRID ── */
+.platgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+.platcard{background:var(--s3);border:1.5px solid var(--e1);border-radius:14px;padding:18px 14px 16px;cursor:pointer;transition:border-color .16s,transform .16s,box-shadow .16s,background .16s;text-align:center;position:relative;overflow:hidden}
+.platcard::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--plc);opacity:0;transition:opacity .18s}
+.platcard:hover{border-color:var(--e3);transform:translateY(-2px);box-shadow:var(--shadow-md)}
+.platcard.on{border-color:var(--plc);background:var(--s4);box-shadow:0 0 0 1px var(--plc),var(--shadow-md)}
+.platcard.on::before{opacity:1}
+.platcard-icon{width:40px;height:40px;border-radius:50%;background:color-mix(in srgb,var(--plc) 15%,var(--s2));border:1.5px solid color-mix(in srgb,var(--plc) 30%,transparent);margin:0 auto 10px;display:flex;align-items:center;justify-content:center;font-size:18px;transition:box-shadow .16s}
+.platcard.on .platcard-icon{box-shadow:0 0 12px color-mix(in srgb,var(--plc) 40%,transparent)}
+.platcard-name{font-size:12.5px;font-weight:700;color:var(--t0);margin-bottom:4px;letter-spacing:-.02em}
+.platcard-detail{font-size:10px;color:var(--t3);line-height:1.4}
+.platcard.on .platcard-detail{color:var(--plc)}
+.platcard-check{position:absolute;top:9px;right:10px;width:18px;height:18px;border-radius:50%;background:var(--plc);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .16s;box-shadow:0 0 8px var(--plc)}
+.platcard.on .platcard-check{opacity:1}
+
 /* ── HOME ── */
 .home{width:100%;display:flex;flex-direction:column;gap:24px}
 .home-head{display:flex;flex-direction:column;gap:4px;padding-bottom:4px}
@@ -1521,6 +1536,11 @@ function Autopilot({ queue, setQueue, setView, toast_, dbCreators = [], onDelete
                 <div className="platgrid">
                   {activePlatforms.map((p) => {
                     const on = selPl.includes(p.id);
+                    const icons = {
+                      tiktok: "🎵", instagram: "📸", youtube: "▶️", facebook: "👥",
+                      fv_reddit: "🔶", fv_telegram: "✈️", fv_x: "✖️", fv_page: "💜",
+                    };
+                    const icon = icons[p.id] || "📱";
                     return (
                       <div
                         key={p.id}
@@ -1528,10 +1548,17 @@ function Autopilot({ queue, setQueue, setView, toast_, dbCreators = [], onDelete
                         style={{ "--plc": p.color }}
                         onClick={() => togglePl(p.id)}
                       >
-                        <div className="platcard-dot" style={{ background: p.color }} />
+                        {on && (
+                          <div className="platcard-check">
+                            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#030206" strokeWidth="3.5">
+                              <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                          </div>
+                        )}
+                        <div className="platcard-icon">{icon}</div>
                         <div className="platcard-name">{p.name}</div>
                         <div className="platcard-detail">
-                          {on ? "12 posts/week · auto-formatted" : "Click to include"}
+                          {on ? "✓ included · 12 posts" : "Tap to include"}
                         </div>
                       </div>
                     );
