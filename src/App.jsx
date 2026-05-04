@@ -5244,7 +5244,12 @@ export default function App() {
       <div className="main">
         <div className="view">
           {view === "home"       && <Home queue={queue} setView={setView} dbStats={dbStats} dbCreators={dbCreators} />}
-          {view === "autopilot"  && (canAccess(profile?.tier, "autopilot",  profile?.role) ? <Autopilot queue={queue} setQueue={setQueue} setView={setView} toast_={toast_} dbCreators={dbCreators} onDeleteCreator={id => setDbCreators(prev => prev.filter(c => c.id !== id))} /> : <LockedModule moduleName="Content Engine"    currentTier={profile?.tier} />)}
+          {/* Autopilot stays mounted to preserve generation state across navigation */}
+          <div style={{ display: view === "autopilot" ? "contents" : "none" }}>
+            {canAccess(profile?.tier, "autopilot", profile?.role)
+              ? <Autopilot queue={queue} setQueue={setQueue} setView={setView} toast_={toast_} dbCreators={dbCreators} onDeleteCreator={id => setDbCreators(prev => prev.filter(c => c.id !== id))} />
+              : <LockedModule moduleName="Content Engine" currentTier={profile?.tier} />}
+          </div>
           {view === "proposals"  && (canAccess(profile?.tier, "proposals",  profile?.role) ? <Proposals />  : <LockedModule moduleName="Proposal Builder"   currentTier={profile?.tier} />)}
           {view === "outreach"   && (canAccess(profile?.tier, "outreach",   profile?.role) ? <Outreach />   : <LockedModule moduleName="Business Health Check" currentTier={profile?.tier} />)}
           {view === "onboarding" && (canAccess(profile?.tier, "onboarding", profile?.role) ? <Onboarding /> : <LockedModule moduleName="Automate Ops"        currentTier={profile?.tier} />)}
