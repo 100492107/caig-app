@@ -70,7 +70,7 @@ const IMG_COVERAGE = [
   "Standing at window, natural backlight silhouette — artistic fine art photography, Spencer Tunick aesthetic",
 ];
 
-async function callGemini(apiKey, system, user, maxTokens = 2000) {
+async function callGemini(apiKey, system, user, maxTokens = 3000) {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
   const body = {
     contents: [{ role: "user", parts: [{ text: user }] }],
@@ -224,7 +224,7 @@ Return this exact JSON format:
   "trend_hook": "${trends ? "one word describing the trend angle used, or null" : "null"}"
 }`;
 
-  return parseJSON(await callGemini(apiKey, system, user, 2000));
+  return parseJSON(await callGemini(apiKey, system, user, 3000));
 }
 
 async function generateImagePrompt(apiKey, persona, post, platform, contentTypeLabel, postIndex = 0) {
