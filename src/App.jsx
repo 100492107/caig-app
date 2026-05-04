@@ -20,7 +20,7 @@ function savePersonaOverride(id, patch) {
 // ─── DATA ─────────────────────────────────────────────────────────────────────
 const PERSONAS = [
   {
-    id: "cara", name: "Cara & Lila", handle: "@caraandlila", niche: "Travel", color: "#34D399",
+    id: "cara", name: "Cara Whitmore", handle: "@carawhitmore", niche: "Travel", color: "#34D399",
     avatarUrl: null, // drop a file at public/avatars/cara.jpg to use a real image
     avatarInitials: "C&L",
     char: "Two women, early 20s. Budget travel, premium visuals, brutally honest costs. Real numbers every single post.",
@@ -2432,9 +2432,9 @@ function DriveView({ queue, toast_ }) {
 }
 
 // ─── SETTINGS VIEW ────────────────────────────────────────────────────────────
-function PersonaNicheEditor({ toast_ }) {
+function PersonaNicheEditor({ toast_, setQueue }) {
   const overrides = getPersonaOverrides();
-  const base = PERSONAS[0]; // Cara & Lila
+  const base = PERSONAS[0]; // base persona (Cara Whitmore by default)
   const current = overrides[base.id] ? { ...base, ...overrides[base.id] } : base;
 
   const [name,    setName]    = useState(current.name);
@@ -2502,18 +2502,21 @@ Return JSON with exactly these keys:
   const save = () => {
     const pillarArr = pillars.split("\n").map(p => p.trim()).filter(Boolean);
     savePersonaOverride(base.id, { name, handle, niche, char: desc, voice, pillars: pillarArr });
+    // Clear queue items for this persona — they're stale with the old name/voice
+    setQueue(q => q.filter(item => item.personaId !== base.id));
     setSaved(true);
     setTimeout(() => setSaved(false), 2500);
-    toast_("Persona updated — reload Content Hub to see changes");
+    toast_(`Persona saved as "${name}" — stale queue items cleared`);
   };
 
   const reset = () => {
     savePersonaOverride(base.id, { name: base.name, handle: base.handle, niche: base.niche, char: base.char, voice: base.voice, pillars: base.pillars });
+    setQueue(q => q.filter(item => item.personaId !== base.id));
     setName(base.name); setHandle(base.handle); setNiche(base.niche);
     setDesc(base.char); setVoice(base.voice);
     setPillars(base.pillars.join("\n"));
     setMode("social");
-    toast_("Reset to default — Cara & Lila, Travel");
+    toast_(`Reset to default — stale queue items cleared`);
   };
 
   return (
@@ -2642,7 +2645,7 @@ function Settings({ queue, setQueue, toast_ }) {
         ))}
       </div>
       <div>
-        {tab === "persona" && <PersonaNicheEditor toast_={toast_} />}
+        {tab === "persona" && <PersonaNicheEditor toast_={toast_} setQueue={setQueue} />}
         {tab === "account" && (
           <div className="sc">
             <div className="sc-t">Account</div>
