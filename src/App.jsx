@@ -1448,6 +1448,8 @@ function Autopilot({ queue, setQueue, setView, toast_, dbCreators = [], onDelete
   const togglePl = (id) =>
     setSelPl((s) => (s.includes(id) ? (s.length > 1 ? s.filter((x) => x !== id) : s) : [...s, id]));
 
+  const activePlatforms = fanvueMode ? FANVUE_PLATFORMS : PLATFORMS;
+
   const total = selP.length * selPl.length * POSTS_PER_PLATFORM;
   const canRun = selP.length > 0 && selPl.length > 0 && !running;
 
@@ -1577,8 +1579,6 @@ function Autopilot({ queue, setQueue, setView, toast_, dbCreators = [], onDelete
     allPersonas.filter((p) => selP.includes(p.id))
       .map((p) => p.name)
       .join(", ") || "None";
-  const activePlatforms = fanvueMode ? FANVUE_PLATFORMS : PLATFORMS;
-
   const platNames =
     selPl.map((id) => activePlatforms.find((p) => p.id === id)?.name).join(" + ") || "None";
 
