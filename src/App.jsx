@@ -1518,18 +1518,33 @@ function Autopilot({ queue, setQueue, setView, toast_, dbCreators = [], onDelete
   const canRun = selP.length > 0 && selPl.length > 0 && !running;
 
   const run = useCallback(async () => {
-    if (!canRun) return;
+    if (!canRun) { console.warn("run() blocked: canRun=false", {selP, selPl, running}); return; }
     setRunning(true);
     abortRef.current = new AbortController();
     const signal = abortRef.current.signal;
 
-    const slots = buildSchedule(
-      allPersonas.filter((p) => selP.includes(p.id)).map(p =>
-        fanvueMode ? { ...p, pillars: FANVUE_PILLARS } : p
-      ),
-      selPl,
-      activePlatforms
-    );
+    let slots;
+    try {
+      slots = buildSchedule(
+        allPersonas.filter((p) => selP.includes(p.id)).map(p =>
+          fanvueMode ? { ...p, pillars: FANVUE_PILLARS } : p
+        ),
+        selPl,
+        activePlatforms
+      );
+    } catch (e) {
+      console.error("buildSchedule error:", e);
+      toast_("Generation failed — schedule error");
+      setRunning(false);
+      return;
+    }
+
+    if (!slots.length) {
+      console.warn("buildSchedule returned 0 slots", {selP, selPl, activePlatforms: activePlatforms.map(p=>p.id)});
+      toast_("No slots — check platforms selected");
+      setRunning(false);
+      return;
+    }
     setProg(slots.map((s) => ({ ...s, genStatus: "pending" })));
 
     // Send all static data the server needs — personas (with pillars) and platforms
@@ -1537,6 +1552,8 @@ function Autopilot({ queue, setQueue, setView, toast_, dbCreators = [], onDelete
       .filter(p => selP.includes(p.id))
       .map(p => fanvueMode ? { ...p, pillars: FANVUE_PILLARS } : p);
     const platformsForServer = activePlatforms;
+
+    console.log("Sending batch:", { slots: slots.length, personas: personasForServer.map(p=>p.id), platforms: platformsForServer.map(p=>p.id), fanvueMode });
 
     let res;
     try {
@@ -1553,12 +1570,15 @@ function Autopilot({ queue, setQueue, setView, toast_, dbCreators = [], onDelete
         }),
       });
     } catch (e) {
+      console.error("fetch error:", e);
       if (e.name !== "AbortError") toast_("Generation failed — could not connect to server");
       setRunning(false);
       return;
     }
 
     if (!res.ok) {
+      const errText = await res.text().catch(() => "");
+      console.error("Server error:", res.status, errText);
       toast_("Server error — generation failed");
       setRunning(false);
       return;
@@ -1594,6 +1614,7 @@ function Autopilot({ queue, setQueue, setView, toast_, dbCreators = [], onDelete
             setQueue(prev => [item, ...prev.filter(x => x.id !== item.id)]);
             setProg(p => p.map((x, j) => (j === msg.index ? { ...x, genStatus: "done" } : x)));
           } else if (msg.error) {
+            console.error("Slot error:", msg.index, msg.reason);
             setProg(p => p.map((x, j) => (j === msg.index ? { ...x, genStatus: "error" } : x)));
           } else if (msg.done) {
             // Final confirmation from server
