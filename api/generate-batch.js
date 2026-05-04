@@ -214,7 +214,10 @@ Generate a JSON prompt in EXACTLY this structure — fill every field with rich 
 
 RULES: Fill EVERY field with specific detail from the shoot brief. No placeholder text in final output. Wardrobe descriptions must be specific, fashion-editorial, and genuinely revealing in a high-end tasteful way. Negative_Constraints is a comma-separated string. Return ONLY the raw JSON.`;
 
-  try { return parseJSON(await callGemini(apiKey, system, user, 3000)); } catch (_) { return null; }
+  try { return parseJSON(await callGemini(apiKey, system, user, 3000)); } catch (_) {
+    // Retry once — Gemini occasionally wraps JSON in markdown fences on first attempt
+    try { return parseJSON(await callGemini(apiKey, system, user, 3000)); } catch (_2) { return null; }
+  }
 }
 
 function readBody(req) {
@@ -275,10 +278,17 @@ export default async function handler(req, res) {
 
       // For Fanvue posts generate structured image prompt for ALL content types
       if (fanvueMode) {
-        const isTextOnly = (post.post_type === "fv_dm" || post.post_type === "fv_welcome");
-        const postForImg = isTextOnly
-          ? { ...post, photo_idea: `Close-up portrait. Creator seated on edge of bed or plush chair, turned slightly toward camera, direct eye contact. Wearing a barely-there slip dress or oversized dress shirt, one shoulder sliding off. Warm golden-hour window light from left side. Hair loose, natural. Soft intimate atmosphere — like a personal moment just before going out.` }
-          : post;
+        const FALLBACK_BRIEFS = {
+          fv_dm:        "Close-up portrait. Creator seated on edge of bed, turned slightly toward camera, direct eye contact. Wearing a barely-there slip dress or oversized dress shirt, one shoulder sliding off. Warm golden-hour window light from left. Hair loose, natural. Soft intimate atmosphere.",
+          fv_welcome:   "Close-up portrait. Creator seated on edge of bed, turned slightly toward camera, direct eye contact. Wearing a barely-there slip dress or oversized dress shirt, one shoulder sliding off. Warm golden-hour window light from left. Hair loose, natural. Soft intimate atmosphere.",
+          fv_personality: "Candid lifestyle portrait. Creator in a relaxed, natural setting — kitchen, bedroom, or outdoor terrace. Wearing a casual but form-fitting outfit: cropped top and high-waisted micro-shorts or a soft oversized tee slipping off one shoulder. Natural daylight. Relaxed, genuine expression.",
+          fv_interact:  "Playful portrait. Creator looking directly into camera with a flirtatious or amused expression. Sitting cross-legged on a bed or couch, leaning slightly forward. Wearing a barely-there slip dress or cropped athletic set. Warm soft light. Inviting, expressive energy.",
+          fv_wall_post: "Intimate behind-the-scenes portrait. Creator in bedroom or bathroom setting, casual and underdressed — oversized shirt belted at waist, or micro-cut bodycon. Soft vanity or window light. Relaxed, personal atmosphere — like catching a private moment.",
+          fv_announce:  "Bold confident portrait. Creator standing in a doorway or against a plain wall, one arm raised, hip cocked. Wearing a deep-plunging micro-cut bodycon or barely-there slip dress. Strong directional light from one side. Direct eye contact, slight smirk.",
+          fv_preview:   "Teasing preview portrait. Creator partially framed — cropped just above or at mid-thigh. Wearing a sheer wrap or satin slip dress. Seated at the edge of a bed, leaning forward toward lens. Warm candlelight or golden-hour window light. Intimate, exclusive atmosphere.",
+        };
+        const shootBrief = post.photo_idea || FALLBACK_BRIEFS[post.post_type] || FALLBACK_BRIEFS["fv_personality"];
+        const postForImg = { ...post, photo_idea: shootBrief };
         const imgPrompt = await generateImagePrompt(apiKey, persona, postForImg, platform, post.content_label || "");
         if (imgPrompt) post.image_prompt = imgPrompt;
       }
