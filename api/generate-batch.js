@@ -71,7 +71,7 @@ const IMG_COVERAGE = [
 ];
 
 async function callGemini(apiKey, system, user, maxTokens = 2000) {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
   const body = {
     contents: [{ role: "user", parts: [{ text: user }] }],
     systemInstruction: { parts: [{ text: system }] },
