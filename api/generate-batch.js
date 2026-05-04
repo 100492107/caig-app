@@ -2,8 +2,8 @@
 // Streams each completed post back as NDJSON (one JSON line per post) so the
 // browser can save to queue in real-time regardless of screen state.
 
-const MAX_RETRIES = 3;
-const DELAY_MS = 1200; // ms between posts to avoid rate-limits
+const MAX_RETRIES = 1;
+const DELAY_MS = 400; // ms between posts
 
 const TODAY = new Date().toLocaleDateString("en-GB", {
   weekday: "long", day: "numeric", month: "long", year: "numeric",
@@ -70,8 +70,8 @@ const IMG_COVERAGE = [
   "Standing at window, natural backlight silhouette — artistic fine art photography, Spencer Tunick aesthetic",
 ];
 
-async function callGemini(apiKey, system, user, maxTokens = 4000) {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${apiKey}`;
+async function callGemini(apiKey, system, user, maxTokens = 2000) {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
   const body = {
     contents: [{ role: "user", parts: [{ text: user }] }],
     systemInstruction: { parts: [{ text: system }] },
@@ -131,10 +131,10 @@ Include:
 
 Be concrete. 4-5 sentences max.`;
 
-  try { return await callGemini(apiKey, system, user, 4000); } catch (_) { return ""; }
+  try { return await callGemini(apiKey, system, user, 1000); } catch (_) { return ""; }
 }
 
-async function generatePost(apiKey, persona, platform, pillar, postIndex, usedHooks, ideaSeed, fanvueMode) {
+async function generatePost(apiKey, persona, platform, pillar, postIndex, usedHooks, ideaSeed, fanvueMode, cachedTrends) {
   const mix = platform.contentMix;
   const totalWeight = mix.reduce((s, m) => s + m.weight, 0);
   const seed = ((postIndex * 7 + Date.now()) % totalWeight);
@@ -144,8 +144,7 @@ async function generatePost(apiKey, persona, platform, pillar, postIndex, usedHo
   const angleIndex = (postIndex * 3 + Math.floor(Math.random() * CREATIVE_ANGLES.length)) % CREATIVE_ANGLES.length;
   const creativeAngle = CREATIVE_ANGLES[angleIndex];
 
-  const needsTrends = !["lifestyle", "personal_moment", "fv_dm", "fv_welcome"].includes(contentType.type);
-  const trends = needsTrends ? await researchTrends(apiKey, platform.name, persona.niche, fanvueMode) : "";
+  const trends = cachedTrends || "";
 
   const isSage = persona.id === "sage";
 
@@ -225,7 +224,7 @@ Return this exact JSON format:
   "trend_hook": "${trends ? "one word describing the trend angle used, or null" : "null"}"
 }`;
 
-  return parseJSON(await callGemini(apiKey, system, user, 4000));
+  return parseJSON(await callGemini(apiKey, system, user, 2000));
 }
 
 async function generateImagePrompt(apiKey, persona, post, platform, contentTypeLabel, postIndex = 0) {
@@ -306,6 +305,12 @@ export default async function handler(req, res) {
 
   const usedHooks = [];
 
+  // Pre-fetch trends once per platform — avoids one Gemini call per post
+  const trendsCache = {};
+  for (const platform of platforms) {
+    trendsCache[platform.id] = await researchTrends(apiKey, platform.name, personas[0]?.niche || "", fanvueMode || false);
+  }
+
   for (let i = 0; i < slots.length; i++) {
     const slot = slots[i];
     const persona = personas.find(p => p.id === slot.personaId);
@@ -322,7 +327,7 @@ export default async function handler(req, res) {
 
       const post = await generatePost(
         apiKey, persona, platform, slot.pillar, slot.postIndex || i,
-        [...usedHooks], ideaSeed || "", fanvueMode || false
+        [...usedHooks], ideaSeed || "", fanvueMode || false, trendsCache[platform.id] || ""
       );
 
       if (post.hook) usedHooks.push(post.hook);
@@ -343,12 +348,7 @@ export default async function handler(req, res) {
         };
         const shootBrief = post.photo_idea || FALLBACK_BRIEFS[post.post_type] || FALLBACK_BRIEFS["fv_tease"];
         const postForImg = { ...post, photo_idea: shootBrief };
-        let imgPrompt = await generateImagePrompt(apiKey, persona, postForImg, platform, post.content_label || "", i);
-        // Third attempt with simplified brief if both retries inside generateImagePrompt failed
-        if (!imgPrompt) {
-          const simpleBrief = FALLBACK_BRIEFS[post.post_type] || FALLBACK_BRIEFS["fv_tease"];
-          imgPrompt = await generateImagePrompt(apiKey, persona, { ...post, photo_idea: simpleBrief }, platform, post.content_label || "", i + 1);
-        }
+        const imgPrompt = await generateImagePrompt(apiKey, persona, postForImg, platform, post.content_label || "", i);
         if (imgPrompt) post.image_prompt = imgPrompt;
       }
 
