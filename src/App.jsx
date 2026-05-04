@@ -1404,8 +1404,9 @@ function Autopilot({ queue, setQueue, setView, toast_, dbCreators = [], onDelete
   const run = useCallback(async () => {
     if (!canRun) return;
     setRunning(true);
-    const ctrl = new AbortController();
-    abortRef.current = ctrl;
+    abortRef.current = new AbortController();
+    const signal = abortRef.current.signal;
+
     const slots = buildSchedule(
       allPersonas.filter((p) => selP.includes(p.id)).map(p =>
         fanvueMode ? { ...p, pillars: FANVUE_PILLARS } : p
@@ -1414,43 +1415,80 @@ function Autopilot({ queue, setQueue, setView, toast_, dbCreators = [], onDelete
       activePlatforms
     );
     setProg(slots.map((s) => ({ ...s, genStatus: "pending" })));
-    const results = [];
-    const usedHooks = []; // track hooks across the batch to prevent repetition
-    for (let i = 0; i < slots.length; i++) {
-      if (ctrl.signal.aborted) break;
-      const slot = slots[i];
-      setProg((p) => p.map((x, j) => (j === i ? { ...x, genStatus: "running" } : x)));
-      try {
-        const persona = allPersonas.find((p) => p.id === slot.personaId);
-        const post = await generatePost(
-          persona,
-          slot.platformId,
-          slot.pillar,
-          slot.postIndex,
-          ctrl.signal,
-          [...usedHooks],
-          ideaSeed,
+
+    // Send all static data the server needs — personas (with pillars) and platforms
+    const personasForServer = allPersonas
+      .filter(p => selP.includes(p.id))
+      .map(p => fanvueMode ? { ...p, pillars: FANVUE_PILLARS } : p);
+    const platformsForServer = activePlatforms;
+
+    let res;
+    try {
+      res = await fetch("/api/generate-batch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        signal,
+        body: JSON.stringify({
+          slots,
+          personas: personasForServer,
+          platforms: platformsForServer,
           fanvueMode,
-        );
-        if (post.hook) usedHooks.push(post.hook);
-        const item = {
-          id: `${Date.now()}_${i}`,
-          ts: Date.now(),
-          ...slot,
-          ...post,
-          status: "ready",
-        };
-        results.push(item);
-        setQueue((prev) => [item, ...prev.filter((x) => x.id !== item.id)]);
-        setProg((p) => p.map((x, j) => (j === i ? { ...x, genStatus: "done" } : x)));
-      } catch (e) {
-        if (e.name === "AbortError") break;
-        setProg((p) => p.map((x, j) => (j === i ? { ...x, genStatus: "error" } : x)));
-        console.error("API Error:", e);
-      }
-      if (i < slots.length - 1) await new Promise((r) => setTimeout(r, 1500));
+          ideaSeed,
+        }),
+      });
+    } catch (e) {
+      if (e.name !== "AbortError") toast_("Generation failed — could not connect to server");
+      setRunning(false);
+      return;
     }
-    // Sync DB-creator content to Supabase so clients can see it in their portal
+
+    if (!res.ok) {
+      toast_("Server error — generation failed");
+      setRunning(false);
+      return;
+    }
+
+    // Read the NDJSON stream line by line
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    let savedCount = 0;
+    const results = [];
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop(); // last incomplete line stays in buffer
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          let msg;
+          try { msg = JSON.parse(line); } catch (_) { continue; }
+
+          if (msg.progress) {
+            // Server started processing this slot
+            setProg(p => p.map((x, j) => (j === msg.index ? { ...x, genStatus: "running" } : x)));
+          } else if (msg.post) {
+            // Completed post — save immediately
+            const item = msg.post;
+            results.push(item);
+            savedCount++;
+            setQueue(prev => [item, ...prev.filter(x => x.id !== item.id)]);
+            setProg(p => p.map((x, j) => (j === msg.index ? { ...x, genStatus: "done" } : x)));
+          } else if (msg.error) {
+            setProg(p => p.map((x, j) => (j === msg.index ? { ...x, genStatus: "error" } : x)));
+          } else if (msg.done) {
+            // Final confirmation from server
+          }
+        }
+      }
+    } catch (e) {
+      if (e.name !== "AbortError") console.error("Stream read error:", e);
+    }
+
+    // Sync any DB-creator posts to Supabase
     const dbResults = results.filter(item => item.personaId?.startsWith("db_"));
     if (dbResults.length > 0) {
       const rows = dbResults.map(item => {
@@ -1474,9 +1512,9 @@ function Autopilot({ queue, setQueue, setView, toast_, dbCreators = [], onDelete
     }
 
     setRunning(false);
-    toast_(`${results.length} posts generated — open Queue to review`);
+    toast_(`${savedCount} posts generated — open Queue to review`);
     setTimeout(() => setView("queue"), 700);
-  }, [canRun, selP, selPl, setQueue, setView, toast_, allPersonas, ideaSeed, fanvueMode]);
+  }, [canRun, selP, selPl, setQueue, setView, toast_, allPersonas, ideaSeed, fanvueMode, activePlatforms, dbCreators]);
 
   const stop = () => {
     abortRef.current?.abort();
