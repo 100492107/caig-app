@@ -5043,7 +5043,12 @@ export default function App() {
   if (!session) return <LoginGate onAuth={(user, p) => { setSession(user); setProfile(p); }} />;
 
   // Client portal — non-admin users see a different, restricted view
-  if (profile?.role !== "admin") return <ClientPortal profile={profile} onSignOut={signOut} />;
+  if (!profile) return (
+    <div style={{ position: "fixed", inset: 0, background: "var(--ink)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ color: "var(--t3)", fontSize: 13 }}>Loading…</div>
+    </div>
+  );
+  if (profile.role !== "admin") return <ClientPortal profile={profile} onSignOut={signOut} />;
 
   const IcContent = (
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
