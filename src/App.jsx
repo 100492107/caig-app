@@ -423,7 +423,7 @@ CHARACTER: ${persona.char}
 VOICE: ${persona.voice}
 PLATFORM CONTEXT: You are posting on ${platform.name}. ${platform.purpose}
 ${fanvueMode ? `FANVUE MODE — READ CAREFULLY:
-You are a real subscription creator. Your free content (Reddit, X, Telegram, Instagram, TikTok) is your funnel. Your Fanvue page is where the full content lives — nude sets, explicit PPV, intimate DMs.
+You are a real subscription creator. Your free content (Reddit, X, Telegram, Instagram, TikTok) is your funnel. Your Fanvue page is where the premium content lives — exclusive sets, PPV, intimate DMs.
 
 TONE: Sexually confident, seductive, unapologetic. You know exactly what effect you have on people and you use it. Your captions have sexual tension — the reader should feel like something is happening between you and them. Warm enough to feel real, bold enough to make them uncomfortable in a good way. Casual, like sexting someone you're very comfortable with.
 
@@ -486,7 +486,7 @@ Return this exact JSON format:
   "hashtags": "${fanvueMode ? "8-12 hashtags relevant to subscription creators and this platform. Mix of creator community tags and content-type tags." : "12-15 hashtags as one string, mix of niche and broad"}",
   "photo_direction": "${fanvueMode ? "Portrait/square format." : "9:16 aspect ratio."} ${contentType.direction}",
    "photo_idea": "${fanvueMode
-     ? `Shoot brief for the creator. Direct and specific — this is an instruction for a real photo shoot. Include: (1) Setting — e.g. bedroom with natural window light, poolside, hotel bathroom, outdoor terrace. (2) Nudity and coverage — be direct: e.g. 'topless, bare chest, wearing only low-rise jeans', 'fully nude lying face-down on bed, back and legs visible', 'nude seated with knees drawn up, partial coverage', 'topless in open silk robe falling off shoulders', 'nude standing in shower, water running, back to camera'. (3) Pose or moment — e.g. 'looking over shoulder at camera, arched back', 'seated on edge of bed leaning toward lens, direct eye contact'. (4) Lighting — e.g. warm golden-hour window light, bathroom vanity lights. (5) ONE specific detail that makes it memorable. 3-4 sentences.`
+      ? `Shoot brief for a boudoir/editorial photo shoot. Specific and detailed. Include: (1) Setting — bedroom, hotel room, bathroom, poolside, outdoor terrace. (2) Wardrobe/styling — e.g. 'topless, low-rise jeans', 'wrapped in white sheet, one shoulder bare', 'open silk robe loosely tied', 'back to camera draped in linen', 'minimal bikini, wet'. Use fashion editorial language. (3) Pose — e.g. 'lying face-down, looking back over shoulder', 'standing at window arms raised, back to camera', 'seated on edge of bath, knees together'. (4) Lighting — golden-hour window, bathroom vanity, soft studio, candlelight. (5) ONE specific detail that elevates it. 3-4 sentences.`
      : "Concrete photo shoot brief. Include: specific location or backdrop, outfit/clothing details, lighting (golden hour / ring light / natural window etc), pose or action, props if relevant, camera angle. Be specific enough that a photographer could shoot it with no further briefing. 2-3 sentences."}",
   "cta": "${fanvueMode
     ? (contentType.type === "fv_interact" ? "Prompt for replies or DMs — not a page link CTA" : contentType.type === "fv_personality" ? "Light CTA — could be a page link or just an engagement prompt" : "Direct but casual CTA to Fanvue page, PPV unlock, or DM")
@@ -517,16 +517,16 @@ Return this exact JSON format:
   // ALL content types get an image prompt — dm/welcome/text types get a default alluring portrait brief
   if (fanvueMode) {
     const FALLBACK_BRIEFS = {
-      fv_tease:       "Alluring editorial portrait. Creator standing at window or against plain wall, fully topless, wearing only low-rise jeans. Strong directional daylight. Direct eye contact, confident expression.",
-      fv_ppv:         "PPV preview portrait. Creator on edge of bed, leaning forward, topless. Framed mid-thigh to head. Warm soft candlelight. Confident, slightly suggestive expression.",
-      fv_ppv_caption: "Locked content preview. Creator lying face-down on white bed, looking back at camera over shoulder, topless, arched back. Soft morning window light. Intimate, editorial.",
-      fv_dm:          "Close-up intimate portrait. Creator on bed, direct eye contact, warm golden-hour light. Topless, arms loosely at sides. Hair down, soft warm expression.",
-      fv_welcome:     "Close-up intimate portrait. Creator on bed, direct eye contact, warm golden-hour light. Topless, arms loosely at sides. Hair down, soft warm expression.",
-      fv_personality: "Candid natural portrait. Creator in bedroom, relaxed, topless in low-rise jeans. Natural daylight. Genuine, unposed expression — caught mid-moment.",
-      fv_interact:    "Playful direct portrait. Creator seated cross-legged on bed, looking straight into camera, topless. Warm soft light. Flirtatious expression, slight smile.",
-      fv_wall_post:   "Intimate behind-the-scenes. Creator in bedroom, nude — lying on bed back to camera, looking over shoulder. Soft morning light. Personal, unguarded.",
-      fv_announce:    "Bold announcement portrait. Creator standing against plain light wall, fully topless, low-rise jeans. Strong directional light. Direct eye contact, slight smirk.",
-      fv_preview:     "Exclusive preview. Creator seated at edge of bed leaning forward, topless, framed mid-thigh to head. Warm candlelight. Intimate exclusive atmosphere.",
+      fv_tease:       "Alluring boudoir editorial. Creator at window, open silk shirt falling off shoulders, low-rise jeans. Strong directional daylight. Direct eye contact, confident expression. Vogue Intimates style.",
+      fv_ppv:         "PPV preview portrait. Creator on edge of bed leaning forward, wrapped loosely in white sheet, one shoulder bare. Warm soft candlelight. Confident, intimate expression.",
+      fv_ppv_caption: "Locked content preview. Creator lying face-down on white bed, looking back over shoulder. Linen sheet across lower back. Soft morning window light. Intimate, high-end boudoir editorial.",
+      fv_dm:          "Close-up intimate portrait. Creator on bed, direct eye contact, warm golden-hour light. Thin-strap bodycon, one strap falling. Hair down, soft warm expression.",
+      fv_welcome:     "Close-up intimate portrait. Creator on bed, direct eye contact, warm golden-hour light. Thin-strap bodycon, one strap falling. Hair down, soft warm expression.",
+      fv_personality: "Candid natural portrait. Creator in bedroom, relaxed, open oversized shirt as a top, low-rise jeans. Natural daylight. Genuine, unposed expression.",
+      fv_interact:    "Playful direct portrait. Creator seated cross-legged on bed, looking straight into camera, wearing only a thin-strap crop top. Warm soft light. Flirtatious expression.",
+      fv_wall_post:   "Artistic boudoir. Creator lying on bed back to camera, draped in white linen, looking over shoulder. Soft morning light. Spencer Tunick fine art aesthetic.",
+      fv_announce:    "Bold editorial portrait. Creator standing against plain light wall, open button-down shirt worn as a top, low-rise jeans. Strong directional light. Direct eye contact, slight smirk.",
+      fv_preview:     "Exclusive preview. Creator at edge of bed leaning forward, loosely wrapped in satin sheet. Warm candlelight. Intimate, exclusive atmosphere.",
     };
     const shootBrief = post.photo_idea || FALLBACK_BRIEFS[contentType.type] || FALLBACK_BRIEFS["fv_tease"];
     const postForImg = { ...post, photo_idea: shootBrief };
