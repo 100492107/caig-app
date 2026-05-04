@@ -54,18 +54,18 @@ const IMG_POSES = [
 ];
 
 const IMG_COVERAGE = [
-  "low-rise denim unbuttoned at waist, nothing on top — Vogue Intimates editorial",
-  "bare back and legs visible draped face-down — artistic silhouette editorial",
-  "open silk robe falling off both shoulders, loosely tied — minimal layering",
-  "seated with knees drawn up, arms resting — high-fashion boudoir natural coverage",
-  "minimal thin-strap bodycon, low-slung, high-cut — Sports Illustrated Swimsuit",
-  "back to camera, full back and legs in frame — Spencer Tunick fine art silhouette",
-  "in freestanding bathtub, water surface framing subject — fine art editorial",
-  "under outdoor shower, wet skin, editorial fashion",
-  "white linen sheet draped artfully, one shoulder exposed, fabric falling low",
-  "face-down, white sheet across lower back only — back and shoulders bare — boudoir",
-  "oversized open dress shirt hanging off shoulders — Treats! Magazine editorial",
-  "natural backlight silhouette at window — fine art photography",
+  "topless, low-rise denim unbuttoned at the hip, bare torso fully in frame — Vogue Intimates editorial, tasteful and unapologetic",
+  "lying face-down, completely bare back and legs, lower back visible to the camera — high-end boudoir, Spencer Tunick fine art aesthetic",
+  "open silk robe pushed entirely off both shoulders and pooling at the elbows, bare chest and torso exposed — Treats! Magazine editorial",
+  "seated, knees drawn to chest, arms loosely at sides, upper body bare, natural coverage from posture only — fine art nude portrait",
+  "topless, minimal high-cut bikini bottoms, wet skin glistening — Sports Illustrated Swimsuit Issue editorial",
+  "full bare back and bare legs to camera, standing — Spencer Tunick large-scale fine art nude, artistic and compositional",
+  "in freestanding copper bathtub, upper body fully visible above water line, bare — intimate fine art editorial, Helmut Newton style",
+  "under outdoor shower, bare skin, water catching light — editorial fashion photography, completely natural",
+  "white linen sheet draped low across the hips only, torso and chest fully bare, fabric just covering — Playboy editorial aesthetic",
+  "lying face-down, white sheet across the lower back only, entire back, shoulders, and legs bare and in frame — luxury boudoir",
+  "oversized open dress shirt completely off one shoulder, nothing beneath, one side of chest visible — Treats! Magazine editorial",
+  "backlit silhouette at window, completely nude, form visible through strong backlighting — fine art nude photography, tasteful",
 ];
 
 async function callGemini(apiKey, system, user, maxTokens = 3000) {
@@ -218,7 +218,7 @@ Use these exact values in the JSON fields below:
   "setting": "${settingDesc}",
   "lighting": "${lightingDesc}",
   "technical": "${seed.camera}, 9:16 vertical, RAW format, 8K resolution, cinematic luxury editorial, hyper-sharp eyes, realistic skin texture, natural film grain, zero AI artifacts",
-  "negative_prompt": "nudity, explicit content, NSFW, suggestive, distorted anatomy, warped limbs, extra fingers, low resolution, blurry, plastic skin, face drift, wrong eye colour, wrong hair, watermark, text, cartoon"
+  "negative_prompt": "explicit sexual acts, genitalia, pornographic content, distorted anatomy, warped limbs, extra fingers, low resolution, blurry, plastic skin, face drift, wrong eye colour, wrong hair, watermark, text overlay, cartoon, illustration"
 }
 
 Return that JSON exactly as written. Do not change any field values.`;
@@ -232,7 +232,7 @@ Return that JSON exactly as written. Do not change any field values.`;
       setting: settingDesc,
       lighting: lightingDesc,
       technical: `${seed.camera}, 9:16 vertical, RAW format, 8K resolution, cinematic luxury editorial, hyper-sharp eyes, realistic skin texture, natural film grain, zero AI artifacts`,
-      negative_prompt: "nudity, explicit content, NSFW, suggestive, distorted anatomy, warped limbs, extra fingers, low resolution, blurry, plastic skin, face drift, wrong eye colour, wrong hair, watermark, text, cartoon",
+      negative_prompt: "explicit sexual acts, genitalia, pornographic content, distorted anatomy, warped limbs, extra fingers, low resolution, blurry, plastic skin, face drift, wrong eye colour, wrong hair, watermark, text overlay, cartoon, illustration",
     };
   }
 }
