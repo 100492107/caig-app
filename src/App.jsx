@@ -95,6 +95,24 @@ const PLATFORMS = [
 // ─── FANVUE / SUBSCRIPTION PLATFORMS ─────────────────────────────────────────
 const FANVUE_PLATFORMS = [
   {
+    id: "fv_instagram", name: "Instagram", color: "#E1306C", times: ["11:00", "19:00"],
+    purpose: "Top-of-funnel discovery for subscription creators. Instagram is brand-building — aesthetic, aspirational, and personality-first. Content must stay within guidelines (no nudity) but can be confident, flirtatious, and suggestive through styling, captions, and implication. Goal: profile visits → link in bio → Fanvue.",
+    contentMix: [
+      { type: "fv_tease", label: "Tease post — confident & alluring", weight: 4, format: "photo post or carousel with caption", direction: "Aesthetically polished. Suggestive through styling, pose, and caption — not explicit. Think high-end influencer meets boudoir aesthetic. Caption creates curiosity. CTA directs to link in bio." },
+      { type: "fv_personality", label: "Personality post — real and relatable", weight: 3, format: "selfie, candid, or story-style post", direction: "Show the real person — funny, warm, relatable. A moment from the day, a thought, something that makes followers feel like they know her. Builds parasocial connection that drives subscriptions." },
+      { type: "fv_interact", label: "Fan interaction — question or engagement prompt", weight: 3, format: "photo or graphic with caption question", direction: "Invite comments and DMs. A question about preferences, a 'this or that', a bold opinion. Boosts reach and warms up the audience for a CTA post." },
+    ],
+  },
+  {
+    id: "fv_tiktok", name: "TikTok", color: "#010101", times: ["12:00", "20:00"],
+    purpose: "Fastest organic reach for subscription creators. TikTok content must stay within community guidelines but can use trending audio, confident on-camera presence, and suggestive storytelling. Goal: viral reach → profile visits → link in bio → Fanvue. Personality and authenticity convert better than pure aesthetics here.",
+    contentMix: [
+      { type: "fv_personality", label: "Personality / trend video concept", weight: 4, format: "short-form video concept with caption and audio suggestion", direction: "On-camera, confident, authentic. Use trending sounds or formats. Show personality first — the allure comes from who she is, not just how she looks. Relatable, funny, or story-driven content that hooks in the first 2 seconds." },
+      { type: "fv_tease", label: "Tease video concept — implication & curiosity", weight: 3, format: "video concept with caption", direction: "Suggestive storytelling through implication — a getting-ready video, a reaction, a 'you'll never guess what I posted today' style hook. Never explicit. Caption teases the page. CTA to link in bio." },
+      { type: "fv_interact", label: "Fan interaction — reply, duet, or Q&A", weight: 3, format: "video concept — reply to comment or Q&A format", direction: "Reply to a spicy or funny comment, answer a 'tell me something' prompt, or do a Q&A. Builds community and boosts algorithmic reach through comment interaction." },
+    ],
+  },
+  {
     id: "fv_reddit", name: "Reddit", color: "#FF4500", times: ["12:00", "20:00"],
     purpose: "The highest-intent discovery platform for subscription creators. Subreddits are where new subscribers are found. Content must feel authentic, not like an ad.",
     contentMix: [
@@ -1489,7 +1507,7 @@ function Autopilot({ queue, setQueue, setView, toast_, dbCreators = [], onDelete
               onClick={() => {
                 const next = !fanvueMode;
                 setFanvueMode(next);
-                setSelPl(next ? ["fv_reddit", "fv_x"] : ["tiktok", "youtube"]);
+                setSelPl(next ? ["fv_instagram", "fv_tiktok", "fv_reddit", "fv_x"] : ["tiktok", "youtube"]);
               }}
             >
               <span className="fanvue-toggle-dot" />
@@ -1693,6 +1711,7 @@ function Autopilot({ queue, setQueue, setView, toast_, dbCreators = [], onDelete
                     const on = selPl.includes(p.id);
                     const icons = {
                       tiktok: "🎵", instagram: "📸", youtube: "▶️", facebook: "👥",
+                      fv_instagram: "📸", fv_tiktok: "🎵",
                       fv_reddit: "🔶", fv_telegram: "✈️", fv_x: "✖️", fv_page: "💜",
                     };
                     const icon = icons[p.id] || "📱";
