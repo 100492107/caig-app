@@ -354,17 +354,25 @@ export default async function handler(req, res) {
       // For Fanvue posts generate structured image prompt for ALL content types
       if (fanvueMode) {
         const FALLBACK_BRIEFS = {
-          fv_dm:        "Close-up intimate portrait. Creator on bed, direct eye contact, warm golden-hour light from left. Topless, arms loosely crossed, relaxed and natural. Hair down, soft expression. Like a private moment just for the viewer.",
-          fv_welcome:   "Close-up intimate portrait. Creator on bed, direct eye contact, warm golden-hour light from left. Topless, arms loosely crossed, relaxed and natural. Hair down, soft expression. Like a private moment just for the viewer.",
-          fv_personality: "Candid natural portrait. Creator in bedroom or kitchen, relaxed. Topless in low-rise jeans or wearing only an open robe. Natural daylight. Genuine, unposed expression — caught mid-moment. Body confident, no performance.",
-          fv_interact:  "Playful direct portrait. Creator looking straight into camera, seated cross-legged on bed. Topless or wearing sheer open robe only. Warm soft light. Flirtatious expression, slight smile. Inviting the viewer in.",
-          fv_wall_post: "Intimate behind-the-scenes. Creator in bedroom or bathroom. Nude or topless — lying on bed, back to camera, looking over shoulder. Soft morning light. Personal, unguarded. Like something a subscriber would never expect.",
-          fv_announce:  "Confident full-body portrait. Creator standing against plain light wall. Fully topless, low-rise jeans or nothing below — shot from waist up. Strong directional light. Direct eye contact, slight smirk. Announcing something.",
-          fv_preview:   "Teasing preview. Creator seated at edge of bed, leaning forward slightly, arms resting on knees. Topless. Framed mid-thigh to just above head — slightly cropped to tease. Warm candlelight. Intimate exclusive atmosphere.",
+          fv_tease:       "Alluring editorial portrait. Creator standing at window or against plain wall, fully topless, wearing only low-rise jeans. Strong directional daylight. Direct eye contact, confident expression. CTA energy — something worth clicking for.",
+          fv_ppv:         "PPV preview portrait. Creator on edge of bed, leaning forward, topless. Framed mid-thigh to head. Warm soft candlelight. Confident, slightly suggestive expression. Leaving something to imagination.",
+          fv_ppv_caption: "Locked content preview. Creator lying face-down on white bed, looking back at camera over shoulder, topless, arched back. Soft morning window light. Intimate, editorial, high-end boudoir.",
+          fv_dm:          "Close-up intimate portrait. Creator on bed, direct eye contact, warm golden-hour light. Topless, arms loosely at sides. Hair down, soft warm expression. Personal moment — just for the viewer.",
+          fv_welcome:     "Close-up intimate portrait. Creator on bed, direct eye contact, warm golden-hour light. Topless, arms loosely at sides. Hair down, soft warm expression. Personal moment — just for the viewer.",
+          fv_personality: "Candid natural portrait. Creator in bedroom, relaxed, topless in low-rise jeans. Natural daylight. Genuine, unposed expression — caught mid-moment. Body confident, real.",
+          fv_interact:    "Playful direct portrait. Creator seated cross-legged on bed, looking straight into camera, topless. Warm soft light. Flirtatious expression, slight smile. Inviting reply.",
+          fv_wall_post:   "Intimate behind-the-scenes. Creator in bedroom or bathroom, nude — lying on bed back to camera, looking over shoulder. Soft morning light. Personal, unguarded.",
+          fv_announce:    "Bold announcement portrait. Creator standing against plain light wall, fully topless, low-rise jeans. Strong directional light. Direct eye contact, slight smirk.",
+          fv_preview:     "Exclusive preview. Creator seated at edge of bed leaning forward, topless, framed mid-thigh to head. Warm candlelight. Intimate exclusive atmosphere.",
         };
-        const shootBrief = post.photo_idea || FALLBACK_BRIEFS[post.post_type] || FALLBACK_BRIEFS["fv_personality"];
+        const shootBrief = post.photo_idea || FALLBACK_BRIEFS[post.post_type] || FALLBACK_BRIEFS["fv_tease"];
         const postForImg = { ...post, photo_idea: shootBrief };
-        const imgPrompt = await generateImagePrompt(apiKey, persona, postForImg, platform, post.content_label || "", i);
+        let imgPrompt = await generateImagePrompt(apiKey, persona, postForImg, platform, post.content_label || "", i);
+        // Third attempt with simplified brief if both retries inside generateImagePrompt failed
+        if (!imgPrompt) {
+          const simpleBrief = FALLBACK_BRIEFS[post.post_type] || FALLBACK_BRIEFS["fv_tease"];
+          imgPrompt = await generateImagePrompt(apiKey, persona, { ...post, photo_idea: simpleBrief }, platform, post.content_label || "", i + 1);
+        }
         if (imgPrompt) post.image_prompt = imgPrompt;
       }
 
