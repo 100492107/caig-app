@@ -276,13 +276,6 @@ CRITICAL: Replace every field that says "WRITE ... HERE" with actual vivid prose
   }
 }
 
-Write every bracket field as vivid finished prose. Return ONLY the raw JSON.`;
-
-  try { return parseJSON(await callGemini(apiKey, system, user, 1500)); } catch (_) {
-    try { return parseJSON(await callGemini(apiKey, system, user, 1500)); } catch (_2) { return null; }
-  }
-}
-
 function readBody(req) {
   return new Promise((resolve, reject) => {
     let data = "";
