@@ -290,66 +290,37 @@ async function generateImagePrompt(persona, post, platform, contentType, signal,
   const pose = IMG_POSES[pi];
   const coverage = IMG_COVERAGE[ci];
 
-  const system = `You are an expert AI image generation prompt engineer specialising in photorealistic luxury fashion editorial and portrait photography. You output ONLY raw JSON — no markdown, no explanation, no code fences. Your prompts target Stable Diffusion XL, Flux, and MidJourney. Reference aesthetic: Playboy editorial, Treats! Magazine, high-end boudoir, Sports Illustrated Swimsuit Edition, Spencer Tunick fine art photography.`;
+  const system = `You are an expert AI image generation prompt engineer specialising in photorealistic luxury fashion editorial photography. You output ONLY raw JSON — no markdown, no explanation, no code fences. Every prompt you write is unique — you never repeat the same descriptions.`;
 
-  const user = `Generate a structured image generation JSON prompt for the following creator post.
+  const user = `Write a unique image generation prompt for this creator post. Every field must be specific to this exact shoot — no generic placeholders.
 
 CREATOR: ${persona.name}
-PLATFORM: ${platform.name}
-POST HOOK: "${post.hook}"
 SHOOT BRIEF: "${post.photo_idea}"
-CONTENT TYPE: ${contentType}
+POST HOOK: "${post.hook}"
 
-SCENE SEED — incorporate into every field:
+MANDATORY SCENE DETAILS — use these exactly:
 - Setting: ${seed.setting}
 - Lighting: ${seed.lighting}
-- Camera: ${seed.camera}
+- Camera/lens: ${seed.camera}
 - Pose: ${pose}
-- Wardrobe/styling: ${coverage}
+- Wardrobe: ${coverage}
 
-Reference images:
-- reference_image_1.png = creator face (exact likeness — zero deviation)
-- reference_image_2.png = body and pose reference
-
-Output EXACTLY this JSON structure with rich specific detail in every field:
+Output this JSON — write fully realised descriptions, not instructions or placeholders:
 
 {
-  "scene_specification": {
-    "core_subject": {
-      "identity_lock": "IDENTITY_LOCK_BLOCK: Merge EXACT face from reference_image_1.png onto body and pose from reference_image_2.png. 100% pixel-identical face — zero drift, zero eye colour change, zero hair change. Perfect seamless neck blend. PIXEL PRIORITY MODE.",
-      "physique_profile": {
-        "body_type": "[Athletic/editorial physique from reference_image_2 — waist-to-hip ratio, leg development, silhouette, posture. Fashion editorial language. 2 sentences.]",
-        "pose": "[Exact pose from seed — body position, limb placement, back arch, hip orientation, gaze, head angle. Technical and specific. Match shoot brief.]"
-      },
-      "facial_and_glam": {
-        "expression": "[Expression for post mood — confident smirk, serene, playful over-shoulder, direct camera gaze.]",
-        "makeup": "[Makeup look — glass skin/dewy/editorial bold/natural. Specific eye, brow, lip detail.]",
-        "hair": "[Hair from reference_image_1 — exact colour, texture, length. Styled for scene: wet, loose, windswept, pinned.]"
-      }
-    },
-    "wardrobe_design": {
-      "attire": "[Wardrobe from seed above. Describe in luxury fashion editorial language — specific fabric, construction, cut. Reference aesthetic: Treats! Magazine, Agent Provocateur editorial, Sports Illustrated Swimsuit Edition, high-end boudoir.]",
-      "design_details": "[Specific fabric texture, how light falls on material and skin, construction details. Hyper-specific fashion editorial description.]",
-      "accessories": "[All jewellery and accessories from reference_image_1 — necklaces, rings, earrings, tattoos. Exact match.]"
-    },
-    "technical_photography": {
-      "camera_angle": "[Camera angle and framing from seed: ${seed.camera}. Eye-level/low angle/overhead, head-to-toe/three-quarter/medium/close-up.]",
-      "optics": "[Lens from seed: ${seed.camera}. Hyper-sharp face and eyes, realistic skin pores, natural film grain, zero AI artifacts.]",
-      "style": "9:16 vertical, RAW format, 8K resolution, cinematic luxury editorial, indistinguishable from real 2026 high-end photography"
-    },
-    "environment_and_lighting": {
-      "setting": "[Setting from seed: ${seed.setting}. Specific furniture, materials, textures, architectural details, background depth.]",
-      "lighting": "[Lighting from seed: ${seed.lighting}. Direction, quality, colour temperature, how it falls on skin and fabric, shadow depth, atmosphere.]",
-      "atmosphere": "[Overall mood — intimate, editorial, high-status, serene, confident. 1-2 sentences.]"
-    },
-    "negative_prompt": "nudity, sexual provocation, explicit content, suggestive poses, NSFW, graphic acts, distorted anatomy, warped limbs, extra limbs, low resolution, blurry, plastic skin, facial distortion, face drift from reference, wrong eye colour, wrong hair colour, underage appearance, watermark, text, logos, cartoonish"
-  }
+  "identity_lock": "PIXEL PRIORITY: Graft exact face from reference_image_1.png onto body from reference_image_2.png. Zero face drift. Zero eye colour change. Zero hair change. Seamless neck blend.",
+  "subject": "[2 sentences describing ${persona.name}'s pose and expression specific to this shoot — use the pose and shoot brief above]",
+  "wardrobe": "[1-2 sentences describing the wardrobe from the seed above in luxury fashion editorial language — specific fabric, fit, how it sits on the body]",
+  "setting": "[1-2 sentences expanding the setting seed above with specific furniture, materials, textures]",
+  "lighting": "[1 sentence on the lighting from the seed — direction, quality, colour temperature, how it falls on skin]",
+  "technical": "${seed.camera}, 9:16 vertical, RAW format, 8K, cinematic editorial, hyper-sharp eyes, realistic skin texture, natural film grain",
+  "negative_prompt": "nudity, explicit content, NSFW, suggestive, distorted anatomy, warped limbs, extra fingers, low resolution, blurry, plastic skin, face drift, wrong eye colour, wrong hair, watermark, text, cartoon"
 }
 
-RULES: Fill every field with specific vivid detail from the seeds and shoot brief. Wardrobe must use luxury fashion editorial language. negative_prompt is a comma-separated string — do not alter it. Return ONLY the raw JSON object.`;
+Write every bracket field as vivid finished prose. Return ONLY the raw JSON.`;
 
   try {
-    const raw = await callLLM({ system, user, maxTokens: 3000, signal });
+    const raw = await callLLM({ system, user, maxTokens: 1500, signal });
     const clean = raw.replace(/```json|```/g, "").trim();
     try { return JSON.parse(clean); } catch (_e) {}
     const m = clean.match(/\{[\s\S]*\}/);
