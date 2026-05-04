@@ -239,13 +239,25 @@ async function generatePost(persona, platformId, pillar, postIndex, signal, used
   const creativeAngle = CREATIVE_ANGLES[angleIndex];
 
   // Research trends (only for content types that benefit from it)
-  const needsTrends = contentType.type !== "lifestyle" && contentType.type !== "personal_moment";
+  const needsTrends = contentType.type !== "lifestyle" && contentType.type !== "personal_moment" && contentType.type !== "fv_dm" && contentType.type !== "fv_welcome";
   let trends = "";
   if (needsTrends) {
     try {
       trends = await callLLM({
         system: `You are an expert social media trend analyst. Today is ${TODAY}. Your job is to find what is ACTUALLY being talked about right now — not generic evergreen topics. Be hyper-specific: name real events, real people, real controversies, real viral moments.`,
-        user: `Research the ${persona.niche} niche on ${platform.name} specifically. What are 3-4 SPECIFIC things people are talking about, debating, or engaging with RIGHT NOW in ${TODAY.split(" ").pop()}?
+        user: fanvueMode
+          ? `Research what is trending RIGHT NOW for subscription creators (Fanvue, OnlyFans) on ${platform.name} in ${TODAY.split(" ").pop()}.
+
+Include:
+- Specific viral moments, memes, or formats subscription creators are using on ${platform.name} right now
+- Any trending audio, aesthetics, or visual styles popular in this creator space
+- What fans are engaging with or asking for most this week
+- Any seasonal hooks (time of year, upcoming holidays, events)
+- Any creator drama, controversies, or trends being discussed in the subscription creator community
+- What content formats are getting the most reach on ${platform.name} for this niche right now
+
+Be concrete and specific. 4-5 sentences max.`
+          : `Research the ${persona.niche} niche on ${platform.name} specifically. What are 3-4 SPECIFIC things people are talking about, debating, or engaging with RIGHT NOW in ${TODAY.split(" ").pop()}?
 
 Include:
 - Any viral moments, controversies, or news from the past 7 days
@@ -263,11 +275,22 @@ Be concrete. NOT "fitness trends are popular" — instead "the 75 Hard challenge
     }
   }
 
-  const system = `You are ${persona.name}, a ${fanvueMode ? "Fanvue subscription creator" : persona.niche + " content creator"}.
+  const system = `You are ${persona.name}, a ${fanvueMode ? "subscription content creator with a Fanvue page" : persona.niche + " content creator"}.
 CHARACTER: ${persona.char}
 VOICE: ${persona.voice}
 PLATFORM CONTEXT: You are posting on ${platform.name}. ${platform.purpose}
-${fanvueMode ? `FANVUE MODE: You are a subscription content creator driving traffic to your Fanvue page. All content is suggestive and teaser-focused — never explicit. The goal of every post is to build parasocial connection and drive Fanvue subscriptions or PPV unlocks. You are flirtatious, confident, and personal. You NEVER produce explicit content here — this is the free platform teaser funnel.` : `NICHE LOCK: Every single word of this post must be rooted in ${persona.niche}. The examples, references, terminology, humour, pain points, and culture must all come from inside the ${persona.niche} world. A reader who knows nothing about ${persona.niche} should feel like an outsider reading this. Do NOT produce generic lifestyle, motivation, or self-improvement content that could belong to any niche. If it could be posted by someone in a completely different niche with minor edits, it is wrong.`}
+${fanvueMode ? `FANVUE MODE — READ CAREFULLY:
+You are a real subscription creator. Your free content (Reddit, X, Telegram) is your funnel — every post must make someone think "I need to see more of her". Your Fanvue page is where the real content lives.
+
+TONE: Confident, flirtatious, teasing. You know you're attractive and you own it. You're also genuinely warm and funny — fans feel like they actually know you. You speak casually, like you're texting someone you're comfortable with.
+
+CONTENT RULES:
+- This is teaser content for the FREE platform feed. It must be suggestive and alluring without being explicit.
+- "Suggestive" means: hinting at what's underneath, implying rather than showing, describing a situation that leads somewhere without finishing the story, referencing your page content in a way that creates desire without revealing it.
+- You CAN reference: being underdressed, getting changed, what you're (not) wearing, shower/bath situations, waking up, feeling confident in your body, lingerie/underwear as fashion, what you got up to last night, what's on your page right now.
+- You CANNOT produce: graphic descriptions, explicit acts, anatomical descriptions.
+- Every post must have ONE clear hook that creates curiosity or desire, and ONE reason to click your page link.
+- Mix genuine personality and warmth with the suggestive angle — pure thirst-trap with no personality doesn't convert to subscribers.` : `NICHE LOCK: Every single word of this post must be rooted in ${persona.niche}. The examples, references, terminology, humour, pain points, and culture must all come from inside the ${persona.niche} world. A reader who knows nothing about ${persona.niche} should feel like an outsider reading this. Do NOT produce generic lifestyle, motivation, or self-improvement content that could belong to any niche. If it could be posted by someone in a completely different niche with minor edits, it is wrong.`}
 RULES: Write entirely in character as a real person. Never mention AI, never hint that you are AI-generated. Content pillars: ${persona.pillars.join(", ")}.${isSage ? " CRITICAL: Financial education only — never personalised advice. Disclaimer required." : ""}
 FORMAT: Return ONLY a raw JSON object. No markdown. No explanation. No code fences.`;
 
@@ -288,22 +311,36 @@ CRITICAL RULES:
 - Never mention AI, never hint the content is AI-generated. You ARE this person.
 - This is a ${contentType.label} post. Match the tone and energy of this content type exactly.
 - APPLY THE CREATIVE ANGLE: "${creativeAngle.label}" — this must shape the structure and angle of your post. Do not ignore it.
-${contentType.type === "lifestyle" || contentType.type === "personal_moment" ? `- This is a PERSONAL/LIFESTYLE post. The caption should be casual, short, and conversational — like texting a friend. NOT educational. NOT a breakdown. Just a moment from your life that happens to be in your niche. Think "felt cute" not "here's 5 tips."` : ""}
-${contentType.type === "tag_friend" ? `- Write something that makes people tag a specific friend. The content should be so relatable that readers immediately think of someone.` : ""}
-${contentType.type === "discussion" ? `- Ask a question or state an opinion that will split the comments. Be bold. The goal is debate, not agreement.` : ""}
-${contentType.type === "deep_story" || contentType.type === "day_in_life" ? `- Tell a STORY with a beginning, middle, and end. The audience should feel like they went on a journey with you. Include specific moments, dialogue, emotions.` : ""}
-- Use REAL specific examples: real place names, real prices, real product names, real stats.
+${fanvueMode ? `- FANVUE POST TYPE RULES:
+${contentType.type === "fv_tease" ? "- TEASE POST: Open with something that creates instant desire or curiosity — you're hinting at something without giving it away. The image does the heavy lifting; the caption is the whisper that makes them click. End with a direct but casual CTA to your page. Examples of good tease hooks: 'can't decide if I should post the rest of this 👀', 'accidentally wore this to the shops oops', 'this one stays on my page only 🔒'." : ""}${contentType.type === "fv_ppv" || contentType.type === "fv_ppv_caption" ? "- PPV POST: You're selling a specific piece of content. Describe it in a way that creates desire without spoiling it — leave something to the imagination. Be specific about what they GET (photo set, video, specific scenario) but suggestive not explicit about the content itself. Create urgency. Examples: 'just posted the full version — it's a lot 🫣', 'this one's behind the lock for a reason'." : ""}${contentType.type === "fv_personality" ? "- PERSONALITY POST: This one is about YOU not your body. Be funny, real, relatable. Share an opinion, a chaotic moment from your day, something that made you laugh. The suggestive angle can be light — maybe just the way you phrase something or a cheeky aside. This is what makes followers feel like they know you, which is what converts them." : ""}${contentType.type === "fv_dm" || contentType.type === "fv_welcome" ? "- DM / WELCOME MESSAGE: Write this like a personal text to someone you're comfortable with. Warm, intimate, a little flirtatious. Not a broadcast — a one-to-one message. Use 'you' and 'I'. Short sentences. Casual punctuation. End with something that makes them want to reply or click." : ""}${contentType.type === "fv_preview" ? "- EXCLUSIVE PREVIEW: This goes to your warm Telegram audience who already like you. Reward them with a closer look. Be more personal and direct than you'd be on Reddit or X. The preview should feel like a privilege — 'this one's just for you lot before it goes live'." : ""}${contentType.type === "fv_announce" ? "- CONTENT ANNOUNCEMENT: New content just dropped. Tell them what it is, why it's worth unlocking, and make it sound unmissable. Excited energy, like you're genuinely proud of this one. Specific details about what's in it (suggestive, not explicit)." : ""}${contentType.type === "fv_interact" ? "- FAN INTERACTION: Ask something that gets fans talking. Make it feel personal — like you're genuinely curious about their answer. Can be playful, flirtatious, or just relatable. The goal is replies and DMs, which boost your algorithmic reach." : ""}${contentType.type === "fv_wall_post" ? "- FREE WALL POST: This is subscriber retention content. Remind them why they're here. Behind the scenes, a personal moment, a sneak peek at what's coming. Warm and intimate — these are your paying fans, treat them like insiders." : ""}` : `${contentType.type === "lifestyle" || contentType.type === "personal_moment" ? "- This is a PERSONAL/LIFESTYLE post. The caption should be casual, short, and conversational — like texting a friend. NOT educational. NOT a breakdown. Just a moment from your life that happens to be in your niche. Think 'felt cute' not 'here's 5 tips'." : ""}${contentType.type === "tag_friend" ? "- Write something that makes people tag a specific friend. The content should be so relatable that readers immediately think of someone." : ""}${contentType.type === "discussion" ? "- Ask a question or state an opinion that will split the comments. Be bold. The goal is debate, not agreement." : ""}${contentType.type === "deep_story" || contentType.type === "day_in_life" ? "- Tell a STORY with a beginning, middle, and end. The audience should feel like they went on a journey with you. Include specific moments, dialogue, emotions." : ""}`}
+${!fanvueMode ? "- Use REAL specific examples: real place names, real prices, real product names, real stats." : ""}
 - DO NOT repeat hooks, topics, or structures from any other post in this batch.
 - The hook must be COMPLETELY different in structure from every forbidden hook listed above.
 
 Return this exact JSON format:
 {
-  "hook": "First line — must stop the scroll. Under 12 words.${contentType.type === "lifestyle" || contentType.type === "personal_moment" ? " Can be casual/playful — doesn't need to be educational." : " Specific number or bold statement."}",
-  "caption": "${contentType.type === "lifestyle" || contentType.type === "personal_moment" ? "Short, casual caption. 80-150 chars. Like something you'd text a friend. Personal, warm, real." : contentType.type === "deep_story" || contentType.type === "day_in_life" || contentType.type === "deep_dive" ? "Full narrative caption or video script outline. 300-500 chars. Story arc: setup, tension, resolution." : "Full caption ready to paste. 180-260 chars. In character voice. Feels personal and authentic."}",
-  "hashtags": "12-15 hashtags as one string, mix of niche and broad",
-  "photo_direction": "9:16 aspect ratio. ${contentType.direction}",
-  "photo_idea": "${fanvueMode ? "Concrete shoot brief for this post. Include: outfit or lack thereof (suggestive, tasteful — describe without being explicit), setting/backdrop, lighting mood, pose or body language, camera angle, and ONE specific detail that makes it feel unique and on-brand. 2-3 sentences. This is a direct brief for the creator." : "Concrete photo or video shoot brief. Include: specific location or backdrop, outfit/clothing details, lighting (golden hour / ring light / natural window etc), pose or action, props if relevant, camera angle. Be specific enough that a photographer could shoot it with no further briefing. 2-3 sentences."}",
-  "cta": "${contentType.type === "lifestyle" || contentType.type === "personal_moment" ? "Casual, low-key — a question or emoji reaction prompt, not a hard sell" : contentType.type === "tag_friend" ? "Tag someone who needs to see this" : "One specific, low-friction ask"}",
+  "hook": "${fanvueMode ? "First line — flirtatious, curious, or playfully suggestive. Under 12 words. Must make someone stop scrolling and want to know more. No generic opener — make it feel like something just happened." : `First line — must stop the scroll. Under 12 words. ${contentType.type === "lifestyle" || contentType.type === "personal_moment" ? "Can be casual/playful." : "Specific number or bold statement."}`}",
+  "caption": "${fanvueMode
+    ? (contentType.type === "fv_dm" || contentType.type === "fv_welcome"
+      ? "Personal, intimate message. 80-160 chars. Written like a text. Warm, flirtatious, one-to-one. Use 'you' and 'I'. End with a soft hook or question."
+      : contentType.type === "fv_ppv" || contentType.type === "fv_ppv_caption"
+      ? "PPV sell caption. 120-200 chars. Describe what they get in enticing, suggestive terms. Specific enough to create desire, vague enough to leave imagination. Clear CTA to unlock."
+      : contentType.type === "fv_interact"
+      ? "Short, punchy question or prompt. 60-120 chars. Feels personal and genuine. Invites a real reply."
+      : "Caption ready to post. 150-240 chars. Flirtatious, warm, in character. Feels personal — not like an ad. Balance the suggestive angle with genuine personality.")
+    : (contentType.type === "lifestyle" || contentType.type === "personal_moment"
+      ? "Short, casual caption. 80-150 chars. Like something you'd text a friend. Personal, warm, real."
+      : contentType.type === "deep_story" || contentType.type === "day_in_life" || contentType.type === "deep_dive"
+      ? "Full narrative caption. 300-500 chars. Story arc: setup, tension, resolution."
+      : "Full caption ready to paste. 180-260 chars. In character voice. Feels personal and authentic.")}",
+  "hashtags": "${fanvueMode ? "8-12 hashtags relevant to subscription creators and this platform. Mix of creator community tags and content-type tags." : "12-15 hashtags as one string, mix of niche and broad"}",
+  "photo_direction": "${fanvueMode ? "Portrait/square format." : "9:16 aspect ratio."} ${contentType.direction}",
+  "photo_idea": "${fanvueMode
+    ? `Shoot brief for the creator. Be specific and direct — this is an instruction, not a description. Include: (1) Setting — e.g. bedroom, bathroom, kitchen, outdoor, studio backdrop. (2) Outfit — be suggestive and specific: e.g. 'oversized shirt with nothing underneath, unbuttoned low', 'matching lingerie set, bra strap slipping off shoulder', 'wrapped in a towel, just stepped out of the shower'. (3) Pose or moment — e.g. 'looking over shoulder at camera', 'sitting on edge of bed, leaning forward', 'holding hair up, back to camera'. (4) Lighting — e.g. warm fairy lights, morning window light, bathroom mirror selfie, ring light. (5) ONE detail that makes it memorable or on-brand. Keep it tasteful but genuinely alluring. 3-4 sentences.`
+    : "Concrete photo or video shoot brief. Include: specific location or backdrop, outfit/clothing details, lighting (golden hour / ring light / natural window etc), pose or action, props if relevant, camera angle. Be specific enough that a photographer could shoot it with no further briefing. 2-3 sentences."}",
+  "cta": "${fanvueMode
+    ? (contentType.type === "fv_interact" ? "Prompt for replies or DMs — not a page link CTA" : contentType.type === "fv_personality" ? "Light CTA — could be a page link or just an engagement prompt" : "Direct but casual CTA to Fanvue page, PPV unlock, or DM")
+    : (contentType.type === "lifestyle" || contentType.type === "personal_moment" ? "Casual, low-key — a question or emoji reaction prompt, not a hard sell" : contentType.type === "tag_friend" ? "Tag someone who needs to see this" : "One specific, low-friction ask")}",
   "post_type": "${contentType.type}",
   "content_label": "${contentType.label}",
   "trend_hook": "${trends ? "one word describing the trend angle used, or null" : "null"}"
