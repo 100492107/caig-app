@@ -1441,6 +1441,7 @@ function Autopilot({ queue, setQueue, setView, toast_, dbCreators = [], onDelete
           status: "ready",
         };
         results.push(item);
+        setQueue((prev) => [item, ...prev.filter((x) => x.id !== item.id)]);
         setProg((p) => p.map((x, j) => (j === i ? { ...x, genStatus: "done" } : x)));
       } catch (e) {
         if (e.name === "AbortError") break;
@@ -1449,8 +1450,6 @@ function Autopilot({ queue, setQueue, setView, toast_, dbCreators = [], onDelete
       }
       if (i < slots.length - 1) await new Promise((r) => setTimeout(r, 1500));
     }
-    setQueue((prev) => [...results, ...prev]);
-
     // Sync DB-creator content to Supabase so clients can see it in their portal
     const dbResults = results.filter(item => item.personaId?.startsWith("db_"));
     if (dbResults.length > 0) {
