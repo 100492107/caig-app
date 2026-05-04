@@ -228,7 +228,6 @@ Return this exact JSON format:
 }
 
 async function generateImagePrompt(apiKey, persona, post, platform, contentTypeLabel, postIndex = 0) {
-  // Pick variety seeds deterministically per post so every image is different
   const si = postIndex % IMG_SETTINGS.length;
   const pi = (postIndex + 3) % IMG_POSES.length;
   const ci = (postIndex + 7) % IMG_COVERAGE.length;
@@ -236,31 +235,45 @@ async function generateImagePrompt(apiKey, persona, post, platform, contentTypeL
   const pose = IMG_POSES[pi];
   const coverage = IMG_COVERAGE[ci];
 
-  const system = `You are an expert AI image generation prompt engineer specialising in photorealistic luxury fashion editorial photography. You output ONLY raw JSON — no markdown, no explanation, no code fences. Every prompt you write is unique — you never repeat the same descriptions.`;
+  // Pre-interpolate everything so Gemini has zero placeholders to genericise
+  const system = `You are a photorealistic image generation prompt writer. You output ONLY valid JSON — no markdown, no code fences, no explanation. You write vivid, specific, finished prose — never instructions, never placeholder text in brackets.`;
 
-  const user = `Write a unique image generation prompt for this creator post. Every field must be specific to this exact shoot — no generic placeholders.
+  const shootBrief = (post.photo_idea || "").trim();
+  const postHook = (post.hook || "").trim();
+  const postCaption = (post.caption || "").trim();
 
-CREATOR: ${persona.name}
-SHOOT BRIEF: "${post.photo_idea}"
-POST HOOK: "${post.hook}"
+  const user = `Write an image generation prompt for this specific post. The scene must visually match the post content — same mood, same energy, same story.
 
-MANDATORY SCENE DETAILS — use these exactly:
+POST DETAILS:
+- Hook: "${postHook}"
+- Caption: "${postCaption}"
+- Shoot brief: "${shootBrief}"
+- Content type: ${contentTypeLabel}
+
+SCENE PARAMETERS — incorporate all of these literally:
 - Setting: ${seed.setting}
 - Lighting: ${seed.lighting}
-- Camera/lens: ${seed.camera}
+- Camera: ${seed.camera}
 - Pose: ${pose}
 - Wardrobe: ${coverage}
 
-Output this JSON — write fully realised descriptions, not instructions or placeholders:
+Write this JSON with fully realised prose in every field — no brackets, no instructions, no placeholders:
 
 {
   "identity_lock": "PIXEL PRIORITY: Graft exact face from reference_image_1.png onto body from reference_image_2.png. Zero face drift. Zero eye colour change. Zero hair change. Seamless neck blend.",
-  "subject": "[2 sentences describing ${persona.name}'s pose and expression specific to this shoot — use the pose and shoot brief above]",
-  "wardrobe": "[1-2 sentences describing the wardrobe from the seed above in luxury fashion editorial language — specific fabric, fit, how it sits on the body]",
-  "setting": "[1-2 sentences expanding the setting seed above with specific furniture, materials, textures]",
-  "lighting": "[1 sentence on the lighting from the seed — direction, quality, colour temperature, how it falls on skin]",
-  "technical": "${seed.camera}, 9:16 vertical, RAW format, 8K, cinematic editorial, hyper-sharp eyes, realistic skin texture, natural film grain",
+  "subject": "WRITE 2 SPECIFIC SENTENCES HERE: Describe ${persona.name} in this exact scene — her pose (${pose}), her expression matching the post mood ('${postHook}'), and how she holds herself in the setting.",
+  "wardrobe": "WRITE 1-2 SENTENCES HERE: Describe the wardrobe (${coverage}) in luxury fashion editorial language — specific fabric, how it fits and sits on the body, any details catching the light.",
+  "setting": "WRITE 1-2 SENTENCES HERE: Describe this specific setting (${seed.setting}) — exact furniture, materials, textures, depth of the background.",
+  "lighting": "WRITE 1 SENTENCE HERE: Describe this lighting (${seed.lighting}) — direction, quality, colour temperature, how it falls on skin.",
+  "technical": "${seed.camera}, 9:16 vertical, RAW format, 8K resolution, cinematic luxury editorial, hyper-sharp eyes and skin, natural film grain, zero AI artifacts",
   "negative_prompt": "nudity, explicit content, NSFW, suggestive, distorted anatomy, warped limbs, extra fingers, low resolution, blurry, plastic skin, face drift, wrong eye colour, wrong hair, watermark, text, cartoon"
+}
+
+CRITICAL: Replace every field that says "WRITE ... HERE" with actual vivid prose. The subject field must reflect the specific post hook and mood. Return ONLY the raw JSON object.`;
+
+  try { return parseJSON(await callGemini(apiKey, system, user, 1000)); } catch (_) {
+    try { return parseJSON(await callGemini(apiKey, system, user, 1000)); } catch (_2) { return null; }
+  }
 }
 
 Write every bracket field as vivid finished prose. Return ONLY the raw JSON.`;
