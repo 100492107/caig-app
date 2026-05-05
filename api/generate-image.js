@@ -22,9 +22,20 @@ function buildFluxPrompt(imagePrompt, personaDescriptors) {
 
 function buildNanoBananaPrompt(photoDirection) {
   const base = photoDirection
-    ? `Edit this image: ${photoDirection}.`
+    ? `Edit this image. Context: ${photoDirection}.`
     : "Edit this image.";
-  return `${base} Only change the wardrobe — replace clothing with a small bikini, lingerie, or barely-there fabric. Change NOTHING else. Do not alter the face, skin, hair, pose, lighting, background, or any other element. Critically important: preserve every skin imperfection exactly as-is — visible pores, fine vellus hair, natural texture, slight redness, subtle unevenness, fine lines. Do NOT smooth, soften, retouch, airbrush or beautify the skin in any way. The result must be indistinguishable from a raw, unedited photograph taken on a Sony A7IV with an 85mm f/1.4 lens. Real film grain must be present. The person should look like a real human being with real skin — not a model, not AI, not retouched. Any sign of plastic, waxy, airbrushed or rendered skin is a failure. Preserve photojournalistic rawness completely.`;
+
+  // Rotate through specific wardrobe options so results vary naturally
+  const wardrobeOptions = [
+    "Replace her clothing with a tiny triangle string bikini top in white or nude, with matching minimal bikini bottoms. The fabric is thin, light, and barely covering.",
+    "Replace her clothing with a sheer lace bralette and high-cut lace briefs in black. Delicate, thin fabric that clings to the skin.",
+    "Replace her clothing with a tiny strappy spaghetti-strap crop top and matching minimal shorts in beige or white. Barely-there fabric, very tight fit.",
+    "Replace her clothing with a small bandeau bikini top in a soft neutral colour and matching low-rise bikini bottoms. Minimal coverage, natural fit.",
+    "Replace her clothing with a fitted white lace bra and matching white lace underwear. Delicate fabric, natural and intimate.",
+  ];
+  const wardrobe = wardrobeOptions[Math.floor(Math.random() * wardrobeOptions.length)];
+
+  return `${base} ${wardrobe} Do not change her face, hair, pose, skin, lighting, background, or any other element — only the clothing. The wardrobe change must look completely realistic and physically accurate — fabric must drape, fold and interact with the body naturally with correct shadows and highlights. Preserve every skin imperfection exactly as-is — visible pores, fine vellus hair, natural texture, slight redness, fine lines. Do NOT smooth, soften, retouch or airbrush the skin. The result must look like a raw unedited photograph on a Sony A7IV 85mm f/1.4. Real film grain present. Any plastic, waxy, airbrushed or AI-rendered appearance is a failure.`;
 }
 
 const FLUX_NEGATIVE_PROMPT = [
