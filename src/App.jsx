@@ -283,13 +283,13 @@ const CREATIVE_ANGLES = [
 ];
 
 // ─── IMAGE PROMPT GENERATOR (Fanvue mode only) ────────────────────────────────
-async function generateImagePrompt(persona, post, platform, contentType, signal, postIndex = 0) {
+async function generateImagePrompt(persona, post, platform, contentType, signal, postIndex = 0, coverageOverride = null) {
   const si = postIndex % IMG_SETTINGS.length;
   const pi = (postIndex + 3) % IMG_POSES.length;
   const ci = (postIndex + 7) % IMG_COVERAGE.length;
   const seed = IMG_SETTINGS[si];
   const pose = IMG_POSES[pi];
-  const coverage = IMG_COVERAGE[ci];
+  const coverage = coverageOverride || IMG_COVERAGE[ci];
 
   const shootBrief = (post.photo_idea || "").trim();
   const postHook = (post.hook || "").trim();
@@ -491,10 +491,10 @@ Return this exact JSON format:
   }
   if (!post) throw new Error("Could not parse post JSON");
 
-  // For Fanvue posts, generate a structured image generation prompt as a second call
-  // ALL content types get an image prompt — dm/welcome/text types get a default alluring portrait brief
-  if (fanvueMode) {
-    const FALLBACK_BRIEFS = {
+  // Generate a structured image prompt for ALL platforms (Fanvue and non-Fanvue)
+  // Fanvue gets the full alluring/boudoir coverage range; non-Fanvue gets platform-safe coverage
+  {
+    const FALLBACK_BRIEFS_FV = {
       fv_tease:       "Alluring boudoir editorial. Creator at window, open silk shirt falling off shoulders, low-rise jeans. Strong directional daylight. Direct eye contact, confident expression. Vogue Intimates style.",
       fv_ppv:         "PPV preview portrait. Creator on edge of bed leaning forward, wrapped loosely in white sheet, one shoulder bare. Warm soft candlelight. Confident, intimate expression.",
       fv_ppv_caption: "Locked content preview. Creator lying face-down on white bed, looking back over shoulder. Linen sheet across lower back. Soft morning window light. Intimate, high-end boudoir editorial.",
@@ -506,15 +506,56 @@ Return this exact JSON format:
       fv_announce:    "Bold editorial portrait. Creator standing against plain light wall, open button-down shirt worn as a top, low-rise jeans. Strong directional light. Direct eye contact, slight smirk.",
       fv_preview:     "Exclusive preview. Creator at edge of bed leaning forward, loosely wrapped in satin sheet. Warm candlelight. Intimate, exclusive atmosphere.",
     };
-    const shootBrief = post.photo_idea || FALLBACK_BRIEFS[contentType.type] || FALLBACK_BRIEFS["fv_tease"];
-    const postForImg = { ...post, photo_idea: shootBrief };
-    let imgPrompt = await generateImagePrompt(persona, postForImg, platform, contentType.label, signal, postIndex);
-    // Third attempt with simplified fallback brief if both retries failed
-    if (!imgPrompt) {
-      const simpleBrief = FALLBACK_BRIEFS[contentType.type] || FALLBACK_BRIEFS["fv_tease"];
-      imgPrompt = await generateImagePrompt(persona, { ...post, photo_idea: simpleBrief }, platform, contentType.label, signal, postIndex + 1);
+    // Platform-safe fallbacks for non-Fanvue platforms (no nudity — bikini/swimwear max)
+    const FALLBACK_BRIEFS_STD = {
+      lifestyle:       "Editorial lifestyle photo. Creator in a beautiful outdoor setting, wearing a stylish outfit. Natural light, candid feel, aspirational energy.",
+      value_carousel:  "Clean branded editorial. Creator at desk or in a café, relaxed, looking confident. Neutral tones. Professional but approachable.",
+      reel:            "Aesthetic lifestyle moment. Creator walking at golden hour, casual outfit. Movement blur, cinematic crop.",
+      trending_sound:  "Candid creator moment. Creator in a relaxed indoor setting, direct gaze, natural expression. Warm light.",
+      quick_tip:       "Bright clean portrait. Creator seated, looking directly at camera, confident posture. Neutral background, sharp focus.",
+      personal_moment: "Candid selfie-style portrait. Creator in natural setting, unguarded expression, natural light.",
+      deep_story:      "Storytelling portrait. Creator in an evocative outdoor setting, thoughtful gaze into distance. Golden light.",
+      day_in_life:     "Lifestyle vlog aesthetic. Creator in motion — walking, exploring, living. Natural, unposed.",
+      deep_dive:       "Editorial study portrait. Creator at a desk with natural light, calm focused expression.",
+      tag_friend:      "Fun relatable moment. Creator laughing or reacting, casual setting, warm light.",
+      discussion:      "Bold confident portrait. Creator looking directly at camera with a slight knowing expression.",
+      reshared_value:  "Clean informational look. Creator gesturing or pointing at something, educational energy.",
+      fv_bikini:       "Bikini lifestyle editorial. Creator at a sunny beach or pool, wearing a stylish bikini. Candid and natural — not posed. Breezy, aspirational summer energy. No nudity.",
+    };
+
+    // Coverage options safe for non-Fanvue (Instagram/TikTok guidelines compliant)
+    const SAFE_COVERAGE = [
+      "Stylish bikini — classic triangle top and high-cut bottoms, confident beach editorial",
+      "Cut-out swimsuit — one-piece with architectural cutouts, poolside editorial",
+      "Oversized linen shirt as a cover-up, open over a bikini, beach lifestyle",
+      "Form-fitting bodycon dress — off-shoulder, confident and polished",
+      "Crop top and high-waist jeans — relaxed editorial, confident natural look",
+      "Strappy summer dress — flowing, sun-lit, movement-driven editorial",
+      "Bikini with a sheer sarong wrap — beach lifestyle, aspirational summer editorial",
+      "Sports bra and bike shorts — athleisure editorial, confident and strong",
+    ];
+
+    if (fanvueMode) {
+      const shootBrief = post.photo_idea || FALLBACK_BRIEFS_FV[contentType.type] || FALLBACK_BRIEFS_FV["fv_tease"];
+      const postForImg = { ...post, photo_idea: shootBrief };
+      let imgPrompt = await generateImagePrompt(persona, postForImg, platform, contentType.label, signal, postIndex);
+      if (!imgPrompt) {
+        const simpleBrief = FALLBACK_BRIEFS_FV[contentType.type] || FALLBACK_BRIEFS_FV["fv_tease"];
+        imgPrompt = await generateImagePrompt(persona, { ...post, photo_idea: simpleBrief }, platform, contentType.label, signal, postIndex + 1);
+      }
+      if (imgPrompt) post.image_prompt = imgPrompt;
+    } else {
+      // Non-Fanvue: generate image prompt with platform-safe coverage
+      const shootBrief = post.photo_idea || FALLBACK_BRIEFS_STD[contentType.type] || FALLBACK_BRIEFS_STD["lifestyle"];
+      const safeCoverage = SAFE_COVERAGE[postIndex % SAFE_COVERAGE.length];
+      // Override IMG_COVERAGE selection with safe option by patching photo_idea to include wardrobe
+      const postForImg = { ...post, photo_idea: shootBrief };
+      let imgPrompt = await generateImagePrompt(persona, postForImg, platform, contentType.label, signal, postIndex, safeCoverage);
+      if (!imgPrompt) {
+        imgPrompt = await generateImagePrompt(persona, { ...post, photo_idea: FALLBACK_BRIEFS_STD["lifestyle"] }, platform, contentType.label, signal, postIndex + 1, safeCoverage);
+      }
+      if (imgPrompt) post.image_prompt = imgPrompt;
     }
-    if (imgPrompt) post.image_prompt = imgPrompt;
   }
 
   return post;
