@@ -1,88 +1,203 @@
 // api/fanvue-upload.js
-// Uploads an image to Fanvue and returns the mediaUuid for use in post.createPost.
+// Uploads an image to Fanvue using their 4-step multipart upload flow.
+// Endpoints reverse-engineered via DevTools on 05/05/2026.
 //
-// STATUS: STUB — media upload endpoint not yet captured from DevTools.
-// TODO: In Fanvue, attach an image to a draft post and capture the network request:
-//   - Look for: media.upload, media.create, multipart/form-data, or /upload in URL
-//   - Paste the Request URL and Payload here and complete this file
+// Flow:
+//   1. media.createMediaMultipartUpload  — register the file, get uploadId + S3 URL
+//   2. PUT to S3 presigned URL           — upload raw bytes, get ETag back
+//   3. media.getMediaMultipartUploadUrl  — (optional poll, can skip for single-part)
+//   4. media.finaliseMedia               — tell Fanvue upload is done, returns mediaUuid
 //
-// Likely endpoint pattern (tRPC or REST):
-//   POST https://www.fanvue.com/trpc/media.upload   (tRPC)
-//   or
-//   POST https://www.fanvue.com/api/media/upload    (REST multipart)
-//
-// Expected flow:
-//   1. Fetch image buffer from our Supabase Storage / external URL
-//   2. POST as multipart/form-data to Fanvue upload endpoint
-//   3. Fanvue returns a mediaUuid
-//   4. Pass mediaUuid array to fanvue-post.js
+// The mediaUuid from step 4 is what goes into post.createPost → mediaUuids[]
 
 const FANVUE_BASE = "https://www.fanvue.com";
+const TRPC = `${FANVUE_BASE}/trpc`;
 
-/**
- * Upload an image to Fanvue from a URL.
- * @param {string} imageUrl     - Public URL of the image to upload
- * @param {string} sessionToken - Fanvue fv-auth.session-token cookie value
- * @returns {Promise<string>}   - mediaUuid string
- */
-export async function uploadImageToFanvue(imageUrl, sessionToken) {
-  // Step 1: fetch the image as a buffer
-  const imageRes = await fetch(imageUrl);
-  if (!imageRes.ok) throw new Error(`Failed to fetch image: ${imageRes.status}`);
-  const imageBuffer = await imageRes.arrayBuffer();
-  const contentType = imageRes.headers.get("content-type") || "image/jpeg";
-
-  // Step 2: build multipart form — TODO: confirm field names from DevTools
-  const form = new FormData();
-  const blob = new Blob([imageBuffer], { type: contentType });
-  form.append("file", blob, "image.jpg"); // field name may differ — check DevTools
-
-  // TODO: Replace URL below with real endpoint from DevTools capture
-  const UPLOAD_URL = `${FANVUE_BASE}/trpc/media.upload`; // PLACEHOLDER
-
-  const uploadRes = await fetch(UPLOAD_URL, {
-    method: "POST",
-    headers: {
-      Cookie: `fv-auth.session-token=${sessionToken}`,
-      Origin: FANVUE_BASE,
-      Referer: `${FANVUE_BASE}/`,
-      "User-Agent":
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-      // Do NOT set Content-Type — fetch sets it automatically with boundary for FormData
-    },
-    body: form,
-  });
-
-  if (!uploadRes.ok) {
-    const err = await uploadRes.text();
-    throw new Error(`Fanvue upload failed ${uploadRes.status}: ${err}`);
-  }
-
-  const data = await uploadRes.json();
-
-  // TODO: confirm response shape from DevTools — adjust path below
-  const mediaUuid =
-    data?.result?.data?.json?.uuid ||
-    data?.result?.data?.uuid ||
-    data?.uuid ||
-    data?.mediaUuid;
-
-  if (!mediaUuid) throw new Error(`No mediaUuid in Fanvue upload response: ${JSON.stringify(data)}`);
-  return mediaUuid;
+function fanvueHeaders(sessionToken) {
+  return {
+    "Content-Type": "application/json",
+    Cookie: `fv-auth.session-token=${sessionToken}`,
+    Origin: FANVUE_BASE,
+    Referer: `${FANVUE_BASE}/`,
+    "User-Agent":
+      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+  };
 }
 
-// Vercel handler — called directly if needed, or imported by cron-publish.js
+/**
+ * Upload an image to Fanvue from a public URL.
+ * @param {string} imageUrl     - Public URL of the image to upload
+ * @param {string} sessionToken - Fanvue fv-auth.session-token cookie value
+ * @param {string} [filename]   - Optional filename (without extension)
+ * @returns {Promise<string>}   - mediaUuid to pass to post.createPost
+ */
+export async function uploadImageToFanvue(imageUrl, sessionToken, filename) {
+  // --- Fetch the image ---
+  const imageRes = await fetch(imageUrl);
+  if (!imageRes.ok) throw new Error(`Failed to fetch image: ${imageRes.status} ${imageUrl}`);
+  const imageBuffer = await imageRes.arrayBuffer();
+
+  // Derive a clean filename from URL if not provided
+  const name = filename || `caig_${Date.now()}`;
+  const filenameWithExt = `${name}.jpeg`;
+
+  // ----------------------------------------------------------------
+  // STEP 1: media.createMediaMultipartUpload
+  // Registers the upload with Fanvue, returns uploadId and S3 URL(s)
+  // ----------------------------------------------------------------
+  const createBody = {
+    json: {
+      mediaRole: "VAULT_ITEM",
+      mediaType: 2,          // 2 = image (confirmed from DevTools)
+      name: name,
+      filename: filenameWithExt,
+      isAIGenerated: null,
+    },
+    meta: {
+      values: {
+        isAIGenerated: ["undefined"],
+      },
+    },
+  };
+
+  const createRes = await fetch(`${TRPC}/media.createMediaMultipartUpload`, {
+    method: "POST",
+    headers: fanvueHeaders(sessionToken),
+    body: JSON.stringify(createBody),
+  });
+  if (!createRes.ok) {
+    const err = await createRes.text();
+    throw new Error(`createMediaMultipartUpload failed ${createRes.status}: ${err}`);
+  }
+  const createData = await createRes.json();
+
+  // Extract fields from tRPC response
+  const uploadResult = createData?.result?.data?.json;
+  const mediaUuid = uploadResult?.uuid || uploadResult?.mediaUuid || uploadResult?.id;
+  const uploadId = uploadResult?.uploadId;
+  const s3Url = uploadResult?.url || uploadResult?.uploadUrl || uploadResult?.parts?.[0]?.url;
+
+  if (!mediaUuid) throw new Error(`No mediaUuid from createMediaMultipartUpload: ${JSON.stringify(createData)}`);
+  if (!uploadId) throw new Error(`No uploadId from createMediaMultipartUpload: ${JSON.stringify(createData)}`);
+
+  // ----------------------------------------------------------------
+  // STEP 2: GET the S3 presigned URL via media.getMediaMultipartUploadUrl
+  // (Fanvue generates a fresh presigned URL per part)
+  // ----------------------------------------------------------------
+  const partNumber = 1;
+  const getUrlParams = encodeURIComponent(
+    JSON.stringify({
+      json: {
+        media_uuid: mediaUuid,
+        partNumber: partNumber,
+        uploadId: uploadId,
+      },
+    })
+  );
+
+  const getUrlRes = await fetch(
+    `${TRPC}/media.getMediaMultipartUploadUrl?input=${getUrlParams}`,
+    {
+      method: "GET",
+      headers: fanvueHeaders(sessionToken),
+    }
+  );
+  if (!getUrlRes.ok) {
+    const err = await getUrlRes.text();
+    throw new Error(`getMediaMultipartUploadUrl failed ${getUrlRes.status}: ${err}`);
+  }
+  const getUrlData = await getUrlRes.json();
+  const presignedUrl =
+    getUrlData?.result?.data?.json?.url ||
+    getUrlData?.result?.data?.json?.uploadUrl ||
+    s3Url; // fallback to URL from step 1 if present
+
+  if (!presignedUrl) throw new Error(`No presigned S3 URL: ${JSON.stringify(getUrlData)}`);
+
+  // ----------------------------------------------------------------
+  // STEP 3: PUT raw bytes to S3 presigned URL
+  // S3 returns ETag in response headers — needed for finalise
+  // ----------------------------------------------------------------
+  const s3Res = await fetch(presignedUrl, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "image/jpeg",
+      // S3 presigned URLs include auth in query string — no extra auth headers needed
+    },
+    body: imageBuffer,
+  });
+  if (!s3Res.ok) {
+    const err = await s3Res.text();
+    throw new Error(`S3 upload failed ${s3Res.status}: ${err}`);
+  }
+  // ETag comes back in the response header (with quotes e.g. '"abc123"')
+  const eTag = s3Res.headers.get("ETag") || s3Res.headers.get("etag");
+  if (!eTag) throw new Error("No ETag returned from S3 upload");
+
+  // ----------------------------------------------------------------
+  // STEP 4: media.finaliseMedia
+  // Tells Fanvue the upload is complete; confirms mediaUuid
+  // ----------------------------------------------------------------
+  const finaliseBody = {
+    json: {
+      mediaUuid: mediaUuid,
+      uploadId: uploadId,
+      parts: [{ ETag: eTag, PartNumber: partNumber }],
+      counterpartUuid: null,
+      cropInfo: null,
+      vaultFolderName: null,
+    },
+    meta: {
+      values: {
+        vaultFolderName: ["undefined"],
+        counterpartUuid: ["undefined"],
+        cropInfo: ["undefined"],
+      },
+    },
+  };
+
+  const finaliseRes = await fetch(`${TRPC}/media.finaliseMedia`, {
+    method: "POST",
+    headers: fanvueHeaders(sessionToken),
+    body: JSON.stringify(finaliseBody),
+  });
+  if (!finaliseRes.ok) {
+    const err = await finaliseRes.text();
+    throw new Error(`finaliseMedia failed ${finaliseRes.status}: ${err}`);
+  }
+  const finaliseData = await finaliseRes.json();
+
+  // Confirmed mediaUuid from finalise response (should match step 1)
+  const confirmedUuid =
+    finaliseData?.result?.data?.json?.uuid ||
+    finaliseData?.result?.data?.json?.mediaUuid ||
+    mediaUuid; // fall back to the one we already have
+
+  return confirmedUuid;
+}
+
+// Vercel serverless handler — for direct calls or testing
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
-  const { imageUrl, sessionToken } = req.body || {};
+  let body;
+  try {
+    const chunks = [];
+    for await (const chunk of req) chunks.push(chunk);
+    body = JSON.parse(Buffer.concat(chunks).toString());
+  } catch {
+    return res.status(400).json({ error: "Invalid JSON body" });
+  }
+
+  const { imageUrl, sessionToken, filename } = body;
   if (!imageUrl) return res.status(400).json({ error: "imageUrl required" });
   if (!sessionToken) return res.status(400).json({ error: "sessionToken required" });
 
   try {
-    const mediaUuid = await uploadImageToFanvue(imageUrl, sessionToken);
+    const mediaUuid = await uploadImageToFanvue(imageUrl, sessionToken, filename);
     return res.status(200).json({ success: true, mediaUuid });
   } catch (e) {
+    console.error("fanvue-upload error:", e.message);
     return res.status(500).json({ error: e.message });
   }
 }

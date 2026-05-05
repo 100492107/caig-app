@@ -3,6 +3,7 @@
 // Configured in vercel.json: { "crons": [{ "path": "/api/cron-publish", "schedule": "*/5 * * * *" }] }
 
 import { createClient } from "@supabase/supabase-js";
+import { uploadImageToFanvue } from "./fanvue-upload.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -62,6 +63,22 @@ export default async function handler(req, res) {
         continue;
       }
 
+      // Upload images if the post has an image_url stored
+      let mediaUuids = [];
+      if (post.image_url) {
+        try {
+          const mediaUuid = await uploadImageToFanvue(
+            post.image_url,
+            tokenRow.token,
+            `caig_${post.id}`
+          );
+          mediaUuids = [mediaUuid];
+        } catch (uploadErr) {
+          console.error(`Image upload failed for post ${post.id}:`, uploadErr.message);
+          // Don't block the post — publish text-only if upload fails
+        }
+      }
+
       // Call the Fanvue post API
       // VERCEL_URL does not include protocol; use https:// prefix
       const baseUrl = process.env.VERCEL_URL
@@ -74,8 +91,8 @@ export default async function handler(req, res) {
         body: JSON.stringify({
           postId: post.id,
           caption: [post.hook, post.caption, post.cta, post.hashtags].filter(Boolean).join("\n\n"),
-          sessionToken: tokenRow.token,   // fanvue-post.js expects sessionToken
-          mediaUuids: [],                 // TODO: wire up after media upload endpoint is captured
+          sessionToken: tokenRow.token,
+          mediaUuids,
           imagePrompt: post.image_prompt,
         }),
       });
