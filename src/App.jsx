@@ -2348,21 +2348,25 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
       if (data.blocked) { toast_("Image blocked by safety checker — regenerating won't help, adjust prompt", "warn"); return; }
       if (!data.imageUrl) throw new Error("No image URL returned");
 
-      // Save to Supabase Storage so it persists
-      const imgRes = await fetch(data.imageUrl);
-      const blob = await imgRes.blob();
-      const path = `cara/posts/${post.id}_${Date.now()}.jpg`;
-      const { error: upErr } = await supabase.storage
-        .from("post-images")
-        .upload(path, blob, { contentType: "image/jpeg", upsert: true });
-      if (upErr) throw new Error(upErr.message);
+      // Save to Supabase Storage so it persists (use fal URL directly if storage fails)
+      let publicUrl = data.imageUrl;
+      try {
+        const imgRes = await fetch(data.imageUrl);
+        const blob = await imgRes.blob();
+        const path = `cara/posts/${post.id}_${Date.now()}.jpg`;
+        const { error: upErr } = await supabase.storage
+          .from("post-images")
+          .upload(path, blob, { contentType: "image/jpeg", upsert: true });
+        if (!upErr) {
+          const { data: urlData } = supabase.storage.from("post-images").getPublicUrl(path);
+          if (urlData?.publicUrl) publicUrl = urlData.publicUrl;
+        }
+      } catch (_) { /* fall back to fal.ai URL */ }
 
-      const { data: urlData } = supabase.storage.from("post-images").getPublicUrl(path);
-      const publicUrl = urlData?.publicUrl;
-      if (!publicUrl) throw new Error("Could not get public URL");
-
-      // Save to DB
-      await supabase.from("content_queue").update({ image_url: publicUrl }).eq("id", post.id);
+      // Save to DB only if this is a real DB-backed post (not in-memory)
+      if (!post._inMemory) {
+        await supabase.from("content_queue").update({ image_url: publicUrl }).eq("id", post.id);
+      }
       setImages(im => ({ ...im, [post.id]: { url: publicUrl, localPreview: publicUrl } }));
       toast_("Image generated — review and post!", "ok");
     } catch (e) {
