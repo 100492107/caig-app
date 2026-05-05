@@ -1,10 +1,10 @@
 // api/generate-image.js
-// Stage 1: fal-ai/flux-pro/v1.1-ultra — high quality base with LoRA (~$0.06)
-// Stage 2: fal-ai/nano-banana-pro/edit — wardrobe/lewd edit pass (~$0.15)
+// Stage 1: fal-ai/flux-pro/v1.1-ultra — best quality base with LoRA (~$0.06)
+// Stage 2: fal-ai/nano-banana-2/edit  — wardrobe/lewd edit pass, newer model (~$0.15)
 // Enhanced mode runs both. Standard mode runs Stage 1 only.
 
 const FAL_FLUX_URL        = "https://fal.run/fal-ai/flux-pro/v1.1-ultra";
-const FAL_NANO_BANANA_URL = "https://fal.run/fal-ai/nano-banana-pro/edit";
+const FAL_NANO_BANANA_URL = "https://fal.run/fal-ai/nano-banana-2/edit";
 
 const CARA_LORA_URL = process.env.CARA_LORA_URL || "";
 
