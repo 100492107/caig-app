@@ -16,7 +16,7 @@
       "maxDuration": 30
     },
     "api/generate-image.js": {
-      "maxDuration": 60
+      "maxDuration": 120
     }
   },
   "crons": [

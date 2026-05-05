@@ -2242,12 +2242,13 @@ function Queue({ queue, setQueue, toast_ }) {
 
 // ─── REVIEW QUEUE ─────────────────────────────────────────────────────────────
 function ReviewQueue({ toast_, queue = [], setQueue }) {
-  const [posts, setPosts]       = useState([]);
-  const [loading, setLoading]   = useState(true);
-  const [uploading, setUploading] = useState({});
-  const [posting, setPosting]   = useState({});
-  const [images, setImages]     = useState({});
+  const [posts, setPosts]           = useState([]);
+  const [loading, setLoading]       = useState(true);
+  const [uploading, setUploading]   = useState({});
+  const [posting, setPosting]       = useState({});
+  const [images, setImages]         = useState({});
   const [generating, setGenerating] = useState({});
+  const [enhancedMode, setEnhancedMode] = useState(false); // false = flux-lora only, true = + Nano Banana Pro
   const fileRefs = useRef({});
 
   // Merge DB drafts + in-memory queue items into one list
@@ -2331,24 +2332,27 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
     setUploading(u => ({ ...u, [post.id]: false }));
   }
 
-  // Generate image via fal.ai LoRA — no manual upload needed
+  // Generate image via fal.ai LoRA — with optional Nano Banana Pro enhancement
   async function generateImage(post) {
     setGenerating(g => ({ ...g, [post.id]: true }));
     try {
+      // Stage 1 — flux-lora base generation
       const res = await fetch("/api/generate-image", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           imagePrompt: post.image_prompt,
           personaDescriptors: "CARAWHITMORE, dark near-black hair, vivid green eyes, early 30s, photorealistic",
+          enhancedMode,
+          photoDirection: post.photo_direction,
         }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Generation failed");
-      if (data.blocked) { toast_("Image blocked by safety checker — regenerating won't help, adjust prompt", "warn"); return; }
+      if (data.blocked) { toast_("Image blocked by safety checker — try a different prompt", "warn"); return; }
       if (!data.imageUrl) throw new Error("No image URL returned");
 
-      // Save to Supabase Storage so it persists (use fal URL directly if storage fails)
+      // Save to Supabase Storage so it persists (fall back to fal URL if storage fails)
       let publicUrl = data.imageUrl;
       try {
         const imgRes = await fetch(data.imageUrl);
@@ -2368,7 +2372,7 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
         await supabase.from("content_queue").update({ image_url: publicUrl }).eq("id", post.id);
       }
       setImages(im => ({ ...im, [post.id]: { url: publicUrl, localPreview: publicUrl } }));
-      toast_("Image generated — review and post!", "ok");
+      toast_(`Image ${enhancedMode ? "(Enhanced)" : ""} generated — review and post!`, "ok");
     } catch (e) {
       toast_(`Generation failed: ${e.message}`, "error");
     }
@@ -2466,9 +2470,31 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
     <div style={{ maxWidth: 760, margin: "0 auto", padding: "24px 16px 80px" }}>
       <div style={{ marginBottom: 24 }}>
         <h2 style={{ fontSize: 20, fontWeight: 700, color: "var(--t0)", margin: 0 }}>Review Queue</h2>
-        <p style={{ fontSize: 13, color: "var(--t3)", margin: "6px 0 0" }}>
+        <p style={{ fontSize: 13, color: "var(--t3)", margin: "6px 0 12px" }}>
           Review generated posts, generate images with Cara's LoRA, then post or schedule.
         </p>
+        {/* Image mode toggle */}
+        <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 14px", background: "var(--s1)", border: "1px solid var(--e1)", borderRadius: 10 }}>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: "var(--t1)" }}>
+              {enhancedMode ? "⚡ Enhanced Mode — Nano Banana Pro" : "🔵 Standard Mode — FLUX LoRA"}
+            </div>
+            <div style={{ fontSize: 11, color: "var(--t4)", marginTop: 2 }}>
+              {enhancedMode
+                ? "FLUX base + Nano Banana Pro edit — lewd/suggestive output, photorealistic · ~$0.175/image"
+                : "FLUX LoRA only — bikini/suggestive, Cara face locked · ~$0.025/image"}
+            </div>
+          </div>
+          <button
+            onClick={() => setEnhancedMode(m => !m)}
+            style={{
+              padding: "7px 16px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 700,
+              background: enhancedMode ? "rgba(124,58,237,.2)" : "var(--s2)",
+              color: enhancedMode ? "#a78bfa" : "var(--t3)",
+              border: enhancedMode ? "1px solid #7c3aed" : "1px solid var(--e1)",
+            }}
+          >{enhancedMode ? "Switch to Standard" : "Switch to Enhanced"}</button>
+        </div>
       </div>
 
       {loading && <div style={{ color: "var(--t3)", fontSize: 13 }}>Loading drafts…</div>}
