@@ -70,50 +70,60 @@ export async function uploadImageToFanvue(imageUrl, sessionToken, filename) {
     throw new Error(`createMediaMultipartUpload failed ${createRes.status}: ${err}`);
   }
   const createData = await createRes.json();
+  console.log("createMediaMultipartUpload response:", JSON.stringify(createData));
 
   // Extract fields from tRPC response
   const uploadResult = createData?.result?.data?.json;
   // Fanvue returns snake_case keys: media_uuid, owner_uuid
   const mediaUuid = uploadResult?.media_uuid || uploadResult?.uuid || uploadResult?.mediaUuid || uploadResult?.id;
-  const uploadId = uploadResult?.uploadId;
-  const s3Url = uploadResult?.url || uploadResult?.uploadUrl || uploadResult?.parts?.[0]?.url;
+  const uploadId = uploadResult?.uploadId || uploadResult?.upload_id;
+  const s3Url = uploadResult?.url || uploadResult?.uploadUrl || uploadResult?.parts?.[0]?.url || uploadResult?.parts?.[0]?.signedUrl;
+  console.log("step1 extracted:", { mediaUuid, uploadId, s3Url: s3Url?.slice(0, 80) });
 
   if (!mediaUuid) throw new Error(`No mediaUuid from createMediaMultipartUpload: ${JSON.stringify(createData)}`);
   if (!uploadId) throw new Error(`No uploadId from createMediaMultipartUpload: ${JSON.stringify(createData)}`);
 
   // ----------------------------------------------------------------
   // STEP 2: GET the S3 presigned URL via media.getMediaMultipartUploadUrl
-  // (Fanvue generates a fresh presigned URL per part)
+  // Fanvue registers this as a tRPC mutation → must POST with body input
   // ----------------------------------------------------------------
   const partNumber = 1;
-  const getUrlParams = encodeURIComponent(
-    JSON.stringify({
+
+  // Try POST first (mutation); fall back to GET (query) if 405
+  let presignedUrl = s3Url; // may already be set from step 1
+  if (!presignedUrl) {
+    const getUrlBody = {
       json: {
         media_uuid: mediaUuid,
         partNumber: partNumber,
         uploadId: uploadId,
       },
-    })
-  );
-
-  const getUrlRes = await fetch(
-    `${TRPC}/media.getMediaMultipartUploadUrl?input=${getUrlParams}`,
-    {
-      method: "GET",
+    };
+    let getUrlRes = await fetch(`${TRPC}/media.getMediaMultipartUploadUrl`, {
+      method: "POST",
       headers: fanvueHeaders(sessionToken),
+      body: JSON.stringify(getUrlBody),
+    });
+    // Some tRPC versions use GET for queries — try both
+    if (!getUrlRes.ok && getUrlRes.status === 405) {
+      const getUrlParams = encodeURIComponent(JSON.stringify(getUrlBody));
+      getUrlRes = await fetch(
+        `${TRPC}/media.getMediaMultipartUploadUrl?input=${getUrlParams}`,
+        { method: "GET", headers: fanvueHeaders(sessionToken) }
+      );
     }
-  );
-  if (!getUrlRes.ok) {
-    const err = await getUrlRes.text();
-    throw new Error(`getMediaMultipartUploadUrl failed ${getUrlRes.status}: ${err}`);
+    if (!getUrlRes.ok) {
+      const err = await getUrlRes.text();
+      throw new Error(`getMediaMultipartUploadUrl failed ${getUrlRes.status}: ${err}`);
+    }
+    const getUrlData = await getUrlRes.json();
+    console.log("getMediaMultipartUploadUrl response:", JSON.stringify(getUrlData));
+    presignedUrl =
+      getUrlData?.result?.data?.json?.url ||
+      getUrlData?.result?.data?.json?.uploadUrl;
   }
-  const getUrlData = await getUrlRes.json();
-  const presignedUrl =
-    getUrlData?.result?.data?.json?.url ||
-    getUrlData?.result?.data?.json?.uploadUrl ||
-    s3Url; // fallback to URL from step 1 if present
 
-  if (!presignedUrl) throw new Error(`No presigned S3 URL: ${JSON.stringify(getUrlData)}`);
+  if (!presignedUrl) throw new Error("No presigned S3 URL from step 1 or step 2");
 
   // ----------------------------------------------------------------
   // STEP 3: PUT raw bytes to S3 presigned URL

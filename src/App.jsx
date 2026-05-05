@@ -2485,14 +2485,44 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
   // Schedule: set status=ready so cron picks it up (image can be added before cron fires)
   async function schedulePost(post) {
     const imageUrl = images[post.id]?.url || post.image_url || null;
-    const update = { status: "ready" };
-    if (imageUrl) update.image_url = imageUrl;
-    const res = await fetch("/api/queue-update", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: post.id, update }),
-    });
-    if (!res.ok) { toast_("Failed to schedule post", "error"); return; }
+
+    if (post._inMemory) {
+      // In-memory post: upsert full row into DB with status=ready
+      const row = {
+        id:              post.id,
+        persona_id:      post.persona_id || post.personaId || null,
+        persona_name:    post.persona_name || post.personaName || null,
+        platform:        post.platform || null,
+        pillar:          post.pillar || null,
+        hook:            post.hook || "",
+        caption:         post.caption || "",
+        hashtags:        post.hashtags || "",
+        cta:             post.cta || null,
+        image_prompt:    post.image_prompt || null,
+        photo_direction: post.photo_direction || null,
+        shot_angle:      post.shot_angle || null,
+        wardrobe:        post.wardrobe || null,
+        post_type:       post.post_type || null,
+        content_label:   post.content_label || null,
+        client_id:       post.client_id || null,
+        scheduled_date:  post.scheduled_date || null,
+        scheduled_time:  post.scheduled_time || null,
+        image_url:       imageUrl,
+        status:          "ready",
+      };
+      const { error } = await supabase.from("content_queue").upsert(row);
+      if (error) { toast_("Failed to schedule post", "error"); console.error(error); return; }
+    } else {
+      const update = { status: "ready" };
+      if (imageUrl) update.image_url = imageUrl;
+      const res = await fetch("/api/queue-update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: post.id, update }),
+      });
+      if (!res.ok) { toast_("Failed to schedule post", "error"); return; }
+    }
+
     const timeStr = post.scheduled_date ? `${post.scheduled_date} ${post.scheduled_time || ""}`.trim() : "next available slot";
     toast_(`Scheduled for ${timeStr}`, "ok");
     setPosts(p => p.filter(x => x.id !== post.id));
