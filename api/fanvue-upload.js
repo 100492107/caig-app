@@ -1,4 +1,5 @@
 // api/fanvue-upload.js
+import { createHash } from "node:crypto";
 // Uploads an image to Fanvue using their 4-step multipart upload flow.
 // Endpoints reverse-engineered via DevTools on 05/05/2026.
 //
@@ -141,19 +142,24 @@ export async function uploadImageToFanvue(imageUrl, sessionToken, filename) {
   // ----------------------------------------------------------------
   const s3Res = await fetch(presignedUrl, {
     method: "PUT",
-    headers: {
-      "Content-Type": "image/jpeg",
-      // S3 presigned URLs include auth in query string — no extra auth headers needed
-    },
+    headers: { "Content-Type": "image/jpeg" },
     body: imageBuffer,
   });
   if (!s3Res.ok) {
     const err = await s3Res.text();
     throw new Error(`S3 upload failed ${s3Res.status}: ${err}`);
   }
-  // ETag comes back in the response header (with quotes e.g. '"abc123"')
-  const eTag = s3Res.headers.get("ETag") || s3Res.headers.get("etag");
-  if (!eTag) throw new Error("No ETag returned from S3 upload");
+
+  // S3 single-part ETag = MD5 of content wrapped in quotes
+  // Node fetch (undici) sometimes strips response headers — compute it ourselves to be safe
+  let eTag = s3Res.headers.get("ETag") || s3Res.headers.get("etag");
+  if (!eTag) {
+    const md5 = createHash("md5").update(Buffer.from(imageBuffer)).digest("hex");
+    eTag = `"${md5}"`;
+    console.log("ETag computed from MD5:", eTag);
+  } else {
+    console.log("ETag from S3 headers:", eTag);
+  }
 
   // ----------------------------------------------------------------
   // STEP 4: media.finaliseMedia
