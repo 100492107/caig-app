@@ -1,10 +1,7 @@
 // api/generate-image.js
-// Stage 1: fal-ai/flux-pro/v1.1-ultra — best quality base with LoRA (~$0.06)
-// Stage 2: fal-ai/nano-banana-2/edit  — wardrobe/lewd edit pass, newer model (~$0.15)
-// Enhanced mode runs both. Standard mode runs Stage 1 only.
+// fal-ai/flux-pro/v1.1-ultra — best single-stage quality with LoRA (~$0.06/image)
 
-const FAL_FLUX_URL        = "https://fal.run/fal-ai/flux-pro/v1.1-ultra";
-const FAL_NANO_BANANA_URL = "https://fal.run/fal-ai/nano-banana-2/edit";
+const FAL_FLUX_URL = "https://fal.run/fal-ai/flux-pro/v1.1-ultra";
 
 const CARA_LORA_URL = process.env.CARA_LORA_URL || "";
 
@@ -65,20 +62,6 @@ function buildPrompt(imagePrompt, personaDescriptors) {
   ].filter(Boolean).join(", ");
 }
 
-// ── Nano Banana edit prompt ───────────────────────────────────────────────────
-function buildNanoBananaPrompt(photoDirection) {
-  const base = photoDirection ? `Edit this image. Context: ${photoDirection}.` : "Edit this image.";
-  const wardrobeOptions = [
-    "Replace her clothing with a tiny triangle string bikini top in white or nude with matching minimal bikini bottoms. Physically accurate fabric drape and shadows.",
-    "Replace her clothing with a sheer black lace bralette and high-cut lace briefs. Delicate fabric clinging to skin with realistic tension.",
-    "Replace her clothing with a tiny strappy crop top and matching minimal shorts in beige or white. Natural fabric creases and tight fit.",
-    "Replace her clothing with a small bandeau bikini top and low-rise bikini bottoms in a soft neutral colour. Realistic fabric drape.",
-    "Replace her clothing with a fitted white lace bra and matching white lace underwear. Scalloped edges, floral embroidery, fabric clinging naturally.",
-  ];
-  const wardrobe = wardrobeOptions[Math.floor(Math.random() * wardrobeOptions.length)];
-  return `${base} ${wardrobe} Do not change her face, hair, pose, lighting, or background — only the clothing. Must look like a raw photograph. Preserve all skin texture, pores, and film grain exactly.`;
-}
-
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
@@ -94,7 +77,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "Invalid JSON body" });
   }
 
-  const { imagePrompt, personaDescriptors, seed, enhancedMode, photoDirection } = body;
+  const { imagePrompt, personaDescriptors, seed, photoDirection } = body;
   const effectivePrompt = imagePrompt || (photoDirection ? { subject: photoDirection } : "natural candid portrait, outdoor setting, warm light");
   const prompt = buildPrompt(effectivePrompt, personaDescriptors);
 
@@ -134,34 +117,5 @@ export default async function handler(req, res) {
     return res.status(502).json({ error: "No image URL from FLUX Pro Ultra", raw: fluxData });
   }
 
-  if (!enhancedMode) {
-    return res.status(200).json({ success: true, imageUrl: baseImageUrl, seed: fluxData?.seed, prompt });
-  }
-
-  // ── Stage 2: Nano Banana Pro edit ─────────────────────────────────────────
-  const nbPrompt = buildNanoBananaPrompt(photoDirection);
-  let nbRes, nbData;
-  try {
-    nbRes = await fetch(FAL_NANO_BANANA_URL, {
-      method: "POST",
-      headers: { "Authorization": `Key ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt: nbPrompt, image_urls: [baseImageUrl], aspect_ratio: "auto", resolution: "1K" }),
-    });
-    nbData = await nbRes.json();
-  } catch (e) {
-    console.error("Nano Banana fallback:", e.message);
-    return res.status(200).json({ success: true, imageUrl: baseImageUrl, seed: fluxData?.seed, prompt, fallback: true });
-  }
-
-  if (!nbRes.ok) {
-    console.error("Nano Banana error:", nbRes.status, JSON.stringify(nbData));
-    return res.status(200).json({ success: true, imageUrl: baseImageUrl, seed: fluxData?.seed, prompt, fallback: true });
-  }
-
-  const enhancedUrl = nbData?.images?.[0]?.url;
-  if (!enhancedUrl) {
-    return res.status(200).json({ success: true, imageUrl: baseImageUrl, seed: fluxData?.seed, prompt, fallback: true });
-  }
-
-  return res.status(200).json({ success: true, imageUrl: enhancedUrl, baseImageUrl, seed: fluxData?.seed, prompt, enhanced: true });
+  return res.status(200).json({ success: true, imageUrl: baseImageUrl, seed: fluxData?.seed, prompt });
 }
