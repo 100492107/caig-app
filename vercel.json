@@ -11,6 +11,9 @@
     },
     "api/fanvue-post.js": {
       "maxDuration": 30
+    },
+    "api/fanvue-upload.js": {
+      "maxDuration": 30
     }
   },
   "crons": [

@@ -63,13 +63,19 @@ export default async function handler(req, res) {
       }
 
       // Call the Fanvue post API
-      const publishRes = await fetch(`${process.env.VERCEL_URL}/api/fanvue-post`, {
+      // VERCEL_URL does not include protocol; use https:// prefix
+      const baseUrl = process.env.VERCEL_URL
+        ? `https://${process.env.VERCEL_URL}`
+        : "http://localhost:3000";
+
+      const publishRes = await fetch(`${baseUrl}/api/fanvue-post`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           postId: post.id,
           caption: [post.hook, post.caption, post.cta, post.hashtags].filter(Boolean).join("\n\n"),
-          token: tokenRow.token,
+          sessionToken: tokenRow.token,   // fanvue-post.js expects sessionToken
+          mediaUuids: [],                 // TODO: wire up after media upload endpoint is captured
           imagePrompt: post.image_prompt,
         }),
       });
