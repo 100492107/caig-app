@@ -24,20 +24,21 @@ function buildNanoBananaPrompt(photoDirection) {
   const base = photoDirection
     ? `Edit this image: ${photoDirection}.`
     : "Edit this image.";
-  return `${base} Make the wardrobe more revealing and suggestive — small bikini, lingerie, or barely-there fabric. Keep the exact same person, face, skin texture, lighting and setting. The pose must look completely natural and unstaged — candid, caught-in-the-moment. ${QUALITY_POSITIVE}. Avoid all of the following: anatomical distortion, warped limbs, extra limbs, plastic skin, facial distortion, face drift from reference, wrong eye colour, wrong hair colour, cartoonish, CGI, overprocessed.`;
+  return `${base} Only change the wardrobe — replace clothing with a small bikini, lingerie, or barely-there fabric. Change NOTHING else. Do not alter the face, skin, hair, pose, lighting, background, or any other element. Critically important: preserve every skin imperfection exactly as-is — visible pores, fine vellus hair, natural texture, slight redness, subtle unevenness, fine lines. Do NOT smooth, soften, retouch, airbrush or beautify the skin in any way. The result must be indistinguishable from a raw, unedited photograph taken on a Sony A7IV with an 85mm f/1.4 lens. Real film grain must be present. The person should look like a real human being with real skin — not a model, not AI, not retouched. Any sign of plastic, waxy, airbrushed or rendered skin is a failure. Preserve photojournalistic rawness completely.`;
 }
 
 const FLUX_NEGATIVE_PROMPT = [
   "anatomical distortion", "warped limbs", "extra limbs", "missing limbs",
   "low resolution", "blurry", "plastic skin", "waxy skin", "airbrushed skin",
+  "smooth skin", "perfect skin", "retouched", "beauty filter", "overprocessed",
   "facial distortion", "face drift from reference", "wrong eye colour", "wrong hair colour",
   "underage appearance", "watermark", "text", "logo", "cartoonish", "anime",
-  "illustration", "painting", "render", "CGI", "3D", "fake", "overprocessed",
+  "illustration", "painting", "render", "CGI", "3D", "fake",
   "nudity", "bare breasts", "topless", "nsfw", "explicit",
   "deformed hands", "extra fingers", "mutation", "ugly",
 ].join(", ");
 
-const QUALITY_POSITIVE = "ultra-realistic skin texture with visible pores and fine vellus hair, subtle natural film grain, photorealistic, shot on Sony A7IV 85mm f/1.4, candid unstaged pose, natural body language, caught-in-the-moment, no retouching, raw unedited photo";
+const QUALITY_POSITIVE = "hyper-realistic skin with visible pores, fine vellus hair, natural skin unevenness, subtle redness, fine lines, real film grain, raw unedited photograph, Sony A7IV 85mm f/1.4, candid unstaged natural pose, zero retouching, zero airbrushing, zero skin smoothing, photojournalistic";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
