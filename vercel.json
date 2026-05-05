@@ -16,7 +16,7 @@
   "crons": [
     {
       "path": "/api/cron-publish",
-      "schedule": "0 * * * *"
+      "schedule": "0 0 * * *"
     }
   ],
   "rewrites": [
