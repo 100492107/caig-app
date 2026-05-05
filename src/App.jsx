@@ -2553,27 +2553,12 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
         <p style={{ fontSize: 13, color: "var(--t3)", margin: "6px 0 12px" }}>
           Review generated posts, generate images with Cara's LoRA, then post or schedule.
         </p>
-        {/* Image mode toggle */}
+        {/* Image mode label */}
         <div className="rv-mode-toggle" style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 14px", background: "var(--s1)", border: "1px solid var(--e1)", borderRadius: 10 }}>
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: "var(--t1)" }}>
-              {enhancedMode ? "⚡ Enhanced Mode — Nano Banana Pro" : "🔵 Standard Mode — FLUX LoRA"}
-            </div>
-            <div style={{ fontSize: 11, color: "var(--t4)", marginTop: 2 }}>
-              {enhancedMode
-                ? "FLUX base + Nano Banana Pro edit — lewd/suggestive output, photorealistic · ~$0.175/image"
-                : "FLUX LoRA only — bikini/suggestive, Cara face locked · ~$0.025/image"}
-            </div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: "var(--t1)" }}>⚡ FLUX Pro Ultra</div>
+            <div style={{ fontSize: 11, color: "var(--t4)", marginTop: 2 }}>Cara LoRA · photorealistic · ~$0.06/image</div>
           </div>
-          <button
-            onClick={() => setEnhancedMode(m => !m)}
-            style={{
-              padding: "7px 16px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 700,
-              background: enhancedMode ? "rgba(124,58,237,.2)" : "var(--s2)",
-              color: enhancedMode ? "#a78bfa" : "var(--t3)",
-              border: enhancedMode ? "1px solid #7c3aed" : "1px solid var(--e1)",
-            }}
-          >{enhancedMode ? "Switch to Standard" : "Switch to Enhanced"}</button>
         </div>
       </div>
 
