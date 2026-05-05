@@ -2244,10 +2244,11 @@ function Queue({ queue, setQueue, toast_ }) {
 function ReviewQueue({ toast_ }) {
   const [posts, setPosts]       = useState([]);
   const [loading, setLoading]   = useState(true);
-  const [genning, setGenning]   = useState({}); // postId → true while generating
-  const [images, setImages]     = useState({}); // postId → imageUrl (pending approval)
+  const [uploading, setUploading] = useState({}); // postId → true while uploading
+  const [posting, setPosting]   = useState({});   // postId → true while posting to Fanvue
+  const [images, setImages]     = useState({});   // postId → { url, localPreview }
+  const fileRefs = useRef({});
 
-  // Load all draft posts from content_queue
   async function loadDrafts() {
     setLoading(true);
     const { data, error } = await supabase
@@ -2265,48 +2266,118 @@ function ReviewQueue({ toast_ }) {
 
   useEffect(() => { loadDrafts(); }, []);
 
-  // Generate image for a post via fal.ai
-  async function generateImage(post) {
-    setGenning(g => ({ ...g, [post.id]: true }));
+  // Upload file to Supabase Storage → get public URL
+  async function handleFileUpload(post, file) {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) { toast_("Only image files are supported", "warn"); return; }
+    if (file.size > 20 * 1024 * 1024) { toast_("File too large — max 20MB", "warn"); return; }
+
+    // Show local preview immediately
+    const localPreview = URL.createObjectURL(file);
+    setImages(im => ({ ...im, [post.id]: { url: null, localPreview } }));
+    setUploading(u => ({ ...u, [post.id]: true }));
+
     try {
-      const res = await fetch("/api/generate-image", {
+      const ext = file.name.split(".").pop() || "jpg";
+      const path = `cara/posts/${post.id}_${Date.now()}.${ext}`;
+
+      const { error: upErr } = await supabase.storage
+        .from("post-images")
+        .upload(path, file, { contentType: file.type, upsert: true });
+
+      if (upErr) throw new Error(upErr.message);
+
+      const { data: urlData } = supabase.storage
+        .from("post-images")
+        .getPublicUrl(path);
+
+      const publicUrl = urlData?.publicUrl;
+      if (!publicUrl) throw new Error("Could not get public URL");
+
+      setImages(im => ({ ...im, [post.id]: { url: publicUrl, localPreview } }));
+      toast_("Image uploaded — hit Post to publish", "ok");
+    } catch (e) {
+      toast_(`Upload failed: ${e.message}`, "error");
+      setImages(im => { const n = { ...im }; delete n[post.id]; return n; });
+    }
+    setUploading(u => ({ ...u, [post.id]: false }));
+  }
+
+  // Post Now: upload image to Fanvue + publish immediately
+  async function postNow(post) {
+    const imageUrl = images[post.id]?.url || post.image_url;
+    if (!imageUrl) { toast_("Upload an image first", "warn"); return; }
+
+    setPosting(p => ({ ...p, [post.id]: true }));
+    try {
+      // Get session token
+      const { data: tokenRow } = await supabase
+        .from("platform_tokens")
+        .select("token")
+        .eq("persona_id", post.persona_id || "cara")
+        .eq("platform", "fanvue")
+        .single();
+
+      if (!tokenRow?.token) { toast_("No Fanvue token found — contact admin", "error"); return; }
+
+      const caption = [post.hook, post.caption, post.cta, post.hashtags].filter(Boolean).join("\n\n");
+
+      // Upload image to Fanvue
+      const uploadRes = await fetch("/api/fanvue-upload", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imageUrl, sessionToken: tokenRow.token, filename: `caig_${post.id}` }),
+      });
+      const uploadData = await uploadRes.json();
+      if (!uploadRes.ok || !uploadData.mediaUuid) {
+        throw new Error(uploadData.error || "Image upload to Fanvue failed");
+      }
+
+      // Create post on Fanvue
+      const postRes = await fetch("/api/fanvue-post", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          imagePrompt: post.image_prompt,
-          personaDescriptors: "woman, green eyes, near-black long hair, strong dark brows, defined jaw, olive skin, neck mole left side, layered gold chains, gold hoops",
+          postId: post.id,
+          caption,
+          sessionToken: tokenRow.token,
+          mediaUuids: [uploadData.mediaUuid],
         }),
       });
-      const data = await res.json();
-      if (data.blocked) {
-        toast_("Image blocked by safety filter — try regenerating", "warn");
-      } else if (data.imageUrl) {
-        setImages(im => ({ ...im, [post.id]: data.imageUrl }));
-        toast_("Image generated — review and approve", "ok");
-      } else {
-        toast_(data.error || "Generation failed", "error");
-      }
+      const postData = await postRes.json();
+      if (!postRes.ok) throw new Error(postData.error || "Fanvue post creation failed");
+
+      // Mark as posted in DB
+      await supabase
+        .from("content_queue")
+        .update({ status: "posted", image_url: imageUrl, fanvue_post_id: postData.fanvue_post_id })
+        .eq("id", post.id);
+
+      toast_("Posted to Fanvue!", "ok");
+      setPosts(p => p.filter(x => x.id !== post.id));
+      setImages(im => { const n = { ...im }; delete n[post.id]; return n; });
     } catch (e) {
-      toast_("Network error during generation", "error");
+      toast_(`Post failed: ${e.message}`, "error");
+      await supabase.from("content_queue").update({ status: "error", notes: e.message }).eq("id", post.id);
     }
-    setGenning(g => ({ ...g, [post.id]: false }));
+    setPosting(p => ({ ...p, [post.id]: false }));
   }
 
-  // Approve: save image_url + set status=ready
-  async function approve(post) {
-    const imageUrl = images[post.id] || post.image_url;
-    if (!imageUrl) { toast_("Generate an image first", "warn"); return; }
+  // Schedule: save image_url + set status=ready (cron will publish at scheduled time)
+  async function schedulePost(post) {
+    const imageUrl = images[post.id]?.url || post.image_url;
+    if (!imageUrl) { toast_("Upload an image first", "warn"); return; }
     const { error } = await supabase
       .from("content_queue")
       .update({ status: "ready", image_url: imageUrl })
       .eq("id", post.id);
-    if (error) { toast_("Failed to approve post", "error"); return; }
-    toast_("Post approved — will publish at scheduled time", "ok");
+    if (error) { toast_("Failed to schedule post", "error"); return; }
+    toast_(`Scheduled for ${post.scheduled_date} ${post.scheduled_time || ""}`, "ok");
     setPosts(p => p.filter(x => x.id !== post.id));
     setImages(im => { const n = { ...im }; delete n[post.id]; return n; });
   }
 
-  // Reject: mark as rejected so it's skipped
+  // Reject post
   async function reject(post) {
     const { error } = await supabase
       .from("content_queue")
@@ -2317,14 +2388,14 @@ function ReviewQueue({ toast_ }) {
     setPosts(p => p.filter(x => x.id !== post.id));
   }
 
-  const caption = p => [p.hook, p.caption, p.cta, p.hashtags].filter(Boolean).join("\n\n");
+  const captionText = p => [p.hook, p.caption, p.cta, p.hashtags].filter(Boolean).join("\n\n");
 
   return (
     <div style={{ maxWidth: 760, margin: "0 auto", padding: "24px 16px 80px" }}>
       <div style={{ marginBottom: 24 }}>
         <h2 style={{ fontSize: 20, fontWeight: 700, color: "var(--t0)", margin: 0 }}>Review Queue</h2>
         <p style={{ fontSize: 13, color: "var(--t3)", margin: "6px 0 0" }}>
-          Generate and approve images before posts go live on Fanvue.
+          Upload your image from Flow, preview it, then post immediately or schedule.
         </p>
       </div>
 
@@ -2337,10 +2408,12 @@ function ReviewQueue({ toast_ }) {
 
       <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
         {posts.map(post => {
-          const pendingImg = images[post.id];
-          const existingImg = post.image_url;
-          const displayImg = pendingImg || existingImg;
-          const isGenning = genning[post.id];
+          const imgState   = images[post.id];
+          const displayImg = imgState?.localPreview || imgState?.url || post.image_url;
+          const isUploading = uploading[post.id];
+          const isPosting   = posting[post.id];
+          const hasUrl      = !!(imgState?.url || post.image_url);
+          const busy        = isUploading || isPosting;
 
           return (
             <div key={post.id} style={{
@@ -2349,112 +2422,171 @@ function ReviewQueue({ toast_ }) {
               borderRadius: 14,
               overflow: "hidden",
             }}>
-              {/* Image area */}
-              <div style={{
-                background: "var(--s2)",
-                minHeight: 220,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                position: "relative",
-              }}>
+              {/* Image area — click to upload */}
+              <div
+                onClick={() => !busy && fileRefs.current[post.id]?.click()}
+                style={{
+                  background: "var(--s2)",
+                  minHeight: 220,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  position: "relative",
+                  cursor: busy ? "default" : "pointer",
+                }}
+              >
                 {displayImg ? (
-                  <img
-                    src={displayImg}
-                    alt="Generated"
-                    style={{ width: "100%", maxHeight: 360, objectFit: "cover", display: "block" }}
-                  />
+                  <>
+                    <img
+                      src={displayImg}
+                      alt="Post image"
+                      style={{ width: "100%", maxHeight: 400, objectFit: "cover", display: "block" }}
+                    />
+                    {/* Overlay hint on hover */}
+                    {!busy && (
+                      <div style={{
+                        position: "absolute", inset: 0,
+                        background: "rgba(0,0,0,0)",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        transition: "background .15s",
+                      }}
+                        onMouseEnter={e => e.currentTarget.style.background = "rgba(0,0,0,.35)"}
+                        onMouseLeave={e => e.currentTarget.style.background = "rgba(0,0,0,0)"}
+                      >
+                        <span style={{
+                          color: "#fff", fontSize: 12, fontWeight: 600,
+                          opacity: 0, transition: "opacity .15s",
+                          background: "rgba(0,0,0,.6)", padding: "6px 12px", borderRadius: 8,
+                        }}
+                          onMouseEnter={e => e.currentTarget.style.opacity = 1}
+                          onMouseLeave={e => e.currentTarget.style.opacity = 0}
+                        >Click to replace image</span>
+                      </div>
+                    )}
+                  </>
                 ) : (
-                  <div style={{ textAlign: "center", color: "var(--t4)", fontSize: 13, padding: 24 }}>
-                    <div style={{ fontSize: 32, marginBottom: 8 }}>🖼</div>
-                    No image yet
+                  <div style={{ textAlign: "center", color: "var(--t4)", fontSize: 13, padding: 32 }}>
+                    {isUploading ? (
+                      <div>Uploading…</div>
+                    ) : (
+                      <>
+                        <div style={{ fontSize: 36, marginBottom: 10 }}>↑</div>
+                        <div style={{ fontWeight: 600, color: "var(--t2)", marginBottom: 4 }}>Click to upload image</div>
+                        <div style={{ fontSize: 12 }}>JPG, PNG or WebP · max 20MB</div>
+                      </>
+                    )}
                   </div>
                 )}
                 {/* Status badge */}
                 {post.status === "error" && (
                   <div style={{
-                    position: "absolute", top: 10, right: 10,
+                    position: "absolute", top: 10, left: 10,
                     background: "rgba(239,68,68,.9)", color: "#fff",
                     fontSize: 11, fontWeight: 700, padding: "3px 8px", borderRadius: 6,
-                  }}>Error — retry</div>
+                  }}>Previous post failed — retry</div>
+                )}
+                {isUploading && (
+                  <div style={{
+                    position: "absolute", inset: 0,
+                    background: "rgba(3,3,10,.6)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: 13, color: "var(--t1)", fontWeight: 600,
+                  }}>Uploading…</div>
                 )}
               </div>
 
+              {/* Hidden file input */}
+              <input
+                type="file"
+                accept="image/*"
+                style={{ display: "none" }}
+                ref={el => fileRefs.current[post.id] = el}
+                onChange={e => handleFileUpload(post, e.target.files[0])}
+              />
+
               {/* Content */}
               <div style={{ padding: "16px 18px" }}>
-                {/* Schedule info */}
-                <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
-                  <span style={{ fontSize: 11, color: "var(--t3)", background: "var(--s2)", padding: "3px 8px", borderRadius: 6 }}>
+                {/* Meta pills */}
+                <div style={{ display: "flex", gap: 6, marginBottom: 12, flexWrap: "wrap" }}>
+                  <span style={{ fontSize: 11, color: "var(--t3)", background: "var(--s2)", padding: "3px 8px", borderRadius: 6, textTransform: "capitalize" }}>
                     {post.platform}
                   </span>
                   {post.scheduled_date && (
-                    <span style={{ fontSize: 11, color: "var(--t3)", background: "var(--s2)", padding: "3px 8px", borderRadius: 6 }}>
+                    <span style={{ fontSize: 11, color: "var(--gold)", background: "rgba(251,191,36,.1)", padding: "3px 8px", borderRadius: 6 }}>
                       {post.scheduled_date} {post.scheduled_time || ""}
                     </span>
                   )}
                   {post.shot_angle && (
-                    <span style={{ fontSize: 11, color: "var(--t3)", background: "var(--s2)", padding: "3px 8px", borderRadius: 6 }}>
+                    <span style={{ fontSize: 11, color: "var(--t4)", background: "var(--s2)", padding: "3px 8px", borderRadius: 6 }}>
                       {post.shot_angle}
                     </span>
                   )}
                 </div>
 
-                {/* Caption preview */}
+                {/* Caption */}
                 <div style={{
-                  fontSize: 13, color: "var(--t1)", lineHeight: 1.6,
+                  fontSize: 13, color: "var(--t1)", lineHeight: 1.65,
                   whiteSpace: "pre-wrap", marginBottom: 14,
-                  maxHeight: 120, overflowY: "auto",
+                  maxHeight: 130, overflowY: "auto",
                   background: "var(--s2)", borderRadius: 8, padding: "10px 12px",
                 }}>
-                  {caption(post)}
+                  {captionText(post)}
                 </div>
 
-                {/* Shot direction */}
+                {/* Shot direction hint */}
                 {post.photo_direction && (
-                  <div style={{ fontSize: 11.5, color: "var(--t4)", marginBottom: 14, fontStyle: "italic" }}>
-                    Direction: {post.photo_direction}
+                  <div style={{ fontSize: 11.5, color: "var(--t4)", marginBottom: 16, fontStyle: "italic", lineHeight: 1.5 }}>
+                    📸 {post.photo_direction}
                   </div>
                 )}
 
-                {/* Action buttons */}
+                {/* Actions */}
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  {/* Post Now */}
                   <button
-                    onClick={() => generateImage(post)}
-                    disabled={isGenning}
+                    onClick={() => postNow(post)}
+                    disabled={!hasUrl || busy}
                     style={{
-                      flex: 1, minWidth: 120,
-                      padding: "9px 14px", borderRadius: 8, border: "1px solid var(--b1)",
-                      background: isGenning ? "var(--s2)" : "var(--b1)",
-                      color: isGenning ? "var(--t3)" : "#fff",
-                      fontSize: 13, fontWeight: 600, cursor: isGenning ? "not-allowed" : "pointer",
+                      flex: 2, minWidth: 130,
+                      padding: "10px 16px", borderRadius: 8, border: "none",
+                      background: hasUrl && !busy ? "var(--b1)" : "var(--s2)",
+                      color: hasUrl && !busy ? "#fff" : "var(--t4)",
+                      fontSize: 13, fontWeight: 700,
+                      cursor: hasUrl && !busy ? "pointer" : "not-allowed",
                     }}
                   >
-                    {isGenning ? "Generating…" : displayImg ? "↺ Regenerate" : "Generate Image"}
+                    {isPosting ? "Posting…" : "🚀 Post Now"}
                   </button>
 
+                  {/* Schedule */}
                   <button
-                    onClick={() => approve(post)}
-                    disabled={!displayImg || isGenning}
+                    onClick={() => schedulePost(post)}
+                    disabled={!hasUrl || busy}
                     style={{
-                      flex: 1, minWidth: 100,
-                      padding: "9px 14px", borderRadius: 8, border: "none",
-                      background: displayImg && !isGenning ? "var(--green)" : "var(--s2)",
-                      color: displayImg && !isGenning ? "#03030a" : "var(--t4)",
-                      fontSize: 13, fontWeight: 700, cursor: displayImg && !isGenning ? "pointer" : "not-allowed",
+                      flex: 2, minWidth: 130,
+                      padding: "10px 16px", borderRadius: 8,
+                      border: "1px solid var(--e2)",
+                      background: "transparent",
+                      color: hasUrl && !busy ? "var(--t1)" : "var(--t4)",
+                      fontSize: 13, fontWeight: 600,
+                      cursor: hasUrl && !busy ? "pointer" : "not-allowed",
                     }}
                   >
-                    ✓ Approve
+                    🕐 Schedule
                   </button>
 
+                  {/* Reject */}
                   <button
                     onClick={() => reject(post)}
+                    disabled={busy}
                     style={{
-                      padding: "9px 14px", borderRadius: 8, border: "1px solid var(--e1)",
-                      background: "transparent", color: "var(--t3)",
-                      fontSize: 13, cursor: "pointer",
+                      padding: "10px 14px", borderRadius: 8,
+                      border: "1px solid var(--e1)",
+                      background: "transparent", color: "var(--t4)",
+                      fontSize: 13, cursor: busy ? "not-allowed" : "pointer",
                     }}
                   >
-                    ✕ Reject
+                    ✕
                   </button>
                 </div>
               </div>
