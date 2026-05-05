@@ -141,13 +141,14 @@ const IMG_COVERAGE = [
 // ─── FANVUE / SUBSCRIPTION PLATFORMS ─────────────────────────────────────────
 const FANVUE_PLATFORMS = [
   {
-    id: "fv_instagram", name: "Instagram", color: "#E1306C", times: ["11:00", "19:00"],
-    purpose: "Top-of-funnel discovery for subscription creators. Instagram is brand-building — aesthetic, aspirational, and personality-first. Content must stay within guidelines (no nudity) but can be confident, flirtatious, and suggestive through styling, captions, and implication. Goal: profile visits → link in bio → Fanvue. ALL content is photo-based — no video concepts.",
-    contentMix: [
-      { type: "fv_tease", label: "Tease post — confident & alluring", weight: 4, format: "photo post or carousel with caption", direction: "Aesthetically polished. Suggestive through styling, pose, and caption — not explicit. Confident, alluring aesthetic. Caption creates curiosity. CTA directs to link in bio." },
-      { type: "fv_personality", label: "Personality post — real and relatable", weight: 3, format: "photo — selfie or candid", direction: "Show the real person — funny, warm, relatable. A moment from the day, a thought, something that makes followers feel like they know her. Builds parasocial connection that drives subscriptions." },
-      { type: "fv_interact", label: "Fan interaction — question or engagement prompt", weight: 3, format: "photo with caption question", direction: "Invite comments and DMs. A question about preferences, a 'this or that', a bold opinion. Boosts reach and warms up the audience for a CTA post." },
-    ],
+     id: "fv_instagram", name: "Instagram", color: "#E1306C", times: ["11:00", "19:00"],
+     purpose: "Top-of-funnel discovery for subscription creators. Instagram is brand-building — aesthetic, aspirational, and personality-first. Content must stay within guidelines (no nudity) but can be confident, flirtatious, and suggestive through styling, captions, and implication. Bikini and swimwear content is fully allowed and encouraged occasionally. Goal: profile visits → link in bio → Fanvue. ALL content is photo-based — no video concepts.",
+     contentMix: [
+       { type: "fv_tease", label: "Tease post — confident & alluring", weight: 3, format: "photo post or carousel with caption", direction: "Aesthetically polished. Suggestive through styling, pose, and caption — not explicit. Confident, alluring aesthetic. Caption creates curiosity. CTA directs to link in bio." },
+       { type: "fv_bikini", label: "Bikini/swimwear lifestyle post", weight: 2, format: "photo post — beach, pool, travel or home setting", direction: "Natural, candid bikini or swimwear shot. Lifestyle context — beach day, pool, holiday, summer at home. Caption is breezy and personality-driven, not explicit. Normalises her look and builds aspirational brand." },
+       { type: "fv_personality", label: "Personality post — real and relatable", weight: 3, format: "photo — selfie or candid", direction: "Show the real person — funny, warm, relatable. A moment from the day, a thought, something that makes followers feel like they know her. Builds parasocial connection that drives subscriptions." },
+       { type: "fv_interact", label: "Fan interaction — question or engagement prompt", weight: 2, format: "photo with caption question", direction: "Invite comments and DMs. A question about preferences, a 'this or that', a bold opinion. Boosts reach and warms up the audience for a CTA post." },
+     ],
   },
   {
     id: "fv_tiktok", name: "TikTok", color: "#010101", times: ["12:00", "20:00"],
