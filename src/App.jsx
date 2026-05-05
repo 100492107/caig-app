@@ -2387,37 +2387,27 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
 
     setPosting(p => ({ ...p, [post.id]: true }));
     try {
-      // Get session token
-      const { data: tokenRow } = await supabase
-        .from("platform_tokens")
-        .select("token")
-        .eq("persona_id", post.persona_id || "cara")
-        .eq("platform", "fanvue")
-        .single();
-
-      if (!tokenRow?.token) { toast_("No Fanvue token found — contact admin", "error"); return; }
-
       const caption = [post.hook, post.caption, post.cta, post.hashtags].filter(Boolean).join("\n\n");
 
-      // Upload image to Fanvue
+      // Upload image to Fanvue (server fetches token via service role key)
       const uploadRes = await fetch("/api/fanvue-upload", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ imageUrl, sessionToken: tokenRow.token, filename: `caig_${post.id}` }),
+        body: JSON.stringify({ imageUrl, personaId: post.persona_id || "cara", filename: `caig_${post.id}` }),
       });
       const uploadData = await uploadRes.json();
       if (!uploadRes.ok || !uploadData.mediaUuid) {
         throw new Error(uploadData.error || "Image upload to Fanvue failed");
       }
 
-      // Create post on Fanvue
+      // Create post on Fanvue (server fetches token via service role key)
       const postRes = await fetch("/api/fanvue-post", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           postId: post.id,
           caption,
-          sessionToken: tokenRow.token,
+          personaId: post.persona_id || "cara",
           mediaUuids: [uploadData.mediaUuid],
         }),
       });
@@ -2440,16 +2430,18 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
     setPosting(p => ({ ...p, [post.id]: false }));
   }
 
-  // Schedule: save image_url + set status=ready (cron will publish at scheduled time)
+  // Schedule: set status=ready so cron picks it up (image can be added before cron fires)
   async function schedulePost(post) {
-    const imageUrl = images[post.id]?.url || post.image_url;
-    if (!imageUrl) { toast_("Upload an image first", "warn"); return; }
+    const imageUrl = images[post.id]?.url || post.image_url || null;
+    const update = { status: "ready" };
+    if (imageUrl) update.image_url = imageUrl;
     const { error } = await supabase
       .from("content_queue")
-      .update({ status: "ready", image_url: imageUrl })
+      .update(update)
       .eq("id", post.id);
     if (error) { toast_("Failed to schedule post", "error"); return; }
-    toast_(`Scheduled for ${post.scheduled_date} ${post.scheduled_time || ""}`, "ok");
+    const timeStr = post.scheduled_date ? `${post.scheduled_date} ${post.scheduled_time || ""}`.trim() : "next available slot";
+    toast_(`Scheduled for ${timeStr}`, "ok");
     setPosts(p => p.filter(x => x.id !== post.id));
     setImages(im => { const n = { ...im }; delete n[post.id]; return n; });
   }

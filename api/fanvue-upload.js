@@ -176,6 +176,18 @@ export async function uploadImageToFanvue(imageUrl, sessionToken, filename) {
   return confirmedUuid;
 }
 
+// Fetch Fanvue session token from Supabase using service role key
+async function getFanvueToken(personaId = "cara") {
+  const SUPABASE_URL = "https://zvyioxhwdyocaanzcgqf.supabase.co";
+  const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/platform_tokens?persona_id=eq.${personaId}&platform=eq.fanvue&select=token&limit=1`,
+    { headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` } }
+  );
+  const rows = await res.json();
+  return rows?.[0]?.token || null;
+}
+
 // Vercel serverless handler — for direct calls or testing
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
@@ -189,9 +201,16 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "Invalid JSON body" });
   }
 
-  const { imageUrl, sessionToken, filename } = body;
+  const { imageUrl, filename, personaId = "cara" } = body;
+  // Accept sessionToken from body for backwards compat; otherwise fetch server-side
+  let sessionToken = body.sessionToken;
+
   if (!imageUrl) return res.status(400).json({ error: "imageUrl required" });
-  if (!sessionToken) return res.status(400).json({ error: "sessionToken required" });
+
+  if (!sessionToken) {
+    sessionToken = await getFanvueToken(personaId);
+    if (!sessionToken) return res.status(500).json({ error: "No Fanvue token found for persona" });
+  }
 
   try {
     const mediaUuid = await uploadImageToFanvue(imageUrl, sessionToken, filename);

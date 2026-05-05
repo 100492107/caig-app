@@ -8,6 +8,18 @@
 const FANVUE_BASE = "https://www.fanvue.com";
 const CREATE_POST_URL = `${FANVUE_BASE}/trpc/post.createPost`;
 
+// Fetch Fanvue session token from Supabase using service role key
+async function getFanvueToken(personaId = "cara") {
+  const SUPABASE_URL = "https://zvyioxhwdyocaanzcgqf.supabase.co";
+  const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/platform_tokens?persona_id=eq.${personaId}&platform=eq.fanvue&select=token&limit=1`,
+    { headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` } }
+  );
+  const rows = await res.json();
+  return rows?.[0]?.token || null;
+}
+
 /**
  * Build the tRPC-wrapped request body Fanvue expects.
  * Fields discovered via DevTools network interception 05/05/2026.
@@ -63,10 +75,16 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "Invalid JSON body" });
   }
 
-  const { postId, caption, sessionToken, mediaUuids = [], price = null, publishAt = null, mediaPreviewUuid = null } = body;
+  const { postId, caption, mediaUuids = [], price = null, publishAt = null, mediaPreviewUuid = null, personaId = "cara" } = body;
+  // Accept sessionToken from body for backwards compat; otherwise fetch server-side
+  let sessionToken = body.sessionToken;
 
   if (!caption) return res.status(400).json({ error: "caption is required" });
-  if (!sessionToken) return res.status(400).json({ error: "sessionToken is required" });
+
+  if (!sessionToken) {
+    sessionToken = await getFanvueToken(personaId);
+    if (!sessionToken) return res.status(500).json({ error: "No Fanvue token found for persona" });
+  }
 
   const postBody = buildPostBody(caption, mediaUuids, price, publishAt, mediaPreviewUuid);
 
