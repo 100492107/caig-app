@@ -1685,22 +1685,33 @@ function Autopilot({ queue, setQueue, setView, toast_, dbCreators = [], onDelete
       if (e.name !== "AbortError") console.error("Stream read error:", e);
     }
 
-    // Sync any DB-creator posts to Supabase
-    const dbResults = results.filter(item => item.personaId?.startsWith("db_"));
-    if (dbResults.length > 0) {
-      const rows = dbResults.map(item => {
+    // Sync all generated posts to Supabase content_queue
+    if (results.length > 0) {
+      const rows = results.map(item => {
         const dbCreator = dbCreators.find(c => `db_${c.id}` === item.personaId);
         return {
-          id:           item.id,
-          persona_id:   item.personaId,
-          persona_name: item.personaName,
-          platform:     item.platform,
-          pillar:       item.pillar,
-          hook:         item.hook || "",
-          caption:      item.caption || "",
-          hashtags:     item.hashtags || "",
-          status:       "ready",
-          client_id:    dbCreator?.client_id || null,
+          id:             item.id,
+          persona_id:     item.personaId,
+          persona_name:   item.personaName,
+          platform:       item.platform,
+          pillar:         item.pillar,
+          hook:           item.hook || "",
+          caption:        item.caption || "",
+          hashtags:       item.hashtags || "",
+          status:         "ready",
+          client_id:      dbCreator?.client_id || null,
+          scheduled_date: item.scheduledDate || null,
+          scheduled_time: item.scheduledTime || null,
+          image_prompt:   item.image_prompt || null,
+          photo_idea:     item.photo_idea || null,
+          cta:            item.cta || null,
+          photo_direction: item.photo_direction || null,
+          post_type:      item.post_type || null,
+          content_label:  item.content_label || null,
+          trend_hook:     item.trend_hook || null,
+          shot_angle:     item.shot_angle || null,
+          wardrobe:       item.wardrobe || null,
+          style_ref:      item.style_ref || null,
         };
       });
       supabase.from("content_queue").upsert(rows).then(({ error }) => {
