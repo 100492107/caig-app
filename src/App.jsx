@@ -1698,7 +1698,7 @@ function Autopilot({ queue, setQueue, setView, toast_, dbCreators = [], onDelete
           hook:           item.hook || "",
           caption:        item.caption || "",
           hashtags:       item.hashtags || "",
-          status:         "ready",
+          status:         "draft",   // goes to Review Queue for image gen + approval
           client_id:      dbCreator?.client_id || null,
           scheduled_date: item.scheduledDate || null,
           scheduled_time: item.scheduledTime || null,
@@ -2236,6 +2236,232 @@ function Queue({ queue, setQueue, toast_ }) {
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+// ─── REVIEW QUEUE ─────────────────────────────────────────────────────────────
+function ReviewQueue({ toast_ }) {
+  const [posts, setPosts]       = useState([]);
+  const [loading, setLoading]   = useState(true);
+  const [genning, setGenning]   = useState({}); // postId → true while generating
+  const [images, setImages]     = useState({}); // postId → imageUrl (pending approval)
+
+  // Load all draft posts from content_queue
+  async function loadDrafts() {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("content_queue")
+      .select("id,persona_id,platform,hook,caption,cta,hashtags,image_prompt,photo_direction,shot_angle,wardrobe,scheduled_date,scheduled_time,status,image_url")
+      .eq("platform", "fanvue")
+      .in("status", ["draft", "error"])
+      .order("scheduled_date", { ascending: true })
+      .order("scheduled_time", { ascending: true })
+      .limit(50);
+    if (error) toast_("Failed to load drafts", "error");
+    else setPosts(data || []);
+    setLoading(false);
+  }
+
+  useEffect(() => { loadDrafts(); }, []);
+
+  // Generate image for a post via fal.ai
+  async function generateImage(post) {
+    setGenning(g => ({ ...g, [post.id]: true }));
+    try {
+      const res = await fetch("/api/generate-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          imagePrompt: post.image_prompt,
+          personaDescriptors: "woman, green eyes, near-black long hair, strong dark brows, defined jaw, olive skin, neck mole left side, layered gold chains, gold hoops",
+        }),
+      });
+      const data = await res.json();
+      if (data.blocked) {
+        toast_("Image blocked by safety filter — try regenerating", "warn");
+      } else if (data.imageUrl) {
+        setImages(im => ({ ...im, [post.id]: data.imageUrl }));
+        toast_("Image generated — review and approve", "ok");
+      } else {
+        toast_(data.error || "Generation failed", "error");
+      }
+    } catch (e) {
+      toast_("Network error during generation", "error");
+    }
+    setGenning(g => ({ ...g, [post.id]: false }));
+  }
+
+  // Approve: save image_url + set status=ready
+  async function approve(post) {
+    const imageUrl = images[post.id] || post.image_url;
+    if (!imageUrl) { toast_("Generate an image first", "warn"); return; }
+    const { error } = await supabase
+      .from("content_queue")
+      .update({ status: "ready", image_url: imageUrl })
+      .eq("id", post.id);
+    if (error) { toast_("Failed to approve post", "error"); return; }
+    toast_("Post approved — will publish at scheduled time", "ok");
+    setPosts(p => p.filter(x => x.id !== post.id));
+    setImages(im => { const n = { ...im }; delete n[post.id]; return n; });
+  }
+
+  // Reject: mark as rejected so it's skipped
+  async function reject(post) {
+    const { error } = await supabase
+      .from("content_queue")
+      .update({ status: "rejected" })
+      .eq("id", post.id);
+    if (error) { toast_("Failed to reject post", "error"); return; }
+    toast_("Post rejected", "ok");
+    setPosts(p => p.filter(x => x.id !== post.id));
+  }
+
+  const caption = p => [p.hook, p.caption, p.cta, p.hashtags].filter(Boolean).join("\n\n");
+
+  return (
+    <div style={{ maxWidth: 760, margin: "0 auto", padding: "24px 16px 80px" }}>
+      <div style={{ marginBottom: 24 }}>
+        <h2 style={{ fontSize: 20, fontWeight: 700, color: "var(--t0)", margin: 0 }}>Review Queue</h2>
+        <p style={{ fontSize: 13, color: "var(--t3)", margin: "6px 0 0" }}>
+          Generate and approve images before posts go live on Fanvue.
+        </p>
+      </div>
+
+      {loading && <div style={{ color: "var(--t3)", fontSize: 13 }}>Loading drafts…</div>}
+      {!loading && posts.length === 0 && (
+        <div style={{ textAlign: "center", padding: "60px 0", color: "var(--t3)", fontSize: 14 }}>
+          No drafts to review. Generate a batch in the Content Engine first.
+        </div>
+      )}
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+        {posts.map(post => {
+          const pendingImg = images[post.id];
+          const existingImg = post.image_url;
+          const displayImg = pendingImg || existingImg;
+          const isGenning = genning[post.id];
+
+          return (
+            <div key={post.id} style={{
+              background: "var(--s1)",
+              border: "1px solid var(--e1)",
+              borderRadius: 14,
+              overflow: "hidden",
+            }}>
+              {/* Image area */}
+              <div style={{
+                background: "var(--s2)",
+                minHeight: 220,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                position: "relative",
+              }}>
+                {displayImg ? (
+                  <img
+                    src={displayImg}
+                    alt="Generated"
+                    style={{ width: "100%", maxHeight: 360, objectFit: "cover", display: "block" }}
+                  />
+                ) : (
+                  <div style={{ textAlign: "center", color: "var(--t4)", fontSize: 13, padding: 24 }}>
+                    <div style={{ fontSize: 32, marginBottom: 8 }}>🖼</div>
+                    No image yet
+                  </div>
+                )}
+                {/* Status badge */}
+                {post.status === "error" && (
+                  <div style={{
+                    position: "absolute", top: 10, right: 10,
+                    background: "rgba(239,68,68,.9)", color: "#fff",
+                    fontSize: 11, fontWeight: 700, padding: "3px 8px", borderRadius: 6,
+                  }}>Error — retry</div>
+                )}
+              </div>
+
+              {/* Content */}
+              <div style={{ padding: "16px 18px" }}>
+                {/* Schedule info */}
+                <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
+                  <span style={{ fontSize: 11, color: "var(--t3)", background: "var(--s2)", padding: "3px 8px", borderRadius: 6 }}>
+                    {post.platform}
+                  </span>
+                  {post.scheduled_date && (
+                    <span style={{ fontSize: 11, color: "var(--t3)", background: "var(--s2)", padding: "3px 8px", borderRadius: 6 }}>
+                      {post.scheduled_date} {post.scheduled_time || ""}
+                    </span>
+                  )}
+                  {post.shot_angle && (
+                    <span style={{ fontSize: 11, color: "var(--t3)", background: "var(--s2)", padding: "3px 8px", borderRadius: 6 }}>
+                      {post.shot_angle}
+                    </span>
+                  )}
+                </div>
+
+                {/* Caption preview */}
+                <div style={{
+                  fontSize: 13, color: "var(--t1)", lineHeight: 1.6,
+                  whiteSpace: "pre-wrap", marginBottom: 14,
+                  maxHeight: 120, overflowY: "auto",
+                  background: "var(--s2)", borderRadius: 8, padding: "10px 12px",
+                }}>
+                  {caption(post)}
+                </div>
+
+                {/* Shot direction */}
+                {post.photo_direction && (
+                  <div style={{ fontSize: 11.5, color: "var(--t4)", marginBottom: 14, fontStyle: "italic" }}>
+                    Direction: {post.photo_direction}
+                  </div>
+                )}
+
+                {/* Action buttons */}
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  <button
+                    onClick={() => generateImage(post)}
+                    disabled={isGenning}
+                    style={{
+                      flex: 1, minWidth: 120,
+                      padding: "9px 14px", borderRadius: 8, border: "1px solid var(--b1)",
+                      background: isGenning ? "var(--s2)" : "var(--b1)",
+                      color: isGenning ? "var(--t3)" : "#fff",
+                      fontSize: 13, fontWeight: 600, cursor: isGenning ? "not-allowed" : "pointer",
+                    }}
+                  >
+                    {isGenning ? "Generating…" : displayImg ? "↺ Regenerate" : "Generate Image"}
+                  </button>
+
+                  <button
+                    onClick={() => approve(post)}
+                    disabled={!displayImg || isGenning}
+                    style={{
+                      flex: 1, minWidth: 100,
+                      padding: "9px 14px", borderRadius: 8, border: "none",
+                      background: displayImg && !isGenning ? "var(--green)" : "var(--s2)",
+                      color: displayImg && !isGenning ? "#03030a" : "var(--t4)",
+                      fontSize: 13, fontWeight: 700, cursor: displayImg && !isGenning ? "pointer" : "not-allowed",
+                    }}
+                  >
+                    ✓ Approve
+                  </button>
+
+                  <button
+                    onClick={() => reject(post)}
+                    style={{
+                      padding: "9px 14px", borderRadius: 8, border: "1px solid var(--e1)",
+                      background: "transparent", color: "var(--t3)",
+                      fontSize: 13, cursor: "pointer",
+                    }}
+                  >
+                    ✕ Reject
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -5346,6 +5572,10 @@ export default function App() {
           <button className={`tni${view === "queue" ? " on" : ""}`} onClick={() => setView("queue")}>
             {Ic.list} Queue {ready > 0 && <span className="nb">{ready}</span>}
           </button>
+          <button className={`tni${view === "review" ? " on" : ""}`} onClick={() => setView("review")}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 12l2 2 4-4"/></svg>
+            Review
+          </button>
           <button className={`tni${view === "calendar" ? " on" : ""}`} onClick={() => setView("calendar")}>
             {Ic.cal} Calendar
           </button>
@@ -5410,6 +5640,7 @@ export default function App() {
           {view === "outreach"   && (canAccess(profile?.tier, "outreach",   profile?.role) ? <Outreach />   : <LockedModule moduleName="Business Health Check" currentTier={profile?.tier} />)}
           {view === "onboarding" && (canAccess(profile?.tier, "onboarding", profile?.role) ? <Onboarding /> : <LockedModule moduleName="Automate Ops"        currentTier={profile?.tier} />)}
           {view === "queue"      && <Queue queue={queue} setQueue={setQueue} toast_={toast_} />}
+          {view === "review"     && <ReviewQueue toast_={toast_} />}
           {view === "calendar"   && <CalView queue={queue} />}
           {view === "settings"   && <Settings queue={queue} setQueue={setQueue} toast_={toast_} />}
           {view === "admin"      && profile?.role === "admin" && <AdminPanel />}
