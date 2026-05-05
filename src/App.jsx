@@ -2520,7 +2520,7 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
               background: "var(--s1)",
               border: "1px solid var(--e1)",
               borderRadius: 14,
-              overflow: "hidden",
+              overflow: "visible",
             }}>
               {/* Image area — click to upload */}
               <div
@@ -2529,10 +2529,12 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
                   background: "var(--s2)",
                   minHeight: 220,
                   display: "flex",
-                  alignItems: "center",
+                  alignItems: "flex-start",
                   justifyContent: "center",
                   position: "relative",
                   cursor: busy ? "default" : "pointer",
+                  borderRadius: "14px 14px 0 0",
+                  overflow: "hidden",
                 }}
               >
                 {displayImg ? (
@@ -2540,7 +2542,7 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
                     <img
                       src={displayImg}
                       alt="Post image"
-                      style={{ width: "100%", maxHeight: 700, objectFit: "contain", display: "block", background: "#000" }}
+                      style={{ width: "100%", objectFit: "contain", display: "block", background: "#000" }}
                     />
                     {/* Overlay hint on hover */}
                     {!busy && (
