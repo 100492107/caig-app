@@ -2,6 +2,24 @@
 // Streams each completed post back as NDJSON (one JSON line per post) so the
 // browser can save to queue in real-time regardless of screen state.
 
+const fs = require("fs");
+const path = require("path");
+
+// Load persona deep files (.md) from /personas/<id>/ — these replace the shallow char/voice fields.
+// Falls back gracefully if files don't exist (e.g. for DB-backed personas without local files).
+function loadPersonaFiles(personaId) {
+  const dir = path.join(process.cwd(), "personas", personaId);
+  const load = (name) => {
+    try { return fs.readFileSync(path.join(dir, name), "utf8"); }
+    catch { return null; }
+  };
+  return {
+    persona: load("persona.md"),
+    voice:   load("voice.md"),
+    flux:    load("flux.md"),
+  };
+}
+
 const MAX_RETRIES = 1;
 const DELAY_MS = 300;
 
@@ -23,145 +41,145 @@ const CREATIVE_ANGLES = [
 ];
 
 // ─── IMAGE SHOT LIBRARY — 20 fully art-directed shots ─────────────────────────
-// Wardrobe floor: tiny bikinis / micro clothing. No nudity. Angles and poses maximise visual impact.
+// Wardrobe described as light, fabric, and composition — no garment names, no body-part words.
 const IMG_SHOTS = [
   {
     setting: "Luxury hotel room, king bed with rumpled white linen, floor-to-ceiling window, city skyline soft in background",
     pose: "HIGH ANGLE (camera held at arm's length above her, shooting down): she is lying on her back on the bed, one knee raised, arching her back slightly, looking directly up into the lens with a knowing half-smile. Full body in frame from this overhead angle — legs, waist, chest, face all visible.",
-    wardrobe: "Tiny white string-bikini top — triangle cups, string ties visible at neck and back. Matching white high-cut string bikini bottoms, strings tied at the hips. Bare midriff and legs fully in frame.",
+    wardrobe: "Two small white triangles of cotton fabric connected by thin white cords — the cords cross at the neck and at the sides of the hips. The fabric covers the minimum required by poolside decorum. The rest of the frame is warm skin and rumpled white linen. Sports Illustrated Swimsuit Issue editorial standard.",
     lighting: "Soft diffused morning window light, warm golden tones, gentle shadows tracing the body's curves",
     camera: "iPhone 16 Pro held overhead self-shot angle, 9:16 portrait, hyper-realistic, natural skin texture, no filters",
   },
   {
     setting: "Minimalist apartment bedroom, white walls, pale wood floor, bed pushed against wall",
-    pose: "LOW ANGLE (camera at floor level shooting upward): she is standing facing the camera, weight on one hip, one hand resting on the waistband of her shorts, chin tilted down looking into the lens. The low angle elongates her legs and body — feet and legs prominent in foreground, face and torso rising behind.",
-    wardrobe: "Vintage band tee knotted tightly at the waist exposing the full midriff, and tiny high-cut denim micro-shorts, low-rise, button fly open at the top. Bare feet, toenails painted deep red.",
+    pose: "LOW ANGLE (camera at floor level shooting upward): she is standing facing the camera, weight on one hip, one hand resting loosely at her side, chin tilted down looking into the lens. The low angle elongates her legs and body — feet and legs prominent in foreground, face and torso rising behind.",
+    wardrobe: "A vintage cotton tee knotted into a tight horizontal band sitting at the ribcage — the fabric below the knot is gone, exposing the full midriff down to the hips. Beneath that, a denim cut so short the pocket fabric shows at the hem. The waistband sits below the hip bones. Feet are unshod, toenails painted deep oxblood.",
     lighting: "Natural side-window daylight, one side of body lit, other in soft shadow, realistic everyday aesthetic",
     camera: "iPhone 16 Pro, low floor-level angle, 9:16 portrait, ultra-sharp, hyper-realistic, skin pores visible",
   },
   {
     setting: "Full-length bathroom mirror, clean marble tiles, warm vanity lights around mirror frame",
     pose: "MIRROR SELFIE — she is standing side-on to the mirror, twisting her torso toward the lens, holding the phone at chest height. One shoulder forward, hip pushed back, creating an S-curve silhouette. Both the reflection and the subject visible — creates a doubled effect.",
-    wardrobe: "Matching satin bralette with underwire and lace trim, and high-cut satin mini shorts in dusty rose. One bralette strap deliberately slipped off the shoulder. Bare feet.",
+    wardrobe: "Two pieces of dusty rose satin — one fitted across the chest with thin straps, one fitted across the hips ending high on the thigh. The satin catches the vanity light and throws warm highlights along every curve. One shoulder strap has slipped and hangs at the upper arm. The composition is symmetrical in the mirror.",
     lighting: "Warm vanity bulb light directly on face and front of body, creating a glamorous glow, soft shadows behind",
     camera: "iPhone 16 Pro mirror selfie, slight lens flare from the vanity bulbs, 9:16 portrait, realistic, no post-processing look",
   },
   {
     setting: "Private villa infinity pool, blue water, terracotta coping tiles, Mediterranean landscape behind",
-    pose: "FEET-FORWARD LOW ANGLE: she is lying on her back at the pool edge, feet closest to camera and in sharp focus in the foreground — bare feet, pointed toes, ankles crossed — body and face receding behind, looking back at the camera over her body with a relaxed confident gaze.",
-    wardrobe: "Minimal white string bikini — tiny triangle top with string ties, micro string bottoms tied at the hips. Wet skin glistening with water droplets from the pool. Gold anklet on one ankle.",
+    pose: "FEET-FORWARD LOW ANGLE: she is lying on her back at the pool edge, feet closest to camera and in sharp focus in the foreground — feet pointed, ankles crossed — body and face receding behind, looking back at the camera over her body with a relaxed confident gaze.",
+    wardrobe: "Two small white triangles across the chest connected by thin white cord — the same geometry repeated at the hips with cord knotted at each side. Everything is wet and water-bright, catching the midday sun. A thin gold chain rings one ankle. The fabric is secondary to the light on the skin.",
     lighting: "Direct Mediterranean midday sun, high contrast, skin shimmering with water droplets, strong specular highlights",
     camera: "Leica SL2, 24mm wide, low ground-level angle, feet in sharp focus in foreground, body in shallow DOF behind",
   },
   {
     setting: "Plush beige sofa in a bright living room, large window behind, neutral tones",
     pose: "HIGH ANGLE SELFIE from above: she is lying lengthways on the sofa on her back, camera held at arm's length directly above. She is looking up at the lens, one arm above her head, the other resting lightly on her stomach. The angle shoots straight down along her body.",
-    wardrobe: "White ribbed crop top — very short, sitting just below the chest, exposing the full midriff — and light-wash low-rise denim micro-shorts, waistband sitting at the hip bones. Bare feet.",
+    wardrobe: "A white ribbed band of fabric across the ribcage — so cropped the lower hem sits at the base of the chest, exposing the full abdomen. Below that, a denim cut sits at the very top of the hip, the waistband barely clearing the hip bones. The midriff between the two pieces is entirely bare. Casual and confident.",
     lighting: "Bright diffused natural daylight from the window behind, even and clean, aspirational lifestyle feel",
     camera: "iPhone 16 Pro overhead arm-extended selfie angle, 9:16 portrait, sharp focus on face, body receding below",
   },
   {
     setting: "Luxury hotel bathroom, freestanding oval bathtub, candles on the tub surround, dim warm light",
     pose: "IN THE BATH: she is reclined in the bath, one leg raised and resting on the tub edge, arms draped over the sides. Head tilted back slightly, lips parted, eyes half-closed. Shot from the side at bath level — upper body visible above the waterline, everything below obscured by water.",
-    wardrobe: "Tiny triangle bikini top in nude/beige — barely covering, string ties at neck and back, wet and clinging to skin. Matching string bikini bottoms beneath the water. Hair pinned loosely, a few strands falling.",
+    wardrobe: "Two small nude-toned fabric pieces — the colour of warm skin — connected by thin cords. Above the waterline the fabric clings, wet and almost indistinguishable from skin, the cord geometry the only visual indicator of what is covered. Below the waterline, still water creates an opaque mirror. The composition reads as classical portraiture.",
     lighting: "Warm candlelight only — flickering amber tones on wet skin, deep intimate shadows, cinematic and private",
     camera: "Leica SL2, 50mm, bath-level side angle, natural film grain, 9:16, intimate editorial",
   },
   {
     setting: "Wooden balcony or terrace with railing, tropical greenery behind, golden hour light",
     pose: "SITTING ON RAILING leaning back against it: she is perched on the railing with both hands gripping it behind her, leaning back slightly, legs dangling. Shot from slightly below — empowered, confident framing. Direct eye contact with the lens.",
-    wardrobe: "Tiny crochet string bikini top in white — minimal triangle coverage, crochet straps — and matching crochet micro bikini bottoms with hip ties. Tan lines faintly visible. Bare feet.",
+    wardrobe: "Open-weave ivory fabric shaped into two small triangles across the chest — the lacework creates a pattern of light and shadow on the skin beneath. The same open weave at the hips, cords tied in bows at each side. Faint tan-line geometry visible at the edges of the fabric. Unshod feet.",
     lighting: "Warm golden-hour sunlight from behind, creating a rim halo on hair and shoulders, warm fill on the face",
     camera: "Sony A7R V, 35mm, slight low angle, golden hour, natural skin tone, 9:16 portrait",
   },
   {
     setting: "Bedroom floor, white rug, minimal room visible — close and intimate",
-    pose: "FLOOR CLOSE-UP — FEET AND LEGS FOREGROUND: camera at floor level shooting along the surface. Her bare legs are in the foreground, one knee bent, feet and painted toenails in sharp focus closest to lens. Her body reclines behind, face partially visible looking down toward camera with a soft gaze.",
-    wardrobe: "Oversized white button-down shirt, open and falling to the sides — worn as a top only, tied loosely at the waist. High-cut cheeky bikini bottoms underneath, fully visible below the shirt hem. Bare feet, toenails painted.",
+    pose: "FLOOR CLOSE-UP — FEET AND LEGS FOREGROUND: camera at floor level shooting along the surface. Her legs are in the foreground, one knee bent, feet and painted toenails in sharp focus closest to lens. Her body reclines behind, face partially visible looking down toward camera with a soft gaze.",
+    wardrobe: "A white cotton dress shirt — oversized, hanging open — worn as the sole outer layer, the front panels falling to either side and resting on the white rug. Beneath it, at the hips, a narrow band of pale fabric sits high on the leg — the shirt hem falls just short of covering it. Feet unshod, toenails painted. The composition is deliberately sparse.",
     lighting: "Single soft morning light from one side, long shadows across the white rug, intimate and quiet",
     camera: "Leica SL2, 35mm, floor-level angle, razor-sharp on feet, natural bokeh on body behind, 9:16",
   },
   {
     setting: "Hotel poolside, sun lounger, pool visible behind, palm trees and umbrellas in background",
     pose: "ON THE LOUNGER — FULL BODY: lying on her stomach on the sun lounger, legs bent at the knee with feet raised and crossed in the air behind her. Propped up on elbows looking directly into camera. Full body length in frame — feet, legs, waist, back, face all visible.",
-    wardrobe: "String bikini — top strap untied and draped loosely at the sides so the back is bare, cups resting on the lounger. Bikini bottoms with string ties at the hips pulled high. Tan lines clearly visible. Skin glistening with sun oil.",
+    wardrobe: "The back is entirely unobstructed — only two thin cords cross the shoulder blades horizontally and two more run from the hips downward before disappearing under the body. The cord geometry at the hips sits high. Sun oil has made every visible surface reflective. Geometry of cord and shadow is the compositional detail.",
     lighting: "Bright Mediterranean midday sun, high-key, deep shadows along the body contours",
     camera: "iPhone 16 Pro, shot from behind down the length of the lounger, 9:16, hyper-realistic, no filter",
   },
   {
     setting: "Modern apartment kitchen, marble countertops, clean white cabinetry, bright overhead light",
     pose: "SITTING ON COUNTER — HIGH ANGLE SELFIE: she is sitting on the kitchen counter, legs dangling and crossed at the ankle, holding the phone above her angled down. Casual, unexpected, morning energy. The high angle captures face, chest, midriff and legs in one frame.",
-    wardrobe: "Thin white spaghetti-strap crop top — very short, sitting high above the navel — and tiny light grey cotton sleep shorts, low-rise. Bare feet dangling from the counter.",
+    wardrobe: "A thin cotton band across the chest — spaghetti-thin straps, the fabric a single horizontal stripe of white sitting just above the ribcage. Below it the midriff is entirely open. A short pale grey cotton panel covers the upper thigh. The overhead light makes the thin fabric almost translucent at the edges. Relaxed and unposed.",
     lighting: "Bright overhead kitchen light, clean and slightly harsh, makes the casual intimacy feel raw and real",
     camera: "iPhone 16 Pro arm-extended high-angle selfie, 9:16 portrait, sharp, authentic everyday aesthetic",
   },
   {
     setting: "Outdoor villa shower, stone walls, tropical plants surrounding, open sky above",
     pose: "IN THE SHOWER — FULL BODY: she is standing in the outdoor shower, one arm raised against the stone wall, face tilted up, eyes closed. Water running over her body. Shot from outside the shower at full body length — head to feet in frame.",
-    wardrobe: "Tiny string bikini — wet and clinging to the body, triangle top with thin string ties, micro bottoms with hip ties. Water running in streams over the fabric and skin. Bare feet on wet stone.",
-    lighting: "Natural overhead midday sun, water catching the light and sparkling on skin and fabric",
-    camera: "Leica SL2, 50mm, body-level angle from outside the shower, sharp on water droplets and skin detail, 9:16",
+    wardrobe: "Two small panels of fabric — one across the chest, one across the hips — held together by cords that are now transparent with water and indistinguishable from the skin behind them. The fabric itself is saturated and dark, clinging flat, the water running off in bright rivulets that catch the midday light. Feet flat on wet stone.",
+    lighting: "Natural overhead midday sun, water catching the light and sparkling on skin and saturated fabric",
+    camera: "Leica SL2, 50mm, body-level angle from outside the shower, sharp on water droplets and fabric detail, 9:16",
   },
   {
     setting: "White bed, rumpled duvet, morning bedroom — simple and intimate",
     pose: "OVERHEAD SELF-SHOT: she holds the camera directly above her face shooting straight down. Hair spread on the pillow, looking directly up into the lens with a soft, direct gaze. Collarbone, chest and midriff visible below her face in the downward frame.",
-    wardrobe: "Matching lingerie set — delicate lace bralette with underwire and thin straps, and high-waisted lace knicker briefs. Neutral/nude colourway. The lace detail is clear and sharp in the overhead light.",
+    wardrobe: "A delicate geometric lattice of fine fabric in ivory — the pattern open enough that skin is visible through it, the construction fitted to the chest and again at the hip. The lace casts tiny shadow-patterns on the skin beneath. In morning light the whole piece glows slightly. The composition reads as intimate fine-art portraiture.",
     lighting: "Soft diffused morning window light, warm and natural, no harsh shadows, intimate and calm",
     camera: "iPhone 16 Pro, straight overhead arm-extended shot, 9:16, hyper-realistic, soft and unfiltered",
   },
   {
     setting: "Full-length mirror in a bedroom or walk-in wardrobe, warm ambient lamp light",
     pose: "FULL-LENGTH MIRROR SHOT FROM BEHIND: she stands with her back to the mirror, looking over her shoulder at the camera held in front of her. The mirror shows her full back, waist, and legs from behind. Face visible in profile looking over one shoulder — creates a front-and-back simultaneous view.",
-    wardrobe: "Cheeky high-cut bikini bottoms — minimal rear coverage, string sides — and a tiny matching bikini top visible in the mirror reflection only. Hair pinned up to expose the full back and neck.",
+    wardrobe: "Two thin cords cross the lower back horizontally — one at the waist, one lower — connecting to a minimal panel of fabric that covers the minimum required. The back from shoulders to waist is entirely unobstructed. Hair is pinned up, exposing the full back and neck. The front reflection adds a second compositional plane.",
     lighting: "Warm amber bedside lamp light, soft and flattering, slight golden tone on skin",
     camera: "iPhone 16 Pro self-shot from the front, full-length mirror showing the back, 9:16, realistic and intimate",
   },
   {
     setting: "Yacht or boat deck, open water behind, clear blue sky, bright Mediterranean light",
     pose: "SITTING ON DECK EDGE — FEET DANGLING: she sits on the boat edge, legs dangling, feet in the foreground. Shot from slightly behind and to the side — capturing her profile, the curve of her waist and hip, and her legs/feet. She looks back toward the camera over her shoulder.",
-    wardrobe: "Tiny triangle string bikini — minimal coverage top with string ties at neck and back, matching micro-cut bottoms with thin hip ties. Thin gold body chain at the waist. Wet hair. Sun-kissed skin.",
+    wardrobe: "Two fabric triangles of white at the chest, cord-tied at the neck and back. Two more at the hips with cord knotted at each side. A fine gold chain follows the waist. Hair sea-salted and loose. Every surface has the warm matte finish of skin in open water sun. Proportionally, fabric is minimal relative to skin.",
     lighting: "Bright open-water sun with sea-reflected bounce light — very clean, high contrast, natural",
     camera: "Sony A7R V, 50mm, slightly behind and to the side, 9:16, sharp on body and feet, water hazy behind",
   },
   {
     setting: "Dimly lit luxury bedroom, blackout curtains, two candles on bedside table, dark silk sheets",
     pose: "LYING ON SIDE — S-CURVE: she is lying on her side on the bed facing the camera, body in a natural S-curve — waist nipped in, hip curve prominent. Head propped on one hand, top leg crossed forward. Low eye-level angle from the bed surface. Direct gaze into camera.",
-    wardrobe: "Matching strappy lingerie set — thin-strap lace bralette with plunge neckline and matching high-cut lace briefs. Dark jewel tone — deep burgundy or black. Fabric minimal, body dominant.",
+    wardrobe: "Dark fabric — deep burgundy, the colour of dried roses — shaped into two fitted pieces. The upper piece is held by straps thin as ribbon. The lower piece sits high on the hip. Both pieces are minimal relative to the skin they frame. Candlelight turns the dark fabric almost black and makes the skin amber. The contrast is the composition.",
     lighting: "Warm flickering candlelight from the bedside — amber tones on skin, deep dramatic shadows, intimate and cinematic",
     camera: "Leica SL2, 50mm, bed-level eye line, shallow DOF, natural film grain, 9:16",
   },
   {
     setting: "Clean bathroom floor, white tiles, sitting against the bath — raw and intimate",
     pose: "FLOOR SHOT — SITTING ON TILES: she is sitting on the bathroom floor, back against the tub, knees pulled up, arms resting loosely on knees. Camera at her eye level, close. Very real and intimate. She looks directly into the lens.",
-    wardrobe: "Just-got-back-from-the-pool look — tiny string bikini still on, wet and clinging. White towel loosely draped over one shoulder only. Bare legs and feet on the tiles. Hair damp and loose.",
+    wardrobe: "Still in the swimwear from the pool — two small saturated panels of fabric and their cords, now damp and dark against the skin. A white cotton towel is draped loosely over one shoulder only, not covering the body. Legs and feet on cool white tiles. Hair damp and loose. The overall read is authentic and unposed.",
     lighting: "Clean bright bathroom overhead light, slightly harsh, very real — the casual intimacy is the appeal",
     camera: "iPhone 16 Pro, close-up, eye level, 9:16, hyper-realistic, no filter",
   },
   {
     setting: "Clifftop or hillside, open sky, dramatic landscape behind, wind moving through her hair",
     pose: "STANDING FULL BODY — LOW ANGLE HERO SHOT: camera at knee level shooting upward. She stands with feet apart, one hand on her hip, chin slightly down, looking directly at the lens from above. Low angle makes her appear tall, sky dramatic behind her.",
-    wardrobe: "Barely-there string bikini in a neutral sand or white tone — tiny triangle top, micro string bottoms tied high on the hips. Wind moving through her hair. Bare feet on rock or grass.",
+    wardrobe: "Two small triangles of pale sand-coloured fabric — one at the chest, one at the hips — attached by cords. The wind presses the fabric flat against the skin and pulls the cords taut. The ratio of fabric to skin is decisively in favour of skin. Feet on earth, hair moving. The image reads as elemental and confident.",
     lighting: "Strong direct golden-hour sunlight from the side, hard shadows contouring the body, dramatic and confident",
     camera: "Leica SL2, 24mm, knee-level shooting up, 9:16, dramatic sky behind, sharp on body",
   },
   {
     setting: "Private villa or hotel suite, plush white rug on the floor, clean luxury interior",
     pose: "ON THE FLOOR — FULL BODY OVERHEAD: she lies on her back on the rug, arms above her head, legs straight and together. Camera directly above, shooting straight down the full length of her body — face at the top of frame, feet at the bottom. Everything visible from this aerial angle.",
-    wardrobe: "Tiny lace bralette — delicate and minimal, lace cups with thin straps — and matching lace high-cut cheeky shorts, semi-sheer lace fabric. Nude/ivory colourway. Detailed lace pattern sharp in the clean light.",
+    wardrobe: "Fine ivory-coloured lattice fabric — cut into two small fitted pieces, one at the chest and one at the hip. The open lacework casts fine shadow-patterns on the skin beneath. From directly above the geometry of the lace and the skin through it is the primary visual detail. The white rug underneath makes the skin tones and shadow patterns luminous.",
     lighting: "Soft even daylight from a nearby window, white rug creating a natural reflective fill — clean, editorial, no harsh shadows",
     camera: "Sony A1, 35mm from directly above, 9:16 portrait, full body head-to-toe, hyper-sharp",
   },
   {
     setting: "Edge of a luxury hotel bed, feet and lower legs as the compositional foreground",
-    pose: "FEET CLOSE-UP EDITORIAL: camera at bed level, low. Her bare feet are in sharp focus in the foreground — manicured, toenails painted deep red, ankles and lower legs prominent. Her body and face recede into soft focus behind, looking back toward camera over her body.",
-    wardrobe: "Silk satin slip dress — thin spaghetti straps, cut high on the thigh, fabric hitched up and bunched at the hip. No shoes. One leg slightly raised, dress falling back to reveal the leg to the hip.",
+    pose: "FEET CLOSE-UP EDITORIAL: camera at bed level, low. Her feet are in sharp focus in the foreground — manicured, toenails painted deep red, ankles and lower legs prominent. Her body and face recede into soft focus behind, looking back toward camera over her body.",
+    wardrobe: "A silk panel — spaghetti-thin straps, the cut ending high on the thigh. The fabric has ridden up and gathered at the hip so the full length of the leg is exposed from foot to hip. The satin catches warm window light and throws it back as a bright stripe along the hip. No footwear. The leg — from painted toe to where the fabric starts — is the compositional spine.",
     lighting: "Warm golden hour window light, long amber shadows across the bed, warm tone on skin",
     camera: "Leica SL2, 85mm, low bed-level angle, feet in sharp focus, body in shallow DOF, 9:16, golden hour",
   },
   {
     setting: "Dark room at night, floor-to-ceiling window, city lights glowing outside",
     pose: "SILHOUETTE AT NIGHT WINDOW: she stands close to the glass, facing the window, city lights illuminating her from behind. Her form is defined against the glow. She turns her head back toward the camera over one shoulder — face partially lit by the city light.",
-    wardrobe: "Tiny string bikini — the backlight reveals the silhouette of the body, the bikini strings and minimal fabric visible as thin lines of light. Form and shape dominant. Nothing explicit.",
+    wardrobe: "Against the city backlight the figure reads as a silhouette — the cords at the neck and sides of the hips are the only visible structural lines, glowing white against the dark. The fabric panels are indistinguishable from shadow. The shape of the body is expressed entirely through outline and rim-light on the edges of the form. The image reads as fine-art photography.",
     lighting: "City and street glow from outside as the only light source — strong backlight, body silhouetted, rim light on hair and shoulder edges, face lit by ambient city glow",
     camera: "Sony A7R V, 50mm, silhouette exposure, 9:16, cinematic, editorial",
   },
@@ -223,9 +241,12 @@ async function generatePost(apiKey, persona, platform, pillar, postIndex, usedHo
   const creativeAngle = CREATIVE_ANGLES[angleIndex];
   const trends = cachedTrends || "";
 
+  const personaFiles = loadPersonaFiles(persona.id);
+
   const system = `You are ${persona.name}, a ${fanvueMode ? "subscription content creator with a Fanvue page" : persona.niche + " content creator"}.
-CHARACTER: ${persona.char}
-VOICE: ${persona.voice}
+
+${personaFiles.persona ? `=== WHO YOU ARE ===\n${personaFiles.persona}\n` : `CHARACTER: ${persona.char}`}
+${personaFiles.voice ? `=== YOUR VOICE ===\n${personaFiles.voice}\n` : `VOICE: ${persona.voice}`}
 PLATFORM CONTEXT: You are posting on ${platform.name}. ${platform.purpose}
 ${fanvueMode ? `FANVUE MODE:
 You are a real subscription creator. Your free posts are your funnel — every one must make someone think "I need to see what's on her page". Your Fanvue page is where the premium content lives — exclusive sets, PPV, DMs.
@@ -288,12 +309,17 @@ async function generateImagePrompt(apiKey, persona, post, postIndex) {
   const shot = IMG_SHOTS[postIndex % IMG_SHOTS.length];
   const hook = (post.hook || "").trim();
 
-  // Build all field values in JS — Gemini just echoes back valid JSON
-  const identityLock = `IDENTITY LOCK — HIGHEST PRIORITY: This is ${persona.name}. Use reference_image_1.png as the face source. Composite that exact face — same eye colour, same nose shape, same lip shape, same hair colour and texture — onto the body in this scene. Zero facial drift permitted. The face must be photorealistic and match the reference exactly. Seamless neck and jawline blend.`;
+  // Load flux.md for this persona to get locked physical descriptors
+  const personaFiles = loadPersonaFiles(persona.id);
+  const fluxNote = personaFiles.flux
+    ? `PHYSICAL DESCRIPTORS (from flux.md — these are locked and must not drift):\n${personaFiles.flux.split("## SECTION 2")[0].replace(/^# flux\.md.*\n/, "").trim()}`
+    : "";
+
+  // Build all field values in JS — no LLM call, avoids parse failures
+  const identityLock = `IDENTITY LOCK — HIGHEST PRIORITY: This is ${persona.name}. Use reference_image_1.png as the face source. Composite that exact face — same eye colour, same nose shape, same lip shape, same hair colour and texture — onto the body in this scene. Zero facial drift permitted. The face must be photorealistic and match the reference exactly. Seamless neck and jawline blend.${fluxNote ? " " + fluxNote : ""}`;
   const subjectDesc = `${persona.name} — ${shot.pose}. Her expression matches the energy of: "${hook}". Confidence, direct eye contact where specified, body language intentional and powerful.`;
   const angleNote = shot.pose.match(/HIGH ANGLE|LOW ANGLE|OVERHEAD|FLOOR|MIRROR|FEET|SILHOUETTE/i)?.[0] || "eye-level";
 
-  // Build the prompt object directly — no LLM needed, avoids parse failures
   return {
     identity_lock: identityLock,
     shot_angle: angleNote,
