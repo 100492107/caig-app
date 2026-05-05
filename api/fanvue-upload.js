@@ -109,7 +109,7 @@ export async function uploadImageToFanvue(imageUrl, sessionToken, filename) {
 
   if (!presignedUrl) {
     const step2Body = JSON.stringify({
-      json: { mediaUuid, uploadId, partNumber },
+      json: { media_uuid: mediaUuid, uploadId, partNumber },
     });
     const step2Res = await fetch(`${TRPC}/media.getMediaMultipartUploadUrl`, {
       method: "POST",
@@ -117,7 +117,7 @@ export async function uploadImageToFanvue(imageUrl, sessionToken, filename) {
       body: step2Body,
     });
     const step2Text = await step2Res.text();
-    console.log("step2 status:", step2Res.status, "body:", step2Text.slice(0, 500));
+    console.log("step2 status:", step2Res.status, "body:", step2Text.slice(0, 300));
 
     if (!step2Res.ok) {
       throw new Error(`getMediaMultipartUploadUrl failed ${step2Res.status}: ${step2Text}`);
@@ -126,9 +126,10 @@ export async function uploadImageToFanvue(imageUrl, sessionToken, filename) {
     let step2Data;
     try { step2Data = JSON.parse(step2Text); } catch { throw new Error(`step2 non-JSON: ${step2Text}`); }
 
+    // Response is a plain string URL at result.data.json
     const r = step2Data?.result?.data?.json;
-    presignedUrl = r?.url || r?.signedUrl || r?.uploadUrl || r?.signed_url || r?.presigned_url || null;
-    console.log("step2 extracted presignedUrl:", presignedUrl?.slice(0, 80));
+    presignedUrl = typeof r === "string" ? r : (r?.url || r?.signedUrl || r?.uploadUrl || null);
+    console.log("step2 presignedUrl:", presignedUrl?.slice(0, 80));
   }
 
   if (!presignedUrl) {
