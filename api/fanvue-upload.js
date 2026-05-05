@@ -74,56 +74,92 @@ export async function uploadImageToFanvue(imageUrl, sessionToken, filename) {
 
   // Extract fields from tRPC response
   const uploadResult = createData?.result?.data?.json;
-  // Fanvue returns snake_case keys: media_uuid, owner_uuid
+  console.log("step1 full uploadResult:", JSON.stringify(uploadResult));
+
   const mediaUuid = uploadResult?.media_uuid || uploadResult?.uuid || uploadResult?.mediaUuid || uploadResult?.id;
-  const uploadId = uploadResult?.uploadId || uploadResult?.upload_id;
-  const s3Url = uploadResult?.url || uploadResult?.uploadUrl || uploadResult?.parts?.[0]?.url || uploadResult?.parts?.[0]?.signedUrl;
+  const uploadId  = uploadResult?.uploadId   || uploadResult?.upload_id;
+
+  // Fanvue may return the presigned URL in parts[0] under various field names
+  const part0 = uploadResult?.parts?.[0];
+  const s3Url =
+    uploadResult?.url          ||
+    uploadResult?.uploadUrl    ||
+    uploadResult?.signed_url   ||
+    uploadResult?.presigned_url||
+    part0?.url                 ||
+    part0?.signedUrl           ||
+    part0?.signed_url          ||
+    part0?.presignedUrl        ||
+    part0?.upload_url          ||
+    part0?.uploadUrl           ||
+    null;
+
   console.log("step1 extracted:", { mediaUuid, uploadId, s3Url: s3Url?.slice(0, 80) });
 
-  if (!mediaUuid) throw new Error(`No mediaUuid from createMediaMultipartUpload: ${JSON.stringify(createData)}`);
-  if (!uploadId) throw new Error(`No uploadId from createMediaMultipartUpload: ${JSON.stringify(createData)}`);
+  if (!mediaUuid) throw new Error(`No mediaUuid. Step1 raw: ${JSON.stringify(createData)}`);
+  if (!uploadId)  throw new Error(`No uploadId. Step1 raw: ${JSON.stringify(createData)}`);
 
   // ----------------------------------------------------------------
-  // STEP 2: GET the S3 presigned URL via media.getMediaMultipartUploadUrl
-  // Fanvue registers this as a tRPC mutation → must POST with body input
+  // STEP 2: Get S3 presigned URL via media.getMediaMultipartUploadUrl
+  // tRPC queries use GET; mutations use POST. Try GET first, then POST.
   // ----------------------------------------------------------------
   const partNumber = 1;
+  let presignedUrl = s3Url; // use step-1 URL if Fanvue included it
 
-  // Try POST first (mutation); fall back to GET (query) if 405
-  let presignedUrl = s3Url; // may already be set from step 1
   if (!presignedUrl) {
-    const getUrlBody = {
-      json: {
-        media_uuid: mediaUuid,
-        partNumber: partNumber,
-        uploadId: uploadId,
-      },
-    };
-    let getUrlRes = await fetch(`${TRPC}/media.getMediaMultipartUploadUrl`, {
-      method: "POST",
-      headers: fanvueHeaders(sessionToken),
-      body: JSON.stringify(getUrlBody),
+    const inputPayload = JSON.stringify({
+      json: { media_uuid: mediaUuid, partNumber, uploadId },
     });
-    // Some tRPC versions use GET for queries — try both
-    if (!getUrlRes.ok && getUrlRes.status === 405) {
-      const getUrlParams = encodeURIComponent(JSON.stringify(getUrlBody));
+
+    // Attempt 1: GET (standard tRPC query)
+    let getUrlRes = await fetch(
+      `${TRPC}/media.getMediaMultipartUploadUrl?input=${encodeURIComponent(inputPayload)}`,
+      { method: "GET", headers: fanvueHeaders(sessionToken) }
+    );
+    console.log("step2 GET status:", getUrlRes.status);
+
+    // Attempt 2: POST (tRPC mutation)
+    if (!getUrlRes.ok) {
+      getUrlRes = await fetch(`${TRPC}/media.getMediaMultipartUploadUrl`, {
+        method: "POST",
+        headers: fanvueHeaders(sessionToken),
+        body: inputPayload,
+      });
+      console.log("step2 POST status:", getUrlRes.status);
+    }
+
+    // Attempt 3: tRPC batch format (used by Fanvue's Next.js frontend)
+    if (!getUrlRes.ok) {
+      const batchInput = encodeURIComponent(JSON.stringify({ "0": { json: { media_uuid: mediaUuid, partNumber, uploadId } } }));
       getUrlRes = await fetch(
-        `${TRPC}/media.getMediaMultipartUploadUrl?input=${getUrlParams}`,
+        `${TRPC}/media.getMediaMultipartUploadUrl?batch=1&input=${batchInput}`,
         { method: "GET", headers: fanvueHeaders(sessionToken) }
       );
+      console.log("step2 batch GET status:", getUrlRes.status);
     }
+
     if (!getUrlRes.ok) {
       const err = await getUrlRes.text();
-      throw new Error(`getMediaMultipartUploadUrl failed ${getUrlRes.status}: ${err}`);
+      throw new Error(`getMediaMultipartUploadUrl all attempts failed ${getUrlRes.status}: ${err}`);
     }
+
     const getUrlData = await getUrlRes.json();
-    console.log("getMediaMultipartUploadUrl response:", JSON.stringify(getUrlData));
+    console.log("step2 response:", JSON.stringify(getUrlData));
+
+    // Extract URL from various response shapes
+    const r = Array.isArray(getUrlData) ? getUrlData[0]?.result?.data?.json : getUrlData?.result?.data?.json;
     presignedUrl =
+      r?.url          ||
+      r?.uploadUrl    ||
+      r?.signed_url   ||
+      r?.presigned_url||
+      r?.signedUrl    ||
       getUrlData?.result?.data?.json?.url ||
-      getUrlData?.result?.data?.json?.uploadUrl;
+      getUrlData?.result?.data?.json?.uploadUrl ||
+      null;
   }
 
-  if (!presignedUrl) throw new Error("No presigned S3 URL from step 1 or step 2");
+  if (!presignedUrl) throw new Error(`No presigned S3 URL. Step1 result: ${JSON.stringify(uploadResult)}`);
 
   // ----------------------------------------------------------------
   // STEP 3: PUT raw bytes to S3 presigned URL
