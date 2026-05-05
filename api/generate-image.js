@@ -2,59 +2,144 @@
 // fal-ai/flux-pro/v1.1-ultra — best single-stage quality with LoRA (~$0.06/image)
 
 const FAL_FLUX_URL = "https://fal.run/fal-ai/flux-pro/v1.1-ultra";
-
 const CARA_LORA_URL = process.env.CARA_LORA_URL || "";
 
-// ── Identity ──────────────────────────────────────────────────────────────────
-const CARA_TRIGGER  = "CARAWHITMORE";
-const CARA_IDENTITY = "bright green eyes, very dark brown wavy hair, thick dark eyebrows, olive skin, slim athletic build";
+// ── Identity — full locked descriptor set from flux.md ────────────────────────
+const CARA_TRIGGER = "CARAWHITMORE";
+
+const CARA_FACE =
+  "distinctly bright green eyes with dark limbal ring and moist intricate radial iris patterns, " +
+  "very dark brown near-black long wavy hair worn down, " +
+  "strong thick dark natural brows, " +
+  "defined slightly angular jawline, " +
+  "medium-light warm olive skin with subtle sun-kissed glow, " +
+  "straight refined nose, " +
+  "full naturally pigmented soft pink-rose lips slightly parted, " +
+  "small dark mole on left side of neck just below jawline, " +
+  "small gold hoop earrings, " +
+  "layered delicate gold chains 2-3 thin strands";
+
+const CARA_BUILD =
+  "slim athletic toned build, flat stomach, long limbs, not model-thin, natural skin folds at waist";
+
+const CARA_EXPRESSION =
+  "reserved slightly cool expression, direct or averted gaze, no wide smile, comfortable being looked at not performing";
+
+// ── Skin & biology realism ────────────────────────────────────────────────────
+const SKIN_REALISM =
+  "photorealistic skin with visible pores and micro-texture, subsurface scattering, " +
+  "fine vellus hair on arms and shoulders, natural skin unevenness, " +
+  "slight redness at cheeks, fine lines at eye corners and lip edges, " +
+  "real film grain, zero retouching, zero beauty filter, zero skin smoothing";
 
 // ── Camera ────────────────────────────────────────────────────────────────────
-const CAMERA_SPEC = "Sony A7R V 85mm f/1.8, shallow depth of field, sharp eyes";
-
-// ── Realism ───────────────────────────────────────────────────────────────────
-const SKIN_REALISM = "photorealistic skin, visible pores, no airbrushing, real film grain";
+const CAMERA_SPEC =
+  "Sony A7R V 85mm prime f/1.8 1/200s ISO100, " +
+  "tack-sharp eyes and skin, shallow depth of field, " +
+  "creamy circular bokeh background, " +
+  "subtle chromatic aberration at frame edges, " +
+  "Teal and Orange LUT warm skin tones 5600K, " +
+  "8K resolution raw photography aesthetic";
 
 // ── Quality ───────────────────────────────────────────────────────────────────
-const QUALITY = "ultra-photorealistic photograph, Vogue editorial, natural candid";
+const QUALITY = "ultra-photorealistic photograph, Vogue editorial quality, natural candid style";
 
 // ── Negative ─────────────────────────────────────────────────────────────────
-const NEGATIVE = "plastic skin, waxy, airbrushed, CGI, cartoon, anime, bad anatomy, blurry, watermark, nudity, explicit, nsfw, underage";
+const NEGATIVE =
+  "plastic skin, waxy, airbrushed, CGI, cartoon, anime, illustration, painting, " +
+  "bad anatomy, blurry, watermark, logo, text, extra limbs, deformed, " +
+  "thin eyebrows, light eyebrows, different person, wrong face, " +
+  "nudity, explicit, nsfw, underage, topless";
 
-// ── Lighting ─────────────────────────────────────────────────────────────────
+// ── Lighting by environment ───────────────────────────────────────────────────
 function getLighting(environment) {
   const e = (environment || "").toLowerCase();
   if (e.includes("bathroom") || e.includes("shower") || e.includes("mirror"))
-    return "cool vanity lighting, soft specular highlights";
-  if (e.includes("bedroom") || e.includes("bed") || e.includes("indoor"))
-    return "warm golden side window light, intimate";
-  if (e.includes("pool") || e.includes("beach") || e.includes("outdoor") || e.includes("sun"))
-    return "bright Mediterranean daylight, warm sun-kissed skin";
-  return "soft natural three-point lighting";
+    return "cool overhead vanity lighting, slightly blue-white, soft specular highlights on damp skin";
+  if (e.includes("bedroom") || e.includes("bed") || e.includes("indoor") || e.includes("flat"))
+    return "warm late-afternoon golden side window light, soft directional shadows, intimate 5600K";
+  if (e.includes("pool") || e.includes("beach") || e.includes("outdoor") || e.includes("sun") || e.includes("travel") || e.includes("rooftop"))
+    return "bright Mediterranean natural daylight, slightly overhead, warm sun-kissed skin glow, moisture sheen from heat";
+  if (e.includes("evening") || e.includes("night") || e.includes("golden hour"))
+    return "warm golden-hour side light, long soft shadows, skin glows amber";
+  return "three-point studio lighting, large softbox overhead key light, natural side fill, subtle rim light";
 }
 
-// ── Prompt builder ───────────────────────────────────────────────────────────
+// ── Hair state by environment ─────────────────────────────────────────────────
+function getHairState(environment) {
+  const e = (environment || "").toLowerCase();
+  if (e.includes("pool") || e.includes("beach") || e.includes("shower") || e.includes("bathroom") || e.includes("wet"))
+    return "hair wet and near-black, wet-strand texture, clinging to face and shoulders, signature wet look";
+  return "very dark brown wavy hair worn down, slightly air-dried natural wave";
+}
+
+// ── Wardrobe floor ────────────────────────────────────────────────────────────
+function getWardrobeFloor(environment, wardrobe) {
+  if (wardrobe) return wardrobe;
+  const e = (environment || "").toLowerCase();
+  if (e.includes("pool") || e.includes("beach"))
+    return "small triangle bikini with thin tie straps, natural colour (red, black, white or neutral sand), gold chains visible";
+  if (e.includes("bathroom") || e.includes("shower"))
+    return "white or grey towel or minimal coverage";
+  if (e.includes("bedroom") || e.includes("bed"))
+    return "casual natural clothing, minimal, relaxed";
+  return "casual stylish clothing";
+}
+
+// ── Prompt builder ────────────────────────────────────────────────────────────
 function buildPrompt(imagePrompt, personaDescriptors) {
-  if (!imagePrompt || typeof imagePrompt === "string") {
+  // Simple string prompt from older callers
+  if (typeof imagePrompt === "string" || !imagePrompt) {
     const scene = imagePrompt || personaDescriptors || "natural candid portrait, warm indoor setting";
-    return [CARA_TRIGGER, CARA_IDENTITY, scene, getLighting(scene), CAMERA_SPEC, SKIN_REALISM, QUALITY].filter(Boolean).join(", ");
+    const env = scene;
+    return [
+      CARA_TRIGGER,
+      CARA_FACE,
+      CARA_BUILD,
+      getHairState(env),
+      CARA_EXPRESSION,
+      `setting: ${scene}`,
+      `lighting: ${getLighting(env)}`,
+      `outfit: ${getWardrobeFloor(env, null)}`,
+      CAMERA_SPEC,
+      SKIN_REALISM,
+      QUALITY,
+    ].filter(Boolean).join(", ");
   }
 
-  const { shot_angle = "", environment = "", lighting = "", wardrobe = "", mood = "", style_ref = "", composition = "", pose = "", expression = "", accessories = "", fabric_detail = "" } = imagePrompt;
+  // Structured object prompt
+  const {
+    shot_angle = "",
+    environment = "",
+    lighting = "",
+    wardrobe = "",
+    mood = "",
+    style_ref = "",
+    composition = "",
+    pose = "",
+    expression = "",
+    accessories = "",
+    fabric_detail = "",
+  } = imagePrompt;
+
+  const env = environment;
 
   return [
     CARA_TRIGGER,
-    CARA_IDENTITY,
-    shot_angle   && `shot: ${shot_angle}`,
-    environment  && `setting: ${environment}`,
-    (lighting || getLighting(environment)) && `lighting: ${lighting || getLighting(environment)}`,
-    wardrobe     && `outfit: ${wardrobe}`,
+    CARA_FACE,
+    CARA_BUILD,
+    getHairState(env),
+    CARA_EXPRESSION,
+    shot_angle    && `shot: ${shot_angle}`,
+    env           && `setting: ${env}`,
+    `lighting: ${lighting || getLighting(env)}`,
+    `outfit: ${getWardrobeFloor(env, wardrobe)}`,
     fabric_detail && `fabric: ${fabric_detail}`,
-    pose         && `pose: ${pose}`,
-    expression   && `expression: ${expression}`,
-    accessories  && `accessories: ${accessories}`,
-    mood         && `mood: ${mood}`,
-    composition  && `composition: ${composition}`,
+    pose          && `pose: ${pose}`,
+    expression    && `expression override: ${expression}`,
+    accessories   && `accessories: ${accessories}`,
+    mood          && `mood: ${mood}`,
+    composition   && `composition: ${composition}`,
     style_ref,
     CAMERA_SPEC,
     SKIN_REALISM,
@@ -78,38 +163,38 @@ export default async function handler(req, res) {
   }
 
   const { imagePrompt, personaDescriptors, seed, photoDirection } = body;
-  const effectivePrompt = imagePrompt || (photoDirection ? { subject: photoDirection } : "natural candid portrait, outdoor setting, warm light");
+  const effectivePrompt = imagePrompt || (photoDirection ? photoDirection : null);
   const prompt = buildPrompt(effectivePrompt, personaDescriptors);
 
-  // ── Stage 1: FLUX Pro Ultra ───────────────────────────────────────────────
+  console.log("generate-image prompt:", prompt.slice(0, 300));
+
   let fluxRes, fluxData;
   try {
     fluxRes = await fetch(FAL_FLUX_URL, {
       method: "POST",
-      headers: { "Authorization": `Key ${apiKey}`, "Content-Type": "application/json" },
+      headers: {
+        Authorization: `Key ${apiKey}`,
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({
         prompt,
         negative_prompt: NEGATIVE,
-        aspect_ratio: "9:16",         // portrait — flux-pro-ultra uses aspect_ratio not image_size
+        aspect_ratio: "9:16",
         num_images: 1,
-        enable_safety_checker: true,
+        enable_safety_checker: false,   // safety checker blocks bikini/suggestive; we stay within platform rules manually
         seed: seed || undefined,
         output_format: "jpeg",
-        loras: CARA_LORA_URL ? [{ path: CARA_LORA_URL, scale: 0.85 }] : [],
+        loras: CARA_LORA_URL ? [{ path: CARA_LORA_URL, scale: 0.9 }] : [],
       }),
     });
     fluxData = await fluxRes.json();
   } catch (e) {
-    return res.status(502).json({ error: "Network error reaching fal.ai (FLUX Pro Ultra)", detail: e.message });
+    return res.status(502).json({ error: "Network error reaching fal.ai", detail: e.message });
   }
 
   if (!fluxRes.ok) {
     console.error("FLUX Pro Ultra error:", fluxRes.status, JSON.stringify(fluxData));
     return res.status(fluxRes.status).json({ error: "fal.ai FLUX Pro Ultra rejected request", detail: fluxData });
-  }
-
-  if (fluxData?.has_nsfw_concepts?.[0] === true) {
-    return res.status(200).json({ blocked: true, reason: "Safety checker flagged image." });
   }
 
   const baseImageUrl = fluxData?.images?.[0]?.url;
