@@ -9,8 +9,8 @@ const FAL_NANO_BANANA_URL = "https://fal.run/fal-ai/nano-banana-pro/edit";
 const CARA_LORA_URL = process.env.CARA_LORA_URL || "";
 
 // ── Core identity lock — injected into every generation ──────────────────────
+const CARA_TRIGGER = "CARAWHITMORE";
 const CARA_IDENTITY = [
-  "CARAWHITMORE",
   "distinctly bright green eyes with dark limbal ring",
   "very dark brown near-black long hair with natural wave",
   "strong thick dark eyebrows",
@@ -107,6 +107,7 @@ function buildFluxPrompt(imagePrompt, personaDescriptors) {
   if (!imagePrompt || typeof imagePrompt === "string") {
     const scene = imagePrompt || personaDescriptors || "natural candid portrait, warm indoor setting";
     return [
+      CARA_TRIGGER,
       CARA_IDENTITY,
       scene,
       getLightingRig(scene),
@@ -134,6 +135,7 @@ function buildFluxPrompt(imagePrompt, personaDescriptors) {
   const lightingFinal = lighting || getLightingRig(environment);
 
   return [
+    CARA_TRIGGER,
     CARA_IDENTITY,
     shot_angle && `shot: ${shot_angle}`,
     environment && `setting: ${environment}`,
@@ -208,7 +210,7 @@ export default async function handler(req, res) {
         enable_safety_checker: true,
         seed: seed || undefined,
         output_format: "jpeg",
-        loras: CARA_LORA_URL ? [{ path: CARA_LORA_URL, scale: 1.0 }] : [],
+        loras: CARA_LORA_URL ? [{ path: CARA_LORA_URL, scale: 0.85 }] : [],
       }),
     });
     fluxData = await fluxRes.json();

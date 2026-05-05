@@ -108,7 +108,7 @@ export async function uploadImageToFanvue(imageUrl, sessionToken, filename) {
 
   if (!presignedUrl) {
     const inputPayload = JSON.stringify({
-      json: { media_uuid: mediaUuid, partNumber, uploadId },
+      json: { mediaUuid: mediaUuid, partNumber, uploadId },
     });
 
     // Attempt 1: GET (standard tRPC query)
@@ -130,7 +130,7 @@ export async function uploadImageToFanvue(imageUrl, sessionToken, filename) {
 
     // Attempt 3: tRPC batch format (used by Fanvue's Next.js frontend)
     if (!getUrlRes.ok) {
-      const batchInput = encodeURIComponent(JSON.stringify({ "0": { json: { media_uuid: mediaUuid, partNumber, uploadId } } }));
+      const batchInput = encodeURIComponent(JSON.stringify({ "0": { json: { mediaUuid: mediaUuid, partNumber, uploadId } } }));
       getUrlRes = await fetch(
         `${TRPC}/media.getMediaMultipartUploadUrl?batch=1&input=${batchInput}`,
         { method: "GET", headers: fanvueHeaders(sessionToken) }
