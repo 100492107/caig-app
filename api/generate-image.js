@@ -10,95 +10,30 @@ const CARA_LORA_URL = process.env.CARA_LORA_URL || "";
 
 // ── Core identity lock — injected into every generation ──────────────────────
 const CARA_TRIGGER = "CARAWHITMORE";
-const CARA_IDENTITY = [
-  "distinctly bright green eyes with dark limbal ring",
-  "very dark brown near-black long hair with natural wave",
-  "strong thick dark eyebrows",
-  "defined slightly angular jawline",
-  "medium-light warm olive skin tone",
-  "small dark mole on left side of neck below jawline",
-  "layered delicate gold chains",
-  "small gold hoop earrings",
-  "slim athletic toned build",
-  "full naturally pigmented lips slightly parted",
-].join(", ");
+const CARA_IDENTITY = "bright green eyes, very dark brown wavy hair, thick dark eyebrows, olive skin, slim athletic build";
 
 // ── Camera & sensor simulation ────────────────────────────────────────────────
-const CAMERA_SPEC = [
-  "Sony A7R V",
-  "85mm prime lens",
-  "f/1.8 aperture",
-  "1/200s shutter speed",
-  "ISO 100",
-  "shallow depth of field",
-  "tack-sharp focus on eyes and skin",
-  "circular creamy bokeh background",
-  "high dynamic range",
-  "extremely subtle chromatic aberration at edges",
-].join(", ");
+const CAMERA_SPEC = "Sony A7R V 85mm f/1.8, shallow depth of field, sharp focus on eyes";
 
 // ── Skin & biology realism ────────────────────────────────────────────────────
-const SKIN_REALISM = [
-  "pore-level skin micro-texture",
-  "hyper-realistic visible pores",
-  "fine vellus hair on skin surface",
-  "subsurface scattering — physically accurate light absorption through skin",
-  "natural skin unevenness and subtle redness",
-  "fine lines at natural expression points",
-  "realistic moisture sheen where appropriate",
-  "subtle venous detail on hands",
-  "moist iris with intricate radial patterns and realistic light reflections",
-  "natural skin folds at waist and joints",
-  "realistic fabric tension against skin",
-  "zero retouching, zero airbrushing, zero skin smoothing",
-  "real film grain",
-].join(", ");
+const SKIN_REALISM = "photorealistic skin texture, visible pores, natural skin, no airbrushing, real film grain";
 
 // ── Quality and style globals ─────────────────────────────────────────────────
-const QUALITY_POSITIVE = [
-  "ultra-photorealistic",
-  "raw photography style",
-  "8K resolution",
-  "masterpiece",
-  "highly detailed textures",
-  "sharp optics",
-  "Vogue editorial quality",
-  "candid unstaged natural pose",
-  "raw unedited photograph aesthetic",
-  "teal and orange color grading — warm skin tones, neutral whites",
-  "clean professional color grading",
-  "photojournalistic",
-].join(", ");
+const QUALITY_POSITIVE = "ultra-photorealistic photograph, raw photography, natural candid pose, Vogue editorial";
 
 // ── Negative prompt ───────────────────────────────────────────────────────────
-const FLUX_NEGATIVE_PROMPT = [
-  "anatomical distortion", "warped limbs", "extra limbs", "missing limbs",
-  "deformed hands", "extra fingers", "mangled hands", "bad anatomy",
-  "low resolution", "blurry", "soft focus",
-  "plastic skin", "waxy skin", "airbrushed skin", "smooth skin", "perfect skin",
-  "retouched", "beauty filter", "overprocessed", "CGI look",
-  "facial distortion", "face drift from reference", "identity drift",
-  "wrong eye colour", "wrong hair colour", "thin eyebrows", "light eyebrows",
-  "underage appearance", "watermark", "text", "logo",
-  "cartoonish", "anime", "illustration", "painting", "render", "CGI", "3D", "fake",
-  "nudity", "bare breasts", "topless", "nsfw", "explicit",
-  "mutation", "ugly", "disfigured",
-].join(", ");
+const FLUX_NEGATIVE_PROMPT = "plastic skin, waxy skin, airbrushed, smooth skin, beauty filter, CGI, cartoon, anime, 3D render, bad anatomy, extra limbs, deformed hands, blurry, watermark, text, nudity, explicit, nsfw, underage";
 
 // ── Lighting rigs ─────────────────────────────────────────────────────────────
 function getLightingRig(environment) {
   const env = (environment || "").toLowerCase();
-  if (env.includes("bathroom") || env.includes("shower") || env.includes("mirror")) {
-    return "cool overhead vanity lighting, slightly blue-white, even illumination, soft specular highlights on damp skin and tiles";
-  }
-  if (env.includes("bedroom") || env.includes("bed") || env.includes("indoor")) {
-    return "warm late-afternoon side window light, golden soft directional shadows, gentle highlights on skin and white linen, intimate atmosphere, 5600K colour temperature";
-  }
-  if (env.includes("pool") || env.includes("beach") || env.includes("outdoor") || env.includes("travel") || env.includes("sun")) {
-    return "bright natural Mediterranean daylight, slightly overhead, skin glows with warm sun-kissed sheen, strong contrast, hard shadow edges softened by reflective water surface";
-  }
-  // Default: three-point studio-style natural light
-  return "three-point lighting setup, large softbox overhead as key light, translucent natural side fill, subtle rim light separating subject from background, soft feathered shadows, specular highlights on lips and skin";
+  if (env.includes("bathroom") || env.includes("shower") || env.includes("mirror"))
+    return "cool vanity lighting, soft specular highlights";
+  if (env.includes("bedroom") || env.includes("bed") || env.includes("indoor"))
+    return "warm golden side window light, soft shadows, intimate";
+  if (env.includes("pool") || env.includes("beach") || env.includes("outdoor") || env.includes("sun"))
+    return "bright Mediterranean daylight, warm sun-kissed skin, strong contrast";
+  return "soft natural three-point lighting, gentle shadows";
 }
 
 // ── Main prompt builder ───────────────────────────────────────────────────────
