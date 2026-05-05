@@ -2247,6 +2247,7 @@ function ReviewQueue({ toast_ }) {
   const [uploading, setUploading] = useState({}); // postId → true while uploading
   const [posting, setPosting]   = useState({});   // postId → true while posting to Fanvue
   const [images, setImages]     = useState({});   // postId → { url, localPreview }
+  const [generating, setGenerating] = useState({}); // postId → true while generating via fal.ai
   const fileRefs = useRef({});
 
   async function loadDrafts() {
@@ -2254,7 +2255,6 @@ function ReviewQueue({ toast_ }) {
     const { data, error } = await supabase
       .from("content_queue")
       .select("id,persona_id,platform,hook,caption,cta,hashtags,image_prompt,photo_direction,shot_angle,wardrobe,scheduled_date,scheduled_time,status,image_url")
-      .eq("platform", "fanvue")
       .in("status", ["draft", "error"])
       .order("scheduled_date", { ascending: true })
       .order("scheduled_time", { ascending: true })
@@ -2301,6 +2301,46 @@ function ReviewQueue({ toast_ }) {
       setImages(im => { const n = { ...im }; delete n[post.id]; return n; });
     }
     setUploading(u => ({ ...u, [post.id]: false }));
+  }
+
+  // Generate image via fal.ai LoRA — no manual upload needed
+  async function generateImage(post) {
+    setGenerating(g => ({ ...g, [post.id]: true }));
+    try {
+      const res = await fetch("/api/generate-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          imagePrompt: post.image_prompt,
+          personaDescriptors: "CARAWHITMORE, dark near-black hair, vivid green eyes, early 30s, photorealistic",
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Generation failed");
+      if (data.blocked) { toast_("Image blocked by safety checker — regenerating won't help, adjust prompt", "warn"); return; }
+      if (!data.imageUrl) throw new Error("No image URL returned");
+
+      // Save to Supabase Storage so it persists
+      const imgRes = await fetch(data.imageUrl);
+      const blob = await imgRes.blob();
+      const path = `cara/posts/${post.id}_${Date.now()}.jpg`;
+      const { error: upErr } = await supabase.storage
+        .from("post-images")
+        .upload(path, blob, { contentType: "image/jpeg", upsert: true });
+      if (upErr) throw new Error(upErr.message);
+
+      const { data: urlData } = supabase.storage.from("post-images").getPublicUrl(path);
+      const publicUrl = urlData?.publicUrl;
+      if (!publicUrl) throw new Error("Could not get public URL");
+
+      // Save to DB
+      await supabase.from("content_queue").update({ image_url: publicUrl }).eq("id", post.id);
+      setImages(im => ({ ...im, [post.id]: { url: publicUrl, localPreview: publicUrl } }));
+      toast_("Image generated — review and post!", "ok");
+    } catch (e) {
+      toast_(`Generation failed: ${e.message}`, "error");
+    }
+    setGenerating(g => ({ ...g, [post.id]: false }));
   }
 
   // Post Now: upload image to Fanvue + publish immediately
@@ -2412,8 +2452,9 @@ function ReviewQueue({ toast_ }) {
           const displayImg = imgState?.localPreview || imgState?.url || post.image_url;
           const isUploading = uploading[post.id];
           const isPosting   = posting[post.id];
+          const isGenerating = generating[post.id];
           const hasUrl      = !!(imgState?.url || post.image_url);
-          const busy        = isUploading || isPosting;
+          const busy        = isUploading || isPosting || isGenerating;
 
           return (
             <div key={post.id} style={{
@@ -2468,11 +2509,25 @@ function ReviewQueue({ toast_ }) {
                   <div style={{ textAlign: "center", color: "var(--t4)", fontSize: 13, padding: 32 }}>
                     {isUploading ? (
                       <div>Uploading…</div>
+                    ) : generating[post.id] ? (
+                      <div style={{ textAlign: "center", color: "var(--t3)", fontSize: 13, padding: 32 }}>
+                        <div style={{ fontSize: 28, marginBottom: 10 }}>⚡</div>
+                        <div style={{ fontWeight: 600, color: "var(--t2)", marginBottom: 4 }}>Generating with Cara LoRA…</div>
+                        <div style={{ fontSize: 12 }}>Usually takes 10–20 seconds</div>
+                      </div>
                     ) : (
                       <>
-                        <div style={{ fontSize: 36, marginBottom: 10 }}>↑</div>
-                        <div style={{ fontWeight: 600, color: "var(--t2)", marginBottom: 4 }}>Click to upload image</div>
-                        <div style={{ fontSize: 12 }}>JPG, PNG or WebP · max 20MB</div>
+                        <div style={{ fontSize: 36, marginBottom: 10 }}>🖼️</div>
+                        <div style={{ fontWeight: 600, color: "var(--t2)", marginBottom: 8 }}>No image yet</div>
+                        <button
+                          onClick={e => { e.stopPropagation(); generateImage(post); }}
+                          style={{
+                            padding: "8px 18px", borderRadius: 8, border: "none",
+                            background: "var(--b1)", color: "#fff",
+                            fontSize: 13, fontWeight: 700, cursor: "pointer", marginBottom: 8,
+                          }}
+                        >⚡ Generate Image</button>
+                        <div style={{ fontSize: 12, color: "var(--t4)" }}>or click to upload manually</div>
                       </>
                     )}
                   </div>
