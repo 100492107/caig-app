@@ -5,8 +5,20 @@
     },
     "api/generate-batch.js": {
       "maxDuration": 300
+    },
+    "api/cron-publish.js": {
+      "maxDuration": 60
+    },
+    "api/fanvue-post.js": {
+      "maxDuration": 30
     }
   },
+  "crons": [
+    {
+      "path": "/api/cron-publish",
+      "schedule": "*/5 * * * *"
+    }
+  ],
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/(.*)", "destination": "/index.html" }
