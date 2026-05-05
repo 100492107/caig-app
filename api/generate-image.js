@@ -16,17 +16,15 @@ function buildFluxPrompt(imagePrompt, personaDescriptors) {
   return [
     "CARAWHITMORE",
     shot_angle, environment, lighting, wardrobe, mood, composition, style_ref,
-    "photorealistic, 8k, sharp focus, professional photography",
+    "photorealistic, shot on Sony A7IV 85mm f/1.4, natural skin texture, visible pores, candid, no retouching, film grain, raw unedited photo",
   ].filter(Boolean).join(", ");
 }
 
 function buildNanoBananaPrompt(photoDirection) {
-  // Nano Banana takes the base image and edits it to be lewd/suggestive
-  // Photo direction from the post gives scene context
   const base = photoDirection
     ? `Edit this image: ${photoDirection}.`
     : "Edit this image.";
-  return `${base} Make the wardrobe more revealing and suggestive — small bikini, lingerie, or barely-there fabric. Keep the same person, face, pose, lighting and setting. Keep it tasteful and lewd but not explicitly nude. Photorealistic, high quality.`;
+  return `${base} Make the wardrobe more revealing and suggestive — small bikini, lingerie, or barely-there fabric. Keep the exact same person, face, skin texture, pose, lighting and setting. Preserve all natural skin imperfections, pores, fine lines — do not smooth or retouch the skin. Shot on Sony A7IV, 85mm f/1.4, natural light. Photojournalistic, candid, raw. Looks like a real unedited photo, not AI generated.`;
 }
 
 const FLUX_NEGATIVE_PROMPT = [
