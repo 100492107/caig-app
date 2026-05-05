@@ -2418,7 +2418,11 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
 
       // Save to DB only if this is a real DB-backed post (not in-memory)
       if (!post._inMemory) {
-        await supabase.from("content_queue").update({ image_url: publicUrl }).eq("id", post.id);
+        await fetch("/api/queue-update", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: post.id, update: { image_url: publicUrl } }),
+        });
       }
       setImages(im => ({ ...im, [post.id]: { url: publicUrl, localPreview: publicUrl } }));
       toast_(`Image ${enhancedMode ? "(Enhanced)" : ""} generated — review and post!`, "ok");
@@ -2483,11 +2487,12 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
     const imageUrl = images[post.id]?.url || post.image_url || null;
     const update = { status: "ready" };
     if (imageUrl) update.image_url = imageUrl;
-    const { error } = await supabase
-      .from("content_queue")
-      .update(update)
-      .eq("id", post.id);
-    if (error) { toast_("Failed to schedule post", "error"); return; }
+    const res = await fetch("/api/queue-update", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: post.id, update }),
+    });
+    if (!res.ok) { toast_("Failed to schedule post", "error"); return; }
     const timeStr = post.scheduled_date ? `${post.scheduled_date} ${post.scheduled_time || ""}`.trim() : "next available slot";
     toast_(`Scheduled for ${timeStr}`, "ok");
     setPosts(p => p.filter(x => x.id !== post.id));
@@ -2496,11 +2501,12 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
 
   // Reject post
   async function reject(post) {
-    const { error } = await supabase
-      .from("content_queue")
-      .update({ status: "rejected" })
-      .eq("id", post.id);
-    if (error) { toast_("Failed to reject post", "error"); return; }
+    const res = await fetch("/api/queue-update", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: post.id, update: { status: "rejected" } }),
+    });
+    if (!res.ok) { toast_("Failed to reject post", "error"); return; }
     toast_("Post rejected", "ok");
     setPosts(p => p.filter(x => x.id !== post.id));
   }

@@ -73,7 +73,8 @@ export async function uploadImageToFanvue(imageUrl, sessionToken, filename) {
 
   // Extract fields from tRPC response
   const uploadResult = createData?.result?.data?.json;
-  const mediaUuid = uploadResult?.uuid || uploadResult?.mediaUuid || uploadResult?.id;
+  // Fanvue returns snake_case keys: media_uuid, owner_uuid
+  const mediaUuid = uploadResult?.media_uuid || uploadResult?.uuid || uploadResult?.mediaUuid || uploadResult?.id;
   const uploadId = uploadResult?.uploadId;
   const s3Url = uploadResult?.url || uploadResult?.uploadUrl || uploadResult?.parts?.[0]?.url;
 
@@ -169,6 +170,7 @@ export async function uploadImageToFanvue(imageUrl, sessionToken, filename) {
 
   // Confirmed mediaUuid from finalise response (should match step 1)
   const confirmedUuid =
+    finaliseData?.result?.data?.json?.media_uuid ||
     finaliseData?.result?.data?.json?.uuid ||
     finaliseData?.result?.data?.json?.mediaUuid ||
     mediaUuid; // fall back to the one we already have

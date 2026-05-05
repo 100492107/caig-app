@@ -67,10 +67,12 @@ export default async function handler(req, res) {
   }
 
   const { imagePrompt, personaDescriptors, seed, enhancedMode, photoDirection } = body;
-  if (!imagePrompt) return res.status(400).json({ error: "imagePrompt required" });
+
+  // If no imagePrompt, build a minimal fallback from photoDirection so old posts still work
+  const effectivePrompt = imagePrompt || (photoDirection ? { subject: photoDirection } : "natural candid portrait, outdoor setting, warm light");
 
   // ── Stage 1: FLUX LoRA base generation ───────────────────────────────────
-  const prompt = buildFluxPrompt(imagePrompt, personaDescriptors);
+  const prompt = buildFluxPrompt(effectivePrompt, personaDescriptors);
 
   let fluxRes, fluxData;
   try {
