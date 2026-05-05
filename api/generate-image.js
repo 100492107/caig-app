@@ -32,24 +32,42 @@ const SKIN_REALISM =
   "slight redness at cheeks, fine lines at eye corners and lip edges, " +
   "real film grain, zero retouching, zero beauty filter, zero skin smoothing";
 
-// ── Camera ────────────────────────────────────────────────────────────────────
+// ── Camera & optics ───────────────────────────────────────────────────────────
 const CAMERA_SPEC =
-  "Sony A7R V 85mm prime f/1.8 1/200s ISO100, " +
-  "tack-sharp eyes and skin, shallow depth of field, " +
-  "creamy circular bokeh background, " +
-  "subtle chromatic aberration at frame edges, " +
-  "Teal and Orange LUT warm skin tones 5600K, " +
-  "8K resolution raw photography aesthetic";
+  "shot on Sony A7R V, 85mm prime lens, aperture f/1.8, shutter 1/200s, ISO 100, " +
+  "tack-sharp critical focus on eyes and skin, " +
+  "shallow depth of field, creamy circular bokeh background, " +
+  "high dynamic range — full shadow and highlight detail retained, " +
+  "realistic optical vignette, " +
+  "extremely subtle chromatic aberration at frame edges only, " +
+  "Teal and Orange colour grade, warm skin tones, neutral whites, 5600K colour temperature, " +
+  "8K resolution, raw photography aesthetic, no digital processing look";
 
 // ── Quality ───────────────────────────────────────────────────────────────────
 const QUALITY = "ultra-photorealistic photograph, Vogue editorial quality, natural candid style";
 
 // ── Negative ─────────────────────────────────────────────────────────────────
 const NEGATIVE =
-  "plastic skin, waxy, airbrushed, CGI, cartoon, anime, illustration, painting, " +
-  "bad anatomy, blurry, watermark, logo, text, extra limbs, deformed, " +
-  "thin eyebrows, light eyebrows, different person, wrong face, " +
-  "nudity, explicit, nsfw, underage, topless";
+  // Face / identity drift
+  "thin eyebrows, light eyebrows, pencil brows, arched brows, different person, wrong face, face swap, " +
+  "grey eyes, brown eyes, hazel eyes, blue eyes, " +
+  "light hair, blonde hair, red hair, straight hair, curly hair, " +
+  "soft jaw, round jaw, chubby face, baby face, " +
+  // Skin quality
+  "plastic skin, waxy skin, airbrushed skin, poreless skin, beauty filter, skin smoothing, " +
+  "oversaturated, blown-out highlights, crushed shadows, overexposed, underexposed, " +
+  // Anatomy
+  "bad anatomy, deformed, extra limbs, missing limbs, fused fingers, mutated hands, " +
+  "bad proportions, distorted body, floating limbs, " +
+  // Optics / technical
+  "lens distortion, fish-eye, wide-angle distortion, barrel distortion, " +
+  "motion blur, out of focus, soft focus, double exposure, chromatic fringe, " +
+  "jpeg artefacts, compression artefacts, pixelated, low resolution, " +
+  // Style
+  "CGI, 3D render, cartoon, anime, illustration, painting, digital art, concept art, " +
+  "watermark, logo, text, signature, border, frame, " +
+  // Content
+  "nudity, explicit, nsfw, underage, topless, genitalia";
 
 // ── Lighting by environment ───────────────────────────────────────────────────
 function getLighting(environment) {
