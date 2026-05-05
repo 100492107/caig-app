@@ -114,9 +114,10 @@ export default async function handler(req, res) {
   }
 
   if (!fanvueRes.ok) {
+    const fanvueMsg = data?.error?.json?.message || data?.error?.message || JSON.stringify(data);
     console.error("Fanvue createPost error:", fanvueRes.status, JSON.stringify(data));
     return res.status(fanvueRes.status).json({
-      error: "Fanvue rejected the post",
+      error: `Fanvue rejected the post (${fanvueRes.status}): ${fanvueMsg}`,
       detail: data,
       fanvue_status: fanvueRes.status,
     });

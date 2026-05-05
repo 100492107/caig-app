@@ -2464,7 +2464,10 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
         }),
       });
       const postData = await postRes.json();
-      if (!postRes.ok) throw new Error(postData.error || "Fanvue post creation failed");
+      if (!postRes.ok) {
+        const detail = postData.detail ? JSON.stringify(postData.detail) : "";
+        throw new Error((postData.error || "Fanvue post creation failed") + (detail ? `: ${detail}` : ""));
+      }
 
       // Mark as posted in DB
       await supabase
