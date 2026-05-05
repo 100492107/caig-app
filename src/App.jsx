@@ -2241,14 +2241,41 @@ function Queue({ queue, setQueue, toast_ }) {
 }
 
 // ─── REVIEW QUEUE ─────────────────────────────────────────────────────────────
-function ReviewQueue({ toast_ }) {
+function ReviewQueue({ toast_, queue = [], setQueue }) {
   const [posts, setPosts]       = useState([]);
   const [loading, setLoading]   = useState(true);
-  const [uploading, setUploading] = useState({}); // postId → true while uploading
-  const [posting, setPosting]   = useState({});   // postId → true while posting to Fanvue
-  const [images, setImages]     = useState({});   // postId → { url, localPreview }
-  const [generating, setGenerating] = useState({}); // postId → true while generating via fal.ai
+  const [uploading, setUploading] = useState({});
+  const [posting, setPosting]   = useState({});
+  const [images, setImages]     = useState({});
+  const [generating, setGenerating] = useState({});
   const fileRefs = useRef({});
+
+  // Merge DB drafts + in-memory queue items into one list
+  function mergeQueues(dbPosts, memQueue) {
+    const dbIds = new Set(dbPosts.map(p => p.id));
+    // Convert in-memory queue items to same shape as DB posts
+    const memPosts = memQueue
+      .filter(i => !dbIds.has(i.id) && !["posted"].includes(i.status))
+      .map(i => ({
+        id:             i.id,
+        persona_id:     i.personaId || "cara",
+        platform:       i.platform || i.platformId || "fanvue",
+        hook:           i.hook,
+        caption:        i.caption,
+        cta:            i.cta,
+        hashtags:       i.hashtags,
+        image_prompt:   i.image_prompt || i.imagePrompt || null,
+        photo_direction: i.photo_direction || i.photoDirection || i.photo_idea || null,
+        shot_angle:     i.shot_angle || i.shotAngle || null,
+        wardrobe:       i.wardrobe || null,
+        scheduled_date: i.date || i.scheduled_date || null,
+        scheduled_time: i.time || i.scheduled_time || null,
+        status:         i.status || "pending",
+        image_url:      i.image_url || i.imageUrl || i.visualAsset || null,
+        _inMemory:      true,
+      }));
+    return [...dbPosts, ...memPosts];
+  }
 
   async function loadDrafts() {
     setLoading(true);
@@ -2260,7 +2287,8 @@ function ReviewQueue({ toast_ }) {
       .order("scheduled_time", { ascending: true })
       .limit(50);
     if (error) toast_("Failed to load drafts", "error");
-    else setPosts(data || []);
+    const dbPosts = data || [];
+    setPosts(mergeQueues(dbPosts, queue));
     setLoading(false);
   }
 
@@ -2435,7 +2463,7 @@ function ReviewQueue({ toast_ }) {
       <div style={{ marginBottom: 24 }}>
         <h2 style={{ fontSize: 20, fontWeight: 700, color: "var(--t0)", margin: 0 }}>Review Queue</h2>
         <p style={{ fontSize: 13, color: "var(--t3)", margin: "6px 0 0" }}>
-          Upload your image from Flow, preview it, then post immediately or schedule.
+          Review generated posts, generate images with Cara's LoRA, then post or schedule.
         </p>
       </div>
 
@@ -5827,7 +5855,7 @@ export default function App() {
           {view === "outreach"   && (canAccess(profile?.tier, "outreach",   profile?.role) ? <Outreach />   : <LockedModule moduleName="Business Health Check" currentTier={profile?.tier} />)}
           {view === "onboarding" && (canAccess(profile?.tier, "onboarding", profile?.role) ? <Onboarding /> : <LockedModule moduleName="Automate Ops"        currentTier={profile?.tier} />)}
           {view === "queue"      && <Queue queue={queue} setQueue={setQueue} toast_={toast_} />}
-          {view === "review"     && <ReviewQueue toast_={toast_} />}
+          {view === "review"     && <ReviewQueue toast_={toast_} queue={queue} setQueue={setQueue} />}
           {view === "calendar"   && <CalView queue={queue} />}
           {view === "settings"   && <Settings queue={queue} setQueue={setQueue} toast_={toast_} />}
           {view === "admin"      && profile?.role === "admin" && <AdminPanel />}
