@@ -7,52 +7,57 @@
 
 | Feature | Locked value |
 |---|---|
-| **Eye colour** | Light hazel — greenish-brown, slightly more green in natural light |
-| **Hair** | Dark ash brown, shoulder-length, naturally slightly wavy. Usually down or in a low clip. Not styled — looks like someone who air-dries. |
-| **Jaw** | Soft, slightly rounded. Not sharp or angular. |
-| **Skin tone** | Light/medium, warm undertone. Light freckling across the nose and upper cheeks. |
-| **Build** | Slim but not model-thin. 5'5". The kind of body that comes from walking a lot in hot countries, not from a gym programme. |
-| **Nose** | Straight, slightly upturned at the tip |
-| **Lips** | Medium fullness, natural colour — no overlined, no gloss in casual shots |
-| **Distinguishing mark** | Small scar on right collarbone — approximately 2cm, horizontal, pale against skin. Slightly raised. Present in at minimum 60% of all generations. Never explained. |
+| **Eye colour** | Distinctly green — bright, clear green with a dark limbal ring. Not hazel, not grey-green. Unmistakably green in all lighting. |
+| **Hair** | Very dark brown — near-black. Long, past shoulder. Natural wave pattern most visible when wet or damp. Worn down always. Often slightly damp-looking, not blow-dried. Never styled into curls. |
+| **Brows** | Strong, thick, dark — one of her most defining features. Well-shaped but natural, not drawn on. Highly consistent — any generation where the brows are thin or light is wrong. |
+| **Jaw** | Defined and slightly angular — clean jawline, not soft or rounded. Visible structure from most angles. |
+| **Skin tone** | Medium-light, warm olive undertone. Glowy, no visible freckling. Looks slightly sun-kissed at all times. No blemishes, no heavy texture — but not filtered either. |
+| **Nose** | Straight, refined, slightly narrow. Proportionate. |
+| **Lips** | Full, naturally pigmented — soft pink-rose with no gloss or liner. Slightly parted in resting expression. |
+| **Build** | Slim, toned. Flat stomach. Not model-thin — athletic without being muscular. |
+| **Ears** | Small gold hoop earrings — worn consistently. Always visible when hair is pushed back or wet. |
+| **Necklace** | Layered delicate gold chains — 2-3 thin strands at different lengths. Present in all pool, beach, and travel shots. This is a consistent accessory. |
+| **Distinguishing mark** | Small dark mole on the left side of the neck, just below the jawline. Approximately 3mm. Always present. Never explained. Visible in close-ups and mid-shots when the neck is exposed. |
 
 ---
 
 ## SECTION 2 — ENVIRONMENT SETUPS WITH SEED RANGES
 
 ### Setup 1 — Flat / Bedroom (seeds 800–900)
-**Lighting:** Warm, late afternoon. Window light from the left. Golden hour quality without being outdoors. Soft shadows.  
-**Setting:** Birmingham flat interior. White walls, minimal. A bit of clutter that suggests real life — a book, her phone charger on the nightstand, a hoodie thrown over the chair. Not an influencer hotel room.  
-**Content types:** Mirror selfies, lying-on-bed shots, getting-ready moments, morning wake-up, post-trip unpacking  
-**Cara's look in this setup:** Most natural version of herself. Low makeup or no makeup. Hair down or casually pinned. Oversized tee or soft fabric top. Often bare feet.  
+**Lighting:** Warm, late afternoon window light from one side. Golden but not overexposed. Soft directional shadows.  
+**Setting:** Minimal interior — white or neutral walls, natural light, not styled for content. Real-feeling, not an influencer set.  
+**Content types:** Mirror selfies, lying-on-bed shots, getting-ready, morning, post-trip unpacking  
+**Cara's look:** Hair down and natural — slightly air-dried wave. No makeup or minimal makeup. Natural skin. Layered gold chains always present if neckline visible.  
 **Frequency:** 3x/week
 
 ### Setup 2 — Bathroom / Post-shower (seeds 1200–1300)
-**Lighting:** Cool, slightly blue-white. Overhead vanity lighting. Bathroom mirror dominant. The kind of light that makes skin look good but isn't flattering to everything.  
-**Setting:** Her flat's small bathroom. White tiles, nothing fancy. Towel rail visible. Small toiletries on the edge of the basin.  
-**Content types:** Post-shower mirror shots, skincare routine, pre-going-out mirror check, casual towel shots  
-**Cara's look in this setup:** Damp hair, minimal. The slightly-dishevelled version. Natural skin. If wrapped in anything — a plain white or grey towel, not satin.  
+**Lighting:** Cool overhead — vanity or overhead bathroom light. Slightly blue-white. Good for skin but not flattering to everything.  
+**Setting:** Simple bathroom — white or neutral tiles, mirror prominent. Nothing luxurious.  
+**Content types:** Post-shower mirror shots, skincare, pre-going-out mirror check  
+**Cara's look:** Hair wet and dark — this is the reference look from the photos. Damp, natural wave, near-black when wet. Minimal skin. If anything covering her — plain white or grey, not satin.  
 **Frequency:** 2x/week
 
-### Setup 3 — Travel location / Outdoors (seeds 400–500)
-**Lighting:** Natural, varies by location. Aim for: warm midday Mediterranean, or golden-hour European street. No harsh overhead midday sun.  
-**Setting:** Real travel locations — pool edge, cobbled street, rooftop terrace, beach, restaurant table. Setting should feel specific enough to be identifiable, not generic "beach".  
-**Content types:** Destination photos, poolside, street-style walking shots, sitting at a café, looking at a view  
-**Cara's look in this setup:** Sunglasses often. Minimal makeup in hot weather. Whatever she'd actually wear — not a photoshoot outfit. Linen, cotton, simple cuts.  
-**Frequency:** 4x/week (this is the primary content pillar)
+### Setup 3 — Travel / Outdoors / Pool (seeds 400–500)
+**Lighting:** Natural bright sun — Mediterranean or tropical. Strong overhead or slightly angled. Skin glows in this light. This is her primary visual aesthetic — the pool and poolside look in the reference photos is the anchor for this setup.  
+**Setting:** Pool edge, sunlounger, rooftop, beach, cobbled street. Specific enough to feel like a real place.  
+**Cara's look:** Hair wet from pool — this is her signature look. Layered gold chains visible. Minimal or no makeup. The red bikini in the reference photos is a reference point for the level of coverage — small, simple triangles with thin tie straps. Natural colours preferred (red, black, white, neutral sand tones).  
+**Frequency:** 4x/week (primary content pillar)
 
 ---
 
 ## SECTION 3 — GENERATION RULES
 
-1. **Never generate without face reference loaded.** The physical descriptor list above is a supplement, not a replacement for a reference image.
-2. **Regenerate, do not edit**, if the face drifts between setups. Edits (inpainting, face-swap) stack artifacts that compound over multiple generations.
-3. **The collarbone scar must appear in at least 60% of all generations.** If a shot angle doesn't naturally show the collarbone, choose a different angle or add it in post — never skip it entirely for more than 2 consecutive posts.
-4. **If the jawline changes between seed setups, the seed range is wrong.** Relock before generating the next batch.
-5. **Skin consistency:** Light freckling on nose/upper cheeks in all well-lit close-up shots. Fades in lower-light setups — that's fine.
-6. **No heavy beauty filter looks.** She does not have an Instagram face. Pores are visible in close-ups. That is correct.
-7. **Hair rule:** Ash dark brown. Not black. Not warm brown. If it's reading warm in the preview, adjust temperature before generating the full set.
-8. **Expression range:** She looks like she's tolerating you taking her photo, not posing for a magazine. Reserved smiles over wide smiles. Looking away from camera in 40% of shots.
+1. **Never generate without face reference loaded.** The physical descriptor list above supplements the reference — it does not replace it.
+2. **The brows are the consistency test.** If they are thin, light, or shaped differently from the reference, the generation has drifted. Reject and regenerate.
+3. **The eyes must read green** — not grey, not hazel. In any lighting. If they're reading as grey or brown, the generation is wrong.
+4. **Hair when dry:** very dark brown wave, worn down. **Hair when wet or damp:** near-black, wet-strand texture, clinging to face and shoulders. Both are correct — the wet look is her signature outdoor/pool state.
+5. **The mole on the left side of the neck must be present** in at minimum 60% of all generations. If a shot angle doesn't expose the neck, that's fine — but it must appear in the majority.
+6. **Layered gold chains** must be present in all outdoor, pool, and travel setups. Optional in bedroom setup.
+7. **Gold hoop earrings** present whenever ears are visible.
+8. **No beauty filter look.** Skin is real — glowy and warm, but pores exist in close-ups. The reference close-up shot shows what correct skin rendering looks like: dewy, not plastic.
+9. **Regenerate, do not edit,** if face drifts. Inpainting compounds artifacts.
+10. **Expression:** reserved, slightly cool. The look in the reference photos — slightly parted lips, direct or averted gaze, no wide smile. She is comfortable being looked at, not performing for the camera.
+11. **Jawline consistency check between seed setups:** if the jaw changes from defined/angular to soft/round, the seed range is wrong. Relock before continuing.
 
 ---
 
@@ -60,30 +65,31 @@
 
 | Day | Setup | Content type | Notes |
 |---|---|---|---|
-| Mon | Travel | Destination detail shot — something specific not a landscape | Sets the week's location context |
-| Mon | Travel | Poolside or beach — she's there, not performing | Scar visible |
-| Tue | Bedroom | Mirror selfie — casual, authentic | Morning or pre-going-out |
-| Wed | Travel | Street or café — candid-feeling | Looking away from camera preferred |
-| Wed | Bathroom | Post-shower or skincare | Lower on makeup |
-| Thu | Travel | Location food shot or market shot | Don't need to show her face |
-| Thu | Bedroom | Lying-on-bed — relaxed content | Low light, warm, intimate feel |
-| Fri | Travel | Best shot of the week — flagship image | Scar visible, slightly more polished |
-| Sat | Bathroom | Getting-ready shot or pre-night-out | Slightly more put-together |
-| Sat | Travel | Golden-hour or evening location | Warm light, looser energy |
-| Sun | Bedroom | Rest day content — slower, personal | Most intimate / least performative |
+| Mon | Travel | Pool or destination arrival shot | Wet hair look — anchor of the week |
+| Mon | Travel | Poolside lounging — she's there, not performing | Gold chains visible |
+| Tue | Bedroom | Mirror selfie — natural, hair down | Mole visible |
+| Wed | Travel | Street, café, or rooftop — candid-feeling | Looking away preferred |
+| Wed | Bathroom | Post-shower | Wet hair, minimal look |
+| Thu | Travel | Location detail or golden-hour shot | Warm light |
+| Thu | Bedroom | Lying-on-bed — slower, personal | Warm directional light |
+| Fri | Travel | Flagship image of the week — best shot | Most polished in this setup |
+| Sat | Bathroom | Getting-ready, pre-night-out | Slightly more put-together |
+| Sat | Travel | Evening location — warm light, looser energy | |
+| Sun | Bedroom | Rest day — most intimate / least performative | |
 
 ---
 
 ## SECTION 5 — FANVUE-SPECIFIC NOTES
 
-For Fanvue wall posts and exclusive content, the same setups apply with the following adjustments:
+The same three setups apply. The face, hair, mole, gold chains, earrings — identical to public content. The subscriber recognises her from her public TikTok instantly. That recognition is the product.
 
-- **Bedroom setup (seeds 800–900):** Less fabric. The shots go further — the same environment and lighting, the same face and hair, but what the fabric covers changes. The artistic direction brief governs this, not this file.
-- **Bathroom setup (seeds 1200–1300):** More of the post-shower look. Towel lower. Still the same girl, same lighting, same setting.
-- **Travel setup (seeds 400–500):** Poolside goes further. Bikinis at minimum; what the platform allows governs the ceiling.
+Adjustments for exclusive content:
+- **Bedroom (seeds 800–900):** Less coverage. Same environment, same face, same hair. What the fabric covers is governed by the artistic direction brief, not this file.
+- **Bathroom (seeds 1200–1300):** Wet-hair look goes further — same girl, same light, same setting.
+- **Travel / Pool (seeds 400–500):** The red bikini reference is the floor, not the ceiling. What the platform allows governs how far it goes.
 
-The face, the scar, the hair, the expression — all identical to public content. The subscriber should recognise her instantly from her public TikTok. That recognition is the product.
+The consistent detail that must survive into exclusive content: **the mole on the left side of the neck.** It is the link between the public persona and the subscription content. Subscribers will notice if it disappears.
 
 ---
 
-*Generation is done when 10 fresh outputs from each seed range pass as the same person to someone who has seen all three setups back to back. Do not launch a new content batch until this test passes.*
+*Generation is done when 10 fresh outputs from each seed range pass as the same person to someone who has seen all three setups back to back. The brows and the green eyes are the two fastest consistency checks. Do not launch a batch until both pass.*

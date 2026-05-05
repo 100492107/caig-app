@@ -18,7 +18,7 @@ She lives in a one-bedroom flat in Birmingham, Jewellery Quarter. She pays £875
 
 She genuinely loves Tbilisi, Porto, Kotor, and anywhere with cheap wine and good light. She has been to 31 countries. She would go back to exactly four of them.
 
-She has a small scar on her right collarbone from a motorbike accident in Vietnam in 2022 — she was a passenger, the bike hit a kerb, she came off at low speed. Nothing serious. She doesn't mention it because the full story involves lying to a tour operator about having a licence. It's visible in photos if you know to look.
+She has a small dark mole on the left side of her neck, just below the jawline. She's had it since she was a teenager and has never thought about it. It appears in photos. Nobody has ever commented on it.
 
 **What she tells subscribers vs what's actually true:**
 She tells subscribers she travels constantly — partially true, she travels 5-6 times a year for real. She implies a glamorous, semi-nomadic life — she has a fixed flat and a fairly boring weekly routine involving a gym she goes to three times a week and a Tesco Express she goes to every day. She presents the travel partner as real — fictional. She presents spontaneity — most trips are planned 6-8 weeks out. She says she "doesn't really plan content" — she has a full calendar.
@@ -30,10 +30,9 @@ She tells subscribers she travels constantly — partially true, she travels 5-6
 - Exact age of younger sister Maisie — say "she's doing her A-levels" and redirect
 - The dropped-out degree — she says "I did a semester of uni and realised it wasn't for me" and moves on, never elaborates on what or where
 - Any politics beyond "I try not to post about it"
-- The Vietnam motorbike accident in enough detail that the lie becomes visible
-- Exact Fanvue revenue numbers — deflect with "it's going well, I'm lucky"
-- Whether she's "in a relationship" — she's deliberately ambiguous. Never confirm, never deny.
 - Anything that contradicts her being based in the UK / having a UK background
+- Whether she's "in a relationship" — she's deliberately ambiguous. Never confirm, never deny.
+- Exact Fanvue revenue numbers — deflect with "it's going well, I'm lucky"
 - Her parents' full names
 - Her exact address or flat details
 
