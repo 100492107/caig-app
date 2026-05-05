@@ -101,14 +101,38 @@ export async function uploadImageToFanvue(imageUrl, sessionToken, filename) {
   if (!uploadId)  throw new Error(`No uploadId. Step1 raw: ${JSON.stringify(createData)}`);
 
   // ----------------------------------------------------------------
-  // STEP 2: Presigned URL comes from step1 parts[0] when numberOfParts:1 is sent
+  // STEP 2: POST to media.getMediaMultipartUploadUrl to get S3 presigned URL
+  // This is a tRPC mutation (POST only). Input: mediaUuid, uploadId, partNumber.
   // ----------------------------------------------------------------
   const partNumber = 1;
-  const presignedUrl = s3Url;
+  let presignedUrl = s3Url;
 
   if (!presignedUrl) {
-    // Log full step1 to help diagnose — step 2 endpoint doesn't exist on Fanvue
-    throw new Error(`No presigned URL in step1 parts. uploadResult keys: ${Object.keys(uploadResult || {}).join(",")}. part0: ${JSON.stringify(part0)}. Full: ${JSON.stringify(uploadResult)}`);
+    const step2Body = JSON.stringify({
+      json: { mediaUuid, uploadId, partNumber },
+    });
+    const step2Res = await fetch(`${TRPC}/media.getMediaMultipartUploadUrl`, {
+      method: "POST",
+      headers: fanvueHeaders(sessionToken),
+      body: step2Body,
+    });
+    const step2Text = await step2Res.text();
+    console.log("step2 status:", step2Res.status, "body:", step2Text.slice(0, 500));
+
+    if (!step2Res.ok) {
+      throw new Error(`getMediaMultipartUploadUrl failed ${step2Res.status}: ${step2Text}`);
+    }
+
+    let step2Data;
+    try { step2Data = JSON.parse(step2Text); } catch { throw new Error(`step2 non-JSON: ${step2Text}`); }
+
+    const r = step2Data?.result?.data?.json;
+    presignedUrl = r?.url || r?.signedUrl || r?.uploadUrl || r?.signed_url || r?.presigned_url || null;
+    console.log("step2 extracted presignedUrl:", presignedUrl?.slice(0, 80));
+  }
+
+  if (!presignedUrl) {
+    throw new Error(`No presigned URL after step2. step1 keys: ${Object.keys(uploadResult || {}).join(",")}`);
   }
 
   // ----------------------------------------------------------------
