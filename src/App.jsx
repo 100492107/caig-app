@@ -2513,7 +2513,7 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
                     <img
                       src={displayImg}
                       alt="Post image"
-                      style={{ width: "100%", maxHeight: 400, objectFit: "cover", display: "block" }}
+                      style={{ width: "100%", maxHeight: 700, objectFit: "contain", display: "block", background: "#000" }}
                     />
                     {/* Overlay hint on hover */}
                     {!busy && (
