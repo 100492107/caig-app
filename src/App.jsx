@@ -1031,6 +1031,13 @@ select{cursor:pointer;appearance:none}
   .lt-form-grid{grid-template-columns:1fr!important}
   .bni{font-size:8px;gap:3px}
   .bni svg{width:22px;height:22px}
+  .gen-summary{grid-template-columns:1fr!important}
+  .admin-view-wrap{padding:0 14px 60px!important}
+  .admin-client-grid{grid-template-columns:1fr!important}
+  .admin-stat-grid{grid-template-columns:repeat(2,1fr)!important}
+  .rv-mode-toggle{flex-wrap:wrap}
+  .rv-date-row{flex-wrap:wrap}
+  .rv-date-row>button{flex:1 1 100%!important;min-width:0!important}
 }
 @media(max-width:400px){
   .home-stats{grid-template-columns:repeat(2,1fr)}
@@ -2508,7 +2515,7 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
           Review generated posts, generate images with Cara's LoRA, then post or schedule.
         </p>
         {/* Image mode toggle */}
-        <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 14px", background: "var(--s1)", border: "1px solid var(--e1)", borderRadius: 10 }}>
+        <div className="rv-mode-toggle" style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 14px", background: "var(--s1)", border: "1px solid var(--e1)", borderRadius: 10 }}>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 13, fontWeight: 600, color: "var(--t1)" }}>
               {enhancedMode ? "⚡ Enhanced Mode — Nano Banana Pro" : "🔵 Standard Mode — FLUX LoRA"}
@@ -3433,7 +3440,7 @@ Write at least 600 words. Make it dense, specific, and immediately useful. This 
 
       {!submitted ? (
         <>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 16, marginBottom: 32 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: 16, marginBottom: 32 }}>
             {[
               { v: "80%", l: "of business admin tasks are repeatable and automatable" },
               { v: "6h",  l: "average hours per week lost to follow-ups and scheduling admin" },
@@ -3650,7 +3657,7 @@ Write at least 500 words. Be direct, specific, and senior in tone. Avoid platitu
 
       {!submitted ? (
         <>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 16, marginBottom: 32 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: 16, marginBottom: 32 }}>
             {[
               { v: "68%", l: "of businesses have no documented lead follow-up process" },
               { v: "5×", l: "more likely to close when a lead is followed up within 5 minutes" },
@@ -4489,7 +4496,7 @@ function DealPipeline() {
   const S = { background: "var(--e2)", border: "1px solid var(--b1)", borderRadius: 8, padding: "9px 12px", color: "var(--t1)", fontSize: 13, outline: "none", width: "100%", boxSizing: "border-box" };
 
   return (
-    <div style={{ maxWidth: 1000, margin: "0 auto", padding: "0 0 60px" }}>
+    <div className="admin-view-wrap" style={{ maxWidth: 1000, margin: "0 auto", padding: "0 0 60px" }}>
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
         <div>
@@ -5261,7 +5268,7 @@ function LeadTracker() {
   const card = { background: "var(--e1)", border: "1px solid var(--b1)", borderRadius: 12, padding: "20px 24px", marginBottom: 16 };
 
   return (
-    <div style={{ maxWidth: 900, margin: "0 auto", padding: "0 0 60px" }}>
+    <div className="admin-view-wrap" style={{ maxWidth: 900, margin: "0 auto", padding: "0 0 60px" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 28 }}>
         <div>
           <div style={{ fontSize: 22, fontWeight: 700, color: "var(--t0)", letterSpacing: "-.02em" }}>Lead Tracker</div>
@@ -5475,7 +5482,7 @@ function WeeklyReports() {
   const labelStyle = { fontSize: 11, fontWeight: 600, color: "var(--t3)", textTransform: "uppercase", letterSpacing: ".06em", marginBottom: 6 };
 
   return (
-    <div style={{ maxWidth: 900, margin: "0 auto", padding: "0 0 60px" }}>
+    <div className="admin-view-wrap" style={{ maxWidth: 900, margin: "0 auto", padding: "0 0 60px" }}>
       <div style={{ marginBottom: 28 }}>
         <div style={{ fontSize: 22, fontWeight: 700, color: "var(--t0)", letterSpacing: "-.02em" }}>Weekly Reports</div>
         <div style={{ fontSize: 13, color: "var(--t3)", marginTop: 3 }}>Generate a per-client weekly summary — copy and send via email</div>
@@ -5604,7 +5611,7 @@ function AdminPanel() {
   }
 
   return (
-    <div style={{ maxWidth: 900, margin: "0 auto", padding: "0 0 60px" }}>
+    <div className="admin-view-wrap" style={{ maxWidth: 900, margin: "0 auto", padding: "0 0 60px" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 28 }}>
         <div>
           <div style={{ fontSize: 22, fontWeight: 700, color: "var(--t0)", letterSpacing: "-.02em" }}>Client Accounts</div>
@@ -5621,7 +5628,7 @@ function AdminPanel() {
       {creating && (
         <form onSubmit={createClient} style={{ background: "var(--e1)", border: "1px solid var(--b1)", borderRadius: 12, padding: "24px 28px", marginBottom: 28 }}>
           <div style={{ fontSize: 14, fontWeight: 600, color: "var(--t1)", marginBottom: 16 }}>Create New Client Account</div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
+          <div className="admin-client-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
             <input placeholder="Agency name" value={form.agency_name} onChange={e => setForm(f => ({ ...f, agency_name: e.target.value }))} style={{ background: "var(--e2)", border: "1px solid var(--b1)", borderRadius: 8, padding: "9px 12px", color: "var(--t1)", fontSize: 13, outline: "none" }} />
             <input placeholder="Email address" type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} style={{ background: "var(--e2)", border: "1px solid var(--b1)", borderRadius: 8, padding: "9px 12px", color: "var(--t1)", fontSize: 13, outline: "none" }} />
           </div>
