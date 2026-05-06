@@ -16,12 +16,6 @@
       "maxDuration": 30
     },
     "api/generate-image.js": {
-      "maxDuration": 120
-    },
-    "api/generate-base.js": {
-      "maxDuration": 60
-    },
-    "api/generate-facelock.js": {
       "maxDuration": 60
     }
   },

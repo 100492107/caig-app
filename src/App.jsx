@@ -2300,19 +2300,14 @@ function GeneratingStatus({ genState }) {
   }, [startedAt]);
 
   const stages = {
-    starting: { icon: "⏳", label: "Starting up…",         sub: "Connecting to fal.ai" },
-    stage1:   { icon: "⚡", label: "Stage 1 — Scene",      sub: "FLUX Pro Ultra building scene, pose & lighting" },
-    stage2:   { icon: "🔬", label: "Stage 2 — Face lock",  sub: "nano-banana-2 transplanting Cara's face from reference images" },
-    saving:   { icon: "💾", label: "Saving…",              sub: "Uploading to Supabase Storage" },
-    error:    { icon: "❌", label: "Generation failed",    sub: error || "Unknown error" },
+    generating: { icon: "🍌", label: "Generating…",     sub: "nano-banana-2 reading Cara's reference images and building scene" },
+    saving:     { icon: "💾", label: "Saving…",         sub: "Uploading to Supabase Storage" },
+    error:      { icon: "❌", label: "Failed",          sub: error || "Unknown error — check console" },
   };
 
-  const current = stages[stage] || stages.starting;
+  const current = stages[stage] || stages.generating;
   const isError = stage === "error";
-
-  const stepList = ["stage1", "stage2", "saving"];
-  const stepLabels = ["Scene (FLUX)", "Face lock (NB2)", "Save"];
-  const currentIdx = stepList.indexOf(stage);
+  const isSaving = stage === "saving";
 
   return (
     <div style={{ textAlign: "center", padding: "24px 16px" }}>
@@ -2324,22 +2319,22 @@ function GeneratingStatus({ genState }) {
       }}>{current.label}</div>
       <div style={{ fontSize: 12, color: "var(--t3)", marginBottom: 16, lineHeight: 1.5 }}>{current.sub}</div>
 
-      {/* Step progress bar */}
+      {/* Simple two-dot progress */}
       {!isError && (
-        <div style={{ display: "flex", gap: 6, justifyContent: "center", marginBottom: 14 }}>
-          {stepList.map((s, i) => {
-            const done    = currentIdx > i;
-            const active  = currentIdx === i;
+        <div style={{ display: "flex", gap: 24, justifyContent: "center", marginBottom: 14 }}>
+          {[["generating", "Generating"], ["saving", "Saving"]].map(([s, label]) => {
+            const done   = isSaving && s === "generating";
+            const active = stage === s;
             return (
-              <div key={s} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+              <div key={s} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5 }}>
                 <div style={{
-                  width: 10, height: 10, borderRadius: "50%",
+                  width: 11, height: 11, borderRadius: "50%",
                   background: done ? "#22c55e" : active ? "var(--b1)" : "var(--t5, #444)",
                   boxShadow: active ? "0 0 0 3px rgba(99,102,241,0.35)" : "none",
                   transition: "all 0.3s",
                 }} />
-                <div style={{ fontSize: 10, color: done ? "#22c55e" : active ? "var(--t2)" : "var(--t4)", whiteSpace: "nowrap" }}>
-                  {stepLabels[i]}
+                <div style={{ fontSize: 10, color: done ? "#22c55e" : active ? "var(--t2)" : "var(--t4)" }}>
+                  {label}
                 </div>
               </div>
             );
@@ -2347,9 +2342,8 @@ function GeneratingStatus({ genState }) {
         </div>
       )}
 
-      {/* Elapsed timer */}
       <div style={{ fontSize: 11, color: "var(--t4)" }}>
-        {isError ? "See toast for detail" : `${elapsed}s elapsed — usually 40–60s total`}
+        {isError ? "See toast for detail" : `${elapsed}s elapsed — usually 25–40s`}
       </div>
     </div>
   );
@@ -2452,12 +2446,12 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
     const setStatus = (stage, error = null) =>
       setGenerating(g => ({ ...g, [post.id]: { stage, error, startedAt: g[post.id]?.startedAt || Date.now() } }));
 
-    setGenerating(g => ({ ...g, [post.id]: { stage: "starting", error: null, startedAt: Date.now() } }));
+    setGenerating(g => ({ ...g, [post.id]: { stage: "generating", error: null, startedAt: Date.now() } }));
 
     try {
-      // ── Stage 1: FLUX Pro Ultra — scene / pose / lighting / outfit ────────
-      setStatus("stage1");
-      const baseRes = await fetch("/api/generate-base", {
+      // nano-banana-2: reference images + scene prompt → single call, ~25-35s
+      setStatus("generating");
+      const res = await fetch("/api/generate-image", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -2466,33 +2460,15 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
           photoDirection: post.photo_direction,
         }),
       });
-      const baseData = await baseRes.json();
-      if (!baseRes.ok) throw new Error(baseData.error || "Stage 1 failed — FLUX Ultra rejected request");
-      if (!baseData.imageUrl) throw new Error("Stage 1 returned no image URL");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Generation failed");
+      if (!data.imageUrl) throw new Error("No image URL returned");
 
-      // ── Stage 2: nano-banana-2 — face lock using Cara reference images ────
-      setStatus("stage2");
-      const lockRes = await fetch("/api/generate-facelock", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ baseImageUrl: baseData.imageUrl }),
-      });
-      const lockData = await lockRes.json();
-
-      let finalUrl = baseData.imageUrl; // default to stage 1 if stage 2 fails
-      if (!lockRes.ok) {
-        toast_(`Face lock failed (${lockRes.status}) — using Stage 1 base image. Detail: ${lockData?.error || "unknown"}`, "warn");
-      } else if (!lockData.imageUrl) {
-        toast_("Face lock returned no image — using Stage 1 base", "warn");
-      } else {
-        finalUrl = lockData.imageUrl;
-      }
-
-      // ── Save to Supabase Storage ──────────────────────────────────────────
+      // Save to Supabase Storage
       setStatus("saving");
-      let publicUrl = finalUrl;
+      let publicUrl = data.imageUrl;
       try {
-        const imgRes = await fetch(finalUrl);
+        const imgRes = await fetch(data.imageUrl);
         const blob = await imgRes.blob();
         const path = `cara/posts/${post.id}_${Date.now()}.jpg`;
         const { error: upErr } = await supabase.storage
@@ -2518,7 +2494,6 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
       setStatus("error", e.message);
       toast_(`Generation failed: ${e.message}`, "error");
     } finally {
-      // Clear after a short delay so user can see the final/error state
       setTimeout(() => setGenerating(g => { const n = { ...g }; delete n[post.id]; return n; }), 3000);
     }
   }
