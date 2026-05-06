@@ -2372,6 +2372,7 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
   const fileRefs = useRef({});
   // Track post IDs where we've started a fresh generation — suppress post.image_url fallback
   const clearedIds = useRef(new Set());
+  const lastErrors = useRef({});
 
   // Merge DB drafts + in-memory queue items into one list
   function mergeQueues(dbPosts, memQueue) {
@@ -2560,6 +2561,7 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
         }
       }).catch(() => {}); // ignore storage failures — fal.ai URL already displayed
     } catch (e) {
+      lastErrors.current[post.id] = e.message;
       setStatus("error", { error: e.message });
       toast_(`Generation failed: ${e.message}`, "error");
     } finally {
@@ -2772,6 +2774,23 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
                       <div>Uploading…</div>
                     ) : generating[post.id] ? (
                       <GeneratingStatus genState={generating[post.id]} />
+                    ) : generating[post.id] === undefined && images[post.id] === undefined && !post.image_url && clearedIds.current.has(post.id) ? (
+                      // Generation finished but no image — show last error
+                      <>
+                        <div style={{ fontSize: 28, marginBottom: 8 }}>⚠️</div>
+                        <div style={{ fontWeight: 600, color: "#f87171", marginBottom: 6, fontSize: 13 }}>Generation failed</div>
+                        <div style={{ fontSize: 12, color: "var(--t3)", marginBottom: 12, maxWidth: 260, margin: "0 auto 12px" }}>
+                          {lastErrors.current[post.id] || "Unknown error"}
+                        </div>
+                        <button
+                          onClick={e => { e.stopPropagation(); generateImage(post); }}
+                          style={{
+                            padding: "7px 16px", borderRadius: 8, border: "none",
+                            background: "var(--b1)", color: "#fff",
+                            fontSize: 12, fontWeight: 700, cursor: "pointer",
+                          }}
+                        >Retry</button>
+                      </>
                     ) : (
                       <>
                         <div style={{ fontSize: 36, marginBottom: 10 }}>🖼️</div>
