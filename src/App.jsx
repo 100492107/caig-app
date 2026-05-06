@@ -2511,8 +2511,11 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           imagePrompt: post.image_prompt,
-          personaDescriptors: "CARAWHITMORE, dark near-black hair, vivid green eyes, early 20s, photorealistic",
           photoDirection: post.photo_direction,
+          hook: post.hook,
+          caption: post.caption,
+          wardrobe: post.wardrobe,
+          shotAngle: post.shot_angle,
           seed: Math.floor(Math.random() * 9999999),
         }),
       });

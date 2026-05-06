@@ -13,7 +13,7 @@ const CARA_REFS = [
 
 // ─── SHOT LIBRARY ─────────────────────────────────────────────────────────────
 // Cinematic compositions fal.ai accepts. Lewd through framing, not description.
-// Each entry: [frameDesc, poseDesc, compatible settings]
+// Tags drive context-aware selection.
 
 const SHOTS = [
   // Classic editorial
@@ -21,76 +21,90 @@ const SHOTS = [
     frame: "35mm eye-level portrait, shoulders-to-knees frame",
     pose: "weight on one hip, chin slightly down, direct gaze into lens",
     mood: "confident and unhurried",
+    tags: ["editorial", "confident", "portrait"],
   },
   {
     frame: "85mm three-quarter length, slight low angle looking up at subject",
     pose: "hand resting on hip, head tilted, soft half-smile",
     mood: "effortlessly in control",
+    tags: ["editorial", "confident", "three-quarter"],
   },
   {
     frame: "50mm full-length, camera at waist height shooting upward",
     pose: "standing tall, one arm raised touching hair, chin lifted",
     mood: "elongated silhouette, powerful",
+    tags: ["full-length", "powerful", "editorial"],
   },
   // Feet-forward / perspective shots
   {
     frame: "24mm wide, camera low on the ground — feet sharp in foreground, body leading back to face",
     pose: "standing, legs together, face looking straight down the barrel of the lens with a knowing expression",
     mood: "cinematic fashion editorial, strong perspective",
+    tags: ["low-angle", "full-length", "feet-forward", "cinematic"],
   },
   {
     frame: "35mm low angle from knee height — long legs fill lower half of frame, face and torso in upper half",
     pose: "weight shifted to one leg, looking over shoulder down at camera",
     mood: "elongated, powerful, fashion-forward",
+    tags: ["low-angle", "full-length", "powerful"],
   },
   {
     frame: "wide low angle, camera at ankle height — full length body from feet to face, dramatic perspective distortion",
     pose: "walking slowly toward camera, direct gaze, relaxed arms",
     mood: "high-fashion runway energy",
+    tags: ["low-angle", "full-length", "feet-forward", "runway"],
   },
   // Over-shoulder / back shots
   {
     frame: "35mm from behind and slightly above — camera over her shoulder looking forward",
     pose: "standing at the edge of the scene, looking out, face turning back 30 degrees toward camera",
     mood: "contemplative, mysterious",
+    tags: ["over-shoulder", "mysterious", "back"],
   },
   {
     frame: "50mm side profile, camera at shoulder height",
     pose: "chin up, looking into the distance, hair falling to one side",
     mood: "editorial, clean lines",
+    tags: ["profile", "editorial", "side"],
   },
   // Seated / reclined (non-bed)
   {
     frame: "35mm, seated composition — knees angled toward camera, upper body leaning back on hands",
     pose: "seated on the edge of a surface, knees drawn up slightly, looking directly at camera",
     mood: "relaxed confidence",
+    tags: ["seated", "relaxed", "intimate"],
   },
   {
     frame: "85mm, reclined on a sun lounger — camera at eye level beside her",
     pose: "lying on side on a sun lounger, head propped on one hand, facing camera",
     mood: "golden hour editorial, warm and inviting",
+    tags: ["reclined", "relaxed", "golden-hour", "water", "outdoor"],
   },
   // Overhead / downward
   {
     frame: "overhead flat-lay perspective — camera directly above, subject on towel or pool deck",
     pose: "lying on back on a sun towel, knees bent to one side, looking straight up into camera, hair fanned out",
     mood: "top-down fashion editorial, geometric composition",
+    tags: ["overhead", "flat-lay", "water", "outdoor"],
   },
   {
     frame: "45-degree elevated angle — camera above and in front, shooting down across the body",
     pose: "standing below, face turned upward to camera, one hand in hair",
     mood: "dramatic, empowering angle",
+    tags: ["overhead", "dramatic", "elevated"],
   },
   // Close detail shots
   {
     frame: "85mm macro-ish — tight crop from collarbone to mid-thigh",
     pose: "hands framing waist, slight arch, face cropped just above frame",
     mood: "abstract editorial, body as landscape",
+    tags: ["close-up", "intimate", "abstract"],
   },
   {
     frame: "50mm, tight crop — face and top of chest only, shallow depth of field",
     pose: "chin down, eyes up, direct gaze, lips slightly parted",
     mood: "intimate editorial portrait",
+    tags: ["close-up", "portrait", "intimate", "face"],
   },
 ];
 
@@ -112,6 +126,12 @@ const WARDROBES = {
     "strappy black bralette top and high-waist shorts, layered gold chains",
     "sheer mesh crop top over a black bralette, low-rise denim shorts",
   ],
+  cosy: [
+    "oversized soft grey knit jumper, one bare shoulder, mid-thigh length",
+    "oversized cream cable-knit sweater, slipping off one shoulder, bare legs",
+    "oversized dark navy knit, one shoulder exposed, nothing else visible",
+    "chunky oversized charcoal knit jumper, bare collarbone, hem at upper thigh",
+  ],
   general: [
     "silk slip dress, thin straps, thigh-high slit",
     "black lace bodysuit worn as a top with tailored trousers",
@@ -121,6 +141,14 @@ const WARDROBES = {
     "fitted ribbed crop top and matching low-rise mini skirt",
   ],
 };
+
+// ─── WARDROBE KEYWORD MAP ─────────────────────────────────────────────────────
+// If the post's wardrobe field contains these keywords, override the group.
+const WARDROBE_KEYWORD_MAP = [
+  { keywords: ["knit", "jumper", "sweater", "knitwear", "cosy", "cozy", "oversized"], group: "cosy" },
+  { keywords: ["bikini", "swimwear", "swimsuit", "swim", "pool", "beach"], group: "water" },
+  { keywords: ["linen", "crop", "bralette", "shorts", "outdoor", "terrace", "rooftop"], group: "outdoor" },
+];
 
 // ─── SETTING LIBRARY ──────────────────────────────────────────────────────────
 
@@ -137,6 +165,12 @@ const SETTINGS = {
     "Mediterranean villa courtyard, terracotta and bougainvillea",
     "high-end beachside bar terrace, sunset behind",
   ],
+  cosy: [
+    "sun-drenched apartment living room, large floor-to-ceiling windows, soft morning light on white walls",
+    "minimalist studio flat, pale walls, warm side light, wooden floors",
+    "bright airy loft, exposed brick wall, large window, morning sunlight streaming in",
+    "elegant apartment lounge, neutral tones, soft diffused natural light",
+  ],
   general: [
     "minimalist studio, white walls, soft window light",
     "luxury penthouse living room, large windows, city behind",
@@ -146,6 +180,29 @@ const SETTINGS = {
   ],
 };
 
+// ─── SHOT ANGLE KEYWORD MAP ───────────────────────────────────────────────────
+// Maps shot_angle field keywords to shot tags for biased selection.
+const SHOT_ANGLE_TAG_MAP = [
+  { keywords: ["overhead", "flat-lay", "top-down", "above"], tags: ["overhead", "flat-lay"] },
+  { keywords: ["low angle", "low-angle", "feet", "ankle", "knee"], tags: ["low-angle", "feet-forward"] },
+  { keywords: ["over-shoulder", "behind", "back"], tags: ["over-shoulder", "back"] },
+  { keywords: ["portrait", "face", "close"], tags: ["close-up", "portrait"] },
+  { keywords: ["profile", "side"], tags: ["profile", "side"] },
+  { keywords: ["seated", "sitting"], tags: ["seated"] },
+  { keywords: ["reclined", "lying", "lounger"], tags: ["reclined"] },
+  { keywords: ["full-length", "full length", "full body"], tags: ["full-length"] },
+];
+
+// ─── MOOD KEYWORD MAP ─────────────────────────────────────────────────────────
+// Maps caption/hook mood words to shot tags.
+const MOOD_TAG_MAP = [
+  { keywords: ["mysterious", "moody", "dark", "contemplative"], tags: ["mysterious", "over-shoulder"] },
+  { keywords: ["confident", "powerful", "bold", "strong"], tags: ["confident", "powerful"] },
+  { keywords: ["intimate", "soft", "gentle", "cosy", "cozy", "warm"], tags: ["intimate", "relaxed"] },
+  { keywords: ["editorial", "fashion", "runway", "high-fashion"], tags: ["editorial", "runway"] },
+  { keywords: ["relaxed", "casual", "lazy", "slow", "morning"], tags: ["relaxed", "seated"] },
+];
+
 function pickRandom(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
@@ -154,12 +211,51 @@ function classifySetting(rawSetting) {
   const s = (rawSetting || "").toLowerCase();
   if (/pool|beach|ocean|water|sea|swim/.test(s)) return "water";
   if (/balcony|rooftop|terrace|garden|courtyard|outdoor|villa/.test(s)) return "outdoor";
+  if (/knit|jumper|sweater|cosy|cozy|morning|lounge|apartment|sunlit wall|sunlight/.test(s)) return "cosy";
   return "general";
 }
 
-function buildPrompt(imagePrompt) {
-  // Extract the setting hint from the LLM prompt to guide wardrobe/setting selection
-  // — but we never use the LLM's subject/pose/wardrobe text directly.
+function classifyWardrobeGroup(wardrobeField, settingContext) {
+  if (!wardrobeField) return settingContext;
+  const w = wardrobeField.toLowerCase();
+  for (const { keywords, group } of WARDROBE_KEYWORD_MAP) {
+    if (keywords.some(k => w.includes(k))) return group;
+  }
+  return settingContext;
+}
+
+// Score shots by how many desired tags they match. Falls back to random if no match.
+function pickShot(desiredTags) {
+  if (!desiredTags || desiredTags.length === 0) return pickRandom(SHOTS);
+  const scored = SHOTS.map(shot => ({
+    shot,
+    score: desiredTags.filter(t => shot.tags.includes(t)).length,
+  }));
+  const maxScore = Math.max(...scored.map(s => s.score));
+  if (maxScore === 0) return pickRandom(SHOTS);
+  // Among top scorers, pick randomly
+  const topShots = scored.filter(s => s.score === maxScore).map(s => s.shot);
+  return pickRandom(topShots);
+}
+
+function extractDesiredShotTags(shotAngle, photoDirection, hook, caption) {
+  const combined = [shotAngle, photoDirection, hook, caption]
+    .filter(Boolean).join(" ").toLowerCase();
+
+  const tags = new Set();
+
+  for (const { keywords, tags: t } of SHOT_ANGLE_TAG_MAP) {
+    if (keywords.some(k => combined.includes(k))) t.forEach(tag => tags.add(tag));
+  }
+  for (const { keywords, tags: t } of MOOD_TAG_MAP) {
+    if (keywords.some(k => combined.includes(k))) t.forEach(tag => tags.add(tag));
+  }
+
+  return [...tags];
+}
+
+function buildPrompt({ imagePrompt, hook, caption, wardrobe, shotAngle, photoDirection }) {
+  // Classify setting context from all available text
   let rawSetting = "";
   if (imagePrompt && typeof imagePrompt === "object") {
     rawSetting = imagePrompt.setting || imagePrompt.environment ||
@@ -168,17 +264,30 @@ function buildPrompt(imagePrompt) {
     rawSetting = imagePrompt;
   }
 
-  const context = classifySetting(rawSetting);
-  const shot = pickRandom(SHOTS);
-  const wardrobe = pickRandom(WARDROBES[context] || WARDROBES.general);
-  const setting = pickRandom(SETTINGS[context] || SETTINGS.general);
+  // Enrich setting classification with wardrobe + photo direction hints
+  const settingContext = classifySetting(
+    [rawSetting, photoDirection, wardrobe, hook, caption].filter(Boolean).join(" ")
+  );
+
+  const wardrobeGroup = classifyWardrobeGroup(wardrobe, settingContext);
+
+  // Use post wardrobe text directly if it's specific enough (>4 words); else pick from library
+  const wardrobeText = (wardrobe && wardrobe.trim().split(/\s+/).length > 4)
+    ? wardrobe.trim()
+    : pickRandom(WARDROBES[wardrobeGroup] || WARDROBES.general);
+
+  const desiredTags = extractDesiredShotTags(shotAngle, photoDirection, hook, caption);
+  const shot = pickShot(desiredTags);
+  const setting = pickRandom(SETTINGS[settingContext] || SETTINGS.general);
+
+  console.log(`[generate-submit] context=${settingContext} wardrobeGroup=${wardrobeGroup} tags=[${desiredTags.join(",")}] shot="${shot.frame.slice(0, 60)}..."`);
 
   return `Photorealistic editorial fashion photograph of a real woman. Recreate her exactly from the reference images — same face, same dark near-black wavy hair, same vivid green eyes, same skin tone.
 
 COMPOSITION: ${shot.frame}.
 POSE: ${shot.pose}.
 MOOD: ${shot.mood}.
-WARDROBE: She is wearing ${wardrobe}.
+WARDROBE: She is wearing ${wardrobeText}.
 LOCATION: ${setting}.
 LIGHTING: Natural or available light appropriate to the location — golden hour warmth, soft shadows, skin has a healthy natural glow.
 
@@ -208,8 +317,8 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "Invalid JSON body" });
   }
 
-  const { imagePrompt, seed } = body;
-  const prompt = buildPrompt(imagePrompt);
+  const { imagePrompt, hook, caption, wardrobe, shotAngle, photoDirection, seed } = body;
+  const prompt = buildPrompt({ imagePrompt, hook, caption, wardrobe, shotAngle, photoDirection });
   console.log("[generate-submit] prompt:\n" + prompt);
 
   let qRes, qData;
