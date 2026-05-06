@@ -2534,20 +2534,31 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
 
       if (!imageUrl) throw new Error("Timed out waiting for generation (3 min)");
 
-      // ── Set image directly — skip Supabase storage (no bucket configured) ─
+      // ── Display immediately, store to Supabase in background ────────────
       setStatus("saving", { requestId });
       const publicUrl = imageUrl;
 
-      if (!post._inMemory) {
-        await fetch("/api/queue-update", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id: post.id, update: { image_url: publicUrl } }),
-        });
-      }
-
       setImages(im => ({ ...im, [post.id]: { url: publicUrl, localPreview: publicUrl } }));
       toast_("Image generated — review and post!", "ok");
+
+      // Fire-and-forget: store to Supabase permanently in background
+      fetch("/api/store-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ falUrl: publicUrl, requestId, postId: post.id }),
+      }).then(r => r.json()).then(d => {
+        if (d.publicUrl) {
+          // Silently swap fal.ai URL for permanent Supabase URL
+          setImages(im => ({ ...im, [post.id]: { url: d.publicUrl, localPreview: d.publicUrl } }));
+          if (!post._inMemory) {
+            fetch("/api/queue-update", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ id: post.id, update: { image_url: d.publicUrl } }),
+            });
+          }
+        }
+      }).catch(() => {}); // ignore storage failures — fal.ai URL already displayed
     } catch (e) {
       setStatus("error", { error: e.message });
       toast_(`Generation failed: ${e.message}`, "error");
