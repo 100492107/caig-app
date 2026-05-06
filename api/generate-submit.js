@@ -33,13 +33,16 @@ const BLOCKED_POSE_PATTERNS = [
   /lying on (her )?(back|stomach|bed)/gi,
   /\bon the bed\b/gi,
   /\bin bed\b/gi,
+  /HIGH ANGLE[^,.]*/gi,
+  /looking up into (the )?lens/gi,
+  /shooting down/gi,
+  /camera.*above.*shooting/gi,
+  /overhead (angle|shot|view)/gi,
   /the rest of the frame is (warm )?skin/gi,
   /fabric covers the minimum/gi,
   /poolside decorum/gi,
   /sports illustrated/gi,
   /legs.*waist.*chest.*face all visible/gi,
-  /overhead angle.*legs/gi,
-  /HIGH ANGLE[^.]*\b(bed|linen|pillow)\b/gi,
 ];
 
 // Blocked settings — fal.ai blocks lingerie + bedroom/hotel room
