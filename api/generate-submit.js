@@ -28,16 +28,18 @@ const SAFE_WARDROBES = [
   "lace-trimmed camisole and high-waist briefs, shoulder slipping",
 ];
 
-// Blocked pose phrases
 const BLOCKED_POSE_PATTERNS = [
   /arch(ing)? (her )?back/gi,
   /lying on (her )?(back|stomach|bed)/gi,
+  /\bon the bed\b/gi,
+  /\bin bed\b/gi,
   /the rest of the frame is (warm )?skin/gi,
   /fabric covers the minimum/gi,
   /poolside decorum/gi,
   /sports illustrated/gi,
   /legs.*waist.*chest.*face all visible/gi,
   /overhead angle.*legs/gi,
+  /HIGH ANGLE[^.]*\b(bed|linen|pillow)\b/gi,
 ];
 
 // Blocked settings — fal.ai blocks lingerie + bedroom/hotel room
@@ -140,7 +142,8 @@ function pickWardrobe(setting) {
 function buildPrompt(imagePrompt) {
   const { subject, setting, lighting } = extractFields(imagePrompt);
 
-  const cleanSubject = sanitisePose(sanitiseKeywords(subject || "looking directly at camera, confident"));
+  const cleanSubject = sanitisePose(sanitiseKeywords(subject || "")).replace(/,\s*,/g, ",").replace(/^[,\s]+|[,\s]+$/g, "").trim()
+    || "standing confidently, looking directly at camera";
   const cleanSetting = sanitiseKeywords(setting || "minimal neutral background");
   const cleanLighting = sanitiseKeywords(lighting || "soft natural light");
   const wardrobe = pickWardrobe(setting);
