@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef, memo } from "react";
+import React, { useState, useEffect, useCallback, useRef, memo } from "react";
 import { supabase } from "./supabase";
 import { LogoMark, Logo } from "./Logo";
 
