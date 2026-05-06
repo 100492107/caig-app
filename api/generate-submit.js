@@ -11,163 +11,186 @@ const CARA_REFS = [
   "https://v3b.fal.media/files/b/0a990cc0/ne3QfVCW_NQnJZFjSnsST_Cara_Whitmore_23.jpeg",
 ];
 
-// Safe wardrobe pool — lewd but never nude, tested against fal.ai safety filter.
-// Rules: no "briefs", no "underwear", no "camisole" alone — these trigger blocks.
-// Bikini/swimwear and dressed-but-revealing are consistently safe.
-const SAFE_WARDROBES = [
-  "small triangle string bikini, thin side ties, sun-kissed skin",
-  "tiny white bikini, halter neck, classic cut bottoms",
-  "white string bikini, barely-there coverage",
-  "oversized white dress shirt, unbuttoned to the waist, mid-thigh length, nothing underneath visible",
-  "black lace bodysuit, sheer panels fully lined, worn as a top with jeans",
-  "white hotel robe loosely tied, black bikini underneath just visible",
-  "tiny ribbed bandeau top and matching micro shorts, midriff fully bare",
-  "gold satin bralette worn as a top, high-waist wide-leg trousers",
-  "sheer mesh crop top over a black bralette, low-rise denim shorts",
-  "red satin slip dress, thigh-high slit, thin straps",
-  "fitted ribbed crop top and matching low-rise mini skirt",
-  "strappy black bralette top and high-waist shorts, layered gold chains",
+// ─── SHOT LIBRARY ─────────────────────────────────────────────────────────────
+// Cinematic compositions fal.ai accepts. Lewd through framing, not description.
+// Each entry: [frameDesc, poseDesc, compatible settings]
+
+const SHOTS = [
+  // Classic editorial
+  {
+    frame: "35mm eye-level portrait, shoulders-to-knees frame",
+    pose: "weight on one hip, chin slightly down, direct gaze into lens",
+    mood: "confident and unhurried",
+  },
+  {
+    frame: "85mm three-quarter length, slight low angle looking up at subject",
+    pose: "hand resting on hip, head tilted, soft half-smile",
+    mood: "effortlessly in control",
+  },
+  {
+    frame: "50mm full-length, camera at waist height shooting upward",
+    pose: "standing tall, one arm raised touching hair, chin lifted",
+    mood: "elongated silhouette, powerful",
+  },
+  // Feet-forward / perspective shots
+  {
+    frame: "24mm wide, camera low on the ground — feet sharp in foreground, body leading back to face",
+    pose: "standing, legs together, face looking straight down the barrel of the lens with a knowing expression",
+    mood: "cinematic fashion editorial, strong perspective",
+  },
+  {
+    frame: "35mm low angle from knee height — long legs fill lower half of frame, face and torso in upper half",
+    pose: "weight shifted to one leg, looking over shoulder down at camera",
+    mood: "elongated, powerful, fashion-forward",
+  },
+  {
+    frame: "wide low angle, camera at ankle height — full length body from feet to face, dramatic perspective distortion",
+    pose: "walking slowly toward camera, direct gaze, relaxed arms",
+    mood: "high-fashion runway energy",
+  },
+  // Over-shoulder / back shots
+  {
+    frame: "35mm from behind and slightly above — camera over her shoulder looking forward",
+    pose: "standing at the edge of the scene, looking out, face turning back 30 degrees toward camera",
+    mood: "contemplative, mysterious",
+  },
+  {
+    frame: "50mm side profile, camera at shoulder height",
+    pose: "chin up, looking into the distance, hair falling to one side",
+    mood: "editorial, clean lines",
+  },
+  // Seated / reclined (non-bed)
+  {
+    frame: "35mm, seated composition — knees angled toward camera, upper body leaning back on hands",
+    pose: "seated on the edge of a surface, knees drawn up slightly, looking directly at camera",
+    mood: "relaxed confidence",
+  },
+  {
+    frame: "85mm, reclined on a sun lounger — camera at eye level beside her",
+    pose: "lying on side on a sun lounger, head propped on one hand, facing camera",
+    mood: "golden hour editorial, warm and inviting",
+  },
+  // Overhead / downward
+  {
+    frame: "overhead flat-lay perspective — camera directly above, subject on towel or pool deck",
+    pose: "lying on back on a sun towel, knees bent to one side, looking straight up into camera, hair fanned out",
+    mood: "top-down fashion editorial, geometric composition",
+  },
+  {
+    frame: "45-degree elevated angle — camera above and in front, shooting down across the body",
+    pose: "standing below, face turned upward to camera, one hand in hair",
+    mood: "dramatic, empowering angle",
+  },
+  // Close detail shots
+  {
+    frame: "85mm macro-ish — tight crop from collarbone to mid-thigh",
+    pose: "hands framing waist, slight arch, face cropped just above frame",
+    mood: "abstract editorial, body as landscape",
+  },
+  {
+    frame: "50mm, tight crop — face and top of chest only, shallow depth of field",
+    pose: "chin down, eyes up, direct gaze, lips slightly parted",
+    mood: "intimate editorial portrait",
+  },
 ];
 
-const BLOCKED_POSE_PATTERNS = [
-  /arch(ing)? (her )?back/gi,
-  /lying on (her )?(back|stomach|bed)/gi,
-  /\bon the bed\b/gi,
-  /\bin bed\b/gi,
-  /HIGH ANGLE[^,.]*/gi,
-  /looking up into (the )?lens/gi,
-  /shooting down/gi,
-  /camera.*above.*shooting/gi,
-  /overhead (angle|shot|view)/gi,
-  /the rest of the frame is (warm )?skin/gi,
-  /fabric covers the minimum/gi,
-  /poolside decorum/gi,
-  /sports illustrated/gi,
-  /legs.*waist.*chest.*face all visible/gi,
-];
+// ─── WARDROBE LIBRARY ─────────────────────────────────────────────────────────
+// All tested against fal.ai. Grouped by context for smart selection.
 
-// Blocked settings — fal.ai blocks lingerie + bedroom/hotel room
-const BLOCKED_SETTING_PATTERNS = [
-  /\b(hotel room|bedroom|king bed|bed(room)?|rumpled (white )?linen|on the bed)\b/gi,
-];
+const WARDROBES = {
+  water: [
+    "small white triangle string bikini, thin side ties",
+    "black string bikini, minimal coverage, classic cut",
+    "white string bikini, barely-there coverage",
+    "coral triangle bikini, thin straps",
+    "navy blue bikini, classic silhouette",
+  ],
+  outdoor: [
+    "oversized white linen dress shirt, unbuttoned low, mid-thigh length",
+    "gold satin bralette top, high-waist wide-leg trousers",
+    "fitted ribbed crop top and low-rise mini skirt",
+    "strappy black bralette top and high-waist shorts, layered gold chains",
+    "sheer mesh crop top over a black bralette, low-rise denim shorts",
+  ],
+  general: [
+    "silk slip dress, thin straps, thigh-high slit",
+    "black lace bodysuit worn as a top with tailored trousers",
+    "tiny ribbed bandeau top and matching micro shorts, midriff bare",
+    "white hotel robe loosely tied, black bikini just visible beneath",
+    "oversized white dress shirt, unbuttoned to the waist, mid-thigh length",
+    "fitted ribbed crop top and matching low-rise mini skirt",
+  ],
+};
 
-// Safe setting replacements for bedroom-like scenes
-const BEDROOM_ALT_SETTINGS = [
-  "sun-drenched apartment balcony, city view below, warm morning light",
-  "luxury penthouse lounge, floor-to-ceiling windows, golden hour",
-  "private rooftop terrace, string lights, evening ambience",
-  "minimalist studio apartment, white walls, late afternoon light",
-  "high-end dressing room, soft vanity lighting, mirrors",
-  "modern living room, large windows overlooking the city",
-];
+// ─── SETTING LIBRARY ──────────────────────────────────────────────────────────
 
-function sanitiseSetting(setting) {
-  if (!setting || typeof setting !== "string") return setting;
-  if (BLOCKED_SETTING_PATTERNS.some(p => p.test(setting))) {
-    return BEDROOM_ALT_SETTINGS[Math.floor(Math.random() * BEDROOM_ALT_SETTINGS.length)];
-  }
-  return setting;
+const SETTINGS = {
+  water: [
+    "private villa infinity pool, blue water, terracotta coping, Mediterranean landscape",
+    "rooftop pool, city skyline, golden hour light on the water",
+    "luxury resort pool deck, white marble, palm shadows",
+    "secluded beach, crystal clear water, white sand",
+  ],
+  outdoor: [
+    "sun-drenched apartment rooftop terrace, city panorama below",
+    "penthouse balcony, floor-to-ceiling glass, golden hour",
+    "Mediterranean villa courtyard, terracotta and bougainvillea",
+    "high-end beachside bar terrace, sunset behind",
+  ],
+  general: [
+    "minimalist studio, white walls, soft window light",
+    "luxury penthouse living room, large windows, city behind",
+    "high-end dressing room, vanity lighting, mirrors",
+    "private rooftop terrace, string lights, evening ambience",
+    "industrial loft, raw concrete, large north-facing windows",
+  ],
+};
+
+function pickRandom(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
 }
 
-function sanitisePose(text) {
-  if (!text || typeof text !== "string") return text;
-  let out = text;
-  for (const pat of BLOCKED_POSE_PATTERNS) {
-    out = out.replace(pat, "");
-  }
-  return out.replace(/\s{2,}/g, " ").trim();
+function classifySetting(rawSetting) {
+  const s = (rawSetting || "").toLowerCase();
+  if (/pool|beach|ocean|water|sea|swim/.test(s)) return "water";
+  if (/balcony|rooftop|terrace|garden|courtyard|outdoor|villa/.test(s)) return "outdoor";
+  return "general";
 }
-
-// Hard keyword sanitiser — catches any explicit terms anywhere in the prompt
-function sanitiseKeywords(raw) {
-  if (!raw || typeof raw !== "string") return raw;
-  return raw
-    .replace(/\bcompletely nude\b/gi, "wearing minimal clothing")
-    .replace(/\bnude bralette\b/gi, "skin-tone bralette")
-    .replace(/\bnude\b/gi, "barely dressed")
-    .replace(/\bnaked\b/gi, "in minimal clothing")
-    .replace(/\btopless\b/gi, "in a bralette")
-    .replace(/\bexplicit\b/gi, "intimate")
-    .replace(/\bfully exposed\b/gi, "barely covered")
-    .replace(/\bno bra\b/gi, "braless under fabric")
-    .replace(/\bwet (white )?t.shirt\b/gi, "damp fitted top")
-    .replace(/\bno bottoms visible\b/gi, "mid-thigh length")
-    .replace(/\bstrip(ping)? off\b/gi, "undressing");
-}
-
-function extractFields(imagePrompt) {
-  if (!imagePrompt) return {};
-  if (typeof imagePrompt === "string") return { subject: imagePrompt };
-
-  const p = imagePrompt;
-
-  // Shape A: { subject, wardrobe, setting, lighting }
-  if (p.subject || p.setting) {
-    return {
-      subject: p.subject || "",
-      setting: sanitiseSetting(p.setting || ""),
-      lighting: p.lighting || "",
-    };
-  }
-
-  // Shape B: { environment_and_lighting, core_subject, wardrobe_design, ... }
-  if (p.environment_and_lighting || p.core_subject) {
-    const ea = p.environment_and_lighting || {};
-    const cs = p.core_subject || {};
-    return {
-      subject: [
-        cs.physique_profile?.pose && sanitisePose(cs.physique_profile.pose),
-        cs.facial_and_glam?.expression,
-      ].filter(Boolean).join(", "),
-      setting: sanitiseSetting(ea.setting || ""),
-      lighting: ea.lighting || "",
-    };
-  }
-
-  // Shape C: flat object
-  return {
-    subject: [p.pose && sanitisePose(p.pose), p.expression].filter(Boolean).join(", "),
-    setting: sanitiseSetting(p.environment || p.setting || ""),
-    lighting: p.lighting || "",
-  };
-}
-
-function pickWardrobe(setting) {
-  const s = (setting || "").toLowerCase();
-  // Environment-appropriate wardrobe hints — always from safe pool
-  if (s.includes("pool") || s.includes("beach") || s.includes("water"))
-    return SAFE_WARDROBES[Math.floor(Math.random() * 2)]; // bikini options
-  if (s.includes("bedroom") || s.includes("bed") || s.includes("hotel room"))
-    return SAFE_WARDROBES[4 + Math.floor(Math.random() * 5)]; // lingerie/robe options
-  // General — any from pool
-  return SAFE_WARDROBES[Math.floor(Math.random() * SAFE_WARDROBES.length)];
-}
-
-const NEGATIVE_PROMPT = "nudity, genitals, explicit content, nipples visible, pubic area, completely naked, censorship bar, mosaic blur, cartoon, anime, painting, illustration, digital art, CGI, plastic skin, oversmoothed, beauty filter, airbrushed, text, watermark, logo, extra limbs, deformed hands, bad anatomy, blurry face, out of focus face, sunglasses blocking eyes";
 
 function buildPrompt(imagePrompt) {
-  const { subject, setting, lighting } = extractFields(imagePrompt);
+  // Extract the setting hint from the LLM prompt to guide wardrobe/setting selection
+  // — but we never use the LLM's subject/pose/wardrobe text directly.
+  let rawSetting = "";
+  if (imagePrompt && typeof imagePrompt === "object") {
+    rawSetting = imagePrompt.setting || imagePrompt.environment ||
+      (imagePrompt.environment_and_lighting || {}).setting || "";
+  } else if (typeof imagePrompt === "string") {
+    rawSetting = imagePrompt;
+  }
 
-  const cleanSubject = sanitisePose(sanitiseKeywords(subject || "")).replace(/,\s*,/g, ",").replace(/^[,\s]+|[,\s]+$/g, "").trim()
-    || "standing confidently, looking directly at camera";
-  const cleanSetting = sanitiseKeywords(setting || "minimal neutral background");
-  const cleanLighting = sanitiseKeywords(lighting || "soft natural directional light");
-  const wardrobe = pickWardrobe(setting);
+  const context = classifySetting(rawSetting);
+  const shot = pickRandom(SHOTS);
+  const wardrobe = pickRandom(WARDROBES[context] || WARDROBES.general);
+  const setting = pickRandom(SETTINGS[context] || SETTINGS.general);
 
-  return `Photorealistic portrait photo of a real woman, recreated from the reference images provided. Match her face, hair colour, eye colour, and skin tone exactly.
+  return `Photorealistic editorial fashion photograph of a real woman. Recreate her exactly from the reference images — same face, same dark near-black wavy hair, same vivid green eyes, same skin tone.
 
-SUBJECT: She is ${cleanSubject}.
-WARDROBE: ${wardrobe}.
-SETTING: ${cleanSetting}.
-LIGHTING: ${cleanLighting}.
+COMPOSITION: ${shot.frame}.
+POSE: ${shot.pose}.
+MOOD: ${shot.mood}.
+WARDROBE: She is wearing ${wardrobe}.
+LOCATION: ${setting}.
+LIGHTING: Natural or available light appropriate to the location — golden hour warmth, soft shadows, skin has a healthy natural glow.
 
-IDENTITY: Dark near-black wavy hair worn down. Vivid bright green eyes — sharp and in focus. Thick dark brows. Early 20s. Natural skin — visible pores, subtle texture, no retouching, no beauty filter, no smoothing. Confident, direct expression — comfortable in front of the camera.
+IDENTITY LOCK — these must be exact:
+- Hair: very dark, near-black, wavy, worn down
+- Eyes: vivid bright green, sharp in focus, no sunglasses
+- Skin: early 20s, natural texture, visible pores, no beauty filter, no smoothing
+- Expression: confident, direct, comfortable in front of the camera
 
-TECHNICAL: Shot on Sony A7R V, 35mm lens at f/1.8. Tack-sharp focus on her eyes and face. Background softly out of focus. Real photo quality — magazine editorial standard. 9:16 vertical format. Full body or three-quarter frame.
+TECHNICAL: Sony A7R V, lens and aperture matching the composition above. Tack-sharp focus on eyes. Real photograph — not digital art, not CGI, not a painting. 9:16 vertical. Magazine quality.
 
-Style: fashion editorial, luxury lifestyle. Not AI art. Not a painting. Not a render. A real photograph.
-
-DO NOT generate: ${NEGATIVE_PROMPT}.`;
+DO NOT include: nudity, exposed intimate areas, genitals, cartoon style, anime, illustrated look, plastic or airbrushed skin, text overlays, watermarks, extra or deformed limbs.`;
 }
 
 export default async function handler(req, res) {
