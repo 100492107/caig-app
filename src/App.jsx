@@ -124,18 +124,18 @@ const IMG_POSES = [
 ];
 
 const IMG_COVERAGE = [
-  "Topless, bare chest fully visible, wearing only low-rise jeans unbuttoned at waist",
-  "Fully nude, lying face-down, back and legs fully visible, nothing covered",
-  "Topless in open silk robe, robe falling off both shoulders, hanging loose, nothing beneath",
-  "Nude, seated, knees drawn up providing partial natural coverage, arms relaxed",
-  "Topless, wearing only minimal bottoms — thin strap, low-slung on hips",
-  "Nude from behind, full back and legs visible, standing pose",
-  "Nude in bath, water and minimal bubble coverage, shoulders and chest above waterline",
-  "Topless in outdoor shower, water running over bare chest and shoulders",
-  "Wrapped in white bed sheet, one shoulder bare, sheet falling low at front, artfully draped",
-  "Nude on bed, lying face-down, sheet pulled to lower back only, back and shoulders bare",
-  "Topless, wearing only open unbuttoned shirt as cover — hanging off shoulders, nothing beneath, shirt parted",
-  "Nude standing at window, natural body silhouette visible against light, back three-quarter angle",
+  "Small triangle string bikini, barely covering, thin side ties",
+  "Tiny micro bikini, high-cut bottoms, halter neck top",
+  "Sheer white bodysuit, opaque only at chest and hips",
+  "Silk slip dress, thin straps, low back, barely-there coverage",
+  "Oversized white dress shirt, unbuttoned low, no bottoms visible, mid-thigh length",
+  "Black lace bodysuit, sheer panels, opaque at key areas",
+  "White hotel robe hanging open, bikini or lingerie underneath just visible",
+  "Tiny bandeau top and micro shorts, midriff fully bare",
+  "Strappy black lingerie set, bralette and high-cut briefs",
+  "Wet white t-shirt over bikini, clinging to body from pool water",
+  "Gold satin bralette and matching high-waist briefs",
+  "Sheer mesh top over nude bralette, low-rise shorts",
 ];
 
 // ─── FANVUE / SUBSCRIPTION PLATFORMS ─────────────────────────────────────────
@@ -284,9 +284,9 @@ const CREATIVE_ANGLES = [
 
 // ─── IMAGE PROMPT GENERATOR (Fanvue mode only) ────────────────────────────────
 async function generateImagePrompt(persona, post, platform, contentType, signal, postIndex = 0, coverageOverride = null) {
-  const si = postIndex % IMG_SETTINGS.length;
-  const pi = (postIndex + 3) % IMG_POSES.length;
-  const ci = (postIndex + 7) % IMG_COVERAGE.length;
+  const si = Math.floor(Math.random() * IMG_SETTINGS.length);
+  const pi = Math.floor(Math.random() * IMG_POSES.length);
+  const ci = Math.floor(Math.random() * IMG_COVERAGE.length);
   const seed = IMG_SETTINGS[si];
   const pose = IMG_POSES[pi];
   const coverage = coverageOverride || IMG_COVERAGE[ci];
@@ -2458,8 +2458,9 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
       setGenerating(g => ({ ...g, [post.id]: { stage, startedAt: g[post.id]?.startedAt || Date.now(), ...extra } }));
 
     setGenerating(g => ({ ...g, [post.id]: { stage: "submitting", startedAt: Date.now() } }));
-    // Clear any previously cached image for this post so old image doesn't show
+    // Clear cached image from both images state AND the post object itself
     setImages(im => { const n = { ...im }; delete n[post.id]; return n; });
+    setPosts(ps => ps.map(p => p.id === post.id ? { ...p, image_url: null } : p));
 
     try {
       // ── Submit job to fal.ai async queue (returns instantly) ─────────────
