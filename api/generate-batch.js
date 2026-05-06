@@ -428,7 +428,7 @@ export default async function handler(req, res) {
 
       if (post.hook) usedHooks.push(post.hook);
 
-      if (fanvueMode) {
+      if (true) {
         const FALLBACK_BRIEFS = {
           fv_tease:       "Creator at window, open silk shirt falling off shoulders, low-rise jeans. Strong directional daylight. Direct eye contact.",
           fv_ppv:         "Creator on edge of bed leaning forward, wrapped loosely in white sheet, one shoulder bare. Warm candlelight.",
