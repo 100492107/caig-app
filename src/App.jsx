@@ -194,7 +194,6 @@ const FANVUE_PLATFORMS = [
     id: "fv_page", name: "Fanvue Page", color: "#7C3AED", times: ["10:00", "20:00"],
     purpose: "Content that lives on the Fanvue page itself — welcome messages, PPV captions, and subscriber posts. These convert new visitors and retain existing subscribers.",
     contentMix: [
-      { type: "fv_welcome", label: "Welcome message — new subscriber DM", weight: 3, format: "DM text message", direction: "Write like you're texting someone you find attractive who's just walked into your world. Warm, intimate, charged. Tell them exactly what's on the page. Make them feel like subscribing was the right decision. End with an invitation." },
       { type: "fv_ppv_caption", label: "PPV caption — unlockable content", weight: 4, format: "caption for locked photo post", direction: "Name the content explicitly and write in seductive, charged language. Tell them what they'll see, why it's worth it. Make unlocking feel inevitable. Confident, direct, desirable." },
       { type: "fv_wall_post", label: "Free wall post — subscriber retention", weight: 3, format: "photo post with caption", direction: "Write for people who already like you and want more. Reference specific nude content. Intimate, body-confident, charged. Make staying subscribed feel like the obvious choice." },
     ],
@@ -350,8 +349,8 @@ async function generatePost(persona, platformId, pillar, postIndex, signal, used
   // Pick content type based on weighted random selection per platform
   const mix = platform.contentMix;
   const totalWeight = mix.reduce((sum, m) => sum + m.weight, 0);
-  // Use postIndex + timestamp to create varied but deterministic selection
-  const seed = ((postIndex * 7 + Date.now()) % totalWeight);
+  // Genuinely random weighted selection
+  let seed = Math.random() * totalWeight;
   let acc = 0;
   let contentType = mix[0];
   for (const m of mix) {
@@ -359,8 +358,8 @@ async function generatePost(persona, platformId, pillar, postIndex, signal, used
     if (seed < acc) { contentType = m; break; }
   }
 
-  // Pick a random creative angle for this post
-  const angleIndex = (postIndex * 3 + Math.floor(Math.random() * CREATIVE_ANGLES.length)) % CREATIVE_ANGLES.length;
+  // Fully random creative angle
+  const angleIndex = Math.floor(Math.random() * CREATIVE_ANGLES.length);
   const creativeAngle = CREATIVE_ANGLES[angleIndex];
 
   // Research trends (only for content types that benefit from it)
@@ -5894,6 +5893,235 @@ const MODULE_COLORS = {
   onboarding: "var(--c-onboarding)",
 };
 
+// ─── DM Inbox ─────────────────────────────────────────────────────────────────
+
+function DMInbox({ toast_ }) {
+  const [personas]      = React.useState([{ id: "cara", name: "Cara Whitmore" }]);
+  const [personaId, setPersonaId] = React.useState("cara");
+  const [conversations, setConversations] = React.useState([]);
+  const [loading, setLoading]     = React.useState(false);
+  const [selected, setSelected]   = React.useState(null); // { counterpartUuid, fanUsername, lastFanMessage, draft }
+  const [drafting, setDrafting]   = React.useState(false);
+  const [sending, setSending]     = React.useState(false);
+  const [editedDraft, setEditedDraft] = React.useState("");
+
+  async function fetchInbox() {
+    setLoading(true);
+    setConversations([]);
+    setSelected(null);
+    try {
+      const res = await fetch(`/api/fanvue-dm?mode=inbox`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ personaId }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to fetch inbox");
+      setConversations(data.conversations || []);
+      if (!data.conversations?.length) toast_("Inbox is empty — no unread messages");
+    } catch (e) {
+      toast_("Error fetching inbox: " + e.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function fetchDraft(conv) {
+    setSelected({ ...conv, draft: null });
+    setEditedDraft("");
+    setDrafting(true);
+    try {
+      const res = await fetch(`/api/fanvue-dm?mode=draft`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ personaId, counterpartUuid: conv.counterpartUuid }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Draft failed");
+      setSelected(s => ({ ...s, draft: data.draft, lastFanMessage: data.lastFanMessage }));
+      setEditedDraft(data.draft || "");
+    } catch (e) {
+      toast_("Draft error: " + e.message);
+    } finally {
+      setDrafting(false);
+    }
+  }
+
+  async function sendDraft() {
+    if (!selected || !editedDraft.trim()) return;
+    setSending(true);
+    try {
+      const res = await fetch(`/api/fanvue-dm?mode=send`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ personaId, recipientUuid: selected.counterpartUuid, text: editedDraft.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Send failed");
+      toast_("Message sent to " + selected.fanUsername);
+      setSelected(null);
+      setEditedDraft("");
+      // Remove from list
+      setConversations(cs => cs.filter(c => c.counterpartUuid !== selected.counterpartUuid));
+    } catch (e) {
+      toast_("Send error: " + e.message);
+    } finally {
+      setSending(false);
+    }
+  }
+
+  async function runAutopilot() {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/fanvue-dm?mode=auto`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ personaId }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Autopilot failed");
+      toast_(`Autopilot: ${data.processed} messages sent`);
+      setConversations([]);
+      setSelected(null);
+    } catch (e) {
+      toast_("Autopilot error: " + e.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div style={{ maxWidth: 760, margin: "0 auto", padding: "24px 16px" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, flexWrap: "wrap", gap: 10 }}>
+        <div>
+          <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: "var(--t0)" }}>DM Inbox</h2>
+          <p style={{ margin: "4px 0 0", fontSize: 12, color: "var(--t3)" }}>Review and send AI-generated replies in Cara's voice</p>
+        </div>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button className="btn-sec" onClick={fetchInbox} disabled={loading}>
+            {loading ? "Loading…" : "Refresh Inbox"}
+          </button>
+          <button
+            style={{ background: "rgba(124,58,237,.15)", border: "1px solid rgba(124,58,237,.4)", color: "#c4b5fd", borderRadius: 8, padding: "7px 14px", fontSize: 12, fontWeight: 600, cursor: "pointer" }}
+            onClick={runAutopilot}
+            disabled={loading}
+            title="Auto-reply all unread messages without review"
+          >
+            ⚡ Autopilot
+          </button>
+        </div>
+      </div>
+
+      {/* Conversation list */}
+      {!selected && (
+        <div>
+          {conversations.length === 0 && !loading && (
+            <div style={{ textAlign: "center", padding: "48px 0", color: "var(--t3)", fontSize: 13 }}>
+              Click "Refresh Inbox" to load unread messages
+            </div>
+          )}
+          {conversations.map(conv => (
+            <div
+              key={conv.counterpartUuid}
+              onClick={() => fetchDraft(conv)}
+              style={{
+                background: "var(--s1)", border: "1px solid var(--e1)", borderRadius: 10,
+                padding: "14px 16px", marginBottom: 10, cursor: "pointer",
+                transition: "border-color .15s",
+              }}
+              onMouseEnter={e => e.currentTarget.style.borderColor = "var(--b1)"}
+              onMouseLeave={e => e.currentTarget.style.borderColor = "var(--e1)"}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontWeight: 600, fontSize: 13, color: "var(--t0)", marginBottom: 3 }}>
+                    {conv.fanUsername}
+                    {conv.unreadCount > 0 && (
+                      <span style={{ marginLeft: 8, background: "var(--b1)", color: "#fff", fontSize: 10, fontWeight: 700, borderRadius: 10, padding: "1px 6px" }}>
+                        {conv.unreadCount}
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ fontSize: 12, color: "var(--t3)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {conv.lastMessage || "No messages"}
+                  </div>
+                </div>
+                <span style={{ fontSize: 11, color: "var(--t4)", whiteSpace: "nowrap" }}>
+                  {conv.lastMessageAt ? new Date(conv.lastMessageAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Draft panel */}
+      {selected && (
+        <div style={{ background: "var(--s1)", border: "1px solid var(--e1)", borderRadius: 12, padding: 20 }}>
+          <button
+            onClick={() => { setSelected(null); setEditedDraft(""); }}
+            style={{ background: "none", border: "none", color: "var(--t3)", cursor: "pointer", fontSize: 12, marginBottom: 16, padding: 0 }}
+          >
+            ← Back to inbox
+          </button>
+
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 11, color: "var(--t4)", textTransform: "uppercase", letterSpacing: ".06em", marginBottom: 4 }}>Fan</div>
+            <div style={{ fontWeight: 600, color: "var(--t0)", fontSize: 14 }}>{selected.fanUsername}</div>
+          </div>
+
+          {selected.lastFanMessage && (
+            <div style={{ marginBottom: 20, background: "var(--bg)", borderRadius: 8, padding: "12px 14px", borderLeft: "3px solid var(--e2)" }}>
+              <div style={{ fontSize: 11, color: "var(--t4)", marginBottom: 4, textTransform: "uppercase", letterSpacing: ".06em" }}>Their message</div>
+              <div style={{ fontSize: 13, color: "var(--t1)", lineHeight: 1.5 }}>{selected.lastFanMessage}</div>
+            </div>
+          )}
+
+          <div style={{ marginBottom: 12 }}>
+            <div style={{ fontSize: 11, color: "var(--t4)", textTransform: "uppercase", letterSpacing: ".06em", marginBottom: 8 }}>
+              Cara's reply {drafting && <span style={{ color: "var(--b1)" }}>— generating…</span>}
+            </div>
+            <textarea
+              value={editedDraft}
+              onChange={e => setEditedDraft(e.target.value)}
+              placeholder={drafting ? "Generating reply…" : "Reply will appear here"}
+              disabled={drafting}
+              rows={5}
+              style={{
+                width: "100%", boxSizing: "border-box",
+                background: "var(--bg)", border: "1px solid var(--e2)", borderRadius: 8,
+                color: "var(--t0)", fontSize: 13, lineHeight: 1.6, padding: "12px 14px",
+                resize: "vertical", fontFamily: "inherit",
+              }}
+            />
+            <div style={{ fontSize: 11, color: "var(--t4)", marginTop: 4, textAlign: "right" }}>
+              {editedDraft.length} chars · {editedDraft.split(/\s+/).filter(Boolean).length} words
+            </div>
+          </div>
+
+          <div style={{ display: "flex", gap: 8 }}>
+            <button
+              className="btn-sec"
+              onClick={() => fetchDraft(selected)}
+              disabled={drafting || sending}
+            >
+              Regenerate
+            </button>
+            <button
+              className="btn-primary"
+              onClick={sendDraft}
+              disabled={drafting || sending || !editedDraft.trim()}
+              style={{ flex: 1 }}
+            >
+              {sending ? "Sending…" : "Send Reply"}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function App() {
   useEffect(() => {
     const el = document.createElement("style");
@@ -6089,6 +6317,12 @@ export default function App() {
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 12l2 2 4-4"/></svg>
             Review
           </button>
+          <button className={`tni${view === "dms" ? " on" : ""}`} onClick={() => setView("dms")}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+            DMs
+          </button>
           <button className={`tni${view === "calendar" ? " on" : ""}`} onClick={() => setView("calendar")}>
             {Ic.cal} Calendar
           </button>
@@ -6154,6 +6388,7 @@ export default function App() {
           {view === "onboarding" && (canAccess(profile?.tier, "onboarding", profile?.role) ? <Onboarding /> : <LockedModule moduleName="Automate Ops"        currentTier={profile?.tier} />)}
           {view === "queue"      && <Queue queue={queue} setQueue={setQueue} toast_={toast_} />}
           {view === "review"     && <ReviewQueue toast_={toast_} queue={queue} setQueue={setQueue} />}
+          {view === "dms"        && <DMInbox toast_={toast_} />}
           {view === "calendar"   && <CalView queue={queue} />}
           {view === "settings"   && <Settings queue={queue} setQueue={setQueue} toast_={toast_} />}
           {view === "admin"      && profile?.role === "admin" && <AdminPanel />}

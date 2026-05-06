@@ -23,6 +23,9 @@
     },
     "api/generate-poll.js": {
       "maxDuration": 60
+    },
+    "api/fanvue-dm.js": {
+      "maxDuration": 60
     }
   },
   "crons": [

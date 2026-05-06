@@ -266,12 +266,13 @@ async function researchTrends(apiKey, platformName, niche, fanvueMode) {
 async function generatePost(apiKey, persona, platform, pillar, postIndex, usedHooks, ideaSeed, fanvueMode, cachedTrends) {
   const mix = platform.contentMix;
   const totalWeight = mix.reduce((s, m) => s + m.weight, 0);
-  // Use postIndex only — not Date.now() — so each post gets a genuinely different content type
-  const seed = (postIndex * 3) % totalWeight;
+  // Weighted random selection — genuinely random each call
+  let seed = Math.random() * totalWeight;
   let acc = 0, contentType = mix[0];
   for (const m of mix) { acc += m.weight; if (seed < acc) { contentType = m; break; } }
 
-  const angleIndex = (postIndex * 7) % CREATIVE_ANGLES.length;
+  // Fully random angle — no cycling
+  const angleIndex = Math.floor(Math.random() * CREATIVE_ANGLES.length);
   const creativeAngle = CREATIVE_ANGLES[angleIndex];
   const trends = cachedTrends || "";
 
