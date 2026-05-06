@@ -282,7 +282,7 @@ function buildPrompt({ imagePrompt, hook, caption, wardrobe, shotAngle, photoDir
 
   console.log(`[generate-submit] context=${settingContext} wardrobeGroup=${wardrobeGroup} tags=[${desiredTags.join(",")}] shot="${shot.frame.slice(0, 60)}..."`);
 
-  return `Photorealistic editorial fashion photograph of a real woman. Recreate her exactly from the reference images — same face, same dark near-black wavy hair, same vivid green eyes, same skin tone.
+  return `Photorealistic editorial fashion photograph of a real woman. Recreate her exactly from the reference images — same face, same features, same identity.
 
 COMPOSITION: ${shot.frame}.
 POSE: ${shot.pose}.
@@ -291,15 +291,25 @@ WARDROBE: She is wearing ${wardrobeText}.
 LOCATION: ${setting}.
 LIGHTING: Natural or available light appropriate to the location — golden hour warmth, soft shadows, skin has a healthy natural glow.
 
-IDENTITY LOCK — these must be exact:
-- Hair: very dark, near-black, wavy, worn down
-- Eyes: vivid bright green, sharp in focus, no sunglasses
-- Skin: early 20s, natural texture, visible pores, no beauty filter, no smoothing
-- Expression: confident, direct, comfortable in front of the camera
+IDENTITY LOCK — every single one of these must be exact. Do not deviate:
+
+HAIR: Very dark brown, almost black — this is dark espresso brown, NOT light brown, NOT auburn, NOT chestnut. The hair absorbs light, it does not reflect warm amber tones. When dry: dark wavy strands worn down, falling past shoulders. Individual strands catch a subtle cool highlight only. The overall impression is near-black.
+
+EYES: Vivid, unmistakably bright green — the iris is a clear, saturated green with intricate radial patterns and a dark limbal ring. NOT hazel. NOT grey-green. NOT blue. The eyes must read as distinctly GREEN in any lighting condition. Tack-sharp focus on the irises — the colour must be visible and accurate.
+
+BROWS: Strong, thick, dark — naturally shaped, not drawn on. One of her most defining features. They must be clearly dark and full. If brows appear thin or light, this is wrong.
+
+SKIN: Medium-light, warm olive undertone. Natural pore-level texture in close-ups. Slightly sun-kissed, dewy glow. No beauty filter. No smoothing. Real skin.
+
+FACE: Angular, defined jawline. Straight refined nose. Full naturally pigmented lips, soft pink-rose, slightly parted. Early 20s.
+
+ACCESSORIES: Small gold hoop earrings where ears are visible. Layered delicate gold chains at the neckline for outdoor and pool settings.
+
+EXPRESSION: Confident, direct, comfortable in front of the camera. Reserved — not smiling wide, not performing.
 
 TECHNICAL: Sony A7R V, lens and aperture matching the composition above. Tack-sharp focus on eyes. Real photograph — not digital art, not CGI, not a painting. 9:16 vertical. Magazine quality.
 
-DO NOT include: nudity, exposed intimate areas, genitals, cartoon style, anime, illustrated look, plastic or airbrushed skin, text overlays, watermarks, extra or deformed limbs.`;
+DO NOT include: nudity, exposed intimate areas, genitals, cartoon style, anime, illustrated look, plastic or airbrushed skin, text overlays, watermarks, extra or deformed limbs, brown eyes, hazel eyes, grey eyes, light brown hair, auburn hair, blonde hair.`;
 }
 
 export default async function handler(req, res) {

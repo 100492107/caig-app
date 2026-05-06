@@ -1042,6 +1042,12 @@ select{cursor:pointer;appearance:none}
   .rv-mode-toggle{flex-wrap:wrap}
   .rv-date-row{flex-wrap:wrap}
   .rv-date-row>button{flex:1 1 100%!important;min-width:0!important}
+  /* ReviewQueue mobile */
+  .rv-wrap{padding:16px 12px 80px!important}
+  .rv-actions{flex-direction:column!important}
+  .rv-actions>button{flex:none!important;width:100%!important;min-width:0!important}
+  .rv-img-area{min-height:280px!important}
+  .rv-content{padding:12px 14px!important}
 }
 @media(max-width:400px){
   .home-stats{grid-template-columns:repeat(2,1fr)}
@@ -2469,10 +2475,8 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
     setUploading(u => ({ ...u, [post.id]: false }));
   }
 
-  // Download image to Mac for all platforms — saves to ~/Downloads/caig/{platform}/
-  // Browser fetches the image as a blob to avoid cross-origin filename issues.
-  const PLATFORMS = ["fanvue", "instagram", "tiktok", "reddit", "telegram", "x"];
-  async function downloadForAllPlatforms(imageUrl, postId) {
+  // Download image to Mac — saves 1 file to ~/Downloads/caig/{platform}/
+  async function downloadForPlatform(imageUrl, postId, platform) {
     let blob;
     try {
       const res = await fetch(imageUrl);
@@ -2481,15 +2485,12 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
 
     const blobUrl = URL.createObjectURL(blob);
     const ts = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-    for (const platform of PLATFORMS) {
-      const a = document.createElement("a");
-      a.href = blobUrl;
-      a.download = `caig/${platform}/cara_${ts}_${String(postId).slice(-6)}.jpg`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      await new Promise(r => setTimeout(r, 150)); // small gap so browser doesn't merge them
-    }
+    const a = document.createElement("a");
+    a.href = blobUrl;
+    a.download = `caig/${platform || "fanvue"}/cara_${ts}_${String(postId).slice(-6)}.jpg`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
     URL.revokeObjectURL(blobUrl);
   }
 
@@ -2583,8 +2584,8 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
       setImages(im => ({ ...im, [post.id]: { url: publicUrl, localPreview: publicUrl } }));
       toast_("Image generated — review and post!", "ok");
 
-      // Auto-download to Mac for all platforms
-      downloadForAllPlatforms(publicUrl, post.id);
+      // Auto-download to Mac (1 file for the post's platform)
+      downloadForPlatform(publicUrl, post.id, post.platform);
 
       // Fire-and-forget: store to Supabase permanently in background
       fetch("/api/store-image", {
@@ -2732,7 +2733,7 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
   const captionText = p => [p.hook, p.caption, p.cta, p.hashtags].filter(Boolean).join("\n\n");
 
   return (
-    <div style={{ maxWidth: 760, margin: "0 auto", padding: "24px 16px 80px" }}>
+    <div className="rv-wrap" style={{ maxWidth: 760, margin: "0 auto", padding: "24px 16px 80px" }}>
       <div style={{ marginBottom: 24 }}>
         <h2 style={{ fontSize: 20, fontWeight: 700, color: "var(--t0)", margin: 0 }}>Review Queue</h2>
         <p style={{ fontSize: 13, color: "var(--t3)", margin: "6px 0 12px" }}>
@@ -2741,8 +2742,8 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
         {/* Image mode label */}
         <div className="rv-mode-toggle" style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 14px", background: "var(--s1)", border: "1px solid var(--e1)", borderRadius: 10 }}>
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: "var(--t1)" }}>⚡ FLUX Pro Ultra</div>
-            <div style={{ fontSize: 11, color: "var(--t4)", marginTop: 2 }}>Cara LoRA · photorealistic · ~$0.06/image</div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: "var(--t1)" }}>⚡ nano-banana-2 · Cara refs</div>
+            <div style={{ fontSize: 11, color: "var(--t4)", marginTop: 2 }}>Context-aware shot · wardrobe · setting selection</div>
           </div>
         </div>
       </div>
@@ -2774,6 +2775,7 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
             }}>
               {/* Image area — click to upload */}
               <div
+                className="rv-img-area"
                 onClick={() => !busy && fileRefs.current[post.id]?.click()}
                 style={{
                   background: "var(--s2)",
@@ -2851,7 +2853,7 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
                             fontSize: 13, fontWeight: 700, cursor: "pointer", marginBottom: 8,
                           }}
                         >⚡ Generate Image</button>
-                        <div style={{ fontSize: 12, color: "var(--t4)" }}>or click to upload manually</div>
+                        <div style={{ fontSize: 12, color: "var(--t4)" }}>or tap to upload manually</div>
                       </>
                     )}
                   </div>
@@ -2884,7 +2886,7 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
               />
 
               {/* Content */}
-              <div style={{ padding: "16px 18px" }}>
+              <div className="rv-content" style={{ padding: "16px 18px" }}>
                 {/* Meta pills */}
                 <div style={{ display: "flex", gap: 6, marginBottom: 12, flexWrap: "wrap" }}>
                   <span style={{ fontSize: 11, color: "var(--t3)", background: "var(--s2)", padding: "3px 8px", borderRadius: 6, textTransform: "capitalize" }}>
@@ -2920,7 +2922,7 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
                 )}
 
                 {/* Actions */}
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                <div className="rv-actions" style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                   {/* Post Now */}
                   <button
                     onClick={() => postNow(post)}
