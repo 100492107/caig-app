@@ -2656,6 +2656,8 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
       toast_("Posted to Fanvue!", "ok");
       setPosts(p => p.filter(x => x.id !== post.id));
       setImages(im => { const n = { ...im }; delete n[post.id]; return n; });
+      // Remove from queue so it doesn't reappear on next content engine run
+      setQueue(q => q.filter(x => x.id !== post.id));
     } catch (e) {
       toast_(`Post failed: ${e.message}`, "error");
       await supabase.from("content_queue").update({ status: "error", notes: e.message }).eq("id", post.id);
@@ -2721,6 +2723,7 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
     toast_("Post rejected", "ok");
     setPosts(p => p.filter(x => x.id !== post.id));
     setImages(im => { const n = { ...im }; delete n[post.id]; return n; });
+    setQueue(q => q.filter(x => x.id !== post.id));
   }
 
   const captionText = p => [p.hook, p.caption, p.cta, p.hashtags].filter(Boolean).join("\n\n");

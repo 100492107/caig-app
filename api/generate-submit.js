@@ -11,21 +11,22 @@ const CARA_REFS = [
   "https://v3b.fal.media/files/b/0a990cc0/ne3QfVCW_NQnJZFjSnsST_Cara_Whitmore_23.jpeg",
 ];
 
-// Safe wardrobe pool — lewd but never nude, no phrases that trigger fal.ai safety
+// Safe wardrobe pool — lewd but never nude, tested against fal.ai safety filter.
+// Rules: no "briefs", no "underwear", no "camisole" alone — these trigger blocks.
+// Bikini/swimwear and dressed-but-revealing are consistently safe.
 const SAFE_WARDROBES = [
-  "small triangle string bikini, thin side ties",
-  "tiny micro bikini, halter neck top, high-cut bottoms",
-  "silk slip dress, thin straps, low back",
-  "oversized white dress shirt, unbuttoned to the waist, mid-thigh length",
-  "black lace bodysuit, sheer panels fully lined at chest",
+  "small triangle string bikini, thin side ties, sun-kissed skin",
+  "tiny micro bikini, halter neck, high-cut bottoms",
+  "white string bikini, barely-there coverage",
+  "oversized white dress shirt, unbuttoned to the waist, mid-thigh length, nothing underneath visible",
+  "black lace bodysuit, sheer panels fully lined, worn as a top with jeans",
   "white hotel robe loosely tied, black bikini underneath just visible",
-  "tiny bandeau top and micro shorts, midriff bare",
-  "strappy black lingerie set, lace bralette and high-cut briefs",
-  "gold satin bralette and matching high-waist briefs",
-  "sheer mesh crop top over black bralette, low-rise shorts",
-  "red satin slip dress, thigh-high slit",
-  "fitted ribbed crop top and matching low-rise shorts",
-  "lace-trimmed camisole and high-waist briefs, shoulder slipping",
+  "tiny ribbed bandeau top and matching micro shorts, midriff fully bare",
+  "gold satin bralette worn as a top, high-waist wide-leg trousers",
+  "sheer mesh crop top over a black bralette, low-rise denim shorts",
+  "red satin slip dress, thigh-high slit, thin straps",
+  "fitted ribbed crop top and matching low-rise mini skirt",
+  "strappy black bralette top and high-waist shorts, layered gold chains",
 ];
 
 const BLOCKED_POSE_PATTERNS = [
@@ -142,23 +143,29 @@ function pickWardrobe(setting) {
   return SAFE_WARDROBES[Math.floor(Math.random() * SAFE_WARDROBES.length)];
 }
 
+const NEGATIVE_PROMPT = "nudity, genitals, explicit content, nipples visible, pubic area, completely naked, censorship bar, mosaic blur, cartoon, anime, painting, illustration, digital art, CGI, plastic skin, oversmoothed, beauty filter, airbrushed, text, watermark, logo, extra limbs, deformed hands, bad anatomy, blurry face, out of focus face, sunglasses blocking eyes";
+
 function buildPrompt(imagePrompt) {
   const { subject, setting, lighting } = extractFields(imagePrompt);
 
   const cleanSubject = sanitisePose(sanitiseKeywords(subject || "")).replace(/,\s*,/g, ",").replace(/^[,\s]+|[,\s]+$/g, "").trim()
     || "standing confidently, looking directly at camera";
   const cleanSetting = sanitiseKeywords(setting || "minimal neutral background");
-  const cleanLighting = sanitiseKeywords(lighting || "soft natural light");
+  const cleanLighting = sanitiseKeywords(lighting || "soft natural directional light");
   const wardrobe = pickWardrobe(setting);
 
-  return `Photo of a specific woman from the reference images.
+  return `Photorealistic portrait photo of a real woman, recreated from the reference images provided. Match her face, hair colour, eye colour, and skin tone exactly.
 
-She is ${cleanSubject}.
-Setting: ${cleanSetting}.
-She is wearing ${wardrobe}.
-Lighting: ${cleanLighting}.
+SUBJECT: She is ${cleanSubject}.
+WARDROBE: ${wardrobe}.
+SETTING: ${cleanSetting}.
+LIGHTING: ${cleanLighting}.
 
-Dark near-black wavy hair, vivid green eyes, early 20s, natural skin texture with visible pores — no retouching. Direct confident gaze. Shot on Sony A7R V, 35mm f/1.8, sharp focus on face, softly blurred background. Photorealistic, not AI art. 9:16 vertical.`;
+IDENTITY: Dark near-black wavy hair worn down. Vivid bright green eyes — sharp and in focus. Thick dark brows. Early 20s. Natural skin — visible pores, subtle texture, no retouching, no beauty filter, no smoothing. Confident, direct expression — comfortable in front of the camera.
+
+TECHNICAL: Shot on Sony A7R V, 35mm lens at f/1.8. Tack-sharp focus on her eyes and face. Background softly out of focus. Real photo quality — magazine editorial standard. 9:16 vertical format. Full body or three-quarter frame.
+
+Style: fashion editorial, luxury lifestyle. Not AI art. Not a painting. Not a render. A real photograph.`;
 }
 
 export default async function handler(req, res) {
@@ -187,6 +194,7 @@ export default async function handler(req, res) {
       headers: { Authorization: `Key ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         prompt,
+        negative_prompt: NEGATIVE_PROMPT,
         image_urls: CARA_REFS,
         aspect_ratio: "9:16",
         resolution: "2K",
