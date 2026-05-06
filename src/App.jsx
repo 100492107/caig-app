@@ -2455,6 +2455,30 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
     setUploading(u => ({ ...u, [post.id]: false }));
   }
 
+  // Download image to Mac for all platforms — saves to ~/Downloads/caig/{platform}/
+  // Browser fetches the image as a blob to avoid cross-origin filename issues.
+  const PLATFORMS = ["fanvue", "instagram", "tiktok", "reddit", "telegram", "x"];
+  async function downloadForAllPlatforms(imageUrl, postId) {
+    let blob;
+    try {
+      const res = await fetch(imageUrl);
+      blob = await res.blob();
+    } catch { return; } // silently skip if image not reachable yet
+
+    const blobUrl = URL.createObjectURL(blob);
+    const ts = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    for (const platform of PLATFORMS) {
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = `caig/${platform}/cara_${ts}_${String(postId).slice(-6)}.jpg`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      await new Promise(r => setTimeout(r, 150)); // small gap so browser doesn't merge them
+    }
+    URL.revokeObjectURL(blobUrl);
+  }
+
   // Generate image via fal.ai LoRA — with optional Nano Banana Pro enhancement
   async function generateImage(post) {
     const setStatus = (stage, extra = {}) =>
@@ -2541,6 +2565,9 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
 
       setImages(im => ({ ...im, [post.id]: { url: publicUrl, localPreview: publicUrl } }));
       toast_("Image generated — review and post!", "ok");
+
+      // Auto-download to Mac for all platforms
+      downloadForAllPlatforms(publicUrl, post.id);
 
       // Fire-and-forget: store to Supabase permanently in background
       fetch("/api/store-image", {
