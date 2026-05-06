@@ -2491,35 +2491,39 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
       setStatus("queued", { requestId });
 
       // ── Server-side wait poll (one call per ~57s, server loops internally) ──
-      // Using wait=1 means the server polls fal.ai and only returns when COMPLETED,
-      // FAILED, or its 54s internal timeout. This avoids browser timer throttling
-      // killing the loop when the tab is backgrounded or on mobile.
+      // ── Poll every 5s — short requests, no long-lived connections ───────
+      // wait=1 long-poll gets killed by browsers when tab backgrounds.
+      // Short polls are slower but reliable on mobile and backgrounded tabs.
       let imageUrl = null;
-      const MAX_SERVER_ATTEMPTS = 3; // 3 × 57s = ~3 min absolute max
-      let serverAttempts = 0;
+      const POLL_MS = 5000;
+      const DEADLINE = Date.now() + 3 * 60 * 1000; // 3 min max
 
-      while (serverAttempts < MAX_SERVER_ATTEMPTS) {
-        serverAttempts++;
+      while (Date.now() < DEADLINE) {
+        await new Promise(r => setTimeout(r, POLL_MS));
 
-        const pollRes = await fetch(`/api/generate-poll?requestId=${requestId}&wait=1`);
-        let pollData;
-        const pollText = await pollRes.text();
-        try { pollData = JSON.parse(pollText); }
-        catch { throw new Error(`Poll error (${pollRes.status}): ${pollText.slice(0, 120)}`); }
+        let pollRes, pollData;
+        try {
+          pollRes = await fetch(`/api/generate-poll?requestId=${requestId}`);
+          const pollText = await pollRes.text();
+          try { pollData = JSON.parse(pollText); }
+          catch { throw new Error(`Poll error (${pollRes.status}): ${pollText.slice(0, 120)}`); }
+        } catch (e) {
+          // Network hiccup — just retry next interval
+          console.warn("[poll] fetch failed, retrying:", e.message);
+          continue;
+        }
 
         if (!pollRes.ok) {
           const detail = pollData?.raw?.description ? ` (fal: ${pollData.raw.description})` : "";
           throw new Error((pollData?.error || `Poll failed (${pollRes.status})`) + detail);
         }
 
-        const { status, queuePosition, timedOut } = pollData;
+        const { status, queuePosition } = pollData;
 
         if (status === "IN_QUEUE") {
           setStatus("queued", { requestId, queuePosition });
-        } else if (status === "IN_PROGRESS" || timedOut) {
+        } else if (status === "IN_PROGRESS") {
           setStatus("generating", { requestId });
-          // Server timed out internally — loop again immediately
-          continue;
         } else if (status === "COMPLETED") {
           imageUrl = pollData.imageUrl;
           break;
@@ -2530,21 +2534,9 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
 
       if (!imageUrl) throw new Error("Timed out waiting for generation (3 min)");
 
-      // ── Save to Supabase Storage ──────────────────────────────────────────
+      // ── Set image directly — skip Supabase storage (no bucket configured) ─
       setStatus("saving", { requestId });
-      let publicUrl = imageUrl;
-      try {
-        const imgRes = await fetch(imageUrl);
-        const blob = await imgRes.blob();
-        const path = `cara/posts/${post.id}_${Date.now()}.jpg`;
-        const { error: upErr } = await supabase.storage
-          .from("post-images")
-          .upload(path, blob, { contentType: "image/jpeg", upsert: true });
-        if (!upErr) {
-          const { data: urlData } = supabase.storage.from("post-images").getPublicUrl(path);
-          if (urlData?.publicUrl) publicUrl = urlData.publicUrl;
-        }
-      } catch (_) { /* fall back to fal.ai URL */ }
+      const publicUrl = imageUrl;
 
       if (!post._inMemory) {
         await fetch("/api/queue-update", {
