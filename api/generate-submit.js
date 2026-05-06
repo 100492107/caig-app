@@ -118,6 +118,7 @@ export default async function handler(req, res) {
 
   const { imagePrompt, personaDescriptors, seed, photoDirection } = body;
   const prompt = buildPrompt(imagePrompt || photoDirection || null, personaDescriptors);
+  console.log("[generate-submit] prompt:", prompt.slice(0, 300));
 
   let qRes, qData;
   try {

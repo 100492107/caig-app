@@ -47,9 +47,14 @@ export default async function handler(req, res) {
 
     const imageUrl = resultData?.images?.[0]?.url;
     if (!imageUrl) {
-      // Log full result for debugging
-      console.error("[generate-poll] no image URL in result:", JSON.stringify(resultData));
-      return res.status(502).json({ status: "FAILED", error: "Result had no image URL", raw: resultData });
+      const description = resultData?.description || "";
+      console.error("[generate-poll] no image URL in result. description:", description, "full:", JSON.stringify(resultData));
+      // Surface the fal.ai description so caller knows if it was a safety block
+      return res.status(502).json({
+        status: "FAILED",
+        error: description ? `Blocked by safety filter: ${description}` : "Result had no image URL",
+        raw: resultData,
+      });
     }
 
     console.log("[generate-poll] COMPLETED:", requestId, imageUrl);
