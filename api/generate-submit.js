@@ -49,48 +49,56 @@ function buildPrompt(imagePrompt, personaDescriptors) {
   let sceneDesc = "", env = "", wardrobe = null;
 
   if (!imagePrompt || typeof imagePrompt === "string") {
+    // Plain string or empty — use directly
     sceneDesc = imagePrompt || personaDescriptors || "natural candid portrait, warm indoor light, direct gaze";
     env = sceneDesc;
   } else {
     const p = imagePrompt;
-    const ea = p.environment_and_lighting || {};
-    const cs = p.core_subject || {};
-    const wd = p.wardrobe_design || {};
-    const tp = p.technical_photography || {};
 
-    if (ea.setting || cs.physique_profile) {
+    // Shape A: { subject, wardrobe, setting, lighting } — from generateImagePrompt() in App.jsx
+    if (p.subject || p.setting) {
+      sceneDesc = [
+        p.subject,
+        p.wardrobe  && `Outfit: ${p.wardrobe}`,
+        p.setting   && `Setting: ${p.setting}`,
+        p.lighting  && `Lighting: ${p.lighting}`,
+      ].filter(Boolean).join("\n");
+      env = p.setting || "";
+      wardrobe = p.wardrobe || null;
+
+    // Shape B: { environment_and_lighting, core_subject, wardrobe_design, technical_photography }
+    } else if (p.environment_and_lighting || p.core_subject) {
+      const ea = p.environment_and_lighting || {};
+      const cs = p.core_subject || {};
+      const wd = p.wardrobe_design || {};
+      const tp = p.technical_photography || {};
       env = ea.setting || "";
       wardrobe = wd.attire || null;
       sceneDesc = [
         cs.physique_profile?.pose      && `Pose: ${cs.physique_profile.pose}`,
         cs.facial_and_glam?.expression && `Expression: ${cs.facial_and_glam.expression}`,
-        cs.facial_and_glam?.hair       && `Hair style: ${cs.facial_and_glam.hair}`,
         wd.attire                      && `Outfit: ${wd.attire}`,
-        wd.design_details,
-        wd.accessories                 && `Accessories: ${wd.accessories}`,
         ea.setting                     && `Setting: ${ea.setting}`,
         ea.lighting                    && `Lighting: ${ea.lighting}`,
-        ea.atmosphere                  && `Atmosphere: ${ea.atmosphere}`,
-        tp.camera_angle                && `Camera angle: ${tp.camera_angle}`,
         tp.optics,
-        tp.style,
       ].filter(Boolean).join("\n");
+
+    // Shape C: flat { environment, wardrobe, pose, expression, ... }
     } else {
       env = p.environment || "";
       wardrobe = p.wardrobe || null;
       sceneDesc = [
-        p.shot_angle    && `Shot: ${p.shot_angle}`,
-        env             && `Setting: ${env}`,
-        p.pose          && `Pose: ${p.pose}`,
-        p.expression    && `Expression: ${p.expression}`,
-        p.mood          && `Mood: ${p.mood}`,
-        p.composition   && `Composition: ${p.composition}`,
-        p.style_ref,
-        p.fabric_detail && `Fabric: ${p.fabric_detail}`,
-        p.accessories   && `Accessories: ${p.accessories}`,
+        p.shot_angle && `Shot: ${p.shot_angle}`,
+        env          && `Setting: ${env}`,
+        p.pose       && `Pose: ${p.pose}`,
+        p.expression && `Expression: ${p.expression}`,
+        p.mood       && `Mood: ${p.mood}`,
       ].filter(Boolean).join("\n");
     }
   }
+
+  // Fallback if we somehow ended up with nothing
+  if (!sceneDesc.trim()) sceneDesc = "natural candid portrait, warm indoor light, direct gaze";
 
   return `The reference images show a specific woman — use her as the subject for a new photo.
 
@@ -135,7 +143,16 @@ export default async function handler(req, res) {
   }
 
   const rawPrompt = imagePrompt || photoDirection || null;
-  const sanitised = typeof rawPrompt === "string" ? sanitisePrompt(rawPrompt) : rawPrompt;
+
+  // If it's an object, sanitise all string fields inside it
+  let sanitised;
+  if (rawPrompt && typeof rawPrompt === "object") {
+    sanitised = Object.fromEntries(
+      Object.entries(rawPrompt).map(([k, v]) => [k, typeof v === "string" ? sanitisePrompt(v) : v])
+    );
+  } else {
+    sanitised = typeof rawPrompt === "string" ? sanitisePrompt(rawPrompt) : rawPrompt;
+  }
   const prompt = buildPrompt(sanitised, personaDescriptors);
   console.log("[generate-submit] prompt:", prompt.slice(0, 300));
 
