@@ -26,12 +26,19 @@
     },
     "api/fanvue-dm.js": {
       "maxDuration": 60
+    },
+    "api/cron-generate.js": {
+      "maxDuration": 300
     }
   },
   "crons": [
     {
       "path": "/api/cron-publish",
-      "schedule": "0 0 * * *"
+      "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron-generate",
+      "schedule": "0 6 * * *"
     }
   ],
   "rewrites": [
