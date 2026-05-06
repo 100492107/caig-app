@@ -92,29 +92,13 @@ function buildPrompt(imagePrompt, personaDescriptors) {
     }
   }
 
-  return `The 5 reference images show a specific real woman. Study her face carefully across all images and lock it exactly:
-- Distinctly bright green eyes, dark limbal ring
-- Very dark brown near-black long wavy hair
-- Strong thick dark natural brows (her most defining feature)
-- Defined slightly angular jawline
-- Medium-light warm olive skin, sun-kissed
-- Full soft pink-rose lips, slightly parted
-- Small dark mole on the LEFT side of her neck, just below the jawline
-- Small gold hoop earrings
-- Layered delicate gold chains
+  return `The reference images show a specific woman — use her as the subject for a new photo.
 
-Generate a NEW photorealistic photograph of THIS EXACT WOMAN in the following scene. Face must be pixel-perfect — same green eyes, same thick dark brows, same jaw, mole present on neck.
+Generate a photorealistic photo of her ${sceneDesc}. ${getWardrobe(env, wardrobe) ? `She is wearing ${getWardrobe(env, wardrobe)}.` : ""} ${getHair(env) ? `Her ${getHair(env)}.` : ""} ${getLighting(env) ? `${getLighting(env)}.` : ""}
 
-SCENE:
-${sceneDesc}
+She has her characteristic bright green eyes, thick dark brows, and dark wavy hair as seen in the reference photos. Her skin looks real — natural texture, visible pores, no retouching and no beauty filter. She has a relaxed, direct expression — comfortable in front of the camera, not posing.
 
-HAIR: Her ${getHair(env)}
-OUTFIT: ${getWardrobe(env, wardrobe)}
-LIGHTING: ${getLighting(env)}
-
-TECHNICAL: Sony A7R V 85mm f/1.8, sharp focus on eyes, shallow depth of field, creamy bokeh, Teal+Orange grade, 8K, real film grain, visible pores, zero beauty filter, zero retouching.
-
-OUTPUT: Single 9:16 vertical photorealistic image. No watermark, no text, no nudity, no explicit content.`;
+Shot on Sony A7R V with a 35mm lens at f/1.8. Sharp focus on her face and eyes. The background is softly blurred. Real photo quality — not AI art, no plastic skin, no smooth rendering. 9:16 vertical format.`;
 }
 
 export default async function handler(req, res) {

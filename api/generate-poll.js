@@ -14,13 +14,15 @@ export default async function handler(req, res) {
   const { requestId } = req.query;
   if (!requestId) return res.status(400).json({ error: "requestId is required" });
 
-  // First check status
+  // Check status
   let statusRes, statusData;
   try {
     statusRes = await fetch(`${FAL_BASE}/${requestId}/status`, {
       headers: { Authorization: `Key ${apiKey}` },
     });
-    statusData = await statusRes.json();
+    const rawText = await statusRes.text();
+    try { statusData = JSON.parse(rawText); }
+    catch { return res.status(502).json({ error: "fal.ai status returned non-JSON", raw: rawText.slice(0, 200) }); }
   } catch (e) {
     return res.status(502).json({ error: "Failed to reach fal.ai status endpoint", detail: e.message });
   }
@@ -28,19 +30,25 @@ export default async function handler(req, res) {
   const status = statusData?.status || "UNKNOWN";
 
   if (status === "COMPLETED") {
-    // Fetch the actual result
+    // Use response_url from status data if available, otherwise construct from requestId
+    const resultUrl = statusData?.response_url || `${FAL_BASE}/${requestId}`;
+
     let resultRes, resultData;
     try {
-      resultRes = await fetch(`${FAL_BASE}/${requestId}`, {
+      resultRes = await fetch(resultUrl, {
         headers: { Authorization: `Key ${apiKey}` },
       });
-      resultData = await resultRes.json();
+      const rawResult = await resultRes.text();
+      try { resultData = JSON.parse(rawResult); }
+      catch { return res.status(502).json({ status: "FAILED", error: "Result returned non-JSON", raw: rawResult.slice(0, 200) }); }
     } catch (e) {
       return res.status(502).json({ error: "Failed to fetch result from fal.ai", detail: e.message });
     }
 
     const imageUrl = resultData?.images?.[0]?.url;
     if (!imageUrl) {
+      // Log full result for debugging
+      console.error("[generate-poll] no image URL in result:", JSON.stringify(resultData));
       return res.status(502).json({ status: "FAILED", error: "Result had no image URL", raw: resultData });
     }
 
@@ -48,12 +56,12 @@ export default async function handler(req, res) {
     return res.status(200).json({ status: "COMPLETED", imageUrl });
   }
 
-  if (status === "FAILED") {
-    console.error("[generate-poll] FAILED:", requestId, JSON.stringify(statusData));
-    return res.status(200).json({ status: "FAILED", error: statusData?.error || "Generation failed on fal.ai" });
+  if (status === "FAILED" || status === "NOT_FOUND") {
+    console.error("[generate-poll] failed/not found:", requestId, status);
+    return res.status(200).json({ status: "FAILED", error: `fal.ai job ${status.toLowerCase()}` });
   }
 
-  // Still IN_QUEUE or IN_PROGRESS
+  // IN_QUEUE or IN_PROGRESS
   return res.status(200).json({
     status,
     queuePosition: statusData?.queue_position ?? null,
