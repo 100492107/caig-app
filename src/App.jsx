@@ -2370,6 +2370,8 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
   const [generating, setGenerating] = useState({}); // { [postId]: { stage, elapsed, error } | null }
   const [enhancedMode, setEnhancedMode] = useState(false);
   const fileRefs = useRef({});
+  // Track post IDs where we've started a fresh generation — suppress post.image_url fallback
+  const clearedIds = useRef(new Set());
 
   // Merge DB drafts + in-memory queue items into one list
   function mergeQueues(dbPosts, memQueue) {
@@ -2458,7 +2460,8 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
       setGenerating(g => ({ ...g, [post.id]: { stage, startedAt: g[post.id]?.startedAt || Date.now(), ...extra } }));
 
     setGenerating(g => ({ ...g, [post.id]: { stage: "submitting", startedAt: Date.now() } }));
-    // Clear cached image from both images state AND the post object itself
+    // Suppress stale post.image_url from showing during/after generation
+    clearedIds.current.add(post.id);
     setImages(im => { const n = { ...im }; delete n[post.id]; return n; });
     setPosts(ps => ps.map(p => p.id === post.id ? { ...p, image_url: null } : p));
 
@@ -2701,11 +2704,12 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
       <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
         {posts.map(post => {
           const imgState   = images[post.id];
-          const displayImg = imgState?.localPreview || imgState?.url || post.image_url;
+          const staleSuppressed = clearedIds.current.has(post.id);
+          const displayImg = imgState?.localPreview || imgState?.url || (staleSuppressed ? null : post.image_url);
           const isUploading = uploading[post.id];
           const isPosting   = posting[post.id];
           const isGenerating = generating[post.id];
-          const hasUrl      = !!(imgState?.url || post.image_url);
+          const hasUrl      = !!(imgState?.url || (!staleSuppressed && post.image_url));
           const busy        = isUploading || isPosting || isGenerating;
 
           return (
