@@ -2669,7 +2669,7 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
     setPosting(p => ({ ...p, [post.id]: false }));
   }
 
-  // Schedule: set status=ready so cron picks it up (image can be added before cron fires)
+  // Schedule: set status=scheduled so cron picks it up at the right date/time
   async function schedulePost(post) {
     const imageUrl = images[post.id]?.url || post.image_url || null;
 
@@ -2695,12 +2695,12 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
         scheduled_date:  post.scheduled_date || null,
         scheduled_time:  post.scheduled_time || null,
         image_url:       imageUrl,
-        status:          "ready",
+        status:          "scheduled",
       };
       const { error } = await supabase.from("content_queue").upsert(row);
       if (error) { toast_("Failed to schedule post", "error"); console.error(error); return; }
     } else {
-      const update = { status: "ready" };
+      const update = { status: "scheduled" };
       if (imageUrl) update.image_url = imageUrl;
       const res = await fetch("/api/queue-update", {
         method: "POST",

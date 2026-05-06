@@ -20,11 +20,11 @@ export default async function handler(req, res) {
   const todayDate = now.toISOString().split("T")[0]; // YYYY-MM-DD
   const currentTime = now.toTimeString().slice(0, 5);  // HH:MM
 
-  // Find all posts that are due now or overdue, status = 'ready', platform = fanvue
+  // Find all posts that are due now or overdue, status = 'scheduled', platform = fanvue
   const { data: duePosts, error } = await supabase
     .from("content_queue")
     .select("*")
-    .eq("status", "ready")
+    .eq("status", "scheduled")
     .eq("platform", "fanvue")
     .lte("scheduled_date", todayDate)
     .lte("scheduled_time", currentTime)
