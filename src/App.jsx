@@ -2289,6 +2289,72 @@ function Queue({ queue, setQueue, toast_ }) {
   );
 }
 
+// ─── GENERATING STATUS WIDGET ─────────────────────────────────────────────────
+function GeneratingStatus({ genState }) {
+  const { stage, error, startedAt } = genState || {};
+  const [elapsed, setElapsed] = React.useState(0);
+
+  React.useEffect(() => {
+    const t = setInterval(() => setElapsed(Math.floor((Date.now() - startedAt) / 1000)), 500);
+    return () => clearInterval(t);
+  }, [startedAt]);
+
+  const stages = {
+    starting: { icon: "⏳", label: "Starting up…",         sub: "Connecting to fal.ai" },
+    stage1:   { icon: "⚡", label: "Stage 1 — Scene",      sub: "FLUX Pro Ultra building scene, pose & lighting" },
+    stage2:   { icon: "🔬", label: "Stage 2 — Face lock",  sub: "nano-banana-2 transplanting Cara's face from reference images" },
+    saving:   { icon: "💾", label: "Saving…",              sub: "Uploading to Supabase Storage" },
+    error:    { icon: "❌", label: "Generation failed",    sub: error || "Unknown error" },
+  };
+
+  const current = stages[stage] || stages.starting;
+  const isError = stage === "error";
+
+  const stepList = ["stage1", "stage2", "saving"];
+  const stepLabels = ["Scene (FLUX)", "Face lock (NB2)", "Save"];
+  const currentIdx = stepList.indexOf(stage);
+
+  return (
+    <div style={{ textAlign: "center", padding: "24px 16px" }}>
+      <div style={{ fontSize: 32, marginBottom: 12 }}>{current.icon}</div>
+      <div style={{
+        fontWeight: 700, fontSize: 15,
+        color: isError ? "#f87171" : "var(--t1)",
+        marginBottom: 6,
+      }}>{current.label}</div>
+      <div style={{ fontSize: 12, color: "var(--t3)", marginBottom: 16, lineHeight: 1.5 }}>{current.sub}</div>
+
+      {/* Step progress bar */}
+      {!isError && (
+        <div style={{ display: "flex", gap: 6, justifyContent: "center", marginBottom: 14 }}>
+          {stepList.map((s, i) => {
+            const done    = currentIdx > i;
+            const active  = currentIdx === i;
+            return (
+              <div key={s} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+                <div style={{
+                  width: 10, height: 10, borderRadius: "50%",
+                  background: done ? "#22c55e" : active ? "var(--b1)" : "var(--t5, #444)",
+                  boxShadow: active ? "0 0 0 3px rgba(99,102,241,0.35)" : "none",
+                  transition: "all 0.3s",
+                }} />
+                <div style={{ fontSize: 10, color: done ? "#22c55e" : active ? "var(--t2)" : "var(--t4)", whiteSpace: "nowrap" }}>
+                  {stepLabels[i]}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Elapsed timer */}
+      <div style={{ fontSize: 11, color: "var(--t4)" }}>
+        {isError ? "See toast for detail" : `${elapsed}s elapsed — usually 40–60s total`}
+      </div>
+    </div>
+  );
+}
+
 // ─── REVIEW QUEUE ─────────────────────────────────────────────────────────────
 function ReviewQueue({ toast_, queue = [], setQueue }) {
   const [posts, setPosts]           = useState([]);
@@ -2296,8 +2362,8 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
   const [uploading, setUploading]   = useState({});
   const [posting, setPosting]       = useState({});
   const [images, setImages]         = useState({});
-  const [generating, setGenerating] = useState({});
-  const [enhancedMode, setEnhancedMode] = useState(false); // false = flux-lora only, true = + Nano Banana Pro
+  const [generating, setGenerating] = useState({}); // { [postId]: { stage, elapsed, error } | null }
+  const [enhancedMode, setEnhancedMode] = useState(false);
   const fileRefs = useRef({});
 
   // Merge DB drafts + in-memory queue items into one list
@@ -2383,28 +2449,50 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
 
   // Generate image via fal.ai LoRA — with optional Nano Banana Pro enhancement
   async function generateImage(post) {
-    setGenerating(g => ({ ...g, [post.id]: true }));
+    const setStatus = (stage, error = null) =>
+      setGenerating(g => ({ ...g, [post.id]: { stage, error, startedAt: g[post.id]?.startedAt || Date.now() } }));
+
+    setGenerating(g => ({ ...g, [post.id]: { stage: "starting", error: null, startedAt: Date.now() } }));
+
     try {
-      // Stage 1 — flux-lora base generation
-      const res = await fetch("/api/generate-image", {
+      // ── Stage 1: FLUX Pro Ultra — scene / pose / lighting / outfit ────────
+      setStatus("stage1");
+      const baseRes = await fetch("/api/generate-base", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           imagePrompt: post.image_prompt,
-          personaDescriptors: "CARAWHITMORE, dark near-black hair, vivid green eyes, early 30s, photorealistic",
-          enhancedMode,
+          personaDescriptors: "CARAWHITMORE, dark near-black hair, vivid green eyes, early 20s, photorealistic",
           photoDirection: post.photo_direction,
         }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Generation failed");
-      if (data.blocked) { toast_("Image blocked by safety checker — try a different prompt", "warn"); return; }
-      if (!data.imageUrl) throw new Error("No image URL returned");
+      const baseData = await baseRes.json();
+      if (!baseRes.ok) throw new Error(baseData.error || "Stage 1 failed — FLUX Ultra rejected request");
+      if (!baseData.imageUrl) throw new Error("Stage 1 returned no image URL");
 
-      // Save to Supabase Storage so it persists (fall back to fal URL if storage fails)
-      let publicUrl = data.imageUrl;
+      // ── Stage 2: nano-banana-2 — face lock using Cara reference images ────
+      setStatus("stage2");
+      const lockRes = await fetch("/api/generate-facelock", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ baseImageUrl: baseData.imageUrl }),
+      });
+      const lockData = await lockRes.json();
+
+      let finalUrl = baseData.imageUrl; // default to stage 1 if stage 2 fails
+      if (!lockRes.ok) {
+        toast_(`Face lock failed (${lockRes.status}) — using Stage 1 base image. Detail: ${lockData?.error || "unknown"}`, "warn");
+      } else if (!lockData.imageUrl) {
+        toast_("Face lock returned no image — using Stage 1 base", "warn");
+      } else {
+        finalUrl = lockData.imageUrl;
+      }
+
+      // ── Save to Supabase Storage ──────────────────────────────────────────
+      setStatus("saving");
+      let publicUrl = finalUrl;
       try {
-        const imgRes = await fetch(data.imageUrl);
+        const imgRes = await fetch(finalUrl);
         const blob = await imgRes.blob();
         const path = `cara/posts/${post.id}_${Date.now()}.jpg`;
         const { error: upErr } = await supabase.storage
@@ -2416,7 +2504,6 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
         }
       } catch (_) { /* fall back to fal.ai URL */ }
 
-      // Save to DB only if this is a real DB-backed post (not in-memory)
       if (!post._inMemory) {
         await fetch("/api/queue-update", {
           method: "POST",
@@ -2424,12 +2511,16 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
           body: JSON.stringify({ id: post.id, update: { image_url: publicUrl } }),
         });
       }
+
       setImages(im => ({ ...im, [post.id]: { url: publicUrl, localPreview: publicUrl } }));
-      toast_(`Image ${enhancedMode ? "(Enhanced)" : ""} generated — review and post!`, "ok");
+      toast_("Image generated — review and post!", "ok");
     } catch (e) {
+      setStatus("error", e.message);
       toast_(`Generation failed: ${e.message}`, "error");
+    } finally {
+      // Clear after a short delay so user can see the final/error state
+      setTimeout(() => setGenerating(g => { const n = { ...g }; delete n[post.id]; return n; }), 3000);
     }
-    setGenerating(g => ({ ...g, [post.id]: false }));
   }
 
   // Post Now: upload image to Fanvue + publish immediately
@@ -2635,11 +2726,7 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
                     {isUploading ? (
                       <div>Uploading…</div>
                     ) : generating[post.id] ? (
-                      <div style={{ textAlign: "center", color: "var(--t3)", fontSize: 13, padding: 32 }}>
-                        <div style={{ fontSize: 28, marginBottom: 10 }}>⚡</div>
-                        <div style={{ fontWeight: 600, color: "var(--t2)", marginBottom: 4 }}>Generating with Cara LoRA…</div>
-                        <div style={{ fontSize: 12 }}>Usually takes 10–20 seconds</div>
-                      </div>
+                      <GeneratingStatus genState={generating[post.id]} />
                     ) : (
                       <>
                         <div style={{ fontSize: 36, marginBottom: 10 }}>🖼️</div>
