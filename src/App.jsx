@@ -2498,7 +2498,10 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
         try { pollData = JSON.parse(pollText); }
         catch { throw new Error(`Poll error (${pollRes.status}): ${pollText.slice(0, 120)}`); }
 
-        if (!pollRes.ok) throw new Error(pollData?.error || `Poll failed (${pollRes.status})`);
+        if (!pollRes.ok) {
+          const detail = pollData?.raw?.description ? ` (fal: ${pollData.raw.description})` : "";
+          throw new Error((pollData?.error || `Poll failed (${pollRes.status})`) + detail);
+        }
 
         const { status, queuePosition } = pollData;
 

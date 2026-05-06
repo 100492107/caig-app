@@ -22,7 +22,7 @@
       "maxDuration": 15
     },
     "api/generate-poll.js": {
-      "maxDuration": 15
+      "maxDuration": 60
     }
   },
   "crons": [

@@ -130,7 +130,7 @@ export default async function handler(req, res) {
         aspect_ratio: "9:16",
         resolution: "2K",
         output_format: "jpeg",
-        safety_tolerance: "5",
+        safety_tolerance: "6",
         num_images: 1,
         seed: seed || undefined,
       }),
