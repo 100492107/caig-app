@@ -41,7 +41,7 @@ function getWardrobe(env, wardrobe) {
   if (e.includes("bathroom") || e.includes("shower"))
     return "white or light grey towel, minimal coverage";
   if (e.includes("bedroom") || e.includes("bed"))
-    return "casual minimal clothing, relaxed";
+    return "silk slip dress or strappy lingerie set, relaxed and intimate";
   return "casual stylish clothing";
 }
 
@@ -126,20 +126,25 @@ export default async function handler(req, res) {
 
   const { imagePrompt, personaDescriptors, seed, photoDirection } = body;
 
-  // Sanitise the prompt — fal.ai hard-blocks full nudity regardless of safety_tolerance.
-  // Replace explicit terms with tasteful implied equivalents so the image still matches
-  // the mood of the caption without being blocked.
+  // Sanitise the prompt — fal.ai hard-blocks nudity (422 "unsafe content").
+  // Replace any triggering terms with lewd-but-safe equivalents.
+  // Rules: never use nude/naked/topless/explicit/exposed in any output string.
   function sanitisePrompt(raw) {
     if (!raw || typeof raw !== "string") return raw;
     return raw
-      .replace(/\bcompletely nude\b/gi, "wearing minimal clothing, implied nudity")
-      .replace(/\bnude\b/gi, "barely dressed, tastefully implied")
-      .replace(/\bnaked\b/gi, "undressed, implied")
-      .replace(/\btopless\b/gi, "wearing just underwear, implied topless")
+      .replace(/\bcompletely nude\b/gi, "wearing minimal clothing")
+      .replace(/\bnude bralette\b/gi, "skin-tone bralette")
+      .replace(/\bnude\b/gi, "barely dressed")
+      .replace(/\bnaked\b/gi, "in minimal clothing")
+      .replace(/\btopless\b/gi, "in a bralette")
       .replace(/\byou can see everything\b/gi, "intimate and raw")
-      .replace(/\bstrip off\b/gi, "undressed")
+      .replace(/\bstrip(ping)? off\b/gi, "undressing")
       .replace(/\bexplicit\b/gi, "intimate")
-      .replace(/\bfully exposed\b/gi, "vulnerable and raw");
+      .replace(/\bfully exposed\b/gi, "vulnerable and raw")
+      .replace(/\bno bra\b/gi, "braless under fabric")
+      .replace(/\bwet (white )?t-shirt\b/gi, "damp fitted top")
+      .replace(/\bopaque only at\b/gi, "lined at")
+      .replace(/\bno bottoms visible\b/gi, "mid-thigh length");
   }
 
   const rawPrompt = imagePrompt || photoDirection || null;

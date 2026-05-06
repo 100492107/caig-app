@@ -123,19 +123,23 @@ const IMG_POSES = [
   "Lying on back on white linen, one knee bent, head turned toward camera, arms above head, relaxed confident energy",
 ];
 
+// Lewd but never nude — all entries fal.ai safe (no nudity, no explicit skin)
 const IMG_COVERAGE = [
   "Small triangle string bikini, barely covering, thin side ties",
   "Tiny micro bikini, high-cut bottoms, halter neck top",
-  "Sheer white bodysuit, opaque only at chest and hips",
+  "Sheer white bodysuit with opaque lining at chest and hips",
   "Silk slip dress, thin straps, low back, barely-there coverage",
-  "Oversized white dress shirt, unbuttoned low, no bottoms visible, mid-thigh length",
-  "Black lace bodysuit, sheer panels, opaque at key areas",
-  "White hotel robe hanging open, bikini or lingerie underneath just visible",
+  "Oversized white dress shirt, unbuttoned to the waist, mid-thigh length",
+  "Black lace bodysuit, sheer side panels, fully lined at chest",
+  "White hotel robe loosely tied, black bikini underneath just visible",
   "Tiny bandeau top and micro shorts, midriff fully bare",
-  "Strappy black lingerie set, bralette and high-cut briefs",
-  "Wet white t-shirt over bikini, clinging to body from pool water",
+  "Strappy black lingerie set, lace bralette and high-cut briefs",
+  "White bikini top and denim cut-offs, wet from the pool",
   "Gold satin bralette and matching high-waist briefs",
-  "Sheer mesh top over nude bralette, low-rise shorts",
+  "Sheer mesh crop top over black bralette, low-rise shorts",
+  "Red satin slip dress, thigh-high slit, no bra visible under fabric",
+  "Fitted ribbed crop top and matching low-rise shorts, bare midriff",
+  "Lace-trimmed camisole tucked loosely into high-waist briefs, shoulder slipping",
 ];
 
 // ─── FANVUE / SUBSCRIPTION PLATFORMS ─────────────────────────────────────────
@@ -2366,13 +2370,23 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
   const [loading, setLoading]       = useState(true);
   const [uploading, setUploading]   = useState({});
   const [posting, setPosting]       = useState({});
-  const [images, setImages]         = useState({});
+  const [images, setImages]         = useState(() => {
+    // Rehydrate saved image URLs from localStorage on mount
+    try { return JSON.parse(localStorage.getItem("caig_images") || "{}"); }
+    catch { return {}; }
+  });
   const [generating, setGenerating] = useState({}); // { [postId]: { stage, elapsed, error } | null }
   const [enhancedMode, setEnhancedMode] = useState(false);
   const fileRefs = useRef({});
   // Track post IDs where we've started a fresh generation — suppress post.image_url fallback
   const clearedIds = useRef(new Set());
   const lastErrors = useRef({});
+
+  // Persist image URLs to localStorage so they survive page refresh
+  useEffect(() => {
+    try { localStorage.setItem("caig_images", JSON.stringify(images)); }
+    catch {}
+  }, [images]);
 
   // Merge DB drafts + in-memory queue items into one list
   function mergeQueues(dbPosts, memQueue) {
@@ -2706,6 +2720,7 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
     if (!res.ok) { toast_("Failed to reject post", "error"); return; }
     toast_("Post rejected", "ok");
     setPosts(p => p.filter(x => x.id !== post.id));
+    setImages(im => { const n = { ...im }; delete n[post.id]; return n; });
   }
 
   const captionText = p => [p.hook, p.caption, p.cta, p.hashtags].filter(Boolean).join("\n\n");
