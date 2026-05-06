@@ -53,7 +53,7 @@ const CARA_PILLARS = [
   "Mood check — relatable moment that makes fans feel close to me",
 ];
 
-const POSTS_PER_DAY = 2; // one per posting time slot
+const POSTS_PER_DAY = 1; // one post every 2 days — cron only runs on even UTC days
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -66,14 +66,14 @@ function randomPillar() {
 }
 
 function buildSlots() {
-  return FANVUE_PLATFORM.times.slice(0, POSTS_PER_DAY).map((time, i) => ({
+  return [{
     personaId:     CARA_PERSONA.id,
     platformId:    FANVUE_PLATFORM.id,
     pillar:        randomPillar(),
     scheduledDate: todayString(),
-    scheduledTime: time,
-    index:         i,
-  }));
+    scheduledTime: "19:00",
+    index:         0,
+  }];
 }
 
 // Consume NDJSON stream from generate-batch, return post objects
