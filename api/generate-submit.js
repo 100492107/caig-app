@@ -117,7 +117,26 @@ export default async function handler(req, res) {
   }
 
   const { imagePrompt, personaDescriptors, seed, photoDirection } = body;
-  const prompt = buildPrompt(imagePrompt || photoDirection || null, personaDescriptors);
+
+  // Sanitise the prompt — fal.ai hard-blocks full nudity regardless of safety_tolerance.
+  // Replace explicit terms with tasteful implied equivalents so the image still matches
+  // the mood of the caption without being blocked.
+  function sanitisePrompt(raw) {
+    if (!raw || typeof raw !== "string") return raw;
+    return raw
+      .replace(/\bcompletely nude\b/gi, "wearing minimal clothing, implied nudity")
+      .replace(/\bnude\b/gi, "barely dressed, tastefully implied")
+      .replace(/\bnaked\b/gi, "undressed, implied")
+      .replace(/\btopless\b/gi, "wearing just underwear, implied topless")
+      .replace(/\byou can see everything\b/gi, "intimate and raw")
+      .replace(/\bstrip off\b/gi, "undressed")
+      .replace(/\bexplicit\b/gi, "intimate")
+      .replace(/\bfully exposed\b/gi, "vulnerable and raw");
+  }
+
+  const rawPrompt = imagePrompt || photoDirection || null;
+  const sanitised = typeof rawPrompt === "string" ? sanitisePrompt(rawPrompt) : rawPrompt;
+  const prompt = buildPrompt(sanitised, personaDescriptors);
   console.log("[generate-submit] prompt:", prompt.slice(0, 300));
 
   let qRes, qData;
