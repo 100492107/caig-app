@@ -28,7 +28,7 @@ const SAFE_WARDROBES = [
   "lace-trimmed camisole and high-waist briefs, shoulder slipping",
 ];
 
-// Blocked pose phrases that fal.ai treats as nudity-adjacent when combined with minimal clothing
+// Blocked pose phrases
 const BLOCKED_POSE_PATTERNS = [
   /arch(ing)? (her )?back/gi,
   /lying on (her )?(back|stomach|bed)/gi,
@@ -39,6 +39,29 @@ const BLOCKED_POSE_PATTERNS = [
   /legs.*waist.*chest.*face all visible/gi,
   /overhead angle.*legs/gi,
 ];
+
+// Blocked settings — fal.ai blocks lingerie + bedroom/hotel room
+const BLOCKED_SETTING_PATTERNS = [
+  /\b(hotel room|bedroom|king bed|bed(room)?|rumpled (white )?linen|on the bed)\b/gi,
+];
+
+// Safe setting replacements for bedroom-like scenes
+const BEDROOM_ALT_SETTINGS = [
+  "sun-drenched apartment balcony, city view below, warm morning light",
+  "luxury penthouse lounge, floor-to-ceiling windows, golden hour",
+  "private rooftop terrace, string lights, evening ambience",
+  "minimalist studio apartment, white walls, late afternoon light",
+  "high-end dressing room, soft vanity lighting, mirrors",
+  "modern living room, large windows overlooking the city",
+];
+
+function sanitiseSetting(setting) {
+  if (!setting || typeof setting !== "string") return setting;
+  if (BLOCKED_SETTING_PATTERNS.some(p => p.test(setting))) {
+    return BEDROOM_ALT_SETTINGS[Math.floor(Math.random() * BEDROOM_ALT_SETTINGS.length)];
+  }
+  return setting;
+}
 
 function sanitisePose(text) {
   if (!text || typeof text !== "string") return text;
@@ -76,9 +99,8 @@ function extractFields(imagePrompt) {
   if (p.subject || p.setting) {
     return {
       subject: p.subject || "",
-      setting: p.setting || "",
+      setting: sanitiseSetting(p.setting || ""),
       lighting: p.lighting || "",
-      // Deliberately ignore p.wardrobe — use our safe pool instead
     };
   }
 
@@ -91,7 +113,7 @@ function extractFields(imagePrompt) {
         cs.physique_profile?.pose && sanitisePose(cs.physique_profile.pose),
         cs.facial_and_glam?.expression,
       ].filter(Boolean).join(", "),
-      setting: ea.setting || "",
+      setting: sanitiseSetting(ea.setting || ""),
       lighting: ea.lighting || "",
     };
   }
@@ -99,7 +121,7 @@ function extractFields(imagePrompt) {
   // Shape C: flat object
   return {
     subject: [p.pose && sanitisePose(p.pose), p.expression].filter(Boolean).join(", "),
-    setting: p.environment || p.setting || "",
+    setting: sanitiseSetting(p.environment || p.setting || ""),
     lighting: p.lighting || "",
   };
 }
