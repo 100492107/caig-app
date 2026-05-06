@@ -143,11 +143,11 @@ const WARDROBES = {
 };
 
 // ─── WARDROBE KEYWORD MAP ─────────────────────────────────────────────────────
-// If the post's wardrobe field contains these keywords, override the group.
+// If the post's wardrobe field OR caption/hook contains these keywords, override the group.
 const WARDROBE_KEYWORD_MAP = [
-  { keywords: ["knit", "jumper", "sweater", "knitwear", "cosy", "cozy", "oversized"], group: "cosy" },
-  { keywords: ["bikini", "swimwear", "swimsuit", "swim", "pool", "beach"], group: "water" },
-  { keywords: ["linen", "crop", "bralette", "shorts", "outdoor", "terrace", "rooftop"], group: "outdoor" },
+  { keywords: ["knit", "jumper", "sweater", "knitwear", "cosy", "cozy", "oversized", "hoodie", "fleece", "woollen", "woolly", "wrapped up", "staying in", "staying home", "morning", "lazy", "slow day", "on the sofa", "at home", "indoors", "couch"], group: "cosy" },
+  { keywords: ["bikini", "swimwear", "swimsuit", "swim", "pool", "beach", "ocean", "sea", "water", "snorkelling", "diving", "waves", "sunbathing"], group: "water" },
+  { keywords: ["linen", "crop", "bralette", "shorts", "outdoor", "terrace", "rooftop", "balcony", "villa", "garden", "sunset", "travel", "abroad", "exploring"], group: "outdoor" },
 ];
 
 // ─── SETTING LIBRARY ──────────────────────────────────────────────────────────
@@ -209,17 +209,17 @@ function pickRandom(arr) {
 
 function classifySetting(rawSetting) {
   const s = (rawSetting || "").toLowerCase();
-  if (/pool|beach|ocean|water|sea|swim/.test(s)) return "water";
-  if (/balcony|rooftop|terrace|garden|courtyard|outdoor|villa/.test(s)) return "outdoor";
-  if (/knit|jumper|sweater|cosy|cozy|morning|lounge|apartment|sunlit wall|sunlight/.test(s)) return "cosy";
+  if (/pool|beach|ocean|water|sea|swim|snorkel|waves|sunbath/.test(s)) return "water";
+  if (/balcony|rooftop|terrace|garden|courtyard|outdoor|villa|abroad|travel|exploring|sunset/.test(s)) return "outdoor";
+  if (/knit|jumper|sweater|cosy|cozy|morning|lounge|apartment|sunlit wall|sunlight|at home|indoors|sofa|staying in/.test(s)) return "cosy";
   return "general";
 }
 
-function classifyWardrobeGroup(wardrobeField, settingContext) {
-  if (!wardrobeField) return settingContext;
-  const w = wardrobeField.toLowerCase();
+function classifyWardrobeGroup(wardrobeField, settingContext, hook, caption) {
+  // Search wardrobe field first, then fall back to caption + hook for context
+  const allText = [wardrobeField, hook, caption].filter(Boolean).join(" ").toLowerCase();
   for (const { keywords, group } of WARDROBE_KEYWORD_MAP) {
-    if (keywords.some(k => w.includes(k))) return group;
+    if (keywords.some(k => allText.includes(k))) return group;
   }
   return settingContext;
 }
@@ -269,7 +269,7 @@ function buildPrompt({ imagePrompt, hook, caption, wardrobe, shotAngle, photoDir
     [rawSetting, photoDirection, wardrobe, hook, caption].filter(Boolean).join(" ")
   );
 
-  const wardrobeGroup = classifyWardrobeGroup(wardrobe, settingContext);
+  const wardrobeGroup = classifyWardrobeGroup(wardrobe, settingContext, hook, caption);
 
   // Use post wardrobe text directly if it's specific enough (>4 words); else pick from library
   const wardrobeText = (wardrobe && wardrobe.trim().split(/\s+/).length > 4)
@@ -339,8 +339,7 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         prompt,
         image_urls: CARA_REFS,
-        aspect_ratio: "9:16",
-        resolution: "2K",
+        image_size: { width: 1080, height: 1920 },
         output_format: "jpeg",
         safety_tolerance: "6",
         num_images: 1,
