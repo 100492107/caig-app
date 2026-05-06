@@ -293,7 +293,7 @@ LIGHTING: Natural or available light appropriate to the location — golden hour
 
 IDENTITY LOCK — every single one of these must be exact. Do not deviate:
 
-HAIR: Very dark brown, almost black — this is dark espresso brown, NOT light brown, NOT auburn, NOT chestnut. The hair absorbs light, it does not reflect warm amber tones. When dry: dark wavy strands worn down, falling past shoulders. Individual strands catch a subtle cool highlight only. The overall impression is near-black.
+HAIR: Dark chocolate brown — the colour of espresso or dark roast coffee. This is BROWN hair, not black. In direct light, individual strands show warm dark brown tones, NOT blue, NOT blue-black, NOT jet black. The hair is very dark but unmistakably BROWN — think dark brown with natural warm highlights, not a blue-black or cool-toned black. Long, wavy, falling past shoulders. Strands catch a subtle warm highlight in light. NOT black. NOT blue-black. DARK BROWN.
 
 EYES: Vivid, unmistakably bright green — the iris is a clear, saturated green with intricate radial patterns and a dark limbal ring. NOT hazel. NOT grey-green. NOT blue. The eyes must read as distinctly GREEN in any lighting condition. Tack-sharp focus on the irises — the colour must be visible and accurate.
 
@@ -309,7 +309,7 @@ EXPRESSION: Confident, direct, comfortable in front of the camera. Reserved — 
 
 TECHNICAL: Sony A7R V, lens and aperture matching the composition above. Tack-sharp focus on eyes. Real photograph — not digital art, not CGI, not a painting. 9:16 vertical. Magazine quality.
 
-DO NOT include: nudity, exposed intimate areas, genitals, cartoon style, anime, illustrated look, plastic or airbrushed skin, text overlays, watermarks, extra or deformed limbs, brown eyes, hazel eyes, grey eyes, light brown hair, auburn hair, blonde hair.`;
+DO NOT include: nudity, exposed intimate areas, genitals, cartoon style, anime, illustrated look, plastic or airbrushed skin, text overlays, watermarks, extra or deformed limbs, brown eyes, hazel eyes, grey eyes, light brown hair, auburn hair, blonde hair, black hair, blue-black hair, jet black hair.`;
 }
 
 export default async function handler(req, res) {
