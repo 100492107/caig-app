@@ -1,20 +1,28 @@
 // api/cron-generate.js
-// Daily autopilot: generates content for all active personas and saves to content_queue.
-// Runs at 06:00 UTC daily — posts are then scheduled for platform posting times the same day.
-// Pairs with cron-publish.js which publishes due posts every 5 minutes.
-//
-// Auth: CRON_SECRET (same as cron-publish.js)
+// Daily autopilot — Fanvue only.
+// 06:00 UTC: generate copy → generate image → save as scheduled.
+// cron-publish.js then auto-posts at the platform's posting times.
 
 import { createClient } from "@supabase/supabase-js";
+import { buildPrompt } from "./generate-submit.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL || "https://zvyioxhwdyocaanzcgqf.supabase.co",
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-// ─── Cara's config ────────────────────────────────────────────────────────────
-// Mirrors the FANVUE_PLATFORMS and FANVUE_PILLARS in App.jsx.
-// Update here if platforms or pillars change.
+const FAL_QUEUE_URL  = "https://queue.fal.run/fal-ai/nano-banana-2/edit";
+const FAL_BASE       = "https://queue.fal.run/fal-ai/nano-banana-2/requests";
+
+const CARA_REFS = [
+  "https://v3b.fal.media/files/b/0a990cbf/7tn1zr6Tzvw4LP6NfoQJ5_Cara_Whitmore_10.png",
+  "https://v3b.fal.media/files/b/0a990cbf/GZpvO79sLCKUEXmb5OjDZ_Cara_Whitmore_14.png",
+  "https://v3b.fal.media/files/b/0a990cc0/hNz9MH3iKPSpX1SCu7JnC_Cara_Whitmore_16.png",
+  "https://v3b.fal.media/files/b/0a990cc0/aC52Bfy17019kTbWG4L_L_Cara_Whitmore_18.png",
+  "https://v3b.fal.media/files/b/0a990cc0/ne3QfVCW_NQnJZFjSnsST_Cara_Whitmore_23.jpeg",
+];
+
+// ─── Cara config — Fanvue only ────────────────────────────────────────────────
 
 const CARA_PERSONA = {
   id: "cara",
@@ -24,26 +32,16 @@ const CARA_PERSONA = {
   voice: "Casual, warm, slightly tired of the internet. Dry humour. Never performative.",
 };
 
-const CARA_PLATFORMS = [
-  {
-    id: "fv_instagram", name: "Instagram", times: ["11:00", "19:00"],
-    purpose: "Top-of-funnel discovery. Instagram is brand-building — aesthetic, aspirational, personality-first. No nudity. Confident, flirtatious through styling and implication. Goal: profile visits → link in bio → Fanvue.",
-    contentMix: [
-      { type: "fv_tease",       weight: 3 },
-      { type: "fv_bikini",      weight: 2 },
-      { type: "fv_personality", weight: 3 },
-      { type: "fv_interact",    weight: 2 },
-    ],
-  },
-  {
-    id: "fv_page", name: "Fanvue Page", times: ["10:00", "20:00"],
-    purpose: "Content that lives on the Fanvue page — PPV captions and subscriber wall posts.",
-    contentMix: [
-      { type: "fv_ppv_caption", weight: 4 },
-      { type: "fv_wall_post",   weight: 3 },
-    ],
-  },
-];
+const FANVUE_PLATFORM = {
+  id: "fv_page",
+  name: "Fanvue Page",
+  times: ["10:00", "20:00"],
+  purpose: "Content that lives on the Fanvue page — PPV captions and subscriber wall posts.",
+  contentMix: [
+    { type: "fv_ppv_caption", weight: 4 },
+    { type: "fv_wall_post",   weight: 3 },
+  ],
+};
 
 const CARA_PILLARS = [
   "Behind the scenes — what I'm doing today that isn't on the page yet",
@@ -55,75 +53,119 @@ const CARA_PILLARS = [
   "Mood check — relatable moment that makes fans feel close to me",
 ];
 
-// Posts per day per platform (one per posting time slot)
-const POSTS_PER_PLATFORM = 2;
+const POSTS_PER_DAY = 2; // one per posting time slot
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function todayString() {
-  return new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+  return new Date().toISOString().split("T")[0];
 }
 
 function randomPillar() {
   return CARA_PILLARS[Math.floor(Math.random() * CARA_PILLARS.length)];
 }
 
-// Build slots array for generate-batch
-function buildSlots(platforms, postsPerPlatform) {
-  const slots = [];
-  for (const platform of platforms) {
-    for (let i = 0; i < postsPerPlatform; i++) {
-      slots.push({
-        personaId: CARA_PERSONA.id,
-        platformId: platform.id,
-        pillar: randomPillar(),
-        scheduledDate: todayString(),
-        scheduledTime: platform.times[i % platform.times.length],
-      });
-    }
-  }
-  return slots;
+function buildSlots() {
+  return FANVUE_PLATFORM.times.slice(0, POSTS_PER_DAY).map((time, i) => ({
+    personaId:     CARA_PERSONA.id,
+    platformId:    FANVUE_PLATFORM.id,
+    pillar:        randomPillar(),
+    scheduledDate: todayString(),
+    scheduledTime: time,
+    index:         i,
+  }));
 }
 
-// Consume NDJSON stream from generate-batch, return array of post objects
+// Consume NDJSON stream from generate-batch, return post objects
 async function consumeBatchStream(response) {
   const posts = [];
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
   let buffer = "";
-
   while (true) {
     const { done, value } = await reader.read();
     if (done) break;
     buffer += decoder.decode(value, { stream: true });
     const lines = buffer.split("\n");
-    buffer = lines.pop(); // keep incomplete last line
+    buffer = lines.pop();
     for (const line of lines) {
       if (!line.trim()) continue;
-      try {
-        const obj = JSON.parse(line);
-        if (obj.post) posts.push(obj.post);
-      } catch (_) { /* skip malformed lines */ }
+      try { const obj = JSON.parse(line); if (obj.post) posts.push(obj.post); } catch (_) {}
     }
   }
-  // Process any remaining buffer
   if (buffer.trim()) {
-    try {
-      const obj = JSON.parse(buffer);
-      if (obj.post) posts.push(obj.post);
-    } catch (_) {}
+    try { const obj = JSON.parse(buffer); if (obj.post) posts.push(obj.post); } catch (_) {}
   }
-
   return posts;
+}
+
+// Submit image job to fal.ai, return requestId
+async function submitImage(falKey, post) {
+  const prompt = buildPrompt({
+    imagePrompt:    post.image_prompt,
+    hook:           post.hook,
+    caption:        post.caption,
+    wardrobe:       post.wardrobe,
+    shotAngle:      post.shot_angle,
+    photoDirection: post.photo_direction,
+  });
+
+  const res = await fetch(FAL_QUEUE_URL, {
+    method: "POST",
+    headers: { Authorization: `Key ${falKey}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      prompt,
+      image_urls:     CARA_REFS,
+      image_size:     { width: 1080, height: 1920 },
+      output_format:  "jpeg",
+      safety_tolerance: "6",
+      num_images:     1,
+    }),
+  });
+  const data = await res.json();
+  if (!res.ok || !data.request_id) throw new Error(`fal.ai submit failed: ${JSON.stringify(data)}`);
+  return data.request_id;
+}
+
+// Poll fal.ai until COMPLETED or FAILED — max 3 minutes, 10s intervals
+async function pollImage(falKey, requestId, maxMs = 180000) {
+  const start = Date.now();
+  while (Date.now() - start < maxMs) {
+    await new Promise(r => setTimeout(r, 10000)); // wait 10s between polls
+
+    const statusRes = await fetch(`${FAL_BASE}/${requestId}/status`, {
+      headers: { Authorization: `Key ${falKey}` },
+    });
+    const statusData = await statusRes.json();
+    const status = statusData?.status;
+
+    if (status === "COMPLETED") {
+      const resultRes = await fetch(`${FAL_BASE}/${requestId}`, {
+        headers: { Authorization: `Key ${falKey}` },
+      });
+      const resultData = await resultRes.json();
+      const url = resultData?.images?.[0]?.url;
+      if (!url) throw new Error("fal.ai completed but no image URL in result");
+      return url;
+    }
+
+    if (status === "FAILED" || status === "NOT_FOUND") {
+      throw new Error(`fal.ai job ${status}`);
+    }
+    // IN_QUEUE or IN_PROGRESS — keep polling
+  }
+  throw new Error("fal.ai image generation timed out after 3 minutes");
 }
 
 // ─── Handler ──────────────────────────────────────────────────────────────────
 
 export default async function handler(req, res) {
-  // Auth — same CRON_SECRET as cron-publish.js
   if (req.headers.authorization !== `Bearer ${process.env.CRON_SECRET}`) {
     return res.status(401).json({ error: "Unauthorized" });
   }
+
+  const falKey = process.env.FAL_API_KEY;
+  if (!falKey) return res.status(500).json({ error: "FAL_API_KEY not configured" });
 
   const baseUrl = process.env.VERCEL_URL
     ? `https://${process.env.VERCEL_URL}`
@@ -131,25 +173,23 @@ export default async function handler(req, res) {
 
   const today = todayString();
 
-  // Check if we've already generated today — avoid double-running
+  // Duplicate guard — skip if already generated today
   const { data: existing } = await supabase
     .from("content_queue")
     .select("id")
     .eq("persona_id", "cara")
+    .eq("platform", "fv_page")
     .eq("scheduled_date", today)
-    .in("status", ["draft", "scheduled", "posted"])
+    .in("status", ["draft", "scheduled", "posted", "publishing"])
     .limit(1);
 
   if (existing?.length > 0) {
-    return res.status(200).json({
-      skipped: true,
-      reason: "Already generated content for today",
-      date: today,
-    });
+    return res.status(200).json({ skipped: true, reason: "Already generated for today", date: today });
   }
 
-  const slots = buildSlots(CARA_PLATFORMS, POSTS_PER_PLATFORM);
+  const slots = buildSlots();
 
+  // ── Step 1: Generate copy ──────────────────────────────────────────────────
   let posts = [];
   try {
     const genRes = await fetch(`${baseUrl}/api/generate-batch`, {
@@ -157,35 +197,46 @@ export default async function handler(req, res) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         slots,
-        personas: [CARA_PERSONA],
-        platforms: CARA_PLATFORMS,
+        personas:   [CARA_PERSONA],
+        platforms:  [FANVUE_PLATFORM],
         fanvueMode: true,
-        ideaSeed: "",
+        ideaSeed:   "",
       }),
     });
-
     if (!genRes.ok) {
       const err = await genRes.text();
       return res.status(500).json({ error: `generate-batch failed: ${err}` });
     }
-
     posts = await consumeBatchStream(genRes);
   } catch (e) {
-    return res.status(500).json({ error: `Generation error: ${e.message}` });
+    return res.status(500).json({ error: `Copy generation error: ${e.message}` });
   }
 
   if (!posts.length) {
     return res.status(500).json({ error: "No posts returned from generate-batch" });
   }
 
-  // Save to Supabase content_queue as 'scheduled'
-  const rows = posts.map(post => {
-    const slot = slots.find(s => s.platformId === post.platformId) || slots[0];
-    return {
-      id:              post.id || `cron_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+  // ── Step 2: Generate image for each post, then save ───────────────────────
+  const results = [];
+
+  for (let i = 0; i < posts.length; i++) {
+    const post = posts[i];
+    const slot = slots[i] || slots[0];
+    let imageUrl = null;
+
+    try {
+      const requestId = await submitImage(falKey, post);
+      imageUrl = await pollImage(falKey, requestId, 90000); // 90s max per image
+    } catch (imgErr) {
+      // Image failed — still save the post, just without an image
+      console.error(`[cron-generate] image failed for post ${i}:`, imgErr.message);
+    }
+
+    const row = {
+      id:              post.id || `cron_${Date.now()}_${i}`,
       persona_id:      "cara",
       persona_name:    "Cara Whitmore",
-      platform:        post.platformId || post.platform,
+      platform:        "fv_page",
       pillar:          post.pillar || slot.pillar,
       hook:            post.hook || "",
       caption:         post.caption || "",
@@ -199,24 +250,29 @@ export default async function handler(req, res) {
       shot_angle:      post.shot_angle || null,
       wardrobe:        post.wardrobe || null,
       image_prompt:    post.image_prompt ? JSON.stringify(post.image_prompt) : null,
+      image_url:       imageUrl,
       scheduled_date:  slot.scheduledDate,
       scheduled_time:  slot.scheduledTime,
-      status:          "scheduled",   // skip draft/review — fully automated
+      status:          "scheduled",
     };
-  });
 
-  const { error: insertError } = await supabase
-    .from("content_queue")
-    .upsert(rows, { onConflict: "id" });
+    const { error: insertError } = await supabase
+      .from("content_queue")
+      .upsert(row, { onConflict: "id" });
 
-  if (insertError) {
-    return res.status(500).json({ error: `Supabase insert error: ${insertError.message}` });
+    results.push({
+      index:      i,
+      post_type:  row.post_type,
+      time:       slot.scheduledTime,
+      has_image:  !!imageUrl,
+      saved:      !insertError,
+      error:      insertError?.message || null,
+    });
   }
 
   return res.status(200).json({
+    date:      today,
     generated: posts.length,
-    scheduled: rows.length,
-    date: today,
-    slots: rows.map(r => ({ platform: r.platform, time: r.scheduled_time, type: r.post_type })),
+    results,
   });
 }

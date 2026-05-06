@@ -254,7 +254,7 @@ function extractDesiredShotTags(shotAngle, photoDirection, hook, caption) {
   return [...tags];
 }
 
-function buildPrompt({ imagePrompt, hook, caption, wardrobe, shotAngle, photoDirection }) {
+export function buildPrompt({ imagePrompt, hook, caption, wardrobe, shotAngle, photoDirection }) {
   // Classify setting context from all available text
   let rawSetting = "";
   if (imagePrompt && typeof imagePrompt === "object") {
