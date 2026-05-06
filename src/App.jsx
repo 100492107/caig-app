@@ -2458,6 +2458,8 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
       setGenerating(g => ({ ...g, [post.id]: { stage, startedAt: g[post.id]?.startedAt || Date.now(), ...extra } }));
 
     setGenerating(g => ({ ...g, [post.id]: { stage: "submitting", startedAt: Date.now() } }));
+    // Clear any previously cached image for this post so old image doesn't show
+    setImages(im => { const n = { ...im }; delete n[post.id]; return n; });
 
     try {
       // ── Submit job to fal.ai async queue (returns instantly) ─────────────
@@ -2468,6 +2470,7 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
           imagePrompt: post.image_prompt,
           personaDescriptors: "CARAWHITMORE, dark near-black hair, vivid green eyes, early 20s, photorealistic",
           photoDirection: post.photo_direction,
+          seed: Math.floor(Math.random() * 9999999),
         }),
       });
 

@@ -144,11 +144,14 @@ export default async function handler(req, res) {
 
   const rawPrompt = imagePrompt || photoDirection || null;
 
-  // If it's an object, sanitise all string fields inside it
+  // If it's an object, sanitise only the fields used in the prompt
+  const SANITISE_FIELDS = new Set(["subject", "wardrobe", "setting", "lighting", "environment", "pose", "expression", "mood"]);
   let sanitised;
   if (rawPrompt && typeof rawPrompt === "object") {
     sanitised = Object.fromEntries(
-      Object.entries(rawPrompt).map(([k, v]) => [k, typeof v === "string" ? sanitisePrompt(v) : v])
+      Object.entries(rawPrompt).map(([k, v]) =>
+        [k, (SANITISE_FIELDS.has(k) && typeof v === "string") ? sanitisePrompt(v) : v]
+      )
     );
   } else {
     sanitised = typeof rawPrompt === "string" ? sanitisePrompt(rawPrompt) : rawPrompt;
