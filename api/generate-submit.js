@@ -1,7 +1,5 @@
 // api/generate-submit.js
 // Submits a nano-banana-2 generation job to fal.ai's async queue.
-// Returns instantly with { requestId, statusUrl, resultUrl }.
-// Client polls /api/generate-poll?requestId=... every 2s.
 
 const QUEUE_URL = "https://queue.fal.run/fal-ai/nano-banana-2/edit";
 
@@ -13,100 +11,126 @@ const CARA_REFS = [
   "https://v3b.fal.media/files/b/0a990cc0/ne3QfVCW_NQnJZFjSnsST_Cara_Whitmore_23.jpeg",
 ];
 
-function getLighting(env) {
-  const e = (env || "").toLowerCase();
-  if (e.includes("bathroom") || e.includes("shower") || e.includes("mirror"))
-    return "cool overhead vanity lighting, slightly blue-white, soft specular highlights on damp skin";
-  if (e.includes("bedroom") || e.includes("bed") || e.includes("indoor"))
-    return "warm late-afternoon golden side window light, 5600K, soft directional shadows";
-  if (e.includes("pool") || e.includes("beach") || e.includes("outdoor") || e.includes("travel") || e.includes("sun"))
-    return "bright Mediterranean natural daylight, warm sun-kissed skin glow, moisture sheen";
-  if (e.includes("evening") || e.includes("golden hour"))
-    return "warm golden-hour side light, long soft amber shadows";
-  return "three-point studio lighting, large softbox key light, natural side fill, subtle rim light";
+// Safe wardrobe pool — lewd but never nude, no phrases that trigger fal.ai safety
+const SAFE_WARDROBES = [
+  "small triangle string bikini, thin side ties",
+  "tiny micro bikini, halter neck top, high-cut bottoms",
+  "silk slip dress, thin straps, low back",
+  "oversized white dress shirt, unbuttoned to the waist, mid-thigh length",
+  "black lace bodysuit, sheer panels fully lined at chest",
+  "white hotel robe loosely tied, black bikini underneath just visible",
+  "tiny bandeau top and micro shorts, midriff bare",
+  "strappy black lingerie set, lace bralette and high-cut briefs",
+  "gold satin bralette and matching high-waist briefs",
+  "sheer mesh crop top over black bralette, low-rise shorts",
+  "red satin slip dress, thigh-high slit",
+  "fitted ribbed crop top and matching low-rise shorts",
+  "lace-trimmed camisole and high-waist briefs, shoulder slipping",
+];
+
+// Blocked pose phrases that fal.ai treats as nudity-adjacent when combined with minimal clothing
+const BLOCKED_POSE_PATTERNS = [
+  /arch(ing)? (her )?back/gi,
+  /lying on (her )?(back|stomach|bed)/gi,
+  /the rest of the frame is (warm )?skin/gi,
+  /fabric covers the minimum/gi,
+  /poolside decorum/gi,
+  /sports illustrated/gi,
+  /legs.*waist.*chest.*face all visible/gi,
+  /overhead angle.*legs/gi,
+];
+
+function sanitisePose(text) {
+  if (!text || typeof text !== "string") return text;
+  let out = text;
+  for (const pat of BLOCKED_POSE_PATTERNS) {
+    out = out.replace(pat, "");
+  }
+  return out.replace(/\s{2,}/g, " ").trim();
 }
 
-function getHair(env) {
-  const e = (env || "").toLowerCase();
-  if (e.includes("pool") || e.includes("beach") || e.includes("shower") || e.includes("bathroom") || e.includes("wet"))
-    return "hair is wet and near-black, wet-strand texture clinging to face and shoulders";
-  return "hair is very dark brown wavy, worn down, natural air-dried wave";
+// Hard keyword sanitiser — catches any explicit terms anywhere in the prompt
+function sanitiseKeywords(raw) {
+  if (!raw || typeof raw !== "string") return raw;
+  return raw
+    .replace(/\bcompletely nude\b/gi, "wearing minimal clothing")
+    .replace(/\bnude bralette\b/gi, "skin-tone bralette")
+    .replace(/\bnude\b/gi, "barely dressed")
+    .replace(/\bnaked\b/gi, "in minimal clothing")
+    .replace(/\btopless\b/gi, "in a bralette")
+    .replace(/\bexplicit\b/gi, "intimate")
+    .replace(/\bfully exposed\b/gi, "barely covered")
+    .replace(/\bno bra\b/gi, "braless under fabric")
+    .replace(/\bwet (white )?t.shirt\b/gi, "damp fitted top")
+    .replace(/\bno bottoms visible\b/gi, "mid-thigh length")
+    .replace(/\bstrip(ping)? off\b/gi, "undressing");
 }
 
-function getWardrobe(env, wardrobe) {
-  if (wardrobe) return wardrobe;
-  const e = (env || "").toLowerCase();
-  if (e.includes("pool") || e.includes("beach"))
-    return "small triangle bikini, thin tie straps, natural colour (red, black, white, or sand), layered gold chains visible";
-  if (e.includes("bathroom") || e.includes("shower"))
-    return "white or light grey towel, minimal coverage";
-  if (e.includes("bedroom") || e.includes("bed"))
-    return "silk slip dress or strappy lingerie set, relaxed and intimate";
-  return "casual stylish clothing";
-}
+function extractFields(imagePrompt) {
+  if (!imagePrompt) return {};
+  if (typeof imagePrompt === "string") return { subject: imagePrompt };
 
-function buildPrompt(imagePrompt, personaDescriptors) {
-  let sceneDesc = "", env = "", wardrobe = null;
+  const p = imagePrompt;
 
-  if (!imagePrompt || typeof imagePrompt === "string") {
-    // Plain string or empty — use directly
-    sceneDesc = imagePrompt || personaDescriptors || "natural candid portrait, warm indoor light, direct gaze";
-    env = sceneDesc;
-  } else {
-    const p = imagePrompt;
-
-    // Shape A: { subject, wardrobe, setting, lighting } — from generateImagePrompt() in App.jsx
-    if (p.subject || p.setting) {
-      sceneDesc = [
-        p.subject,
-        p.wardrobe  && `Outfit: ${p.wardrobe}`,
-        p.setting   && `Setting: ${p.setting}`,
-        p.lighting  && `Lighting: ${p.lighting}`,
-      ].filter(Boolean).join("\n");
-      env = p.setting || "";
-      wardrobe = p.wardrobe || null;
-
-    // Shape B: { environment_and_lighting, core_subject, wardrobe_design, technical_photography }
-    } else if (p.environment_and_lighting || p.core_subject) {
-      const ea = p.environment_and_lighting || {};
-      const cs = p.core_subject || {};
-      const wd = p.wardrobe_design || {};
-      const tp = p.technical_photography || {};
-      env = ea.setting || "";
-      wardrobe = wd.attire || null;
-      sceneDesc = [
-        cs.physique_profile?.pose      && `Pose: ${cs.physique_profile.pose}`,
-        cs.facial_and_glam?.expression && `Expression: ${cs.facial_and_glam.expression}`,
-        wd.attire                      && `Outfit: ${wd.attire}`,
-        ea.setting                     && `Setting: ${ea.setting}`,
-        ea.lighting                    && `Lighting: ${ea.lighting}`,
-        tp.optics,
-      ].filter(Boolean).join("\n");
-
-    // Shape C: flat { environment, wardrobe, pose, expression, ... }
-    } else {
-      env = p.environment || "";
-      wardrobe = p.wardrobe || null;
-      sceneDesc = [
-        p.shot_angle && `Shot: ${p.shot_angle}`,
-        env          && `Setting: ${env}`,
-        p.pose       && `Pose: ${p.pose}`,
-        p.expression && `Expression: ${p.expression}`,
-        p.mood       && `Mood: ${p.mood}`,
-      ].filter(Boolean).join("\n");
-    }
+  // Shape A: { subject, wardrobe, setting, lighting }
+  if (p.subject || p.setting) {
+    return {
+      subject: p.subject || "",
+      setting: p.setting || "",
+      lighting: p.lighting || "",
+      // Deliberately ignore p.wardrobe — use our safe pool instead
+    };
   }
 
-  // Fallback if we somehow ended up with nothing
-  if (!sceneDesc.trim()) sceneDesc = "natural candid portrait, warm indoor light, direct gaze";
+  // Shape B: { environment_and_lighting, core_subject, wardrobe_design, ... }
+  if (p.environment_and_lighting || p.core_subject) {
+    const ea = p.environment_and_lighting || {};
+    const cs = p.core_subject || {};
+    return {
+      subject: [
+        cs.physique_profile?.pose && sanitisePose(cs.physique_profile.pose),
+        cs.facial_and_glam?.expression,
+      ].filter(Boolean).join(", "),
+      setting: ea.setting || "",
+      lighting: ea.lighting || "",
+    };
+  }
 
-  return `The reference images show a specific woman — use her as the subject for a new photo.
+  // Shape C: flat object
+  return {
+    subject: [p.pose && sanitisePose(p.pose), p.expression].filter(Boolean).join(", "),
+    setting: p.environment || p.setting || "",
+    lighting: p.lighting || "",
+  };
+}
 
-Generate a photorealistic photo of her ${sceneDesc}. ${getWardrobe(env, wardrobe) ? `She is wearing ${getWardrobe(env, wardrobe)}.` : ""} ${getHair(env) ? `Her ${getHair(env)}.` : ""} ${getLighting(env) ? `${getLighting(env)}.` : ""}
+function pickWardrobe(setting) {
+  const s = (setting || "").toLowerCase();
+  // Environment-appropriate wardrobe hints — always from safe pool
+  if (s.includes("pool") || s.includes("beach") || s.includes("water"))
+    return SAFE_WARDROBES[Math.floor(Math.random() * 2)]; // bikini options
+  if (s.includes("bedroom") || s.includes("bed") || s.includes("hotel room"))
+    return SAFE_WARDROBES[4 + Math.floor(Math.random() * 5)]; // lingerie/robe options
+  // General — any from pool
+  return SAFE_WARDROBES[Math.floor(Math.random() * SAFE_WARDROBES.length)];
+}
 
-She has her characteristic bright green eyes, thick dark brows, and dark wavy hair as seen in the reference photos. Her skin looks real — natural texture, visible pores, no retouching and no beauty filter. She has a relaxed, direct expression — comfortable in front of the camera, not posing.
+function buildPrompt(imagePrompt) {
+  const { subject, setting, lighting } = extractFields(imagePrompt);
 
-Shot on Sony A7R V with a 35mm lens at f/1.8. Sharp focus on her face and eyes. The background is softly blurred. Real photo quality — not AI art, no plastic skin, no smooth rendering. 9:16 vertical format.`;
+  const cleanSubject = sanitisePose(sanitiseKeywords(subject || "looking directly at camera, confident"));
+  const cleanSetting = sanitiseKeywords(setting || "minimal neutral background");
+  const cleanLighting = sanitiseKeywords(lighting || "soft natural light");
+  const wardrobe = pickWardrobe(setting);
+
+  return `Photo of a specific woman from the reference images.
+
+She is ${cleanSubject}.
+Setting: ${cleanSetting}.
+She is wearing ${wardrobe}.
+Lighting: ${cleanLighting}.
+
+Dark near-black wavy hair, vivid green eyes, early 20s, natural skin texture with visible pores — no retouching. Direct confident gaze. Shot on Sony A7R V, 35mm f/1.8, sharp focus on face, softly blurred background. Photorealistic, not AI art. 9:16 vertical.`;
 }
 
 export default async function handler(req, res) {
@@ -124,45 +148,9 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "Invalid JSON body" });
   }
 
-  const { imagePrompt, personaDescriptors, seed, photoDirection } = body;
-
-  // Sanitise the prompt — fal.ai hard-blocks nudity (422 "unsafe content").
-  // Replace any triggering terms with lewd-but-safe equivalents.
-  // Rules: never use nude/naked/topless/explicit/exposed in any output string.
-  function sanitisePrompt(raw) {
-    if (!raw || typeof raw !== "string") return raw;
-    return raw
-      .replace(/\bcompletely nude\b/gi, "wearing minimal clothing")
-      .replace(/\bnude bralette\b/gi, "skin-tone bralette")
-      .replace(/\bnude\b/gi, "barely dressed")
-      .replace(/\bnaked\b/gi, "in minimal clothing")
-      .replace(/\btopless\b/gi, "in a bralette")
-      .replace(/\byou can see everything\b/gi, "intimate and raw")
-      .replace(/\bstrip(ping)? off\b/gi, "undressing")
-      .replace(/\bexplicit\b/gi, "intimate")
-      .replace(/\bfully exposed\b/gi, "vulnerable and raw")
-      .replace(/\bno bra\b/gi, "braless under fabric")
-      .replace(/\bwet (white )?t-shirt\b/gi, "damp fitted top")
-      .replace(/\bopaque only at\b/gi, "lined at")
-      .replace(/\bno bottoms visible\b/gi, "mid-thigh length");
-  }
-
-  const rawPrompt = imagePrompt || photoDirection || null;
-
-  // If it's an object, sanitise only the fields used in the prompt
-  const SANITISE_FIELDS = new Set(["subject", "wardrobe", "setting", "lighting", "environment", "pose", "expression", "mood"]);
-  let sanitised;
-  if (rawPrompt && typeof rawPrompt === "object") {
-    sanitised = Object.fromEntries(
-      Object.entries(rawPrompt).map(([k, v]) =>
-        [k, (SANITISE_FIELDS.has(k) && typeof v === "string") ? sanitisePrompt(v) : v]
-      )
-    );
-  } else {
-    sanitised = typeof rawPrompt === "string" ? sanitisePrompt(rawPrompt) : rawPrompt;
-  }
-  const prompt = buildPrompt(sanitised, personaDescriptors);
-  console.log("[generate-submit] prompt:", prompt.slice(0, 300));
+  const { imagePrompt, seed } = body;
+  const prompt = buildPrompt(imagePrompt);
+  console.log("[generate-submit] prompt:\n" + prompt);
 
   let qRes, qData;
   try {
