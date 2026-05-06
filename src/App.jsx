@@ -2483,16 +2483,18 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
       const { requestId } = submitData;
       setStatus("queued", { requestId });
 
-      // ── Poll every 2.5s until COMPLETED or FAILED ─────────────────────────
+      // ── Server-side wait poll (one call per ~57s, server loops internally) ──
+      // Using wait=1 means the server polls fal.ai and only returns when COMPLETED,
+      // FAILED, or its 54s internal timeout. This avoids browser timer throttling
+      // killing the loop when the tab is backgrounded or on mobile.
       let imageUrl = null;
-      let attempts = 0;
-      const MAX_ATTEMPTS = 40; // 40 × 2.5s = 100s max wait
+      const MAX_SERVER_ATTEMPTS = 3; // 3 × 57s = ~3 min absolute max
+      let serverAttempts = 0;
 
-      while (attempts < MAX_ATTEMPTS) {
-        await new Promise(r => setTimeout(r, 2500));
-        attempts++;
+      while (serverAttempts < MAX_SERVER_ATTEMPTS) {
+        serverAttempts++;
 
-        const pollRes = await fetch(`/api/generate-poll?requestId=${requestId}`);
+        const pollRes = await fetch(`/api/generate-poll?requestId=${requestId}&wait=1`);
         let pollData;
         const pollText = await pollRes.text();
         try { pollData = JSON.parse(pollText); }
@@ -2503,12 +2505,14 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
           throw new Error((pollData?.error || `Poll failed (${pollRes.status})`) + detail);
         }
 
-        const { status, queuePosition } = pollData;
+        const { status, queuePosition, timedOut } = pollData;
 
         if (status === "IN_QUEUE") {
           setStatus("queued", { requestId, queuePosition });
-        } else if (status === "IN_PROGRESS") {
+        } else if (status === "IN_PROGRESS" || timedOut) {
           setStatus("generating", { requestId });
+          // Server timed out internally — loop again immediately
+          continue;
         } else if (status === "COMPLETED") {
           imageUrl = pollData.imageUrl;
           break;
@@ -2517,7 +2521,7 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
         }
       }
 
-      if (!imageUrl) throw new Error("Timed out waiting for generation (100s)");
+      if (!imageUrl) throw new Error("Timed out waiting for generation (3 min)");
 
       // ── Save to Supabase Storage ──────────────────────────────────────────
       setStatus("saving", { requestId });
