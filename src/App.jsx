@@ -2291,7 +2291,7 @@ function Queue({ queue, setQueue, toast_ }) {
 
 // ─── GENERATING STATUS WIDGET ─────────────────────────────────────────────────
 function GeneratingStatus({ genState }) {
-  const { stage, error, startedAt } = genState || {};
+  const { stage, error, startedAt, queuePosition } = genState || {};
   const [elapsed, setElapsed] = React.useState(0);
 
   React.useEffect(() => {
@@ -2299,51 +2299,62 @@ function GeneratingStatus({ genState }) {
     return () => clearInterval(t);
   }, [startedAt]);
 
-  const stages = {
-    generating: { icon: "🍌", label: "Generating…",     sub: "nano-banana-2 reading Cara's reference images and building scene" },
-    saving:     { icon: "💾", label: "Saving…",         sub: "Uploading to Supabase Storage" },
-    error:      { icon: "❌", label: "Failed",          sub: error || "Unknown error — check console" },
+  const isError = stage === "error";
+
+  const stageInfo = {
+    submitting: { icon: "📡", label: "Submitting job…",    sub: "Sending to fal.ai queue" },
+    queued:     { icon: "⏳", label: "In queue…",          sub: queuePosition != null ? `Queue position: ${queuePosition}` : "Waiting for worker" },
+    generating: { icon: "🍌", label: "Generating…",        sub: "nano-banana-2 reading Cara's reference images and building scene" },
+    saving:     { icon: "💾", label: "Saving…",            sub: "Uploading to Supabase Storage" },
+    error:      { icon: "❌", label: "Failed",             sub: error || "Unknown error" },
   };
 
-  const current = stages[stage] || stages.generating;
-  const isError = stage === "error";
-  const isSaving = stage === "saving";
+  const current = stageInfo[stage] || stageInfo.submitting;
+  const steps = ["submitting", "queued", "generating", "saving"];
+  const stepLabels = ["Submit", "Queue", "Generate", "Save"];
+  const currentIdx = steps.indexOf(stage);
 
   return (
     <div style={{ textAlign: "center", padding: "24px 16px" }}>
-      <div style={{ fontSize: 32, marginBottom: 12 }}>{current.icon}</div>
+      <div style={{ fontSize: 30, marginBottom: 10 }}>{current.icon}</div>
       <div style={{
-        fontWeight: 700, fontSize: 15,
+        fontWeight: 700, fontSize: 14,
         color: isError ? "#f87171" : "var(--t1)",
-        marginBottom: 6,
+        marginBottom: 5,
       }}>{current.label}</div>
-      <div style={{ fontSize: 12, color: "var(--t3)", marginBottom: 16, lineHeight: 1.5 }}>{current.sub}</div>
+      <div style={{ fontSize: 12, color: "var(--t3)", marginBottom: 16, lineHeight: 1.5 }}>
+        {current.sub}
+      </div>
 
-      {/* Simple two-dot progress */}
       {!isError && (
-        <div style={{ display: "flex", gap: 24, justifyContent: "center", marginBottom: 14 }}>
-          {[["generating", "Generating"], ["saving", "Saving"]].map(([s, label]) => {
-            const done   = isSaving && s === "generating";
-            const active = stage === s;
+        <div style={{ display: "flex", gap: 8, justifyContent: "center", marginBottom: 14, alignItems: "flex-start" }}>
+          {steps.map((s, i) => {
+            const done   = currentIdx > i;
+            const active = currentIdx === i;
             return (
-              <div key={s} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5 }}>
-                <div style={{
-                  width: 11, height: 11, borderRadius: "50%",
-                  background: done ? "#22c55e" : active ? "var(--b1)" : "var(--t5, #444)",
-                  boxShadow: active ? "0 0 0 3px rgba(99,102,241,0.35)" : "none",
-                  transition: "all 0.3s",
-                }} />
-                <div style={{ fontSize: 10, color: done ? "#22c55e" : active ? "var(--t2)" : "var(--t4)" }}>
-                  {label}
+              <React.Fragment key={s}>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+                  <div style={{
+                    width: 10, height: 10, borderRadius: "50%",
+                    background: done ? "#22c55e" : active ? "var(--b1, #6366f1)" : "var(--t5, #333)",
+                    boxShadow: active ? "0 0 0 3px rgba(99,102,241,0.3)" : "none",
+                    transition: "all 0.3s",
+                  }} />
+                  <div style={{ fontSize: 9, color: done ? "#22c55e" : active ? "var(--t2)" : "var(--t4)", whiteSpace: "nowrap" }}>
+                    {stepLabels[i]}
+                  </div>
                 </div>
-              </div>
+                {i < steps.length - 1 && (
+                  <div style={{ width: 16, height: 1, background: done ? "#22c55e" : "var(--t5,#333)", marginTop: 5, transition: "background 0.3s" }} />
+                )}
+              </React.Fragment>
             );
           })}
         </div>
       )}
 
       <div style={{ fontSize: 11, color: "var(--t4)" }}>
-        {isError ? "See toast for detail" : `${elapsed}s elapsed — usually 25–40s`}
+        {isError ? "See toast for detail" : `${elapsed}s elapsed`}
       </div>
     </div>
   );
@@ -2443,15 +2454,14 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
 
   // Generate image via fal.ai LoRA — with optional Nano Banana Pro enhancement
   async function generateImage(post) {
-    const setStatus = (stage, error = null) =>
-      setGenerating(g => ({ ...g, [post.id]: { stage, error, startedAt: g[post.id]?.startedAt || Date.now() } }));
+    const setStatus = (stage, extra = {}) =>
+      setGenerating(g => ({ ...g, [post.id]: { stage, startedAt: g[post.id]?.startedAt || Date.now(), ...extra } }));
 
-    setGenerating(g => ({ ...g, [post.id]: { stage: "generating", error: null, startedAt: Date.now() } }));
+    setGenerating(g => ({ ...g, [post.id]: { stage: "submitting", startedAt: Date.now() } }));
 
     try {
-      // nano-banana-2: reference images + scene prompt → single call, ~25-35s
-      setStatus("generating");
-      const res = await fetch("/api/generate-image", {
+      // ── Submit job to fal.ai async queue (returns instantly) ─────────────
+      const submitRes = await fetch("/api/generate-submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -2460,15 +2470,57 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
           photoDirection: post.photo_direction,
         }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Generation failed");
-      if (!data.imageUrl) throw new Error("No image URL returned");
 
-      // Save to Supabase Storage
-      setStatus("saving");
-      let publicUrl = data.imageUrl;
+      // Safe JSON parse — Vercel 504s return HTML not JSON
+      let submitData;
+      const rawText = await submitRes.text();
+      try { submitData = JSON.parse(rawText); }
+      catch { throw new Error(`Server error (${submitRes.status}) — not JSON: ${rawText.slice(0, 120)}`); }
+
+      if (!submitRes.ok) throw new Error(submitData?.error || `Submit failed (${submitRes.status})`);
+      if (!submitData.requestId) throw new Error("No requestId returned from submit");
+
+      const { requestId } = submitData;
+      setStatus("queued", { requestId });
+
+      // ── Poll every 2.5s until COMPLETED or FAILED ─────────────────────────
+      let imageUrl = null;
+      let attempts = 0;
+      const MAX_ATTEMPTS = 40; // 40 × 2.5s = 100s max wait
+
+      while (attempts < MAX_ATTEMPTS) {
+        await new Promise(r => setTimeout(r, 2500));
+        attempts++;
+
+        const pollRes = await fetch(`/api/generate-poll?requestId=${requestId}`);
+        let pollData;
+        const pollText = await pollRes.text();
+        try { pollData = JSON.parse(pollText); }
+        catch { throw new Error(`Poll error (${pollRes.status}): ${pollText.slice(0, 120)}`); }
+
+        if (!pollRes.ok) throw new Error(pollData?.error || `Poll failed (${pollRes.status})`);
+
+        const { status, queuePosition } = pollData;
+
+        if (status === "IN_QUEUE") {
+          setStatus("queued", { requestId, queuePosition });
+        } else if (status === "IN_PROGRESS") {
+          setStatus("generating", { requestId });
+        } else if (status === "COMPLETED") {
+          imageUrl = pollData.imageUrl;
+          break;
+        } else if (status === "FAILED") {
+          throw new Error(pollData.error || "Generation failed on fal.ai");
+        }
+      }
+
+      if (!imageUrl) throw new Error("Timed out waiting for generation (100s)");
+
+      // ── Save to Supabase Storage ──────────────────────────────────────────
+      setStatus("saving", { requestId });
+      let publicUrl = imageUrl;
       try {
-        const imgRes = await fetch(data.imageUrl);
+        const imgRes = await fetch(imageUrl);
         const blob = await imgRes.blob();
         const path = `cara/posts/${post.id}_${Date.now()}.jpg`;
         const { error: upErr } = await supabase.storage
@@ -2491,10 +2543,10 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
       setImages(im => ({ ...im, [post.id]: { url: publicUrl, localPreview: publicUrl } }));
       toast_("Image generated — review and post!", "ok");
     } catch (e) {
-      setStatus("error", e.message);
+      setStatus("error", { error: e.message });
       toast_(`Generation failed: ${e.message}`, "error");
     } finally {
-      setTimeout(() => setGenerating(g => { const n = { ...g }; delete n[post.id]; return n; }), 3000);
+      setTimeout(() => setGenerating(g => { const n = { ...g }; delete n[post.id]; return n; }), 4000);
     }
   }
 
