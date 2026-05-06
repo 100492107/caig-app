@@ -16,7 +16,7 @@ const CARA_REFS = [
 // Bikini/swimwear and dressed-but-revealing are consistently safe.
 const SAFE_WARDROBES = [
   "small triangle string bikini, thin side ties, sun-kissed skin",
-  "tiny micro bikini, halter neck, high-cut bottoms",
+  "tiny white bikini, halter neck, classic cut bottoms",
   "white string bikini, barely-there coverage",
   "oversized white dress shirt, unbuttoned to the waist, mid-thigh length, nothing underneath visible",
   "black lace bodysuit, sheer panels fully lined, worn as a top with jeans",
@@ -165,7 +165,9 @@ IDENTITY: Dark near-black wavy hair worn down. Vivid bright green eyes — sharp
 
 TECHNICAL: Shot on Sony A7R V, 35mm lens at f/1.8. Tack-sharp focus on her eyes and face. Background softly out of focus. Real photo quality — magazine editorial standard. 9:16 vertical format. Full body or three-quarter frame.
 
-Style: fashion editorial, luxury lifestyle. Not AI art. Not a painting. Not a render. A real photograph.`;
+Style: fashion editorial, luxury lifestyle. Not AI art. Not a painting. Not a render. A real photograph.
+
+DO NOT generate: ${NEGATIVE_PROMPT}.`;
 }
 
 export default async function handler(req, res) {
@@ -194,7 +196,6 @@ export default async function handler(req, res) {
       headers: { Authorization: `Key ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         prompt,
-        negative_prompt: NEGATIVE_PROMPT,
         image_urls: CARA_REFS,
         aspect_ratio: "9:16",
         resolution: "2K",
