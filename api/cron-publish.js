@@ -5,6 +5,34 @@
 import { createClient } from "@supabase/supabase-js";
 import { uploadImageToFanvue } from "./fanvue-upload.js";
 
+async function sendTokenExpiredAlert(personaId) {
+  const resendKey = process.env.RESEND_API_KEY;
+  if (!resendKey) return;
+  await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${resendKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from: "CAIG Alerts <hello@cornerstoneaigroup.com>",
+      to: ["harrisjoseph1999@gmail.com"],
+      subject: `⚠️ Fanvue token expired — ${personaId}`,
+      html: `
+        <p>The Fanvue session token for <strong>${personaId}</strong> has expired and posts are failing.</p>
+        <p><strong>Action required:</strong></p>
+        <ol>
+          <li>Log into Fanvue as ${personaId}</li>
+          <li>Open DevTools → Application → Cookies → fanvue.com</li>
+          <li>Copy the value of <code>fv-auth.session-token</code></li>
+          <li>Paste it into Supabase → platform_tokens → token column for ${personaId}</li>
+        </ol>
+        <p>Once updated, reset any <code>error</code> status posts in content_queue back to <code>scheduled</code> and the cron will pick them up automatically.</p>
+      `,
+    }),
+  });
+}
+
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -40,6 +68,7 @@ export default async function handler(req, res) {
   }
 
   const results = [];
+  const tokenAlertSent = new Set(); // track which personas have had alert sent this run
 
   for (const post of duePosts) {
     try {
@@ -105,6 +134,11 @@ export default async function handler(req, res) {
           .eq("id", post.id);
         results.push({ id: post.id, status: "posted" });
       } else {
+        // Detect expired/invalid session — send alert email once per cron run per persona
+        if (publishRes.status === 401 && !tokenAlertSent.has(post.persona_id)) {
+          tokenAlertSent.add(post.persona_id);
+          await sendTokenExpiredAlert(post.persona_id);
+        }
         await supabase
           .from("content_queue")
           .update({ status: "error", notes: publishData.error })
