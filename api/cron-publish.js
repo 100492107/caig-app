@@ -25,7 +25,7 @@ export default async function handler(req, res) {
     .from("content_queue")
     .select("*")
     .eq("status", "scheduled")
-    .eq("platform", "fanvue")
+    .in("platform", ["fanvue", "fv_page"])
     .lte("scheduled_date", todayDate)
     .lte("scheduled_time", currentTime)
     .limit(10); // process max 10 at a time per cron tick
@@ -81,9 +81,8 @@ export default async function handler(req, res) {
 
       // Call the Fanvue post API
       // VERCEL_URL does not include protocol; use https:// prefix
-      const baseUrl = process.env.VERCEL_URL
-        ? `https://${process.env.VERCEL_URL}`
-        : "http://localhost:3000";
+      const baseUrl = process.env.PRODUCTION_URL
+        || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
 
       const publishRes = await fetch(`${baseUrl}/api/fanvue-post`, {
         method: "POST",

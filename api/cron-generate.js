@@ -167,9 +167,8 @@ export default async function handler(req, res) {
   const falKey = process.env.FAL_API_KEY;
   if (!falKey) return res.status(500).json({ error: "FAL_API_KEY not configured" });
 
-  const baseUrl = process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL}`
-    : "http://localhost:3000";
+  const baseUrl = process.env.PRODUCTION_URL
+    || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
 
   const today = todayString();
 
@@ -226,7 +225,7 @@ export default async function handler(req, res) {
 
     try {
       const requestId = await submitImage(falKey, post);
-      imageUrl = await pollImage(falKey, requestId, 90000); // 90s max per image
+      imageUrl = await pollImage(falKey, requestId, 150000); // 150s max per image
     } catch (imgErr) {
       // Image failed — still save the post, just without an image
       console.error(`[cron-generate] image failed for post ${i}:`, imgErr.message);
