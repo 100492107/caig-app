@@ -450,6 +450,20 @@ async function generateImagePrompt(apiKey, persona, post, postIndex) {
   };
 }
 
+// ─── STUDIO ANGLES ────────────────────────────────────────────────────────────
+const STUDIO_ANGLES = [
+  { label: "the real one", instruction: "The version of this that no one else is saying. Honest, specific, grounded in actual experience. Not the optimised take — the true one." },
+  { label: "the specific story", instruction: "One moment, told properly. Beginning, middle, end. Sensory detail. A real thing that happened, not a summary of a thing." },
+  { label: "the observation", instruction: "Something they noticed. Not advice. Not a lesson. Just a true thing they've seen that others haven't said clearly yet." },
+  { label: "the admission", instruction: "Something slightly uncomfortable to admit. A contradiction in how they operate. Self-aware, not self-flagellating. Dry." },
+  { label: "the contrast", instruction: "The expected version vs the actual version. What people assume vs what's true. The gap is the content." },
+  { label: "the question", instruction: "Start from a question they've genuinely been sitting with. Not a rhetorical hook — a real one. Share where they've landed." },
+  { label: "the unprompted take", instruction: "An opinion they hold strongly but haven't been asked for. State it directly. No softening. The conviction is what makes it interesting." },
+  { label: "the behind the work", instruction: "What the process actually looks like. Not the polished output — the reality of how they get there. Specifics only, no generalities." },
+  { label: "the quiet drop", instruction: "Post like it's not a big deal. Mention something good without announcing it. The restraint is the signal of confidence." },
+  { label: "the number", instruction: "Lead with a specific, true number. Not a round estimate — a real one. Let the number do the work, then explain it." },
+];
+
 async function generateStudioPost(apiKey, persona, platform, pillar, postIndex, usedHooks, ideaSeed, voice) {
   const angle = STUDIO_ANGLES[Math.floor(Math.random() * STUDIO_ANGLES.length)];
   const contentType = platform.contentMix[0]; // studio always has one type per call
