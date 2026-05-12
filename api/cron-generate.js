@@ -36,21 +36,29 @@ const FANVUE_PLATFORM = {
   id: "fv_page",
   name: "Fanvue Page",
   times: ["10:00", "20:00"],
-  purpose: "Content that lives on the Fanvue page — PPV captions and subscriber wall posts.",
+  purpose: "Private subscription page — posts to paying subscribers who already know Cara. Not a funnel. Not advertising.",
   contentMix: [
-    { type: "fv_ppv_caption", weight: 4 },
-    { type: "fv_wall_post",   weight: 3 },
+    { type: "fv_ppv_caption", label: "photo set post",  weight: 3 },
+    { type: "fv_wall_post",   label: "personal post",   weight: 3 },
+    { type: "fv_personality", label: "personality post", weight: 2 },
+    { type: "fv_interact",    label: "interaction post", weight: 1 },
+    { type: "fv_tease",       label: "tease post",       weight: 1 },
   ],
 };
 
 const CARA_PILLARS = [
-  "Behind the scenes — what I'm doing today that isn't on the page yet",
-  "Travel throwback — a specific moment from a trip that feels relevant now",
-  "Day in my life — honest, specific, not aspirational",
-  "Content tease — what just went up on the page",
-  "Personal thought — something I've been thinking about this week",
-  "Fan interaction — something I want to know about them",
-  "Mood check — relatable moment that makes fans feel close to me",
+  "A shoot that sat in drafts for weeks before she posted it — why now",
+  "Something specific about a place she's been that the photos didn't capture",
+  "The gap between how a shoot looked and how it actually felt to do",
+  "A small honest thing about her week that has nothing to do with content",
+  "Something a subscriber said or asked that she's been thinking about",
+  "The light, the room, the moment — what made a particular set work",
+  "A trip she keeps coming back to in her head and why",
+  "Something she almost didn't post and then did",
+  "What she's been doing when she's not shooting — real and specific",
+  "A genuine preference or standard she holds about her content",
+  "The unglamorous reality behind a shoot that looks effortless",
+  "Something she noticed about travelling alone that she doesn't talk about publicly",
 ];
 
 const POSTS_PER_DAY = 1; // one post every 2 days — cron only runs on even UTC days
