@@ -1213,6 +1213,97 @@ select{cursor:pointer;appearance:none}
   .cal-nav-right{gap:8px}
   .cal-summary{gap:8px}
 }
+
+/* ── CONTENT STUDIO ───────────────────────────────────────────────────────── */
+.cs-wrap{max-width:860px;margin:0 auto;padding-bottom:60px}
+.cs-onboard-card{background:var(--s2);border:1px solid var(--e1);border-radius:var(--rl);padding:40px;max-width:560px;margin:60px auto}
+.cs-onboard-badge{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--amber);background:var(--amber2);border:1px solid var(--amberb);border-radius:20px;padding:3px 12px;margin-bottom:20px}
+.cs-onboard-title{font-size:22px;font-weight:700;color:var(--t0);margin:0 0 8px}
+.cs-onboard-sub{font-size:14px;color:var(--t2);margin:0 0 28px;line-height:1.5}
+.cs-fields{display:flex;flex-direction:column;gap:16px;margin-bottom:28px}
+.cs-field{display:flex;flex-direction:column;gap:6px}
+.cs-label{font-size:12px;font-weight:600;color:var(--t1);letter-spacing:.02em}
+.cs-input{background:var(--s3);border:1px solid var(--e2);border-radius:var(--r);padding:10px 14px;font-size:14px;color:var(--t0);font-family:var(--sans);outline:none;transition:border-color .15s}
+.cs-input:focus{border-color:var(--amber)}
+.cs-input-err{border-color:var(--red)!important}
+.cs-field-err{font-size:11px;color:var(--red)}
+.cs-save-btn{width:100%;padding:12px;background:var(--amber);color:#000;font-size:14px;font-weight:700;border:none;border-radius:var(--r);cursor:pointer;transition:opacity .15s}
+.cs-save-btn:hover{opacity:.9}
+
+.cs-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:6px}
+.cs-title{font-size:24px;font-weight:700;color:var(--t0);margin:0 0 4px}
+.cs-subtitle{font-size:14px;color:var(--t2);margin:0}
+.cs-voice-btn{display:flex;align-items:center;gap:6px;padding:7px 13px;background:var(--s2);border:1px solid var(--e2);border-radius:var(--r);font-size:12px;color:var(--t1);cursor:pointer;transition:border-color .15s;white-space:nowrap}
+.cs-voice-btn:hover{border-color:var(--e3);color:var(--t0)}
+.cs-voice-pill{display:flex;align-items:center;gap:8px;background:var(--s2);border:1px solid var(--e1);border-radius:20px;padding:5px 14px;margin-bottom:20px;flex-wrap:wrap}
+.cs-voice-niche{font-size:12px;font-weight:600;color:var(--t0)}
+.cs-voice-sep{font-size:12px;color:var(--t3)}
+.cs-voice-tone{font-size:12px;color:var(--t1)}
+.cs-voice-audience{font-size:12px;color:var(--t2)}
+
+.cs-plat-tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.cs-plat-tab{display:flex;align-items:center;gap:7px;padding:8px 16px;background:var(--s2);border:1px solid var(--e1);border-radius:30px;font-size:13px;font-weight:500;color:var(--t1);cursor:pointer;transition:all .15s}
+.cs-plat-tab:hover{border-color:var(--e3);color:var(--t0)}
+.cs-plat-tab-on{font-weight:600}
+.cs-plat-icon{display:flex;align-items:center}
+
+.cs-controls{background:var(--s2);border:1px solid var(--e1);border-radius:var(--rl);padding:20px;margin-bottom:24px}
+.cs-control-row{display:flex;gap:24px;flex-wrap:wrap;margin-bottom:16px}
+.cs-control-group{display:flex;flex-direction:column;gap:8px}
+.cs-count-group{margin-left:auto}
+.cs-ctrl-label{font-size:11px;font-weight:600;color:var(--t2);letter-spacing:.06em;text-transform:uppercase}
+.cs-format-pills{display:flex;gap:6px;flex-wrap:wrap}
+.cs-format-pill{padding:5px 12px;background:var(--s3);border:1px solid var(--e2);border-radius:20px;font-size:12px;color:var(--t1);cursor:pointer;transition:all .15s}
+.cs-format-pill:hover{border-color:var(--e3);color:var(--t0)}
+.cs-format-pill-on{font-weight:600}
+.cs-count-btns{display:flex;gap:6px}
+.cs-count-btn{width:36px;height:32px;background:var(--s3);border:1px solid var(--e2);border-radius:var(--r);font-size:13px;color:var(--t1);cursor:pointer;transition:all .15s}
+.cs-count-btn:hover{color:var(--t0)}
+.cs-count-btn-on{background:var(--s4);border-color:var(--e3);color:var(--t0);font-weight:600}
+.cs-seed-row{display:flex;gap:10px}
+.cs-seed-input{flex:1;background:var(--s3);border:1px solid var(--e2);border-radius:var(--r);padding:10px 14px;font-size:13px;color:var(--t0);font-family:var(--sans);outline:none;transition:border-color .15s}
+.cs-seed-input:focus{border-color:var(--e3)}
+.cs-seed-input::placeholder{color:var(--t3)}
+.cs-gen-btn{display:flex;align-items:center;gap:7px;padding:10px 20px;border:none;border-radius:var(--r);font-size:13px;font-weight:700;color:#fff;cursor:pointer;transition:opacity .15s;white-space:nowrap}
+.cs-gen-btn:hover:not(:disabled){opacity:.88}
+.cs-gen-btn:disabled{opacity:.6;cursor:not-allowed}
+.cs-gen-running{background:var(--s4)!important;border:1px solid var(--e2);color:var(--t1)!important}
+.cs-gen-spinner{width:13px;height:13px;border:2px solid var(--e3);border-top-color:var(--t0);border-radius:50%;animation:spin .7s linear infinite}
+
+.cs-error{background:rgba(240,112,112,.08);border:1px solid rgba(240,112,112,.25);border-radius:var(--r);padding:12px 16px;font-size:13px;color:var(--red);margin-bottom:16px}
+
+.cs-results{margin-top:4px}
+.cs-results-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.cs-results-count{font-size:13px;font-weight:600;color:var(--t1)}
+.cs-results-platform{font-size:12px;font-weight:600}
+.cs-cards{display:flex;flex-direction:column;gap:14px}
+.cs-card{background:var(--s2);border:1px solid var(--e1);border-radius:var(--rl);padding:22px 24px;transition:border-color .15s}
+.cs-card:hover{border-color:var(--e2)}
+.cs-card-num{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:12px}
+.cs-card-hook{font-size:16px;font-weight:600;color:var(--t0);line-height:1.4;margin-bottom:10px}
+.cs-card-caption{font-size:14px;color:var(--t1);line-height:1.65;white-space:pre-wrap;margin-bottom:10px}
+.cs-card-hashtags{font-size:12px;color:var(--t2);line-height:1.5;margin-bottom:10px;word-break:break-word}
+.cs-card-cta{font-size:13px;color:var(--amber);font-style:italic;margin-bottom:12px}
+.cs-card-actions{display:flex;gap:8px;margin-top:4px;padding-top:14px;border-top:1px solid var(--e1)}
+.cs-copy-btn{display:flex;align-items:center;gap:6px;padding:7px 13px;background:var(--s3);border:1px solid var(--e2);border-radius:var(--r);font-size:12px;font-weight:600;color:var(--t0);cursor:pointer;transition:all .15s}
+.cs-copy-btn:hover{border-color:var(--e3)}
+.cs-copied{background:rgba(45,212,160,.1)!important;border-color:rgba(45,212,160,.35)!important;color:var(--green)!important}
+.cs-copy-caption-btn{display:flex;align-items:center;padding:7px 13px;background:transparent;border:1px solid var(--e1);border-radius:var(--r);font-size:12px;color:var(--t2);cursor:pointer;transition:all .15s}
+.cs-copy-caption-btn:hover{border-color:var(--e2);color:var(--t1)}
+
+.cs-empty{display:flex;flex-direction:column;align-items:center;gap:14px;padding:60px 0}
+.cs-empty-spinner{width:28px;height:28px;border:2.5px solid var(--e2);border-top-color:var(--amber);border-radius:50%;animation:spin .8s linear infinite}
+.cs-empty-text{font-size:14px;color:var(--t2);margin:0}
+
+@media(max-width:767px){
+  .cs-header{flex-direction:column}
+  .cs-control-row{flex-direction:column}
+  .cs-count-group{margin-left:0}
+  .cs-seed-row{flex-direction:column}
+  .cs-gen-btn{justify-content:center}
+  .cs-plat-tabs{gap:6px}
+  .cs-plat-tab{padding:7px 12px;font-size:12px}
+}
 `;
 
 // ─── ICONS ────────────────────────────────────────────────────────────────────
@@ -5883,6 +5974,319 @@ function AdminPanel() {
   );
 }
 
+// ─── CONTENT STUDIO ───────────────────────────────────────────────────────────
+const STUDIO_PLATFORMS = [
+  {
+    id: "instagram", label: "Instagram", color: "#E1306C",
+    icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>,
+    formats: ["Feed post", "Reel caption", "Story caption", "Carousel caption"],
+    purpose: "Visual-first platform. Feed posts perform best with a hook in the first line. Reels captions are short. Carousels tell a story across slides.",
+  },
+  {
+    id: "tiktok", label: "TikTok", color: "#FF0050",
+    icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.75a4.85 4.85 0 0 1-1.01-.06z"/></svg>,
+    formats: ["Video caption", "Duet caption", "Stitch caption", "Trend caption"],
+    purpose: "Short-form video captions. Hook in the first 3 words. Trend-aware. Hashtags matter less than virality of the caption itself.",
+  },
+  {
+    id: "x", label: "X (Twitter)", color: "#000000",
+    icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>,
+    formats: ["Single tweet", "Thread opener", "Reply bait tweet", "Hot take"],
+    purpose: "Text-first. Opinions, observations, hot takes, threads. Under 280 chars for singles. Threads build an argument across posts.",
+  },
+  {
+    id: "facebook", label: "Facebook", color: "#1877F2",
+    icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>,
+    formats: ["Feed post", "Group post", "Event description", "Story caption"],
+    purpose: "Longer form than Instagram. Community-driven. Stories and personal moments perform. Groups reward genuine conversation starters.",
+  },
+  {
+    id: "youtube", label: "YouTube", color: "#FF0000",
+    icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M23.495 6.205a3.007 3.007 0 0 0-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 0 0 .527 6.205a31.247 31.247 0 0 0-.522 5.805 31.247 31.247 0 0 0 .522 5.783 3.007 3.007 0 0 0 2.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 0 0 2.088-2.088 31.247 31.247 0 0 0 .5-5.783 31.247 31.247 0 0 0-.5-5.805zM9.609 15.601V8.408l6.264 3.602z"/></svg>,
+    formats: ["Video title + description", "Short description", "Community post", "Shorts caption"],
+    purpose: "SEO-driven titles. Descriptions matter for search. Community posts are conversational. Shorts captions are very short — hook only.",
+  },
+];
+
+const STUDIO_ANGLES = [
+  { label: "the real one", instruction: "The version of this that no one else is saying. Honest, specific, grounded in actual experience. Not the optimised take — the true one." },
+  { label: "the specific story", instruction: "One moment, told properly. Beginning, middle, end. Sensory detail. A real thing that happened, not a summary of a thing." },
+  { label: "the observation", instruction: "Something they noticed. Not advice. Not a lesson. Just a true thing they've seen that others haven't said clearly yet." },
+  { label: "the admission", instruction: "Something slightly uncomfortable to admit. A contradiction in how they operate. Self-aware, not self-flagellating. Dry." },
+  { label: "the contrast", instruction: "The expected version vs the actual version. What people assume vs what's true. The gap is the content." },
+  { label: "the question", instruction: "Start from a question they've genuinely been sitting with. Not a rhetorical hook — a real one. Share where they've landed." },
+  { label: "the unprompted take", instruction: "An opinion they hold strongly but haven't been asked for. State it directly. No softening. The conviction is what makes it interesting." },
+  { label: "the behind the work", instruction: "What the process actually looks like. Not the polished output — the reality of how they get there. Specifics only, no generalities." },
+  { label: "the quiet drop", instruction: "Post like it's not a big deal. Mention something good without announcing it. The restraint is the signal of confidence." },
+  { label: "the number", instruction: "Lead with a specific, true number. Not a round estimate — a real one. Let the number do the work, then explain it." },
+];
+
+function ContentStudio() {
+  const VOICE_KEY = "cs_brand_voice";
+  const savedVoice = (() => { try { return JSON.parse(localStorage.getItem(VOICE_KEY) || "null"); } catch { return null; } })();
+
+  const [step, setStep] = React.useState(savedVoice ? "generate" : "onboard");
+  const [voice, setVoice] = React.useState(savedVoice || { name: "", niche: "", tone: "", audience: "", handle: "" });
+  const [voiceErr, setVoiceErr] = React.useState({});
+  const [activePlatform, setActivePlatform] = React.useState(STUDIO_PLATFORMS[0].id);
+  const [activeFormat, setActiveFormat] = React.useState(0);
+  const [ideaSeed, setIdeaSeed] = React.useState("");
+  const [count, setCount] = React.useState(3);
+  const [running, setRunning] = React.useState(false);
+  const [results, setResults] = React.useState([]);
+  const [copied, setCopied] = React.useState(null);
+  const [error, setError] = React.useState("");
+
+  const platform = STUDIO_PLATFORMS.find(p => p.id === activePlatform);
+
+  function saveVoice() {
+    const errs = {};
+    if (!voice.name.trim()) errs.name = "Required";
+    if (!voice.niche.trim()) errs.niche = "Required";
+    if (!voice.tone.trim()) errs.tone = "Required";
+    if (!voice.audience.trim()) errs.audience = "Required";
+    if (Object.keys(errs).length) { setVoiceErr(errs); return; }
+    localStorage.setItem(VOICE_KEY, JSON.stringify(voice));
+    setStep("generate");
+  }
+
+  async function generate() {
+    setRunning(true);
+    setResults([]);
+    setError("");
+    const plat = STUDIO_PLATFORMS.find(p => p.id === activePlatform);
+    const format = plat.formats[activeFormat];
+    const persona = {
+      id: "studio_user",
+      name: voice.name || "the creator",
+      niche: voice.niche,
+      char: `${voice.tone} creator in ${voice.niche}. Audience: ${voice.audience}.${voice.handle ? ` Handle: ${voice.handle}.` : ""}`,
+      voice: voice.tone,
+    };
+    const platform_ = {
+      id: activePlatform,
+      name: plat.label,
+      purpose: plat.purpose,
+      contentMix: [{ type: "studio_post", label: format, weight: 1 }],
+    };
+    const slots = Array.from({ length: count }, (_, i) => ({
+      personaId: "studio_user",
+      platformId: activePlatform,
+      pillar: ideaSeed || `Original ${format} content`,
+      scheduledDate: new Date().toISOString().split("T")[0],
+      scheduledTime: "12:00",
+      index: i,
+    }));
+
+    try {
+      const res = await fetch("/api/generate-batch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slots, personas: [persona], platforms: [platform_], fanvueMode: false, studioMode: true, ideaSeed, studioVoice: voice }),
+      });
+      if (!res.ok) { setError("Generation failed — try again"); setRunning(false); return; }
+      const reader = res.body.getReader();
+      const dec = new TextDecoder();
+      let buf = "";
+      const posts = [];
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += dec.decode(value, { stream: true });
+        const lines = buf.split("\n");
+        buf = lines.pop();
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          try {
+            const obj = JSON.parse(line);
+            if (obj.post) { posts.push(obj.post); setResults([...posts]); }
+          } catch {}
+        }
+      }
+    } catch (e) {
+      setError(e.message);
+    }
+    setRunning(false);
+  }
+
+  function copyText(text, id) {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(id);
+      setTimeout(() => setCopied(null), 2000);
+    });
+  }
+
+  // ── ONBOARDING SCREEN ──────────────────────────────────────────────────────
+  if (step === "onboard") return (
+    <div className="cs-wrap">
+      <div className="cs-onboard-card">
+        <div className="cs-onboard-badge">Content Studio</div>
+        <h2 className="cs-onboard-title">Set your brand voice</h2>
+        <p className="cs-onboard-sub">This is used on every generation. Be specific — the more honest this is, the better the output.</p>
+        <div className="cs-fields">
+          {[
+            { key: "name", label: "Your name or brand name", placeholder: "e.g. Jade Holloway" },
+            { key: "niche", label: "Your niche", placeholder: "e.g. sustainable fashion, fitness coaching, personal finance" },
+            { key: "audience", label: "Who you're talking to", placeholder: "e.g. women 25–35 who want to dress sustainably without spending more" },
+            { key: "tone", label: "Your tone in 3–5 words", placeholder: "e.g. dry, honest, warm, no-fluff" },
+            { key: "handle", label: "Your handle (optional)", placeholder: "@yourhandle" },
+          ].map(f => (
+            <div key={f.key} className="cs-field">
+              <label className="cs-label">{f.label}</label>
+              <input
+                className={`cs-input${voiceErr[f.key] ? " cs-input-err" : ""}`}
+                placeholder={f.placeholder}
+                value={voice[f.key]}
+                onChange={e => { setVoice(v => ({ ...v, [f.key]: e.target.value })); setVoiceErr(v => ({ ...v, [f.key]: "" })); }}
+              />
+              {voiceErr[f.key] && <span className="cs-field-err">{voiceErr[f.key]}</span>}
+            </div>
+          ))}
+        </div>
+        <button className="cs-save-btn" onClick={saveVoice}>Start generating →</button>
+      </div>
+    </div>
+  );
+
+  // ── GENERATE SCREEN ────────────────────────────────────────────────────────
+  return (
+    <div className="cs-wrap">
+      {/* Header */}
+      <div className="cs-header">
+        <div>
+          <h1 className="cs-title">Content Studio</h1>
+          <p className="cs-subtitle">Generate platform-native content in your voice. Copy and post.</p>
+        </div>
+        <button className="cs-voice-btn" onClick={() => setStep("onboard")}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Edit voice
+        </button>
+      </div>
+
+      {/* Voice pill */}
+      <div className="cs-voice-pill">
+        <span className="cs-voice-niche">{voice.niche}</span>
+        <span className="cs-voice-sep">·</span>
+        <span className="cs-voice-tone">{voice.tone}</span>
+        <span className="cs-voice-sep">·</span>
+        <span className="cs-voice-audience">{voice.audience}</span>
+      </div>
+
+      {/* Platform tabs */}
+      <div className="cs-plat-tabs">
+        {STUDIO_PLATFORMS.map(p => (
+          <button
+            key={p.id}
+            className={`cs-plat-tab${activePlatform === p.id ? " cs-plat-tab-on" : ""}`}
+            style={activePlatform === p.id ? { borderColor: p.color, color: p.color } : {}}
+            onClick={() => { setActivePlatform(p.id); setActiveFormat(0); setResults([]); }}
+          >
+            <span className="cs-plat-icon" style={activePlatform === p.id ? { color: p.color } : {}}>{p.icon}</span>
+            {p.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Format + controls */}
+      <div className="cs-controls">
+        <div className="cs-control-row">
+          <div className="cs-control-group">
+            <label className="cs-ctrl-label">Format</label>
+            <div className="cs-format-pills">
+              {platform.formats.map((f, i) => (
+                <button
+                  key={f}
+                  className={`cs-format-pill${activeFormat === i ? " cs-format-pill-on" : ""}`}
+                  style={activeFormat === i ? { background: platform.color + "22", borderColor: platform.color, color: platform.color } : {}}
+                  onClick={() => { setActiveFormat(i); setResults([]); }}
+                >{f}</button>
+              ))}
+            </div>
+          </div>
+          <div className="cs-control-group cs-count-group">
+            <label className="cs-ctrl-label">Variations</label>
+            <div className="cs-count-btns">
+              {[1,2,3,5].map(n => (
+                <button key={n} className={`cs-count-btn${count === n ? " cs-count-btn-on" : ""}`} onClick={() => setCount(n)}>{n}</button>
+              ))}
+            </div>
+          </div>
+        </div>
+        <div className="cs-seed-row">
+          <input
+            className="cs-seed-input"
+            placeholder="Topic or idea (optional) — leave blank for AI to pick based on your niche"
+            value={ideaSeed}
+            onChange={e => setIdeaSeed(e.target.value)}
+          />
+          <button
+            className={`cs-gen-btn${running ? " cs-gen-running" : ""}`}
+            style={{ background: running ? undefined : platform.color }}
+            onClick={generate}
+            disabled={running}
+          >
+            {running ? (
+              <><span className="cs-gen-spinner" />Generating…</>
+            ) : (
+              <><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>Generate</>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Error */}
+      {error && <div className="cs-error">{error}</div>}
+
+      {/* Results */}
+      {results.length > 0 && (
+        <div className="cs-results">
+          <div className="cs-results-header">
+            <span className="cs-results-count">{results.length} variation{results.length !== 1 ? "s" : ""}</span>
+            <span className="cs-results-platform" style={{ color: platform.color }}>{platform.label} · {platform.formats[activeFormat]}</span>
+          </div>
+          <div className="cs-cards">
+            {results.map((post, i) => {
+              const fullText = [post.hook, post.caption, post.hashtags].filter(Boolean).join("\n\n");
+              const isCopied = copied === i;
+              return (
+                <div key={i} className="cs-card">
+                  <div className="cs-card-num" style={{ color: platform.color }}>#{i + 1}</div>
+                  {post.hook && <div className="cs-card-hook">{post.hook}</div>}
+                  {post.caption && <div className="cs-card-caption">{post.caption}</div>}
+                  {post.hashtags && <div className="cs-card-hashtags">{post.hashtags}</div>}
+                  {post.cta && <div className="cs-card-cta">{post.cta}</div>}
+                  <div className="cs-card-actions">
+                    <button className={`cs-copy-btn${isCopied ? " cs-copied" : ""}`} onClick={() => copyText(fullText, i)}>
+                      {isCopied ? (
+                        <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>Copied</>
+                      ) : (
+                        <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy post</>
+                      )}
+                    </button>
+                    {post.caption && (
+                      <button className="cs-copy-caption-btn" onClick={() => copyText(post.caption, `cap_${i}`)}>
+                        {copied === `cap_${i}` ? "Copied" : "Caption only"}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Empty state while running */}
+      {running && results.length === 0 && (
+        <div className="cs-empty">
+          <div className="cs-empty-spinner" />
+          <p className="cs-empty-text">Writing in your voice…</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── APP ──────────────────────────────────────────────────────────────────────
 // ─── MODULE ACCENT COLOURS ────────────────────────────────────────────────────
 const MODULE_COLORS = {
@@ -6265,7 +6669,11 @@ export default function App() {
             {Ic.home} Home
           </button>
           <button className={`tni${view === "autopilot" ? " on" : ""}`} onClick={() => setView("autopilot")}>
-            {IcContent} Content Hub
+            {IcContent} AI Creator
+          </button>
+          <button className={`tni${view === "studio" ? " on" : ""}`} onClick={() => setView("studio")}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            Content Studio
           </button>
 
           {profile?.role === "admin" && (
@@ -6387,6 +6795,7 @@ export default function App() {
           {view === "outreach"   && (canAccess(profile?.tier, "outreach",   profile?.role) ? <Outreach />   : <LockedModule moduleName="Business Health Check" currentTier={profile?.tier} />)}
           {view === "onboarding" && (canAccess(profile?.tier, "onboarding", profile?.role) ? <Onboarding /> : <LockedModule moduleName="Automate Ops"        currentTier={profile?.tier} />)}
           {view === "queue"      && <Queue queue={queue} setQueue={setQueue} toast_={toast_} />}
+          {view === "studio"     && <ContentStudio />}
           {view === "review"     && <ReviewQueue toast_={toast_} queue={queue} setQueue={setQueue} />}
           {view === "dms"        && <DMInbox toast_={toast_} />}
           {view === "calendar"   && <CalView queue={queue} />}

@@ -450,6 +450,79 @@ async function generateImagePrompt(apiKey, persona, post, postIndex) {
   };
 }
 
+async function generateStudioPost(apiKey, persona, platform, pillar, postIndex, usedHooks, ideaSeed, voice) {
+  const angle = STUDIO_ANGLES[Math.floor(Math.random() * STUDIO_ANGLES.length)];
+  const contentType = platform.contentMix[0]; // studio always has one type per call
+
+  const platformContext = {
+    instagram: "Instagram. Visual-first. The caption supports the image — it doesn't replace it. Hook in the first line (before the 'more' fold). Authentic > polished. 3–8 lines max for feed. Reels captions can be 1–2 lines.",
+    tiktok: "TikTok. The caption is secondary to the video, but it still matters. Hook in the first 3 words. Short. Trend-aware but not try-hard. No hashtag spam — 3–5 targeted ones max.",
+    x: "X (Twitter). Text is everything. Opinions, observations, takes. Under 280 chars for singles. For threads: the opener has to make someone want to click. No filler. No 'a thread 🧵' if you can avoid it.",
+    facebook: "Facebook. Slightly longer form. Community feel. Personal stories and honest moments outperform polished content. Conversation starters work. Don't sound like an ad.",
+    youtube: "YouTube. Title and description are SEO. The title has to make someone click AND accurately describe the video. Description: first 2 lines are what shows before 'Show more' — they matter. Community posts are short and conversational.",
+  };
+
+  const formatGuidance = contentType.label || "post";
+
+  const system = `You are a world-class social media copywriter. You write content for real creators and brands that sounds like a human being, not a content calendar.
+
+Your job is to write a ${formatGuidance} for ${platform.name} in the voice of the creator described below.
+
+=== THE CREATOR ===
+Name: ${voice.name || persona.name}
+Niche: ${voice.niche || persona.niche}
+Audience: ${voice.audience || "their followers"}
+Tone: ${voice.tone || persona.char}
+${voice.handle ? `Handle: ${voice.handle}` : ""}
+
+=== PLATFORM ===
+${platformContext[platform.id] || platform.purpose}
+
+=== THE MOST IMPORTANT RULE ===
+This must sound like a specific real person wrote it — not a content creator template, not an AI caption, not a marketing brief. The kind of post that makes someone stop scrolling because it feels like it was written by someone who actually has something to say.
+
+Study how the best creators in any niche write. They:
+- Don't start with "I'm so excited to share"
+- Don't end with "drop a comment below!"
+- Use specific details instead of vague claims
+- Have a point of view, not just information
+- Sound like themselves, not a brand
+
+=== WHAT TO AVOID ===
+- "game-changer", "level up", "on this journey", "so grateful", "blessed"
+- Starting with "I" as the very first word
+- Exclamation marks used for hype (earned surprise is fine)
+- Generic CTAs like "like and subscribe", "follow for more", "save this post"
+- Anything that reads like it was generated — if it could apply to any creator, it's wrong
+
+FORMAT: Return ONLY a raw JSON object. No markdown fences. No explanation.`;
+
+  const user = `Write a ${formatGuidance} for ${platform.name}.
+
+NICHE: ${voice.niche || persona.niche}
+${pillar && pillar !== `Original ${formatGuidance} content` ? `TOPIC/ANGLE: "${pillar}"` : ""}
+${ideaSeed ? `SPECIFIC IDEA: "${ideaSeed}"` : "Pick a topic that feels genuinely relevant to someone in this niche right now."}
+
+CREATIVE APPROACH: "${angle.label}"
+${angle.instruction}
+
+VARIATION ${postIndex + 1} — this must be structurally and tonally different from any previous post in this batch. Different opening, different register, different ending.
+${usedHooks.length > 0 ? `THESE OPENINGS ARE TAKEN — do not echo them:\n${usedHooks.map((h, i) => `${i + 1}. "${h}"`).join("\n")}` : ""}
+
+Return ONLY this JSON:
+{
+  "hook": "the opening line — under 15 words — written in their voice, not a headline formula",
+  "caption": "the complete post text ready to paste. Sounds like a real person. Platform-native length and format.",
+  "hashtags": "5–12 hashtags as a single string — targeted, not spammy",
+  "cta": "a soft, natural call to action if appropriate — or leave as empty string if it would feel forced",
+  "post_type": "studio_post",
+  "content_label": "${formatGuidance}"
+}`;
+
+  const raw = await callGemini(apiKey, system, user, 2000);
+  return parseJSON(raw);
+}
+
 function readBody(req) {
   return new Promise((resolve, reject) => {
     let data = "";
@@ -472,7 +545,7 @@ export default async function handler(req, res) {
   let body;
   try { body = await readBody(req); } catch (e) { return res.status(400).json({ error: e.message }); }
 
-  const { slots, personas, platforms, fanvueMode, ideaSeed } = body;
+  const { slots, personas, platforms, fanvueMode, studioMode, ideaSeed, studioVoice } = body;
   if (!slots?.length || !personas?.length || !platforms?.length) {
     return res.status(400).json({ error: "Missing required fields: slots, personas, platforms" });
   }
@@ -482,10 +555,12 @@ export default async function handler(req, res) {
   res.setHeader("X-Accel-Buffering", "no");
   res.flushHeaders();
 
-  // Pre-fetch trends once per platform
+  // Studio mode skips trends fetch — not relevant for brand voice generation
   const trendsCache = {};
-  for (const platform of platforms) {
-    trendsCache[platform.id] = await researchTrends(apiKey, platform.name, personas[0]?.niche || "", fanvueMode || false);
+  if (!studioMode) {
+    for (const platform of platforms) {
+      trendsCache[platform.id] = await researchTrends(apiKey, platform.name, personas[0]?.niche || "", fanvueMode || false);
+    }
   }
 
   const usedHooks = [];
@@ -503,14 +578,17 @@ export default async function handler(req, res) {
     try {
       res.write(JSON.stringify({ progress: true, index: i, status: "running" }) + "\n");
 
-      const post = await generatePost(
-        apiKey, persona, platform, slot.pillar, i,  // use i not slot.postIndex for true uniqueness
-        [...usedHooks], ideaSeed || "", fanvueMode || false, trendsCache[platform.id] || ""
-      );
+      let post;
+      if (studioMode) {
+        post = await generateStudioPost(apiKey, persona, platform, slot.pillar, i, usedHooks, ideaSeed || "", studioVoice || {});
+      } else {
+        post = await generatePost(apiKey, persona, platform, slot.pillar, i, [...usedHooks], ideaSeed || "", fanvueMode || false, trendsCache[platform.id] || "");
+      }
 
       if (post.hook) usedHooks.push(post.hook);
 
-      if (true) {
+      // Only generate image prompts for AI Creator mode (not studio)
+      if (!studioMode) {
         const FALLBACK_BRIEFS = {
           fv_tease:       "Creator at window, open silk shirt falling off shoulders, low-rise jeans. Strong directional daylight. Direct eye contact.",
           fv_ppv:         "Creator on edge of bed leaning forward, wrapped loosely in white sheet, one shoulder bare. Warm candlelight.",
