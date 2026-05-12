@@ -830,6 +830,12 @@ html,body,#root{height:100%;background:var(--ink);color:var(--t0);font-family:va
 .btn-green:hover{box-shadow:0 6px 28px rgba(45,212,160,.36),0 1px 4px rgba(45,212,160,.18),inset 0 1px 0 rgba(255,255,255,.18);transform:translateY(-1px)}
 .btn-danger{background:transparent;color:var(--red);border:1px solid rgba(240,112,112,.18)}
 .btn-danger:hover{background:rgba(240,112,112,.07);border-color:rgba(240,112,112,.3)}
+.btn-primary{background:linear-gradient(145deg,#f7b034,#c97a00);color:#0c0600;font-weight:700;box-shadow:var(--shadow-amber),inset 0 1px 0 rgba(255,255,255,.18)}
+.btn-primary:hover:not(:disabled){opacity:.9;transform:translateY(-1px)}
+.btn-primary:disabled{opacity:.28;cursor:not-allowed}
+.btn-sec{background:var(--s3);color:var(--t1);border:1px solid var(--e2)}
+.btn-sec:hover:not(:disabled){background:var(--s4);color:var(--t0);border-color:var(--e3)}
+.btn-sec:disabled{opacity:.4;cursor:not-allowed}
 .ib{display:inline-flex;align-items:center;justify-content:center;width:29px;height:29px;border-radius:8px;border:1px solid var(--e2);background:transparent;cursor:pointer;color:var(--t3);transition:all .12s;flex-shrink:0}
 .ib:hover{background:var(--s3);color:var(--t0);border-color:var(--e3)}
 .ib:active{transform:scale(.9)}
@@ -1023,8 +1029,10 @@ select{cursor:pointer;appearance:none}
   .home-pgrid{grid-template-columns:repeat(2,1fr)}
   .home-status{flex-wrap:wrap;gap:9px}
   .ap{max-width:100%}
+  .ap-title{font-size:clamp(24px,7vw,36px)!important}
+  .ap-desc{font-size:13px}
   .platgrid{grid-template-columns:repeat(2,1fr)!important}
-  .gen-btn{padding:20px 14px}
+  .gen-btn{padding:20px 14px;font-size:13px}
   .step-card{padding:20px 16px}
   .pgrid{grid-template-columns:repeat(2,1fr)}
   .mod-title{font-size:28px}
@@ -1032,16 +1040,30 @@ select{cursor:pointer;appearance:none}
   .rg-form-grid{grid-template-columns:1fr!important}
   .dp-form-grid{grid-template-columns:1fr!important}
   .lt-form-grid{grid-template-columns:1fr!important}
+  .admin-inline-grid-2{grid-template-columns:1fr!important}
+  .admin-inline-grid-3{grid-template-columns:1fr!important}
   .bni{font-size:8px;gap:3px}
   .bni svg{width:22px;height:22px}
   .gen-summary{grid-template-columns:1fr!important}
   .admin-view-wrap{padding:0 14px 60px!important}
   .admin-client-grid{grid-template-columns:1fr!important}
-  .admin-stat-grid{grid-template-columns:repeat(2,1fr)!important}
+  /* ContentStudio mobile */
+  .cs-onboard-card{padding:24px 18px;margin:24px auto}
+  .cs-header{flex-direction:column;gap:10px}
+  .cs-plat-tabs{gap:6px}
+  .cs-plat-tab{padding:7px 11px;font-size:12px}
+  .cs-control-row{flex-direction:column;gap:14px}
+  .cs-count-group{margin-left:0}
+  .cs-seed-row{flex-direction:column}
+  .cs-gen-btn{justify-content:center;width:100%}
+  .cs-card{padding:16px}
+  .cs-card-hook{font-size:15px}
+  .cs-card-actions{flex-wrap:wrap}
+  .cs-voice-pill{gap:6px}
+  /* ReviewQueue mobile */
   .rv-mode-toggle{flex-wrap:wrap}
   .rv-date-row{flex-wrap:wrap}
   .rv-date-row>button{flex:1 1 100%!important;min-width:0!important}
-  /* ReviewQueue mobile */
   .rv-wrap{padding:16px 12px 80px!important}
   .rv-actions{flex-direction:column!important}
   .rv-actions>button{flex:none!important;width:100%!important;min-width:0!important}
@@ -1053,6 +1075,9 @@ select{cursor:pointer;appearance:none}
   .home-modules{grid-template-columns:1fr}
   .home-pgrid{grid-template-columns:1fr}
   .pgrid{grid-template-columns:1fr 1fr}
+  .cal-mc{min-height:42px;padding:2px}
+  .cal-pill{display:none}
+  .cal-overflow{display:none}
 }
 /* ── Shared module shell (Proposals / Outreach / Onboarding) ─────────────── */
 .mod-shell{width:100%;padding:0 0 48px}
@@ -3533,7 +3558,7 @@ Return JSON with exactly these keys:
       )}
 
       {/* Name + Handle */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 4 }}>
+      <div className="admin-inline-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 4 }}>
         <div className="sr" style={{ flexDirection: "column", alignItems: "flex-start", gap: 6 }}>
           <div className="srl">Creator Name</div>
           <input
@@ -5352,11 +5377,11 @@ function CreatorForm({ clientId, onSaved, onCancel }) {
   return (
     <form onSubmit={save} style={{ background: "var(--e1)", border: "1px solid var(--b1)", borderRadius: 12, padding: "22px 24px", marginTop: 12 }}>
       <div style={{ fontSize: 13, fontWeight: 600, color: "var(--t1)", marginBottom: 14 }}>Add Creator</div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
+      <div className="admin-inline-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
         <input placeholder="Creator name *" {...inp("name")} />
         <input placeholder="Handle (e.g. @handle)" {...inp("handle")} />
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 10 }}>
+      <div className="admin-inline-grid-3" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 10 }}>
         <select {...inp("niche")} style={S}>
           <option value="">Niche *</option>
           {NICHES.map(n => <option key={n} value={n}>{n}</option>)}
