@@ -135,7 +135,6 @@ const IMG_COVERAGE = [
   "Minimal dark fabric — deep burgundy cord-tied construction — intimate and still",
   "Fine ribbed knit in cream, ending at the waist, high-waisted wide-leg linen below",
   "Two saturated dark panels of fabric, wet from the shower — natural and candid",
-];
   "Lace-trimmed camisole tucked loosely into high-waist briefs, shoulder slipping",
 ];
 
@@ -216,7 +215,6 @@ const FANVUE_PILLARS = [
   "A preference or observation about quality that she's never made public",
   "The kind of morning that makes the work easier — what it actually looks like",
   "Something she noticed about how she works that surprised her",
-];
 ];
 
 
@@ -5071,10 +5069,14 @@ function OnboardingWelcome({ profile, onComplete }) {
 }
 
 // ─── CLIENT PORTAL ────────────────────────────────────────────────────────────
+const PLAN_LABELS = { starter: "Starter · £3k/mo", growth: "Growth · £5k/mo", elite: "Elite · £8k/mo" };
+const PLAN_COLORS = { starter: "var(--gold)", growth: "var(--green)", elite: "var(--violet)" };
+
 function ClientPortal({ profile, onSignOut }) {
   const [creators, setCreators]     = useState([]);
   const [deals, setDeals]           = useState([]);
   const [content, setContent]       = useState([]);
+  const [subscription, setSubscription] = useState(null);
   const [loading, setLoading]       = useState(true);
   const [tab, setTab]               = useState("overview");
   const [contentFilter, setContentFilter] = useState("all");
@@ -5085,10 +5087,12 @@ function ClientPortal({ profile, onSignOut }) {
       supabase.from("creators").select("*").eq("client_id", profile.id),
       supabase.from("deals").select("*, creators(name, handle)").eq("client_id", profile.id).order("created_at", { ascending: false }),
       supabase.from("content_queue").select("*").eq("client_id", profile.id).order("created_at", { ascending: false }),
-    ]).then(([{ data: cr }, { data: de }, { data: co }]) => {
+      supabase.from("client_subscriptions").select("*").eq("client_id", profile.id).order("created_at", { ascending: false }).limit(1).single(),
+    ]).then(([{ data: cr }, { data: de }, { data: co }, { data: sub }]) => {
       setCreators(cr || []);
       setDeals(de || []);
       setContent(co || []);
+      setSubscription(sub || null);
       setLoading(false);
     });
   }, [profile.id]);
@@ -5168,6 +5172,28 @@ function ClientPortal({ profile, onSignOut }) {
             {/* ── OVERVIEW TAB ── */}
             {tab === "overview" && (
               <>
+                {/* Subscription status card */}
+                <div style={{ marginBottom: 20, background: subscription?.status === "active" ? "rgba(45,212,160,.07)" : "var(--s2)", border: `1px solid ${subscription?.status === "active" ? "rgba(45,212,160,.2)" : "var(--e1)"}`, borderRadius: 12, padding: "14px 20px", display: "flex", alignItems: "center", gap: 16 }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 12, color: "var(--t4)", textTransform: "uppercase", letterSpacing: ".06em", marginBottom: 4 }}>Your Plan</div>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: "var(--t0)" }}>
+                      {subscription ? (PLAN_LABELS[subscription.plan_tier] || subscription.plan_tier) : "No active plan"}
+                    </div>
+                  </div>
+                  <div style={{
+                    fontSize: 11, fontWeight: 700, padding: "4px 12px", borderRadius: 20, textTransform: "uppercase", letterSpacing: ".06em",
+                    background: subscription?.status === "active" ? "rgba(45,212,160,.15)" : subscription?.status === "pending" ? "rgba(251,191,36,.12)" : "var(--e2)",
+                    color: subscription?.status === "active" ? "var(--green)" : subscription?.status === "pending" ? "var(--gold)" : "var(--t4)",
+                  }}>
+                    {subscription?.status === "active" ? "Active" : subscription?.status === "pending" ? "Payment pending" : "Not active"}
+                  </div>
+                  {subscription?.status === "pending" && (
+                    <div style={{ fontSize: 12, color: "var(--t3)" }}>
+                      Payment link sent by your account manager. Check your email.
+                    </div>
+                  )}
+                </div>
+
                 <div className="home-stats">
                   {[
                     { l: "Creators",  v: creators.length,       c: "var(--t0)" },
@@ -5407,13 +5433,18 @@ function CreatorForm({ clientId, onSaved, onCancel }) {
   );
 }
 
-function ClientRow({ client, onToggle, onTierChange }) {
+function ClientRow({ client, onToggle, onTierChange, subscription }) {
   const [expanded, setExpanded]     = useState(false);
   const [creators, setCreators]     = useState([]);
   const [loadingC, setLoadingC]     = useState(false);
   const [addingCreator, setAdding]  = useState(false);
   const [tier, setTier]             = useState(client.tier || "foundation");
   const [savingTier, setSavingTier] = useState(false);
+  const [showPayModal, setShowPayModal] = useState(false);
+  const [payPlan, setPayPlan]       = useState("starter");
+  const [payLoading, setPayLoading] = useState(false);
+  const [payLink, setPayLink]       = useState(null);
+  const [payErr, setPayErr]         = useState("");
 
   async function changeTier(newTier) {
     setSavingTier(true);
@@ -5421,6 +5452,28 @@ function ClientRow({ client, onToggle, onTierChange }) {
     setTier(newTier);
     setSavingTier(false);
     onTierChange && onTierChange(client.id, newTier);
+  }
+
+  async function sendPaymentLink() {
+    setPayLoading(true); setPayErr(""); setPayLink(null);
+    try {
+      const res = await fetch("/api/stripe?action=checkout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer caig-cron-secret-2026`,
+        },
+        body: JSON.stringify({
+          client_id: client.id,
+          client_email: client.email,
+          plan_tier: payPlan,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setPayErr(data.error || "Failed to create payment link"); }
+      else { setPayLink(data.checkout_url); }
+    } catch (e) { setPayErr(e.message); }
+    setPayLoading(false);
   }
 
   async function loadCreators() {
@@ -5463,6 +5516,26 @@ function ClientRow({ client, onToggle, onTierChange }) {
           <div style={{ fontSize: 14, fontWeight: 600, color: "var(--t1)" }}>{client.agency_name || "—"}</div>
           <div style={{ fontSize: 12, color: "var(--t3)", marginTop: 1 }}>{client.email}</div>
         </div>
+
+        {/* Subscription badge */}
+        {client.role !== "admin" && subscription && (
+          <div style={{
+            fontSize: 11, fontWeight: 600, padding: "3px 10px", borderRadius: 20,
+            background: subscription.status === "active" ? "rgba(45,212,160,.12)" : "rgba(251,191,36,.1)",
+            color: subscription.status === "active" ? "var(--green)" : "var(--gold)",
+            marginRight: 4,
+          }}>
+            {subscription.status === "active"
+              ? `${PLAN_LABELS[subscription.plan_tier] || subscription.plan_tier} · Active`
+              : `${PLAN_LABELS[subscription.plan_tier] || subscription.plan_tier} · Pending payment`}
+          </div>
+        )}
+        {client.role !== "admin" && !subscription && (
+          <div style={{ fontSize: 11, fontWeight: 600, padding: "3px 10px", borderRadius: 20, background: "var(--e2)", color: "var(--t4)", marginRight: 4 }}>
+            No subscription
+          </div>
+        )}
+
         <div style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: ".06em", color: client.role === "admin" ? "var(--gold)" : "var(--t4)", marginRight: 6 }}>
           {client.role}
         </div>
@@ -5488,6 +5561,9 @@ function ClientRow({ client, onToggle, onTierChange }) {
         </div>
         {client.role !== "admin" && (
           <>
+            <button onClick={() => { setShowPayModal(m => !m); setPayLink(null); setPayErr(""); }} style={{ background: showPayModal ? "var(--e3)" : "var(--s4)", border: "1px solid var(--e2)", borderRadius: 7, padding: "6px 12px", fontSize: 12, fontWeight: 600, color: "var(--t1)", cursor: "pointer", marginRight: 6 }}>
+              {showPayModal ? "Cancel" : "£ Payment Link"}
+            </button>
             <button onClick={() => onToggle(client)} style={{ background: "var(--e2)", border: "1px solid var(--b1)", borderRadius: 7, padding: "6px 12px", fontSize: 12, fontWeight: 600, color: "var(--t2)", cursor: "pointer", marginRight: 6 }}>
               {client.is_active ? "Disable" : "Enable"}
             </button>
@@ -5497,6 +5573,56 @@ function ClientRow({ client, onToggle, onTierChange }) {
           </>
         )}
       </div>
+
+      {/* Payment link modal */}
+      {showPayModal && client.role !== "admin" && (
+        <div style={{ borderTop: "1px solid var(--e2)", padding: "16px 20px", background: "var(--s2)" }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: "var(--t1)", marginBottom: 12 }}>Generate Stripe Payment Link</div>
+          <div style={{ display: "flex", gap: 10, alignItems: "flex-start", flexWrap: "wrap" }}>
+            <select
+              value={payPlan}
+              onChange={e => { setPayPlan(e.target.value); setPayLink(null); setPayErr(""); }}
+              style={{ background: "var(--s3)", border: "1px solid var(--e2)", borderRadius: 8, padding: "8px 12px", color: "var(--t0)", fontSize: 13, outline: "none", minWidth: 200 }}
+            >
+              <option value="starter">Starter — £3,000/mo</option>
+              <option value="growth">Growth — £5,000/mo</option>
+              <option value="elite">Elite — £8,000/mo</option>
+            </select>
+            <button
+              onClick={sendPaymentLink}
+              disabled={payLoading}
+              className="btn btn-amber"
+              style={{ flexShrink: 0 }}
+            >
+              {payLoading ? "Generating…" : "Generate Link"}
+            </button>
+          </div>
+          {payErr && <div style={{ color: "var(--red)", fontSize: 12, marginTop: 10 }}>{payErr}</div>}
+          {payLink && (
+            <div style={{ marginTop: 12 }}>
+              <div style={{ fontSize: 12, color: "var(--green)", marginBottom: 6, fontWeight: 600 }}>Payment link ready — copy and send to client:</div>
+              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                <input
+                  readOnly
+                  value={payLink}
+                  style={{ background: "var(--s3)", border: "1px solid var(--e2)", borderRadius: 8, padding: "8px 12px", color: "var(--t1)", fontSize: 12, fontFamily: "var(--mono)", flex: 1 }}
+                  onFocus={e => e.target.select()}
+                />
+                <button
+                  onClick={() => { navigator.clipboard.writeText(payLink); }}
+                  className="btn btn-dim"
+                  style={{ flexShrink: 0 }}
+                >
+                  Copy
+                </button>
+              </div>
+              <div style={{ fontSize: 11, color: "var(--t4)", marginTop: 6 }}>
+                Link expires after payment or 24h. The subscription status in this panel will update automatically once paid.
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Expanded creator section */}
       {expanded && (
@@ -5904,8 +6030,9 @@ function WeeklyReports() {
   );
 }
 
-function AdminPanel() {
+ function AdminPanel() {
   const [clients, setClients]   = useState([]);
+  const [subs, setSubs]         = useState({});   // keyed by client_id
   const [loading, setLoading]   = useState(true);
   const [creating, setCreating] = useState(false);
   const [form, setForm]         = useState({ email: "", agency_name: "", password: "" });
@@ -5915,8 +6042,17 @@ function AdminPanel() {
 
   async function load() {
     setLoading(true);
-    const { data } = await supabase.from("profiles").select("*").order("created_at", { ascending: false });
-    setClients(data || []);
+    const [{ data: profiles }, { data: subscriptions }] = await Promise.all([
+      supabase.from("profiles").select("*").order("created_at", { ascending: false }),
+      supabase.from("client_subscriptions").select("*").order("created_at", { ascending: false }),
+    ]);
+    setClients(profiles || []);
+    // Index subscriptions by client_id (latest per client)
+    const subMap = {};
+    for (const s of (subscriptions || [])) {
+      if (!subMap[s.client_id] || s.status === "active") subMap[s.client_id] = s;
+    }
+    setSubs(subMap);
     setLoading(false);
   }
 
@@ -5949,9 +6085,13 @@ function AdminPanel() {
     load();
   }
 
+  const activeSubs = Object.values(subs).filter(s => s.status === "active");
+  const mrr = activeSubs.reduce((sum, s) => sum + (s.plan_amount || 0), 0);
+  const mrrLabel = mrr >= 100 ? `£${(mrr / 100).toLocaleString("en-GB")}` : "£0";
+
   return (
     <div className="admin-view-wrap" style={{ maxWidth: 900, margin: "0 auto", padding: "0 0 60px" }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 28 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
         <div>
           <div style={{ fontSize: 22, fontWeight: 700, color: "var(--t0)", letterSpacing: "-.02em" }}>Client Accounts</div>
           <div style={{ fontSize: 13, color: "var(--t3)", marginTop: 3 }}>Manage clients, creators and access</div>
@@ -5962,6 +6102,20 @@ function AdminPanel() {
         >
           {creating ? "Cancel" : "+ New Client"}
         </button>
+      </div>
+
+      {/* MRR summary bar */}
+      <div style={{ display: "flex", gap: 12, marginBottom: 24 }}>
+        {[
+          { label: "Monthly Revenue", value: mrrLabel, color: "var(--green)" },
+          { label: "Active Clients", value: activeSubs.length, color: "var(--amber)" },
+          { label: "Pending Payment", value: Object.values(subs).filter(s => s.status === "pending").length, color: "var(--t3)" },
+        ].map(s => (
+          <div key={s.label} style={{ background: "var(--s2)", border: "1px solid var(--e1)", borderRadius: 10, padding: "12px 18px", flex: 1 }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: s.color, fontFamily: "var(--mono)" }}>{s.value}</div>
+            <div style={{ fontSize: 11, color: "var(--t4)", marginTop: 2, textTransform: "uppercase", letterSpacing: ".06em" }}>{s.label}</div>
+          </div>
+        ))}
       </div>
 
       {creating && (
@@ -5989,7 +6143,7 @@ function AdminPanel() {
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {clients.map(c => (
-            <ClientRow key={c.id} client={c} onToggle={toggleActive} onTierChange={() => {}} />
+            <ClientRow key={c.id} client={c} onToggle={toggleActive} onTierChange={() => {}} subscription={subs[c.id] || null} />
           ))}
           {clients.length === 0 && <div style={{ color: "var(--t3)", fontSize: 13, padding: 20 }}>No accounts yet.</div>}
         </div>
