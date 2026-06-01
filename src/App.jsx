@@ -1305,6 +1305,9 @@ select{cursor:pointer;appearance:none}
 .cs-card{background:var(--s2);border:1px solid var(--e1);border-radius:var(--rl);padding:22px 24px;transition:border-color .15s}
 .cs-card:hover{border-color:var(--e2)}
 .cs-card-num{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:12px}
+.cs-card-scene{background:var(--s2);border:1px solid var(--e2);border-radius:8px;padding:12px 14px;margin-bottom:14px}
+.cs-card-scene-label{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--t3);margin-bottom:6px}
+.cs-card-scene-text{font-size:13px;color:var(--t1);line-height:1.6}
 .cs-card-hook{font-size:16px;font-weight:600;color:var(--t0);line-height:1.4;margin-bottom:10px}
 .cs-card-caption{font-size:14px;color:var(--t1);line-height:1.65;white-space:pre-wrap;margin-bottom:10px}
 .cs-card-hashtags{font-size:12px;color:var(--t2);line-height:1.5;margin-bottom:10px;word-break:break-word}
@@ -6276,6 +6279,15 @@ function ContentStudio() {
               return (
                 <div key={i} className="cs-card">
                   <div className="cs-card-num" style={{ color: platform.color }}>#{i + 1}</div>
+                  {post.scene && (
+                    <div className="cs-card-scene">
+                      <div className="cs-card-scene-label">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/></svg>
+                        Scene
+                      </div>
+                      <div className="cs-card-scene-text">{post.scene}</div>
+                    </div>
+                  )}
                   {post.hook && <div className="cs-card-hook">{post.hook}</div>}
                   {post.caption && <div className="cs-card-caption">{post.caption}</div>}
                   {post.hashtags && <div className="cs-card-hashtags">{post.hashtags}</div>}
