@@ -2726,60 +2726,41 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
     }
   }
 
-  // Post Now: upload image to Fanvue + publish immediately
   async function postNow(post) {
-    const imageUrl = images[post.id]?.url || post.image_url;
-    if (!imageUrl) { toast_("Upload an image first", "warn"); return; }
+  const imageUrl = images[post.id]?.url || post.image_url;
+  if (!imageUrl) { toast_("Upload an image first", "warn"); return; }
+  setPosting(p => ({ ...p, [post.id]: true }));
+  try {
+    const caption = [post.hook, post.caption, post.cta, post.hashtags].filter(Boolean).join("\n\n");
+    
+    const res = await fetch("https://hook.eu1.make.com/6s3r7qmjnmygmvstp8i6je4rh6jb5cyt", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        caption,
+        imageUrl,
+        postId: post.id,
+        platform: "all"
+      }),
+    });
 
-    setPosting(p => ({ ...p, [post.id]: true }));
-    try {
-      const caption = [post.hook, post.caption, post.cta, post.hashtags].filter(Boolean).join("\n\n");
+    if (!res.ok) throw new Error("Make webhook failed");
 
-      // Upload image to Fanvue (server fetches token via service role key)
-      const uploadRes = await fetch("/api/fanvue-upload", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ imageUrl, personaId: post.persona_id || "cara", filename: `caig_${post.id}` }),
-      });
-      const uploadData = await uploadRes.json();
-      if (!uploadRes.ok || !uploadData.mediaUuid) {
-        throw new Error(uploadData.error || "Image upload to Fanvue failed");
-      }
+    await supabase
+      .from("content_queue")
+      .update({ status: "posted", image_url: imageUrl })
+      .eq("id", post.id);
 
-      // Create post on Fanvue (server fetches token via service role key)
-      const postRes = await fetch("/api/fanvue-post", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          postId: post.id,
-          caption,
-          personaId: post.persona_id || "cara",
-          mediaUuids: [uploadData.mediaUuid],
-        }),
-      });
-      const postData = await postRes.json();
-      if (!postRes.ok) {
-        const detail = postData.detail ? JSON.stringify(postData.detail) : "";
-        throw new Error((postData.error || "Fanvue post creation failed") + (detail ? `: ${detail}` : ""));
-      }
-
-      // Mark as posted in DB
-      await supabase
-        .from("content_queue")
-        .update({ status: "posted", image_url: imageUrl, fanvue_post_id: postData.fanvue_post_id })
-        .eq("id", post.id);
-
-      toast_("Posted to Fanvue!", "ok");
-      setPosts(p => p.filter(x => x.id !== post.id));
-      setImages(im => { const n = { ...im }; delete n[post.id]; return n; });
-      // Remove from queue so it doesn't reappear on next content engine run
-      setQueue(q => q.filter(x => x.id !== post.id));
-    } catch (e) {
-      toast_(`Post failed: ${e.message}`, "error");
-      await supabase.from("content_queue").update({ status: "error", notes: e.message }).eq("id", post.id);
-    }
-    setPosting(p => ({ ...p, [post.id]: false }));
+    toast_("Posted to Instagram & Facebook ✓", "ok");
+    setPosts(p => p.filter(x => x.id !== post.id));
+    setImages(im => { const n = { ...im }; delete n[post.id]; return n; });
+    setQueue(q => q.filter(x => x.id !== post.id));
+  } catch (e) {
+    toast_(`Post failed: ${e.message}`, "error");
+    await supabase.from("content_queue").update({ status: "error", notes: e.message }).eq("id", post.id);
   }
+  setPosting(p => ({ ...p, [post.id]: false }));
+}
 
   // Schedule: set status=scheduled so cron picks it up at the right date/time
   async function schedulePost(post) {
