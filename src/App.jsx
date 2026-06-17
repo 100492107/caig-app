@@ -2495,10 +2495,6 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
   const [schedulingId, setSchedulingId] = useState(null);
   const [scheduleDate, setScheduleDate] = useState("");
   const [scheduleTime, setScheduleTime] = useState("");
-    // Rehydrate saved image URLs from localStorage on mount
-    try { return JSON.parse(localStorage.getItem("caig_images") || "{}"); }
-    catch { return {}; }
-  });
   const [generating, setGenerating] = useState({}); // { [postId]: { stage, elapsed, error } | null }
   const [enhancedMode, setEnhancedMode] = useState(false);
   const fileRefs = useRef({});
