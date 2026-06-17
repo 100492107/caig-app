@@ -2488,7 +2488,10 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
   const [loading, setLoading]       = useState(true);
   const [uploading, setUploading]   = useState({});
   const [posting, setPosting]       = useState({});
-  const [images, setImages]         = useState(() => {
+  const [images, setImages]         = useState(();
+  const [schedulingId, setSchedulingId] = useState(null);
+  const [scheduleDate, setScheduleDate] = useState("");
+  const [scheduleTime, setScheduleTime] = useState(""); => {
     // Rehydrate saved image URLs from localStorage on mount
     try { return JSON.parse(localStorage.getItem("caig_images") || "{}"); }
     catch { return {}; }
@@ -2802,6 +2805,13 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
       });
       if (!res.ok) { toast_("Failed to schedule post", "error"); return; }
     }
+    
+      async function confirmSchedule(post) {
+  await schedulePost({ ...post, scheduled_date: scheduleDate, scheduled_time: scheduleTime });
+  setSchedulingId(null);
+  setScheduleDate("");
+  setScheduleTime("");
+}
 
     const timeStr = post.scheduled_date ? `${post.scheduled_date} ${post.scheduled_time || ""}`.trim() : "next available slot";
     toast_(`Scheduled for ${timeStr}`, "ok");
