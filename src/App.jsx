@@ -2804,18 +2804,24 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
       });
       if (!res.ok) { toast_("Failed to schedule post", "error"); return; }
     }
-    
-      async function confirmSchedule(post) {
-  await schedulePost({ ...post, scheduled_date: scheduleDate, scheduled_time: scheduleTime });
-  setSchedulingId(null);
-  setScheduleDate("");
-  setScheduleTime("");
-}
 
     const timeStr = post.scheduled_date ? `${post.scheduled_date} ${post.scheduled_time || ""}`.trim() : "next available slot";
     toast_(`Scheduled for ${timeStr}`, "ok");
     setPosts(p => p.filter(x => x.id !== post.id));
     setImages(im => { const n = { ...im }; delete n[post.id]; return n; });
+  }
+
+  const timeStr = post.scheduled_date ? `${post.scheduled_date} ${post.scheduled_time || ""}`.trim() : "next available slot";
+    toast_(`Scheduled for ${timeStr}`, "ok");
+    setPosts(p => p.filter(x => x.id !== post.id));
+    setImages(im => { const n = { ...im }; delete n[post.id]; return n; });
+  }
+
+  async function confirmSchedule(post) {
+    await schedulePost({ ...post, scheduled_date: scheduleDate, scheduled_time: scheduleTime });
+    setSchedulingId(null);
+    setScheduleDate("");
+    setScheduleTime("");
   }
 
   // Reject post
