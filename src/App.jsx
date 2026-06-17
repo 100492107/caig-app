@@ -2488,7 +2488,10 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
   const [loading, setLoading]       = useState(true);
   const [uploading, setUploading]   = useState({});
   const [posting, setPosting]       = useState({});
-  const [images, setImages] = useState({});
+  const [images, setImages] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("caig_images") || "{}"); }
+    catch { return {}; }
+  });
   const [schedulingId, setSchedulingId] = useState(null);
   const [scheduleDate, setScheduleDate] = useState("");
   const [scheduleTime, setScheduleTime] = useState("");
