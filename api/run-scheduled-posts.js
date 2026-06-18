@@ -13,8 +13,9 @@ export default async function handler(req, res) {
   }
 
   const now = new Date();
-  const today = now.toISOString().split('T')[0];
-  const currentTime = now.toISOString().split('T')[1].slice(0, 5);
+const ukTime = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/London' }));
+const today = ukTime.toISOString().split('T')[0];
+const currentTime = `${String(ukTime.getHours()).padStart(2,'0')}:${String(ukTime.getMinutes()).padStart(2,'0')}`;
 
   const { data: duePosts, error } = await supabase
     .from('content_queue')
