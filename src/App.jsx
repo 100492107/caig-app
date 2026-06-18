@@ -2495,6 +2495,8 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
   const [schedulingId, setSchedulingId] = useState(null);
   const [scheduleDate, setScheduleDate] = useState("");
   const [scheduleTime, setScheduleTime] = useState("");
+  const [activeTab, setActiveTab] = useState("review");
+  const [scheduledPosts, setScheduledPosts] = useState([]);
   const [generating, setGenerating] = useState({}); // { [postId]: { stage, elapsed, error } | null }
   const [enhancedMode, setEnhancedMode] = useState(false);
   const fileRefs = useRef({});
@@ -2552,6 +2554,10 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
 
   useEffect(() => { loadDrafts(); }, []);
 
+  useEffect(() => {
+  if (activeTab === "scheduled") loadScheduledPosts();
+}, [activeTab]);
+  
   // Upload file to Supabase Storage → get public URL
   async function handleFileUpload(post, file) {
     if (!file) return;
@@ -2817,6 +2823,26 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
     setScheduleDate("");
     setScheduleTime("");
   }
+  async function loadScheduledPosts() {
+  const { data, error } = await supabase
+    .from("content_queue")
+    .select("*")
+    .eq("status", "scheduled")
+    .order("scheduled_date", { ascending: true })
+    .order("scheduled_time", { ascending: true });
+  if (!error) setScheduledPosts(data || []);
+}
+
+async function unschedule(post) {
+  const res = await fetch("/api/queue-update", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id: post.id, update: { status: "rejected" } }),
+  });
+  if (!res.ok) { toast_("Failed to remove", "error"); return; }
+  toast_("Removed from schedule", "ok");
+  loadScheduledPosts();
+}
 
   // Reject post
   async function reject(post) {
