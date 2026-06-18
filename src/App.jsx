@@ -2896,15 +2896,16 @@ async function unschedule(post) {
           </div>
         </div>
       </div>
-      {loading && <div style={{ color: "var(--t3)", fontSize: 13 }}>Loading drafts…</div>}
-      {!loading && posts.length === 0 && (
-        <div style={{ textAlign: "center", padding: "60px 0", color: "var(--t3)", fontSize: 14 }}>
-          No drafts to review. Generate a batch in the Content Engine first.
-        </div>
-      )}
-
-      <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-        {posts.map(post => {
+      {activeTab === "review" && (
+        <>
+          {loading && <div style={{ color: "var(--t3)", fontSize: 13 }}>Loading drafts…</div>}
+          {!loading && posts.length === 0 && (
+            <div style={{ textAlign: "center", padding: "60px 0", color: "var(--t3)", fontSize: 14 }}>
+              No drafts to review. Generate a batch in the Content Engine first.
+            </div>
+          )}
+          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+            {posts.map(post => {
           const imgState   = images[post.id];
           const staleSuppressed = clearedIds.current.has(post.id);
           const displayImg = imgState?.localPreview || imgState?.url || (staleSuppressed ? null : post.image_url);
@@ -3134,12 +3135,69 @@ async function unschedule(post) {
               </div>
             </div>
           );
+        >
+                    ✕
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
         })}
-      </div>
+          </div>
+        </>
+      )}
+
+      {activeTab === "scheduled" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {scheduledPosts.length === 0 && (
+            <div style={{ textAlign: "center", padding: "60px 0", color: "var(--t3)", fontSize: 14 }}>
+              No scheduled posts. Schedule a post from the Review Queue.
+            </div>
+          )}
+          {scheduledPosts.map(post => (
+            <div key={post.id} style={{
+              background: "var(--s1)", border: "1px solid var(--e1)",
+              borderRadius: 12, padding: "16px 18px",
+              display: "flex", gap: 14, alignItems: "flex-start",
+            }}>
+              {post.image_url && (
+                <img src={post.image_url} alt="" style={{
+                  width: 72, height: 72, objectFit: "cover",
+                  borderRadius: 8, flexShrink: 0,
+                }} />
+              )}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: "flex", gap: 6, marginBottom: 8, flexWrap: "wrap", alignItems: "center" }}>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: "var(--gold)",
+                    background: "rgba(251,191,36,.1)", padding: "3px 8px", borderRadius: 6 }}>
+                    📅 {post.scheduled_date} {post.scheduled_time || ""}
+                  </span>
+                  <span style={{ fontSize: 11, color: "var(--t3)", background: "var(--s2)",
+                    padding: "3px 8px", borderRadius: 6, textTransform: "capitalize" }}>
+                    {post.platform}
+                  </span>
+                </div>
+                <div style={{ fontSize: 13, color: "var(--t2)", lineHeight: 1.5,
+                  whiteSpace: "pre-wrap", maxHeight: 60, overflowY: "hidden",
+                  maskImage: "linear-gradient(to bottom, black 60%, transparent 100%)" }}>
+                  {[post.hook, post.caption].filter(Boolean).join("\n\n")}
+                </div>
+              </div>
+              <button
+                onClick={() => unschedule(post)}
+                style={{
+                  padding: "6px 12px", borderRadius: 6,
+                  border: "1px solid var(--e1)", background: "transparent",
+                  color: "var(--t4)", fontSize: 12, cursor: "pointer", flexShrink: 0,
+                }}
+              >Remove</button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
-
 // ─── CALENDAR VIEW ────────────────────────────────────────────────────────────
 function CalView({ queue }) {
   const [mode, setMode] = useState("month");
