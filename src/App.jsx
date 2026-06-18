@@ -2867,30 +2867,27 @@ async function unschedule(post) {
         <p style={{ fontSize: 13, color: "var(--t3)", margin: "6px 0 12px" }}>
           Review generated posts, generate images with Cara's LoRA, then post or schedule.
         </p>
-        </p>
-
-      {/* Tab bar */}
-      <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
-        <button
-          onClick={() => setActiveTab("review")}
-          style={{
-            padding: "8px 16px", borderRadius: 8, border: "none",
-            background: activeTab === "review" ? "var(--b1)" : "var(--s2)",
-            color: activeTab === "review" ? "#fff" : "var(--t3)",
-            fontSize: 13, fontWeight: 600, cursor: "pointer",
-          }}
-        >Review Queue</button>
-        <button
-          onClick={() => setActiveTab("scheduled")}
-          style={{
-            padding: "8px 16px", borderRadius: 8, border: "none",
-            background: activeTab === "scheduled" ? "var(--b1)" : "var(--s2)",
-            color: activeTab === "scheduled" ? "#fff" : "var(--t3)",
-            fontSize: 13, fontWeight: 600, cursor: "pointer",
-          }}
-        >📅 Scheduled ({scheduledPosts.length})</button>
-      </div>
-      
+        {/* Tab bar */}
+        <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+          <button
+            onClick={() => setActiveTab("review")}
+            style={{
+              padding: "8px 16px", borderRadius: 8, border: "none",
+              background: activeTab === "review" ? "var(--b1)" : "var(--s2)",
+              color: activeTab === "review" ? "#fff" : "var(--t3)",
+              fontSize: 13, fontWeight: 600, cursor: "pointer",
+            }}
+          >Review Queue</button>
+          <button
+            onClick={() => setActiveTab("scheduled")}
+            style={{
+              padding: "8px 16px", borderRadius: 8, border: "none",
+              background: activeTab === "scheduled" ? "var(--b1)" : "var(--s2)",
+              color: activeTab === "scheduled" ? "#fff" : "var(--t3)",
+              fontSize: 13, fontWeight: 600, cursor: "pointer",
+            }}
+          >📅 Scheduled ({scheduledPosts.length})</button>
+        </div>
         {/* Image mode label */}
         <div className="rv-mode-toggle" style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 14px", background: "var(--s1)", border: "1px solid var(--e1)", borderRadius: 10 }}>
           <div style={{ flex: 1 }}>
@@ -2899,7 +2896,6 @@ async function unschedule(post) {
           </div>
         </div>
       </div>
-
       {loading && <div style={{ color: "var(--t3)", fontSize: 13 }}>Loading drafts…</div>}
       {!loading && posts.length === 0 && (
         <div style={{ textAlign: "center", padding: "60px 0", color: "var(--t3)", fontSize: 14 }}>
