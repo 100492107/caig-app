@@ -3135,13 +3135,6 @@ async function unschedule(post) {
               </div>
             </div>
           );
-        >
-                    ✕
-                  </button>
-                </div>
-              </div>
-            </div>
-          );
         })}
           </div>
         </>
