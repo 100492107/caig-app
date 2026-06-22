@@ -453,6 +453,17 @@ async function generateImagePrompt(apiKey, persona, post, postIndex) {
   };
 }
 
+const FORMAT_WEIGHTS = [
+  { format: "reel_photo", weight: 65 },
+  { format: "carousel",   weight: 25 },
+  { format: "static",     weight: 10 },
+];
+function pickFormat() {
+  const total = FORMAT_WEIGHTS.reduce((s, f) => s + f.weight, 0);
+  let r = Math.random() * total, acc = 0;
+  for (const f of FORMAT_WEIGHTS) { acc += f.weight; if (r < acc) return f.format; }
+  return "reel_photo";
+}
 // ─── STUDIO ANGLES ────────────────────────────────────────────────────────────
 const STUDIO_ANGLES = [
   { label: "the real one", instruction: "The version of this that no one else is saying. Honest, specific, grounded in actual experience. Not the optimised take — the true one." },
@@ -604,6 +615,7 @@ export default async function handler(req, res) {
       }
 
       if (post.hook) usedHooks.push(post.hook);
+      if (!studioMode) post.format = pickFormat();
 
       // Only generate image prompts for AI Creator mode (not studio)
       if (!studioMode) {
