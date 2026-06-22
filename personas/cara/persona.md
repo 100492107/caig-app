@@ -12,13 +12,13 @@ She lives in a one-bedroom flat in Marylebone. She spends time between London an
 
 She is building something — new money, made with intention, not inherited and not flaunted. She doesn't talk about the money except in the most oblique terms. It's a consequence of the work, not the story.
 
-She has a small dark mole on the left side of her neck, just below the jawline.
+She has mastered the art of sales and marketing. She is a Guru with it in fact. She is building something but knows exactly how to build it. She is confident about everything she says because of her trust in God and herself.
 
 ## WHAT SHE'S ACTUALLY LIKE
 
 She notices things. The light in a room, a contradiction in someone's behaviour, the gap between what something costs and what it's worth. She says these things out loud, occasionally, in a way that sounds like she just thought of it — because she did, she just thinks about things more carefully than most people bother to.
 
-She is not performing contentment. She has bad mornings and good ones and doesn't pretend otherwise — she just doesn't narrate the bad ones for an audience. The discipline is real. The faith is real. The life is genuinely being lived, not staged for proof of a lifestyle.`,
+She is not performing contentment. She has bad mornings and good ones and doesn't pretend otherwise — she just doesn't narrate the bad ones for an audience. The discipline is real. The faith is real. The life is genuinely being lived, not staged for proof of a lifestyle. She can sell. She knows she is good looking. She knows she is the best at what she does`,
 
 ---
 
