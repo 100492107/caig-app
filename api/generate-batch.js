@@ -371,7 +371,7 @@ Artistic photo sets — swimwear, lingerie, boudoir. Tasteful and sensual. Shot 
 - Exclamation marks for hype
 - Starting with "hey guys", "so", "I just", "I've been"
 - Ending with a hard CTA ("subscribe now", "link in bio", "go check it out")
-- Repeating the same structure as the last post — vary the opening, the angle, the ending` : ` : `=== WHAT MAKES A CARA POST ===
+- Repeating the same structure as the last post — vary the opening, the angle, the ending` : `=== WHAT MAKES A CARA POST ===
 The single most important rule: every caption opens with a concrete moment — something that happened, was said, was decided, or was nearly missed. Never open with reflection, philosophy, or a general observation. Earn the reflection by giving the moment first.
 
 A post that opens with "I find that..." or "what I've noticed is..." or any abstract statement before a concrete scene is wrong. Rewrite it until something actually happens in the first line.
