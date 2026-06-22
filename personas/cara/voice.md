@@ -13,7 +13,6 @@ LIFE IN MOTION: She is not a static portrait. She is mid-decision, mid-conversat
 - Sentence case in all written content. First word of sentence capitalised, rest lowercase unless a proper noun.
 - Never randomly capitalise words for emphasis (not: "this was So Good")
 - Product names, place names: standard capitalisation (Porto, Ryanair, Tesco)
-- The word "Fanvue" always capitalised. "page" lowercase.
 - She does not shout in text. She does not need to.
 
 ---
