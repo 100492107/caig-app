@@ -6829,6 +6829,7 @@ export default function App() {
   const [toast, setToast]           = useState(null);
   const [dbCreators, setDbCreators] = useState([]);
   const [dbStats, setDbStats]       = useState({ clients: 0, creators: 0, deals: 0 });
+  const [moreOpen, setMoreOpen]     = useState(false);
 
   async function loadNetworkData() {
     const [{ data: cr }, { data: cl }, { data: de }] = await Promise.all([
@@ -7095,35 +7096,73 @@ export default function App() {
       </div>
 
       {/* ── BOTTOM NAV (mobile) ─────────────────────────────────────────────── */}
-      <nav className="bnav">
-        {[
-          { id: "home",       label: "Home",     ic: Ic.home   },
-          { id: "autopilot",  label: "Content",  ic: IcContent },
-          { id: "queue",      label: "Queue",    ic: Ic.list, badge: ready > 0 ? ready : null },
-          { id: "calendar",   label: "Calendar", ic: Ic.cal    },
-          { id: "settings",   label: "Settings", ic: (
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
-              <circle cx="12" cy="12" r="3"/>
-              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-            </svg>
-          )},
-        ].map(n => (
-          <button key={n.id} className={`bni${view === n.id ? " on" : ""}`} onClick={() => setView(n.id)}>
-            <span style={{ position: "relative", display: "inline-flex" }}>
-              {n.ic}
-              {n.badge && <span className="bnav-badge">{n.badge}</span>}
-            </span>
-            {n.label}
-          </button>
-        ))}
-      </nav>
+<nav className="bnav">
+  {[
+    { id: "home",       label: "Home",     ic: Ic.home   },
+    { id: "review",     label: "Review",   ic: Ic.list, badge: ready > 0 ? ready : null },
+    { id: "autopilot",  label: "Content",  ic: IcContent },
+    { id: "calendar",   label: "Calendar", ic: Ic.cal    },
+  ].map(n => (
+    <button key={n.id} className={`bni${view === n.id ? " on" : ""}`} onClick={() => setView(n.id)}>
+      <span style={{ position: "relative", display: "inline-flex" }}>
+        {n.ic}
+        {n.badge && <span className="bnav-badge">{n.badge}</span>}
+      </span>
+      {n.label}
+    </button>
+  ))}
+  <button className={`bni${moreOpen ? " on" : ""}`} onClick={() => setMoreOpen(!moreOpen)}>
+    <span style={{ position: "relative", display: "inline-flex" }}>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+        <circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>
+      </svg>
+    </span>
+    More
+  </button>
+</nav>
 
-      {toast && (
-        <div className="toast">
-          <div className="tdot" style={{ background: toast.includes("fail") || toast.includes("error") ? "var(--red)" : "var(--green)" }} />
-          {toast}
-        </div>
-      )}
+{moreOpen && (
+  <div
+    style={{
+      position: "fixed", inset: 0, background: "rgba(0,0,0,.6)",
+      zIndex: 999, display: "flex", alignItems: "flex-end",
+    }}
+    onClick={() => setMoreOpen(false)}
+  >
+    <div
+      onClick={e => e.stopPropagation()}
+      style={{
+        background: "var(--s1)", width: "100%", borderRadius: "16px 16px 0 0",
+        padding: "20px 16px 32px", display: "grid",
+        gridTemplateColumns: "repeat(3, 1fr)", gap: 14,
+      }}
+    >
+      {[
+        { id: "queue",      label: "Queue" },
+        { id: "settings",   label: "Settings" },
+        { id: "dms",        label: "DM Inbox" },
+        { id: "proposals",  label: "Proposals" },
+        { id: "outreach",   label: "Outreach" },
+        { id: "onboarding", label: "Onboarding" },
+        { id: "deals",      label: "Deals", adminOnly: true },
+        { id: "leads",      label: "Leads", adminOnly: true },
+        { id: "reports",    label: "Reports", adminOnly: true },
+        { id: "admin",      label: "Admin", adminOnly: true },
+      ]
+        .filter(n => !n.adminOnly || profile?.role === "admin")
+        .map(n => (
+          <button
+            key={n.id}
+            onClick={() => { setView(n.id); setMoreOpen(false); }}
+            style={{
+              padding: "14px 8px", borderRadius: 10,
+              border: "1px solid var(--e1)",
+              background: view === n.id ? "var(--b1)" : "var(--s2)",
+              color: view === n.id ? "#fff" : "var(--t1)",
+              fontSize: 12, fontWeight: 600, cursor: "pointer",
+            }}
+          >{n.label}</button>
+        ))}
     </div>
-  );
-}
+  </div>
+)}
