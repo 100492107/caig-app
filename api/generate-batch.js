@@ -424,20 +424,19 @@ Return ONLY this JSON (no code fences):
 }
 
 async function generateImagePrompt(apiKey, persona, post, postIndex) {
-  // Pick a coherent shot concept — unified setting+pose+wardrobe+lighting in one entry
   const shot = IMG_SHOTS[postIndex % IMG_SHOTS.length];
   const hook = (post.hook || "").trim();
 
-  // Load flux.md for this persona to get locked physical descriptors
   const personaFiles = loadPersonaFiles(persona.id);
   const fluxNote = personaFiles.flux
     ? `PHYSICAL DESCRIPTORS (from flux.md — these are locked and must not drift):\n${personaFiles.flux.split("## SECTION 2")[0].replace(/^# flux\.md.*\n/, "").trim()}`
     : "";
 
-  // Build all field values in JS — no LLM call, avoids parse failures
   const identityLock = `IDENTITY LOCK — HIGHEST PRIORITY: This is ${persona.name}. Use reference_image_1.png as the face source. Composite that exact face — same eye colour, same nose shape, same lip shape, same hair colour and texture — onto the body in this scene. Zero facial drift permitted. The face must be photorealistic and match the reference exactly. Seamless neck and jawline blend.${fluxNote ? " " + fluxNote : ""}`;
-  const subjectDesc = `${persona.name} — ${shot.pose}. Her expression matches the energy of: "${hook}". Confidence, direct eye contact where specified, body language intentional and powerful.`;
-  const angleNote = shot.pose.match(/HIGH ANGLE|LOW ANGLE|OVERHEAD|FLOOR|MIRROR|FEET|SILHOUETTE/i)?.[0] || "eye-level";
+
+  const subjectDesc = `${persona.name} — ${shot.pose}. FRAMING IS NOT NEGOTIABLE: follow the pose description exactly, including distance from camera, how much of her body is visible, and direction of gaze. Do NOT default to a frontal close-up headshot. If the pose says she is walking away, facing away, mid-laugh, or looking off-frame, she must NOT be looking directly into the camera. Vary body visibility — full body, three-quarter, half-body, or close detail — strictly as described, never defaulting to a tight face crop.`;
+
+  const angleNote = shot.pose.match(/HIGH ANGLE|LOW ANGLE|OVERHEAD|FLOOR|MIRROR|FEET|SILHOUETTE|WALKING|CANDID|LAUGHING|SEATED|RECLINED|STANDING|HANDS|BROWSING/i)?.[0] || "natural candid";
 
   return {
     identity_lock: identityLock,
@@ -446,9 +445,9 @@ async function generateImagePrompt(apiKey, persona, post, postIndex) {
     wardrobe: shot.wardrobe,
     setting: shot.setting,
     lighting: shot.lighting,
-    technical: `${shot.camera}, 9:16 vertical portrait, RAW format, 8K resolution, photorealistic, hyper-sharp eyes, natural skin texture and pores, realistic hair, natural film grain, zero AI artifacts, zero plastic skin`,
-    style_ref: "Editorial aesthetic: Sports Illustrated Swimsuit, Treats! Magazine, Playboy fine art, high-end boudoir photography. Confident, unapologetic, aspirational.",
-    negative_prompt: "nudity, bare breasts, exposed genitalia, topless, explicit content, pornographic, distorted anatomy, warped limbs, extra fingers, fused fingers, low resolution, blurry, plastic skin, over-smoothed skin, face drift, wrong eye colour, wrong hair colour, watermark, text overlay, cartoon, illustration, CGI, 3D render",
+    technical: `${shot.camera}, 9:16 vertical portrait, RAW format, 8K resolution, photorealistic, natural skin texture and pores, realistic hair, natural film grain, zero AI artifacts, zero plastic skin. Framing and distance must match the camera direction exactly — do not crop tighter than specified.`,
+    style_ref: "Authentic lifestyle Instagram aesthetic — the kind of content from real lifestyle creators with large organic followings. Candid, in-motion, a studio photoshoot, a glamour or boudoir shoot, a posed model casting. The energy is both caught living her life, not 'posing for a camera'.",
+    negative_prompt: "frontal headshot, direct eye contact unless specified in the pose, posed studio portrait, model casting pose, same framing as a headshot, distorted anatomy, warped limbs, extra fingers, fused fingers, low resolution, blurry, plastic skin, over-smoothed skin, face drift, wrong eye colour, wrong hair colour, watermark, text overlay, cartoon, illustration, CGI, 3D render",
   };
 }
 
