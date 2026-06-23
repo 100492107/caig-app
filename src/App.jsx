@@ -7166,3 +7166,12 @@ export default function App() {
     </div>
   </div>
 )}
+{toast && (
+        <div className="toast">
+          <div className="tdot" style={{ background: toast.includes("fail") || toast.includes("error") ? "var(--red)" : "var(--green)" }} />
+          {toast}
+        </div>
+      )}
+    </div>
+  );
+}
