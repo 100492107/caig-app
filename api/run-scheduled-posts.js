@@ -37,7 +37,7 @@ const currentTime = `${String(ukTime.getHours()).padStart(2,'0')}:${String(ukTim
       const r = await fetch(MAKE_WEBHOOK, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ caption, imageUrl: post.image_url, postId: post.id, platform: "all" }),
+        body: JSON.stringify({ caption, imageUrl: post.image_url, postId: post.id, platform: "all", format: post.post_format || "photo" }),
       });
       if (!r.ok) throw new Error("Make webhook failed");
       await supabase.from('content_queue').update({ status: 'posted' }).eq('id', post.id);

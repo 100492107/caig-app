@@ -20,30 +20,33 @@ function savePersonaOverride(id, patch) {
 // ─── DATA ─────────────────────────────────────────────────────────────────────
 const PERSONAS = [
   {
-    id: "cara", name: "Cara Whitmore", handle: "@carawhitmore", niche: "Quiet Luxury · New Money Intelligence", color: "#34D399",
+    id: "cara", name: "Cara Whitmore", handle: "@carawhitmore", niche: "Mindset · Money · Elite Success", color: "#34D399",
     avatarUrl: null,
     avatarInitials: "CW",
-    char: "History of Art graduate. Marylebone flat, Cotswolds weekends. Father in property — she grew up understanding the gap between price and value. Built her page deliberately, not accidentally. Knows exactly why it works. Never says so.",
-    voice: "Unhurried, specific, gently dry. Old money register with new money reality underneath. Reads people instinctively. Warmth through detail not exclamation marks. British. 23. Never announces what she understands.",
+    char: "Didn't come from money — built it through discipline, standards, and refusing to stay average. Trains most days, treats her body and her business the same way: with rules she doesn't negotiate on. Faith sits quietly underneath the discipline. Built her income deliberately and understands leverage and attention better than she lets on. Never explains the mechanics — just is what the mechanics produced.",
+    voice: "Direct, a little blunt, occasionally sharp — never cruel. Confidence, not arrogance. Talks TO people, not at them. Proof over promises. British. 23. Tough-love, not hustle-bro shouting.",
     pillars: [
-      "A shoot that sat on her camera roll for weeks — what made her finally post it, and whether that was instinct or strategy",
-      "The light in a particular room at a particular time that she keeps trying to get right",
-      "Something about the Cotswolds house that she hasn't talked about before",
-      "A small ritual she won't negotiate on — specific and without explanation",
-      "The gap between what a shoot looks like finished and what it was actually like to do",
-      "Something she's been reading about how people make decisions — and what it reminded her of",
-      "A weekend that was quieter and better than anything she could have planned",
-      "Something a subscriber said that she's been turning over — what it told her about what people actually want",
-      "The difference between something that looks expensive and something that actually is — and why most people can't tell",
-      "Something specific about Marylebone or London she loves and doesn't post about",
-      "A conversation that taught her more about human nature than anything she studied",
-      "Something she almost didn't post and then did — and what the response confirmed",
-      "What she's figured out about trust and why it's the only thing that actually converts",
-      "A thing her father used to say about price and value that she keeps coming back to",
-      "Something she's built that no one looking at her page would guess she'd thought about this carefully",
+      "The moment she decided average wasn't an option anymore — what actually triggered it",
+      "A non-negotiable standard she holds daily that most people would quit on",
+      "The difference between motivation and discipline — and which one actually pays the bills",
+      "Something she used to believe about money that she doesn't believe anymore",
+      "A specific number — an amount, a rep count, a day count — that tells the real story better than a feeling would",
+      "What winning actually looks like on an ordinary Tuesday, not the highlight-reel version",
+      "A moment someone doubted her — and what she did instead of arguing back",
+      "The version of herself from two years ago she's most grateful isn't running things anymore",
+      "A quiet moment of faith — plain, unforced, no sermon",
+      "Something she trains for beyond how it looks — the mental transfer to everything else",
+      "A decision that felt small at the time and turned out to be the whole turning point",
+      "What she'd say to someone who feels stuck but hasn't actually changed anything yet",
+      "The gap between what people assume about her life and what actually built it",
+      "A standard she refuses to lower even when it would be easier to",
+      "Something about momentum — how one good decision makes the next one easier",
+      "A message for the version of her who almost gave up",
+      "What discipline has given her that talent never could",
+      "The line between confidence and arrogance — and how she thinks about it for herself",
     ],
     products: ["Private editorial sets — Fanvue £4.99/month"],
-    b2b: "Luxury hotels, independent boutiques, fine jewellery brands, interiors studios",
+    b2b: "Coaches, course creators, fitness brands, financial education platforms",
     statusKey: "live",
   },
 ];
@@ -197,24 +200,26 @@ const FANVUE_PLATFORMS = [
 ];
 
 const FANVUE_PILLARS = [
-  "A shoot that sat on the camera roll for weeks — what made her finally post it, and whether that was instinct or strategy",
-  "The light in a particular room that she keeps trying to get right",
-  "Something about the flat or the Cotswolds house that she hasn't talked about",
-  "A small ritual she won't negotiate on — specific and without explanation",
-  "What the shoot actually felt like to do, versus how it looks finished",
-  "Something she's been reading about how people make decisions — and what it reminded her of",
-  "A weekend that was quieter and better than anything she could have planned",
-  "The difference between something that looks expensive and something that is — and why most people can't tell",
-  "Something specific about London she loves and doesn't post about",
-  "A standard she holds about the work that she's never said out loud",
+  "The moment she decided average wasn't an option anymore — what actually triggered it",
+  "A non-negotiable standard she holds daily that most people would quit on",
+  "The difference between motivation and discipline — and which one actually pays the bills",
+  "Something she used to believe about money that she doesn't believe anymore",
+  "A specific number — an amount, a rep count, a day count — that tells the real story better than a feeling would",
+  "What winning actually looks like on an ordinary Tuesday, not the highlight-reel version",
+  "A moment someone doubted her — and what she did instead of arguing back",
+  "The version of herself from two years ago she's most grateful isn't running things anymore",
+  "A quiet moment of faith — plain, unforced, no sermon",
+  "Something she trains for beyond how it looks — the mental transfer to everything else",
+  "A decision that felt small at the time and turned out to be the whole turning point",
+  "What she'd say to someone who feels stuck but hasn't actually changed anything yet",
+  "The gap between what people assume about her life and what actually built it",
+  "A standard she refuses to lower even when it would be easier to",
+  "Something about momentum — how one good decision makes the next one easier",
+  "A message for the version of her who almost gave up",
+  "What discipline has given her that talent never could",
+  "The line between confidence and arrogance — and how she thinks about it for herself",
   "Something a subscriber said that she's been turning over — what it told her about what people actually want",
-  "A conversation that taught her more about human nature than anything she studied",
-  "Something she almost didn't post and then did — and what the response confirmed",
-  "New set just posted — described through mood and setting, not content",
-  "What she's figured out about trust and why it's the only thing that actually converts",
-  "A thing her father used to say about price and value that she keeps coming back to",
-  "Something she's built that no one looking at her page would guess she'd thought about this carefully",
-  "The deliberateness behind what looks effortless — mentioned once, quietly, and never again",
+  "New set just posted — described through mood and energy, not content",
 ];
 
 
@@ -2493,6 +2498,7 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
     catch { return {}; }
   });
   const [schedulingId, setSchedulingId] = useState(null);
+  const [schedulingFormat, setSchedulingFormat] = useState("photo"); // "photo" | "reel" — which button opened the inline picker
   const [scheduleDate, setScheduleDate] = useState("");
   const [scheduleTime, setScheduleTime] = useState("");
   const [activeTab, setActiveTab] = useState("review");
@@ -2734,7 +2740,7 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
     }
   }
 
-  async function postNow(post) {
+  async function postNow(post, format = "photo") {
   const imageUrl = images[post.id]?.url || post.image_url;
   if (!imageUrl) { toast_("Upload an image first", "warn"); return; }
   setPosting(p => ({ ...p, [post.id]: true }));
@@ -2748,7 +2754,8 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
         caption,
         imageUrl,
         postId: post.id,
-        platform: "all"
+        platform: "all",
+        format,
       }),
     });
 
@@ -2756,10 +2763,10 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
 
     await supabase
       .from("content_queue")
-      .update({ status: "posted", image_url: imageUrl })
+      .update({ status: "posted", image_url: imageUrl, post_format: format })
       .eq("id", post.id);
 
-    toast_("Posted to Instagram & Facebook ✓", "ok");
+    toast_(format === "reel" ? "Posted as Reel to Instagram & Facebook ✓" : "Posted to Instagram & Facebook ✓", "ok");
     setPosts(p => p.filter(x => x.id !== post.id));
     setImages(im => { const n = { ...im }; delete n[post.id]; return n; });
     setQueue(q => q.filter(x => x.id !== post.id));
@@ -2771,7 +2778,7 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
 }
 
   // Schedule: set status=scheduled so cron picks it up at the right date/time
-  async function schedulePost(post) {
+  async function schedulePost(post, format = "photo") {
     const imageUrl = images[post.id]?.url || post.image_url || null;
 
     if (post._inMemory) {
@@ -2796,12 +2803,13 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
         scheduled_date:  post.scheduled_date || null,
         scheduled_time:  post.scheduled_time || null,
         image_url:       imageUrl,
+        post_format:     format,
         status:          "scheduled",
       };
       const { error } = await supabase.from("content_queue").upsert(row);
       if (error) { toast_("Failed to schedule post", "error"); console.error(error); return; }
     } else {
-      const update = { status: "scheduled" };
+      const update = { status: "scheduled", post_format: format };
       if (imageUrl) update.image_url = imageUrl;
       const res = await fetch("/api/queue-update", {
         method: "POST",
@@ -2812,13 +2820,13 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
     }
 
     const timeStr = post.scheduled_date ? `${post.scheduled_date} ${post.scheduled_time || ""}`.trim() : "next available slot";
-    toast_(`Scheduled for ${timeStr}`, "ok");
+    toast_(`Scheduled${format === "reel" ? " as Reel" : ""} for ${timeStr}`, "ok");
     setPosts(p => p.filter(x => x.id !== post.id));
     setImages(im => { const n = { ...im }; delete n[post.id]; return n; });
   }
 
-  async function confirmSchedule(post) {
-    await schedulePost({ ...post, scheduled_date: scheduleDate, scheduled_time: scheduleTime });
+  async function confirmSchedule(post, format = "photo") {
+    await schedulePost({ ...post, scheduled_date: scheduleDate, scheduled_time: scheduleTime }, format);
     setSchedulingId(null);
     setScheduleDate("");
     setScheduleTime("");
@@ -3072,7 +3080,7 @@ async function unschedule(post) {
 
                 {/* Actions */}
                 <div className="rv-actions" style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                  {/* Post Now */}
+                  {/* Post Now (photo) */}
                   <button
                     onClick={() => postNow(post)}
                     disabled={!hasUrl || busy}
@@ -3088,21 +3096,21 @@ async function unschedule(post) {
                     {isPosting ? "Posting…" : "🚀 Post Now"}
                   </button>
 
-                  {/* Schedule */}
-                  {schedulingId === post.id ? (
+                  {/* Schedule (photo) */}
+                  {schedulingId === post.id && schedulingFormat === "photo" ? (
                     <div style={{ flex: 2, minWidth: 220, display: "flex", gap: 6 }}>
                       <input type="date" value={scheduleDate} onChange={e => setScheduleDate(e.target.value)}
                         style={{ flex: 1, padding: "8px 10px", borderRadius: 8, border: "1px solid var(--e2)", background: "var(--s2)", color: "var(--t1)", fontSize: 12 }} />
                       <input type="time" value={scheduleTime} onChange={e => setScheduleTime(e.target.value)}
                         style={{ flex: 1, padding: "8px 10px", borderRadius: 8, border: "1px solid var(--e2)", background: "var(--s2)", color: "var(--t1)", fontSize: 12 }} />
-                      <button onClick={() => confirmSchedule(post)} disabled={!scheduleDate || !scheduleTime}
+                      <button onClick={() => confirmSchedule(post, "photo")} disabled={!scheduleDate || !scheduleTime}
                         style={{ padding: "8px 12px", borderRadius: 8, border: "none", background: "var(--b1)", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>✓</button>
                       <button onClick={() => setSchedulingId(null)}
                         style={{ padding: "8px 10px", borderRadius: 8, border: "1px solid var(--e1)", background: "transparent", color: "var(--t4)", fontSize: 12, cursor: "pointer" }}>✕</button>
                     </div>
-                  ) : (
+                  ) : !(schedulingId === post.id) && (
                     <button
-                      onClick={() => { setSchedulingId(post.id); setScheduleDate(post.scheduled_date || ""); setScheduleTime(post.scheduled_time || ""); }}
+                      onClick={() => { setSchedulingId(post.id); setSchedulingFormat("photo"); setScheduleDate(post.scheduled_date || ""); setScheduleTime(post.scheduled_time || ""); }}
                       disabled={!hasUrl || busy}
                       style={{
                         flex: 2, minWidth: 130,
@@ -3115,6 +3123,53 @@ async function unschedule(post) {
                       }}
                     >
                       🕐 Schedule
+                    </button>
+                  )}
+
+                  {/* Post Now as Reel — same image/caption, Make.com renders it as a Reel-style video */}
+                  <button
+                    onClick={() => postNow(post, "reel")}
+                    disabled={!hasUrl || busy}
+                    style={{
+                      flex: 2, minWidth: 150,
+                      padding: "10px 16px", borderRadius: 8,
+                      border: "1px solid #A855F7",
+                      background: hasUrl && !busy ? "rgba(168,85,247,.14)" : "var(--s2)",
+                      color: hasUrl && !busy ? "#C084FC" : "var(--t4)",
+                      fontSize: 13, fontWeight: 700,
+                      cursor: hasUrl && !busy ? "pointer" : "not-allowed",
+                    }}
+                  >
+                    {isPosting ? "Posting…" : "🎬 Post Now as Reel"}
+                  </button>
+
+                  {/* Schedule as Reel */}
+                  {schedulingId === post.id && schedulingFormat === "reel" ? (
+                    <div style={{ flex: 2, minWidth: 220, display: "flex", gap: 6 }}>
+                      <input type="date" value={scheduleDate} onChange={e => setScheduleDate(e.target.value)}
+                        style={{ flex: 1, padding: "8px 10px", borderRadius: 8, border: "1px solid var(--e2)", background: "var(--s2)", color: "var(--t1)", fontSize: 12 }} />
+                      <input type="time" value={scheduleTime} onChange={e => setScheduleTime(e.target.value)}
+                        style={{ flex: 1, padding: "8px 10px", borderRadius: 8, border: "1px solid var(--e2)", background: "var(--s2)", color: "var(--t1)", fontSize: 12 }} />
+                      <button onClick={() => confirmSchedule(post, "reel")} disabled={!scheduleDate || !scheduleTime}
+                        style={{ padding: "8px 12px", borderRadius: 8, border: "none", background: "#A855F7", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>✓</button>
+                      <button onClick={() => setSchedulingId(null)}
+                        style={{ padding: "8px 10px", borderRadius: 8, border: "1px solid var(--e1)", background: "transparent", color: "var(--t4)", fontSize: 12, cursor: "pointer" }}>✕</button>
+                    </div>
+                  ) : !(schedulingId === post.id) && (
+                    <button
+                      onClick={() => { setSchedulingId(post.id); setSchedulingFormat("reel"); setScheduleDate(post.scheduled_date || ""); setScheduleTime(post.scheduled_time || ""); }}
+                      disabled={!hasUrl || busy}
+                      style={{
+                        flex: 2, minWidth: 150,
+                        padding: "10px 16px", borderRadius: 8,
+                        border: "1px solid #A855F7",
+                        background: "transparent",
+                        color: hasUrl && !busy ? "#C084FC" : "var(--t4)",
+                        fontSize: 13, fontWeight: 600,
+                        cursor: hasUrl && !busy ? "pointer" : "not-allowed",
+                      }}
+                    >
+                      🎬 Schedule as Reel
                     </button>
                   )}
 
@@ -3169,6 +3224,12 @@ async function unschedule(post) {
                     padding: "3px 8px", borderRadius: 6, textTransform: "capitalize" }}>
                     {post.platform}
                   </span>
+                  {post.post_format === "reel" && (
+                    <span style={{ fontSize: 11, fontWeight: 700, color: "#C084FC",
+                      background: "rgba(168,85,247,.14)", padding: "3px 8px", borderRadius: 6 }}>
+                      🎬 Reel
+                    </span>
+                  )}
                 </div>
                 <div style={{ fontSize: 13, color: "var(--t2)", lineHeight: 1.5,
                   whiteSpace: "pre-wrap", maxHeight: 60, overflowY: "hidden",
