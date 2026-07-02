@@ -49,14 +49,14 @@ LIFE IN MOTION: Caught mid-rep, mid-drive, mid-decision — not posed. Every pos
 
     flux: `# flux.md — Cara Whitmore — Physical descriptors
 
-Eyes: Dark brown, deep-set, long natural lashes. Read as almost black in photographs.
-Hair: Dark chestnut brown, very long, fine and naturally straight. Often pinned loosely with a few strands loose at the temples.
-Skin: Fair, clear, English rose undertone. A scattering of light freckles across the nose visible in summer light. No heavy texture.
-Face: Oval, refined. Slightly sharp cheekbones. Full, naturally pigmented mouth. Looks older than 23.
-Build: Slim, graceful. Long neck. Good posture — innate, not performed.
-Jewellery: One thin gold signet ring on the right hand. Small pearl studs in both ears. Layered very fine gold chains, 2–3 strands. Always present.
-Nails: Natural, buffed or in a sheer nude. Never coloured.
-Mole: Small dark mole on the left side of her neck, just below the jawline. Approximately 3mm. Always present.`,
+Eyes: Distinctly bright green, clear and saturated with a dark limbal ring. Not hazel, not grey, not blue — reads unmistakably green in any lighting.
+Hair: Dark brown (not black), long, natural wave — falls past the shoulders. Warm highlights catch in direct light. Near-black and wet-strand textured when wet.
+Skin: Medium-light, warm olive undertone. Natural pore-level texture, slightly sun-kissed, dewy glow. No freckles, no heavy makeup look.
+Brows: Strong, thick, dark — naturally shaped, not drawn on. One of her most defining features — thin or light brows is wrong.
+Face: Angular, defined jawline. Straight, refined nose. Full, naturally pigmented mouth, soft pink-rose. Slightly parted in resting expression.
+Build: Slim, athletic build from training. Long neck. Good posture — innate, not performed.
+Jewellery: Small gold hoop earrings, worn consistently. Layered fine gold chains, 2–3 strands. Always present.
+Mole: Small dark mole on the left side of her neck, just below the jawline. Approximately 3mm. Always present when the neck is visible.`,
   },
 };
 

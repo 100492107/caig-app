@@ -35,24 +35,43 @@ const SHOTS = [
     mood: "elongated silhouette, powerful",
     tags: ["full-length", "powerful", "editorial"],
   },
-  // Feet-forward / perspective shots
+  // Gym / training / action
   {
-    frame: "24mm wide, camera low on the ground — feet sharp in foreground, body leading back to face",
-    pose: "standing, legs together, face looking straight down the barrel of the lens with a knowing expression",
-    mood: "cinematic fashion editorial, strong perspective",
-    tags: ["low-angle", "full-length", "feet-forward", "cinematic"],
+    frame: "24mm low angle in a home gym — feet firmly planted, full body leading up to face, weights rack behind",
+    pose: "standing between sets, chalk on hands, direct gaze into lens, composed and strong",
+    mood: "grounded, powerful, unglamorous strength",
+    tags: ["low-angle", "full-length", "gym", "action"],
   },
   {
-    frame: "35mm low angle from knee height — long legs fill lower half of frame, face and torso in upper half",
-    pose: "weight shifted to one leg, looking over shoulder down at camera",
-    mood: "elongated, powerful, fashion-forward",
-    tags: ["low-angle", "full-length", "powerful"],
+    frame: "35mm mid-rep shot — full body, home gym setting",
+    pose: "mid deadlift or squat, full focus on the movement, not looking at camera, sharp controlled form",
+    mood: "disciplined, sharp, frozen-motion intensity",
+    tags: ["gym", "action", "training"],
   },
   {
-    frame: "wide low angle, camera at ankle height — full length body from feet to face, dramatic perspective distortion",
-    pose: "walking slowly toward camera, direct gaze, relaxed arms",
-    mood: "high-fashion runway energy",
-    tags: ["low-angle", "full-length", "feet-forward", "runway"],
+    frame: "35mm medium shot, boxing gym with a hanging bag",
+    pose: "mid-punch at the bag, motion blur on the arm, full focus and intensity, not aware of camera",
+    mood: "high energy, moody single-source lighting",
+    tags: ["gym", "action", "training"],
+  },
+  {
+    frame: "35mm wide-medium, city park path or running track",
+    pose: "mid-stride running shot, full body, determined expression, looking ahead not at camera",
+    mood: "cool morning light, genuine motion",
+    tags: ["action", "running", "full-length"],
+  },
+  // Selfie / mirror selfie
+  {
+    frame: "phone-held mirror selfie, full length, home gym or wardrobe mirror",
+    pose: "outfit or physique check, phone visible in the reflection at chest height, direct gaze into the mirror, confident stance",
+    mood: "unfiltered, confident, self-assured",
+    tags: ["mirror", "selfie", "full-length"],
+  },
+  {
+    frame: "close phone selfie, arm's length",
+    pose: "direct eye contact with the lens, composed, alert, getting-ready or post-training energy",
+    mood: "genuine, close, unglamorous confidence",
+    tags: ["selfie", "close-up", "portrait"],
   },
   // Over-shoulder / back shots
   {
@@ -75,17 +94,17 @@ const SHOTS = [
     tags: ["seated", "relaxed", "intimate"],
   },
   {
-    frame: "85mm, reclined on a sun lounger — camera at eye level beside her",
-    pose: "lying on side on a sun lounger, head propped on one hand, facing camera",
-    mood: "golden hour editorial, warm and inviting",
-    tags: ["reclined", "relaxed", "golden-hour", "water", "outdoor"],
+    frame: "85mm, reclined on a pool lounger — camera at eye level beside her",
+    pose: "lying on side on a lounger, head propped on one hand, facing camera",
+    mood: "warm afternoon light, relaxed and unhurried",
+    tags: ["reclined", "relaxed", "water"],
   },
   // Overhead / downward
   {
-    frame: "overhead flat-lay perspective — camera directly above, subject on towel or pool deck",
-    pose: "lying on back on a sun towel, knees bent to one side, looking straight up into camera, hair fanned out",
-    mood: "top-down fashion editorial, geometric composition",
-    tags: ["overhead", "flat-lay", "water", "outdoor"],
+    frame: "overhead flat-lay perspective — camera directly above, subject on a towel or pool deck",
+    pose: "lying on back, knees bent to one side, looking straight up into camera, hair fanned out",
+    mood: "top-down editorial, geometric composition",
+    tags: ["overhead", "flat-lay", "water"],
   },
   {
     frame: "45-degree elevated angle — camera above and in front, shooting down across the body",
@@ -106,12 +125,35 @@ const SHOTS = [
     mood: "intimate editorial portrait",
     tags: ["close-up", "portrait", "intimate", "face"],
   },
+  {
+    frame: "85mm macro-leaning, close on hands at a desk",
+    pose: "writing in a planner or gesturing mid-sentence, face out of frame or softly blurred behind, focused",
+    mood: "quiet focus, discipline in the detail",
+    tags: ["office", "hands", "close-up"],
+  },
 ];
 
 // ─── WARDROBE LIBRARY ─────────────────────────────────────────────────────────
 // All tested against fal.ai. Grouped by context for smart selection.
 
 const WARDROBES = {
+  gym: [
+    "fitted matching gym set — sports bra and leggings, trainers",
+    "fitted training top and bike shorts, trainers",
+    "cropped tank top and joggers, trainers",
+    "sports bra and fitted leggings, hair in a high ponytail",
+  ],
+  mirror: [
+    "sharp tailored blazer and trousers, heels",
+    "matching gym set, trainers, hair in a ponytail",
+    "oversized blazer over biker shorts, trainers",
+    "tailored trousers and a fitted top, minimal gold jewellery",
+  ],
+  office: [
+    "sharp tailored blazer, fitted top underneath, minimal gold jewellery",
+    "fitted knit jumper, tailored trousers",
+    "simple fitted top, gold rings visible on the hand",
+  ],
   water: [
     "small white triangle string bikini, thin side ties",
     "black string bikini, minimal coverage, classic cut",
@@ -119,8 +161,8 @@ const WARDROBES = {
     "coral triangle bikini, thin straps",
     "navy blue bikini, classic silhouette",
   ],
-  outdoor: [
-    "oversized white linen dress shirt, unbuttoned low, mid-thigh length",
+  city: [
+    "oversized white linen shirt, unbuttoned low, mid-thigh length",
     "gold satin bralette top, high-waist wide-leg trousers",
     "fitted ribbed crop top and low-rise mini skirt",
     "strappy black bralette top and high-waist shorts, layered gold chains",
@@ -136,7 +178,7 @@ const WARDROBES = {
     "silk slip dress, thin straps, thigh-high slit",
     "black lace bodysuit worn as a top with tailored trousers",
     "tiny ribbed bandeau top and matching micro shorts, midriff bare",
-    "white hotel robe loosely tied, black bikini just visible beneath",
+    "white robe loosely tied, black bikini just visible beneath",
     "oversized white dress shirt, unbuttoned to the waist, mid-thigh length",
     "fitted ribbed crop top and matching low-rise mini skirt",
   ],
@@ -145,31 +187,48 @@ const WARDROBES = {
 // ─── WARDROBE KEYWORD MAP ─────────────────────────────────────────────────────
 // If the post's wardrobe field OR caption/hook contains these keywords, override the group.
 const WARDROBE_KEYWORD_MAP = [
-  { keywords: ["knit", "jumper", "sweater", "knitwear", "cosy", "cozy", "oversized", "hoodie", "fleece", "woollen", "woolly", "wrapped up", "staying in", "staying home", "morning", "lazy", "slow day", "on the sofa", "at home", "indoors", "couch"], group: "cosy" },
-  { keywords: ["bikini", "swimwear", "swimsuit", "swim", "pool", "beach", "ocean", "sea", "water", "snorkelling", "diving", "waves", "sunbathing"], group: "water" },
-  { keywords: ["linen", "crop", "bralette", "shorts", "outdoor", "terrace", "rooftop", "balcony", "villa", "garden", "sunset", "travel", "abroad", "exploring"], group: "outdoor" },
+  { keywords: ["gym", "training", "workout", "deadlift", "squat", "session", "rep", "reps", "boxing", "punch bag"], group: "gym" },
+  { keywords: ["mirror", "mirror selfie", "outfit check"], group: "mirror" },
+  { keywords: ["office", "desk", "planner", "notebook", "laptop", "presenting", "whiteboard", "journal"], group: "office" },
+  { keywords: ["knit", "jumper", "sweater", "knitwear", "cosy", "cozy", "oversized", "hoodie", "fleece", "morning", "lazy", "slow day", "on the sofa", "at home", "indoors", "couch", "kitchen"], group: "cosy" },
+  { keywords: ["bikini", "swimwear", "swimsuit", "swim", "pool", "rooftop pool", "plunge pool", "hot tub"], group: "water" },
+  { keywords: ["linen", "crop", "bralette", "shorts", "rooftop", "terrace", "balcony", "going out", "evening"], group: "city" },
 ];
 
 // ─── SETTING LIBRARY ──────────────────────────────────────────────────────────
+// No travel/resort destinations — home, gym, and city settings only.
 
 const SETTINGS = {
-  water: [
-    "private villa infinity pool, blue water, terracotta coping, Mediterranean landscape",
-    "rooftop pool, city skyline, golden hour light on the water",
-    "luxury resort pool deck, white marble, palm shadows",
-    "secluded beach, crystal clear water, white sand",
+  gym: [
+    "home gym, rubber flooring, weights rack and bench in frame",
+    "boxing gym with a hanging bag, moody single-source lighting",
+    "city park path or running track, early morning, cool light",
   ],
-  outdoor: [
-    "sun-drenched apartment rooftop terrace, city panorama below",
-    "penthouse balcony, floor-to-ceiling glass, golden hour",
-    "Mediterranean villa courtyard, terracotta and bougainvillea",
-    "high-end beachside bar terrace, sunset behind",
+  mirror: [
+    "home gym mirror wall, rubber flooring, weights rack visible in reflection",
+    "walk-in wardrobe or full-length bedroom mirror, neutral tones, soft daylight",
+    "gym hallway mirror, practical lighting, post-training",
+  ],
+  office: [
+    "home office desk, notebook, laptop, coffee, morning light",
+    "home office or co-working space, whiteboard or laptop with charts visible",
+  ],
+  water: [
+    "rooftop pool on an apartment building, bright midday light, city skyline in background",
+    "private pool on a building's amenity floor, warm afternoon light",
+    "home terrace with a small plunge pool or hot tub, early morning light",
   ],
   cosy: [
     "sun-drenched apartment living room, large floor-to-ceiling windows, soft morning light on white walls",
     "minimalist studio flat, pale walls, warm side light, wooden floors",
     "bright airy loft, exposed brick wall, large window, morning sunlight streaming in",
-    "elegant apartment lounge, neutral tones, soft diffused natural light",
+    "kitchen, clean counter, bright morning window light",
+  ],
+  city: [
+    "sun-drenched apartment rooftop terrace, city panorama below",
+    "penthouse balcony, floor-to-ceiling glass, golden hour",
+    "city rooftop bar terrace, skyline view, evening ambience",
+    "apartment building rooftop, string lights, dusk",
   ],
   general: [
     "minimalist studio, white walls, soft window light",
@@ -191,6 +250,11 @@ const SHOT_ANGLE_TAG_MAP = [
   { keywords: ["seated", "sitting"], tags: ["seated"] },
   { keywords: ["reclined", "lying", "lounger"], tags: ["reclined"] },
   { keywords: ["full-length", "full length", "full body"], tags: ["full-length"] },
+  { keywords: ["mirror", "mirror selfie"], tags: ["mirror", "selfie"] },
+  { keywords: ["selfie"], tags: ["selfie"] },
+  { keywords: ["training", "gym", "deadlift", "squat", "workout", "boxing", "punch"], tags: ["gym", "action", "training"] },
+  { keywords: ["running", "run", "jog"], tags: ["action", "running", "full-length"] },
+  { keywords: ["desk", "office", "planner", "journal", "writing", "presenting"], tags: ["office", "hands"] },
 ];
 
 // ─── MOOD KEYWORD MAP ─────────────────────────────────────────────────────────
@@ -201,6 +265,8 @@ const MOOD_TAG_MAP = [
   { keywords: ["intimate", "soft", "gentle", "cosy", "cozy", "warm"], tags: ["intimate", "relaxed"] },
   { keywords: ["editorial", "fashion", "runway", "high-fashion"], tags: ["editorial", "runway"] },
   { keywords: ["relaxed", "casual", "lazy", "slow", "morning"], tags: ["relaxed", "seated"] },
+  { keywords: ["discipline", "standard", "non-negotiable", "focused", "training"], tags: ["gym", "action"] },
+  { keywords: ["proof", "results", "winning", "success", "momentum"], tags: ["confident", "powerful"] },
 ];
 
 function pickRandom(arr) {
@@ -209,9 +275,12 @@ function pickRandom(arr) {
 
 function classifySetting(rawSetting) {
   const s = (rawSetting || "").toLowerCase();
-  if (/pool|beach|ocean|water|sea|swim|snorkel|waves|sunbath/.test(s)) return "water";
-  if (/balcony|rooftop|terrace|garden|courtyard|outdoor|villa|abroad|travel|exploring|sunset/.test(s)) return "outdoor";
-  if (/knit|jumper|sweater|cosy|cozy|morning|lounge|apartment|sunlit wall|sunlight|at home|indoors|sofa|staying in/.test(s)) return "cosy";
+  if (/gym|training|workout|deadlift|squat|boxing|running|track/.test(s)) return "gym";
+  if (/mirror|outfit check/.test(s)) return "mirror";
+  if (/office|desk|planner|notebook|laptop|whiteboard|journal/.test(s)) return "office";
+  if (/pool|plunge|hot tub|swim/.test(s)) return "water";
+  if (/kitchen|sofa|living room|at home|indoors|morning|lounge|apartment|sunlit wall|sunlight|staying in|couch/.test(s)) return "cosy";
+  if (/balcony|rooftop|terrace|city street|going out|evening/.test(s)) return "city";
   return "general";
 }
 
@@ -303,7 +372,9 @@ SKIN: Medium-light, warm olive undertone. Natural pore-level texture in close-up
 
 FACE: Angular, defined jawline. Straight refined nose. Full naturally pigmented lips, soft pink-rose, slightly parted. Early 20s.
 
-ACCESSORIES: Small gold hoop earrings where ears are visible. Layered delicate gold chains at the neckline for outdoor and pool settings.
+ACCESSORIES: Small gold hoop earrings where ears are visible. Layered delicate gold chains at the neckline for city and pool settings.
+
+MARK: Small dark mole on the left side of the neck, just below the jawline, approximately 3mm — present whenever the neck is visible and unobstructed.
 
 EXPRESSION: Confident, direct, comfortable in front of the camera. Reserved — not smiling wide, not performing.
 
