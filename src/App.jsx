@@ -3094,6 +3094,36 @@ async function unschedule(post) {
                     fontSize: 13, color: "var(--t1)", fontWeight: 600,
                   }}>Uploading…</div>
                 )}
+                {reelGenerating[post.id] && (
+                  <div style={{
+                    position: "absolute", inset: 0,
+                    background: "rgba(3,3,10,.85)",
+                    display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                    gap: 8,
+                  }}>
+                    <div style={{ fontSize: 28 }}>🎬</div>
+                    <div style={{ fontSize: 13, color: "#a78bfa", fontWeight: 600 }}>
+                      {reelGenerating[post.id].stage === "submitting" ? "Submitting to Kling..." : "Generating reel..."}
+                    </div>
+                    <div style={{ fontSize: 11, color: "var(--t4)" }}>
+                      {reelGenerating[post.id].elapsed > 0 ? `${reelGenerating[post.id].elapsed}s — usually 60–120s` : "Starting..."}
+                    </div>
+                  </div>
+                )}
+                {videos[post.id]?.url && !reelGenerating[post.id] && (
+                  <div style={{ position: "absolute", inset: 0, background: "#000" }}>
+                    <video
+                      src={videos[post.id].url}
+                      controls
+                      style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }}
+                    />
+                    <div style={{
+                      position: "absolute", top: 8, left: 8,
+                      background: "#8b5cf6", color: "#fff",
+                      fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 4,
+                    }}>REEL READY</div>
+                  </div>
+                )}
               </div>
 
               {/* Hidden file input */}
