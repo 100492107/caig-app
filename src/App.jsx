@@ -3038,27 +3038,27 @@ async function unschedule(post) {
                         <div style={{ fontSize: 12, color: "var(--t3)", marginBottom: 12, maxWidth: 260, margin: "0 auto 12px" }}>
                           {lastErrors.current[post.id] || "Unknown error"}
                         </div>
-                        <button
-                          onClick={e => { e.stopPropagation(); generateImage(post); }}
-                          style={{
-                            padding: "7px 16px", borderRadius: 8, border: "none",
-                            background: "var(--b1)", color: "#fff",
-                            fontSize: 12, fontWeight: 700, cursor: "pointer",
-                          }}
-                        >Retry</button>
-                      </>
-                    ) : (
-                      <>
-                        <div style={{ fontSize: 36, marginBottom: 10 }}>🖼️</div>
-                        <div style={{ fontWeight: 600, color: "var(--t2)", marginBottom: 8 }}>No image yet</div>
-                        <button
-                          onClick={e => { e.stopPropagation(); generateImage(post); }}
-                          style={{
-                            padding: "8px 18px", borderRadius: 8, border: "none",
-                            background: "var(--b1)", color: "#fff",
-                            fontSize: 13, fontWeight: 700, cursor: "pointer", marginBottom: 8,
-                          }}
-                        >⚡ Generate Image</button>
+                        <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+                          <button
+                            onClick={e => { e.stopPropagation(); generateImage(post); }}
+                            style={{
+                              padding: "8px 14px", borderRadius: 8, border: "none",
+                              background: "var(--b1)", color: "#fff",
+                              fontSize: 13, fontWeight: 700, cursor: "pointer",
+                            }}
+                          >⚡ Image</button>
+                          <button
+                            onClick={e => { e.stopPropagation(); generateReel(post); }}
+                            disabled={!images[post.id]?.url && !post.image_url}
+                            style={{
+                              padding: "8px 14px", borderRadius: 8, border: "none",
+                              background: (images[post.id]?.url || post.image_url) ? "#8b5cf6" : "var(--s2)",
+                              color: "#fff", fontSize: 13, fontWeight: 700,
+                              cursor: (images[post.id]?.url || post.image_url) ? "pointer" : "not-allowed",
+                              opacity: (images[post.id]?.url || post.image_url) ? 1 : 0.5,
+                            }}
+                          >🎬 Reel</button>
+                        </div>
                         <div style={{ fontSize: 12, color: "var(--t4)" }}>or tap to upload manually</div>
                       </>
                     )}
