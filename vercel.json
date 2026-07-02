@@ -8,7 +8,8 @@
     "api/cron-generate.js":       { "maxDuration": 300 },
     "api/queue-update.js":        { "maxDuration": 15  },
     "api/store-image.js":         { "maxDuration": 30  },
-    "api/run-scheduled-posts.js": { "maxDuration": 60  }
+    "api/run-scheduled-posts.js": { "maxDuration": 60  },
+    "api/generate-video-submit.js": { "maxDuration": 60 }
   },
   "crons": [
     { "path": "/api/cron-generate", "schedule": "0 6 */2 * *" },
