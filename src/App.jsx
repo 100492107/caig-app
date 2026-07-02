@@ -2504,6 +2504,8 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
   const [activeTab, setActiveTab] = useState("review");
   const [scheduledPosts, setScheduledPosts] = useState([]);
   const [generating, setGenerating] = useState({}); // { [postId]: { stage, elapsed, error } | null }
+  const [reelGenerating, setReelGenerating] = useState({});
+  const [videos, setVideos]                 = useState({});
   const [enhancedMode, setEnhancedMode] = useState(false);
   const fileRefs = useRef({});
   // Track post IDs where we've started a fresh generation — suppress post.image_url fallback
