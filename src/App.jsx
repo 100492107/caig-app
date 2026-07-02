@@ -2742,6 +2742,53 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
     }
   }
 
+  async function generateReel(post) {
+    const imgState = images[post.id];
+    const imageUrl = imgState?.url || post.image_url;
+    if (!imageUrl) { toast_("Generate an image first, then convert to Reel", "warn"); return; }
+
+    setReelGenerating(r => ({ ...r, [post.id]: { stage: "submitting", elapsed: 0 } }));
+
+    try {
+      const submitRes = await fetch("/api/generate-video-submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imageUrl, postId: post.id }),
+      });
+      const submitData = await submitRes.json();
+      if (!submitRes.ok || !submitData.request_id) throw new Error(submitData.error || "Submit failed");
+
+      setReelGenerating(r => ({ ...r, [post.id]: { stage: "generating", elapsed: 0 } }));
+
+      let attempts = 0;
+      const maxAttempts = 60;
+      while (attempts < maxAttempts) {
+        await new Promise(r => setTimeout(r, 5000));
+        attempts++;
+        setReelGenerating(r => ({ ...r, [post.id]: { stage: "generating", elapsed: attempts * 5 } }));
+
+        const pollRes = await fetch("/api/generate-poll", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ request_id: submitData.request_id, type: "video" }),
+        });
+        const pollData = await pollRes.json();
+
+        if (pollData.status === "COMPLETED" && pollData.url) {
+          setVideos(v => ({ ...v, [post.id]: { url: pollData.url } }));
+          setReelGenerating(r => { const n = { ...r }; delete n[post.id]; return n; });
+          toast_("Reel ready ✓", "ok");
+          return;
+        }
+        if (pollData.status === "FAILED") throw new Error("Kling generation failed");
+      }
+      throw new Error("Timed out after 5 minutes");
+    } catch(e) {
+      toast_(`Reel failed: ${e.message}`, "error");
+      setReelGenerating(r => { const n = { ...r }; delete n[post.id]; return n; });
+    }
+  }
+
   async function postNow(post, format = "photo") {
   const imageUrl = images[post.id]?.url || post.image_url;
   if (!imageUrl) { toast_("Upload an image first", "warn"); return; }
