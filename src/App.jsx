@@ -2791,6 +2791,8 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
 
   async function postNow(post, format = "photo") {
   const imageUrl = images[post.id]?.url || post.image_url;
+  const videoUrl = videos[post.id]?.url || null;
+  if (format === "reel" && !videoUrl) { toast_("Generate a reel first", "warn"); return; }
   if (!imageUrl) { toast_("Upload an image first", "warn"); return; }
   setPosting(p => ({ ...p, [post.id]: true }));
   try {
@@ -2815,9 +2817,10 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
       .update({ status: "posted", image_url: imageUrl, post_format: format })
       .eq("id", post.id);
 
-    toast_(format === "reel" ? "Posted as Reel to Instagram & Facebook ✓" : "Posted to Instagram & Facebook ✓", "ok");
+    toast_(format === "reel" ? "Reel posted to Instagram, Facebook & TikTok ✓" : "Posted to Instagram & Facebook ✓", "ok");
     setPosts(p => p.filter(x => x.id !== post.id));
     setImages(im => { const n = { ...im }; delete n[post.id]; return n; });
+    setVideos(v => { const n = { ...v }; delete n[post.id]; return n; });
     setQueue(q => q.filter(x => x.id !== post.id));
   } catch (e) {
     toast_(`Post failed: ${e.message}`, "error");
