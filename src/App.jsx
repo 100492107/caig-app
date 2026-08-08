@@ -1861,40 +1861,40 @@ function Autopilot({ queue, setQueue, setView, toast_, dbCreators = [], onDelete
       if (e.name !== "AbortError") console.error("Stream read error:", e);
     }
 
-    // Sync all generated posts to Supabase content_queue
-    if (results.length > 0) {
-      const rows = results.map(item => {
-        const dbCreator = dbCreators.find(c => `db_${c.id}` === item.personaId);
-        return {
-          id:             item.id,
-          persona_id:     item.personaId,
-          persona_name:   item.personaName,
-          platform:       item.platform,
-          pillar:         item.pillar,
-          hook:           item.hook || "",
-          caption:        item.caption || "",
-          hashtags:       item.hashtags || "",
-          status:         "draft",   // goes to Review Queue for image gen + approval
-          client_id:      dbCreator?.client_id || null,
-          scheduled_date: item.scheduledDate || null,
-          scheduled_time: item.scheduledTime || null,
-          image_prompt:   item.image_prompt || null,
-          photo_idea:     item.photo_idea || null,
-          cta:            item.cta || null,
-          photo_direction: item.photo_direction || null,
-          post_type:      item.post_type || null,
-          content_label:  item.content_label || null,
-          trend_hook:     item.trend_hook || null,
-          shot_angle:     item.shot_angle || null,
-          wardrobe:       item.wardrobe || null,
-          style_ref:      item.style_ref || null,
-          alter table content_queue add column if not exists image_urls jsonb;
-        };
-      });
-      supabase.from("content_queue").upsert(rows).then(({ error }) => {
-        if (error) console.warn("content_queue sync error:", error.message);
-      });
-    }
+   // Sync all generated posts to Supabase content_queue
+if (results.length > 0) {
+  const rows = results.map(item => {
+    const dbCreator = dbCreators.find(c => `db_${c.id}` === item.personaId);
+    return {
+      id:              item.id,
+      persona_id:      item.personaId,
+      persona_name:    item.personaName,
+      platform:        item.platform,
+      pillar:          item.pillar,
+      hook:            item.hook || "",
+      caption:         item.caption || "",
+      hashtags:        item.hashtags || "",
+      status:          "draft",   // goes to Review Queue for image gen + approval
+      client_id:       dbCreator?.client_id || null,
+      scheduled_date:  item.scheduledDate || null,
+      scheduled_time:  item.scheduledTime || null,
+      image_prompt:    item.image_prompt || null,
+      photo_idea:      item.photo_idea || null,
+      cta:             item.cta || null,
+      photo_direction: item.photo_direction || null,
+      post_type:       item.post_type || null,
+      content_label:   item.content_label || null,
+      trend_hook:      item.trend_hook || null,
+      shot_angle:      item.shot_angle || null,
+      wardrobe:        item.wardrobe || null,
+      style_ref:       item.style_ref || null,
+      image_urls:      item.image_urls || null // ✅ Corrected object property
+    };
+  });
+  supabase.from("content_queue").upsert(rows).then(({ error }) => {
+    if (error) console.warn("content_queue sync error:", error.message);
+  });
+}
 
     setRunning(false);
     toast_(`${savedCount} posts generated — open Queue to review`);
