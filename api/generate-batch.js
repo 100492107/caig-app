@@ -618,10 +618,10 @@ async function generateImagePrompt(apiKey, persona, post, postIndex) {
     subject: subjectDesc,
     wardrobe: shot.wardrobe,
     setting: captionScene.length > 40 ? "Match the setting and light implied by the caption scene above" : shot.setting,
-    lighting: captionScene.length > 40 ? "Natural light that fits the moment — morning grey, soft window, gym overhead, golden hour. Never studio softboxes." : shot.lighting,
-    technical: `${shot.camera || "iPhone 16 Pro"}, 9:16 vertical portrait, photorealistic phone photo. Visible pores, light freckles, natural skin texture, slight unevenness, mild film grain. Zero plastic skin, zero beauty filter, zero airbrush, zero AI smooth. Feels like a real selfie or candid from a phone. Exact match to reference face.`,
-    style_ref: "Real phone selfie / candid lifestyle from actual 19-year-old Instagram model creators. Lived-in, slightly imperfect, natural light. High skin exposure, bikinis, lace lingerie, summer fashion. Never studio, never glamour, never beauty-filter skin, never plastic or porcelain skin.",
-    negative_prompt: "plastic skin, porcelain skin, airbrushed skin, beauty filter, over-smoothed skin, flawless skin, wax skin, CGI skin, studio softbox, posed model casting, missing freckles, missing gold cross or coin pendant, face drift, wrong eye colour, watermark, text, cartoon, 28-year-old life-coach energy, mirror selfie in outdoor public space",
+    lighting: captionScene.length > 40 ? "Natural light that fits the moment — morning grey, soft window, golden hour." : shot.lighting,
+    technical: `${shot.camera || "iPhone 16 Pro Max"}, 9:16 vertical portrait, photorealistic phone photo. Visible pores, light freckles, natural skin texture, minimal make-up, mild film grain. Zero plastic skin, zero airbrush. Exact match to reference face.`,
+    style_ref: "Real phone selfie / candid resortwear lifestyle from actual young adult Instagram creators. Two-piece swimwear, satin sleepwear, summer fashion. Lived-in, slightly imperfect, natural light.",
+    negative_prompt: "plastic skin, porcelain skin, airbrushed skin, beauty filter, over-smoothed skin, wax skin, CGI skin, studio softbox, posed model casting, missing freckles, missing gold cross or coin pendant, face drift, wrong eye colour, watermark, text, cartoon, mirror selfie in outdoor public space",
   };
 }
 
@@ -821,16 +821,18 @@ export default async function handler(req, res) {
       // Only generate image prompts for AI Creator mode (not studio)
       if (!studioMode) {
         const FALLBACK_BRIEFS = {
-          fv_tease:       "Cara in bedroom mirror selfie, delicate lace lingerie set and open cardigan. Soft morning window light. Direct gaze.",
-          fv_ppv:         "Cara on edge of bed, silk lingerie robe slipped off shoulders. Warm ambient lighting, intimate candid feel.",
-          fv_ppv_caption: "Cara reclining on white linen bed, matching satin underwear set. Natural window light.",
-          fv_dm:          "Cara front-facing selfie in bed, thin-strap lace cami, hair down, soft relaxed expression.",
-          fv_welcome:     "Cara balcony selfie at sunset, string bikini and gold cross necklace, warm golden hour glow.",
-          fv_personality: "Cara bedroom mirror selfie, low-rise shorts and crop bralette. Natural morning daylight.",
-          fv_interact:    "Cara sitting on bed, direct eye contact selfie, sheer lingerie set, warm soft light.",
-          fv_wall_post:   "Cara candid photo on sunbed by pool, string bikini, looking back toward camera.",
-          fv_announce:    "Cara standing in bedroom, silk robe falling off shoulder, low-rise shorts. Strong directional light.",
-          fv_preview:     "Cara at edge of bed leaning forward, loosely wrapped in satin sheet. Warm candlelight.",
+          const FALLBACK_BRIEFS = {
+          fv_tease:       "Cara in bedroom mirror selfie, ribbed cotton lounge crop and unbuttoned cardigan. Soft morning window light. Direct gaze.",
+          fv_ppv:         "Cara on edge of sunbed, silk wrap gown off one shoulder. Warm ambient lighting, relaxed candid feel.",
+          fv_ppv_caption: "Cara reclining on white linen lounge seating, matching silk cami and shorts set. Natural window light.",
+          fv_dm:          "Cara front-facing selfie in bedroom, thin-strap silk tank top, hair down, soft relaxed expression.",
+          fv_welcome:     "Cara balcony selfie at sunset, resort bikini top and gold cross necklace, warm golden hour glow.",
+          fv_personality: "Cara bedroom mirror selfie, low-rise summer shorts and fitted crop top. Natural morning daylight.",
+          fv_interact:    "Cara sitting on daybed, direct eye contact selfie, ribbed cotton set, warm soft light.",
+          fv_wall_post:   "Cara candid photo on lounger by pool, high-cut swimsuit set, looking back toward camera.",
+          fv_announce:    "Cara standing in bedroom, silk kimono layer off shoulder, low-rise linen shorts. Strong directional light.",
+          fv_preview:     "Cara at edge of seating area leaning forward, draped in a silk throw. Warm ambient light.",
+          };
         };
         const baseBrief = post.photo_idea || FALLBACK_BRIEFS[post.post_type] || FALLBACK_BRIEFS["fv_tease"];
 
