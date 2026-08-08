@@ -597,7 +597,7 @@ Return ONLY this JSON (no code fences):
   "caption": "1 to 3 short sentences. under 280 characters total. lowercase. no em dashes. no hashtags. no hard sell. british english, no spelling mistakes.",
   "hashtags": "",
   "photo_direction": "portrait 9:16",
- "photo_idea": "Concrete phone-photo brief in the style of high-fashion editorial. Describe the scene using specific garment cuts and dynamic poses rather than explicit categories: (1) Pose & Action (e.g., 'leaning forward over a marble counter', 'sitting on edge of lounge chair with knees drawn up', 'reaching up to tie hair'). (2) Specific Wardrobe Cuts (e.g., 'unbuttoned crop shirt over thin-strap ribbed top', 'low-rise micro shorts', 'silk slip dress with high thigh slit', 'partially unzipped fitted hoodie'). (3) Setting & Lighting (e.g., 'private room, warm directional window light'). NEVER use blacklisted words: 'lingerie', 'bikini', 'panties', 'briefs', 'sheer', 'cleavage'. 2-3 detailed sentences."  "content_label": "${postTypeLabel}",
+ "photo_idea": "Concrete phone-photo brief in the style of high-fashion editorial photography. Describe revealing cuts and unbuttoned layers rather than explicit categories: (1) Pose & Action (e.g. 'leaning forward over a table', 'sitting on edge of lounge chair with knees drawn up', 'reaching up to tie hair'). (2) Specific Wardrobe Cuts (e.g. 'unbuttoned shirt slipping off shoulders over a thin-strap crop', 'low-rise micro shorts', 'silk slip dress with deep neckline and thigh slit', 'tie-front crop top'). (3) Setting & Lighting (e.g. 'private room, warm window light'). NEVER use words: 'lingerie', 'bikini', 'bra', 'panties', 'briefs', 'cleavage', 'bedroom'. 2-3 sentences."
   "trend_hook": "${trends ? "one word" : "null"}"
 }`;
 
@@ -834,17 +834,17 @@ export default async function handler(req, res) {
 
       // Only generate image prompts for AI Creator mode (not studio)
       if (!studioMode) {
-        const FALLBACK_BRIEFS = {
-          fv_tease:       "Cara in private room, wearing an unbuttoned white silk shirt over a delicate ribbed thin-strap crop, low-rise shorts. Leaning slightly forward toward a full-length reflective surface. Soft morning window light.",
-          fv_ppv:         "Cara seated on the edge of a white linen daybed, wearing a silk wrap gown slipping low off one shoulder, knees drawn up toward chest. Warm ambient lighting, candid pose.",
-          fv_ppv_caption: "Cara reclining on white linen lounge seating, thin-strap satin cami top and high-cut silk shorts. Natural directional light catching her profile.",
-          fv_dm:          "Cara close front-facing selfie in private room, fitted low-cut ribbed tank, loose wavy hair falling over one shoulder, relaxed unguarded expression.",
-          fv_welcome:     "Cara balcony selfie at sunset, fitted cropped top with unbuttoned neckline, gold cross necklace visible, warm golden hour backlighting.",
-          fv_personality: "Cara in private dressing quarters, low-rise micro shorts and cropped fitted tee tied at the waist. Natural daylight, casual phone reflection.",
-          fv_interact:    "Cara sitting cross-legged on daybed, leaning forward toward the camera, thin-strap ribbed lounge top, warm soft lighting.",
-          fv_wall_post:   "Cara candid photo on lounger by private pool, high-cut two-piece set, lying on side looking back over shoulder toward camera.",
-          fv_announce:    "Cara standing in private quarters, unbuttoned linen shirt draped off one arm, fitted ribbed top beneath. Strong directional side light.",
-          fv_preview:     "Cara at edge of seating area leaning forward on hands, draped loosely in a silk throw over a satin crop set. Warm ambient light.",
+       const FALLBACK_BRIEFS = {
+          fv_tease:       "Cara in private quarters, unbuttoned white silk shirt slipping off both shoulders, low-rise micro shorts, fine-strap crop top. Leaning forward over a reflective surface. Soft window daylight.",
+          fv_ppv:         "Cara seated on edge of daybed, wearing an open silk wrap gown with deep-V neckline, knees drawn up. Warm ambient lighting, candid model pose.",
+          fv_ppv_caption: "Cara reclining on white linen lounge seating, matching satin cami and high-cut silk shorts set. Natural directional daylight.",
+          fv_dm:          "Cara close front-facing selfie in private room, low-cut ribbed tank, loose wavy hair over one shoulder, relaxed unguarded expression.",
+          fv_welcome:     "Cara balcony selfie at sunset, high-cut two-piece resort top and gold cross necklace, warm golden hour backlighting.",
+          fv_personality: "Cara in private dressing quarters, low-rise micro shorts and cropped fitted tee tied high at the waist. Natural daylight, casual phone reflection.",
+          fv_interact:    "Cara sitting cross-legged on daybed, leaning forward toward camera in a delicate thin-strap lounge set, warm soft light.",
+          fv_wall_post:   "Cara candid photo on lounger by private pool, high-cut string-tied two-piece set, lying on side looking back over shoulder.",
+          fv_announce:    "Cara standing in private quarters, unbuttoned linen shirt draped off arms, low-rise shorts. Strong directional side light.",
+          fv_preview:     "Cara at edge of seating area leaning forward, draped loosely in a silk throw over a fine-knit lounge set. Warm ambient light.",
         };
         const baseBrief = post.photo_idea || FALLBACK_BRIEFS[post.post_type] || FALLBACK_BRIEFS["fv_tease"];
 
