@@ -3276,7 +3276,7 @@ async function unschedule(post) {
                   </div>
                 )}
 
-              {/* Actions */}
+             {/* Actions */}
                 <div className="rv-actions" style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                   {/* Post Now (photo) */}
                   <button
@@ -3456,79 +3456,6 @@ async function unschedule(post) {
       </div>
     </>
   )}
-
-                  {/* Post Now as Reel — same image/caption, Make.com renders it as a Reel-style video */}
-                  <button
-                    onClick={() => postNow(post, "reel")}
-                    disabled={!hasUrl || busy}
-                    style={{
-                      flex: 2, minWidth: 150,
-                      padding: "10px 16px", borderRadius: 8,
-                      border: "1px solid #A855F7",
-                      background: hasUrl && !busy ? "rgba(168,85,247,.14)" : "var(--s2)",
-                      color: hasUrl && !busy ? "#C084FC" : "var(--t4)",
-                      fontSize: 13, fontWeight: 700,
-                      cursor: hasUrl && !busy ? "pointer" : "not-allowed",
-                    }}
-                  >
-                    {isPosting ? "Posting…" : "🎬 Post Now as Reel"}
-                  </button>
-
-                  {/* Schedule as Reel */}
-                  {schedulingId === post.id && schedulingFormat === "reel" ? (
-                    <div style={{ flex: 2, minWidth: 220, display: "flex", gap: 6 }}>
-                      <input type="date" value={scheduleDate} onChange={e => setScheduleDate(e.target.value)}
-                        style={{ flex: 1, padding: "8px 10px", borderRadius: 8, border: "1px solid var(--e2)", background: "var(--s2)", color: "var(--t1)", fontSize: 12 }} />
-                      <input type="time" value={scheduleTime} onChange={e => setScheduleTime(e.target.value)}
-                        style={{ flex: 1, padding: "8px 10px", borderRadius: 8, border: "1px solid var(--e2)", background: "var(--s2)", color: "var(--t1)", fontSize: 12 }} />
-                      <button onClick={() => confirmSchedule(post, "reel")} disabled={!scheduleDate || !scheduleTime}
-                        style={{ padding: "8px 12px", borderRadius: 8, border: "none", background: "#A855F7", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>✓</button>
-                      <button onClick={() => setSchedulingId(null)}
-                        style={{ padding: "8px 10px", borderRadius: 8, border: "1px solid var(--e1)", background: "transparent", color: "var(--t4)", fontSize: 12, cursor: "pointer" }}>✕</button>
-                    </div>
-                  ) : !(schedulingId === post.id) && (
-                    <button
-                      onClick={() => { setSchedulingId(post.id); setSchedulingFormat("reel"); setScheduleDate(post.scheduled_date || ""); setScheduleTime(post.scheduled_time || ""); }}
-                      disabled={!hasUrl || busy}
-                      style={{
-                        flex: 2, minWidth: 150,
-                        padding: "10px 16px", borderRadius: 8,
-                        border: "1px solid #A855F7",
-                        background: "transparent",
-                        color: hasUrl && !busy ? "#C084FC" : "var(--t4)",
-                        fontSize: 13, fontWeight: 600,
-                        cursor: hasUrl && !busy ? "pointer" : "not-allowed",
-                      }}
-                    >
-                      🎬 Schedule as Reel
-                    </button>
-                  )}
-
-                 {/* Reject */}
-                  <button
-                    onClick={() => reject(post)}
-                    disabled={busy}
-                    style={{
-                      padding: "10px 14px",
-                      borderRadius: 8,
-                      border: "1px solid var(--e1)",
-                      background: "transparent",
-                      color: "var(--t4)",
-                      fontSize: 13,
-                      cursor: busy ? "not-allowed" : "pointer",
-                    }}
-                  >
-                    ✕
-                  </button>
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </>
-  )}
-
       {activeTab === "scheduled" && (
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {scheduledPosts.length === 0 && (
