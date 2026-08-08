@@ -121,13 +121,14 @@ export function buildPrompt({ imagePrompt, hook, caption, wardrobe, shotAngle, p
 
   // Hard anti-mismatch rules that the model must obey
   const antiMismatch = `
-CRITICAL MATCHING RULES (must follow):
-- The clothes, setting, and action MUST match the scene/caption. 
-- Never put a blazer, tailored office wear, or formal clothes in a gym, training, or running scene.
-- Never put gym clothes in a soft indoor / cosy / evening scene unless the caption says she is training.
-- If the caption describes a walk, river, morning path, kitchen, sofa, candle, plants, or ordinary home moment — show that exact moment. Do not invent a gym or pool.
-- If the caption is about training or a session — show training clothes and a training environment.
-- Prefer the concrete details in the scene text over any generic "editorial" look.`;
+const antiMismatch = `
+CRITICAL MATCHING & LOCATION RULES (must follow):
+- The clothes, setting, and action MUST match the scene/caption.
+- MIRROR SELFIES ARE ONLY ALLOWED INDOORS AT HOME (Bedroom, Bathroom, Dressing Room, Home Gym).
+- ANY PUBLIC, OUTDOOR, SHOPPING, STREET, CAFÉ, OR BEACH SHOT MUST BE A STANDARD SELFIE (ARM'S LENGTH) OR A CANDID PHOTO TAKEN OF HER. NEVER A MIRROR SELFIE IN PUBLIC.
+- IN FANVUE / MODEL MODE: Wardrobe must be high-skin, model-tier — lace lingerie, silk intimates, string bikinis, or trendy low-rise summer fashion.
+- Always show her signature gold cross necklace when chest/neck is visible.
+- Exact face match to reference images — green eyes, freckles, thick natural dark brows. Zero face smoothing.`;
 
   const sceneBlock = scene.length > 20
     ? `SCENE TO DEPICT (this is the primary instruction — follow it closely):\n"${scene.slice(0, 400)}"\n`
@@ -145,7 +146,7 @@ ${antiMismatch}
 
 ${CARA_IDENTITY_LOCK}
 
-TECHNICAL: Real phone photograph. Prefer selfie or mirror selfie framing when the scene allows. Tack-sharp eyes. Photorealistic. 9:16. Lived-in. Mild film grain. Match the reference face exactly.
+TECHNICAL: Real iphone 17 pro max photograph. Prefer selfie or mirror selfie framing when the scene allows. Tack-sharp eyes. Photorealistic. 9:16. Lived-in. Mild film grain. Match the reference face exactly.
 
 DO NOT: ${CARA_NEGATIVE_PROMPT}`;
 }
