@@ -832,7 +832,6 @@ export default async function handler(req, res) {
           fv_announce:    "Cara standing in private quarters, silk layer off shoulder, low-rise linen shorts. Strong directional light.",
           fv_preview:     "Cara at edge of seating area leaning forward, draped in a silk throw. Warm ambient light.",
         };
-        };
         const baseBrief = post.photo_idea || FALLBACK_BRIEFS[post.post_type] || FALLBACK_BRIEFS["fv_tease"];
 
         // Carousel = 4 distinct slides that tell one continuous story
