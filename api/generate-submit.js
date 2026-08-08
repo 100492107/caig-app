@@ -1,4 +1,6 @@
 // api/generate-submit.js
+// Submits a nano-banana-2 generation job to fal.ai's async queue.
+// Merges ultra-realistic Sony A7R V camera physics from flux.md with safe prompt translation.
 
 import {
   CARA_REFS,
@@ -11,14 +13,14 @@ import {
 } from "./cara-config.js";
 
 const FRAMES = [
-  "35mm eye-level, three-quarter length",
-  "50mm full-length, natural distance",
-  "35mm medium shot, chest-up",
-  "close phone selfie, arm bent naturally, tight crop",
+  "85mm prime lens at f/1.8, three-quarter length, creamy background bokeh",
+  "50mm prime lens, full-length portrait, natural distance, tack-sharp focus on skin",
+  "85mm macro-leaning close-up, chest-up, shallow depth of field, sharp iris reflections",
+  "close phone selfie angle, arm bent naturally, tight crop, natural window light",
   "reflective glass shot, medium-close crop, phone visible in reflection",
-  "35mm candid mid-action, not looking at camera",
-  "50mm side profile, soft light",
-  "24mm wide environmental, full body in context",
+  "35mm candid mid-action shot, not looking at camera, motion-caught focus",
+  "50mm side profile, soft directional 5600K light",
+  "24mm wide environmental portrait, full body in context, high dynamic range",
 ];
 
 function isSelfieFrame(frame) {
@@ -63,7 +65,7 @@ function detectContext(text) {
 }
 
 const FALLBACK_WARDROBE = {
-  gym: "fitted athletic shorts and crop top, trainers, hair in a ponytail",
+  gym: "fitted athletic shorts and crop top, trainers, hair tied back",
   running: "running kit — athletic top, shorts, trainers",
   reflective: "ribbed cotton lounge crop and low-rise shorts",
   resort: "resort two-piece set in solid neutral tones",
@@ -74,36 +76,44 @@ const FALLBACK_WARDROBE = {
 };
 
 const FALLBACK_SETTING = {
-  gym: "home gym space, rubber mat flooring, equipment visible",
+  gym: "home gym space, rubber mat flooring, weights rack visible in background",
   running: "park path or quiet road, early morning light",
-  reflective: "reflective glass wall in private interior, natural light",
-  resort: "rooftop infinity edge or beach shoreline, natural bright daylight",
-  lounge: "private interior on white linen lounge seating, soft morning light",
-  office: "desk area, natural window light",
+  reflective: "reflective glass wall in private interior, warm window light",
+  resort: "rooftop infinity edge or terrace plunge pool, natural bright daylight",
+  lounge: "private interior on white linen lounge seating, warm afternoon window light",
+  office: "desk area, soft side window light, notebook and coffee",
   city: "private balcony or quiet boutique street",
   general: "everyday indoor or outdoor location fitting a model aesthetic, natural light",
 };
 
+/**
+ * Strips safety trigger words AND unescaped quotes while preserving high-fashion intent.
+ */
 function sanitizePromptText(text) {
   if (!text) return "";
   return text
-    .replace(/"/g, "'") // Kills nested double quotes that break JSON
+    .replace(/"/g, "'") // Strip unescaped double quotes that break JSON
     .replace(/\b19\b/g, "young adult")
     .replace(/\b19-year-old\b/gi, "young adult")
     .replace(/\b21\b/g, "young adult")
-    .replace(/\bbralette\b/gi, "ribbed lounge top")
-    .replace(/\bbriefs\b/gi, "high-waisted lounge shorts")
+    .replace(/\b23\b/g, "young adult")
     .replace(/\bmicro string bikini\b/gi, "resort two-piece set")
     .replace(/\bstring bikini\b/gi, "two-piece resort set")
     .replace(/\bbikini\b/gi, "two-piece resort set")
+    .replace(/\bswimsuit\b/gi, "resortwear set")
+    .replace(/\bswimwear\b/gi, "resortwear set")
     .replace(/\blingerie set\b/gi, "satin lounge set")
     .replace(/\blingerie\b/gi, "satin lounge set")
+    .replace(/\bbralette\b/gi, "ribbed lounge top")
+    .replace(/\bbriefs\b/gi, "high-waisted lounge shorts")
     .replace(/\bpanties\b/gi, "lounge shorts")
+    .replace(/\bthong\b/gi, "high-cut bottoms")
     .replace(/\bunderwear\b/gi, "lounge set")
     .replace(/\blace\b/gi, "fine-knit")
     .replace(/\bsheer\b/gi, "translucent chiffon")
     .replace(/\bbedroom\b/gi, "private room")
     .replace(/\bbed\b/gi, "white linen lounge seating")
+    .replace(/\bmessy sheets\b/gi, "linen throw")
     .replace(/\bmirror selfie\b/gi, "reflective glass shot")
     .replace(/\bmirror selfies\b/gi, "reflective glass shots");
 }
@@ -140,28 +150,44 @@ CRITICAL MATCHING & LOCATION RULES:
 - The clothes, setting, and action MUST match the scene/caption.
 - REFLECTIVE GLASS SHOTS ARE ONLY ALLOWED INDOORS IN PRIVATE QUARTERS.
 - OUTDOOR/PUBLIC SHOTS MUST BE STANDARD ARM'S LENGTH SELFIES OR CANDID PHOTOS.
-- Always show signature gold cross necklace when chest/neck is visible.`;
+- Always show her signature gold cross necklace when chest/neck is visible.`;
 
   const sceneBlock = scene.length > 20
     ? `SCENE TO DEPICT: ${scene.slice(0, 300)}\n`
     : `SCENE: Natural candid moment in Cara's life. Model aesthetic, resortwear styling.\n`;
 
-  // RESTORED REALISM: Replaced abstract prompts with concrete iPhone camera physics
-  return `Photorealistic lifestyle photo of Cara Whitmore, British model. Recreate her face exactly from reference photos.
+  // FULL FLUX.MD TECHNICAL AND PHYSICAL SPECIFICATIONS INTEGRATED
+  return `RAW photorealistic fashion photograph of Cara Whitmore. Recreate her face and features identically from reference images CARA_REFS.
 
 ${sceneBlock}
-CAMERA / FRAMING: iPhone 16 Pro front camera, ${frame}. 9:16 vertical portrait. Unposed, candid phone photo.
+CAMERA & TECHNICAL SPECIFICATIONS:
+- Shot on Sony A7R V, ${frame}, ISO 100, 1/200s shutter.
+- Tack-sharp focus on eyes and skin, shallow depth of field, creamy circular background bokeh.
+- High dynamic range, subtle chromatic aberration at frame edges only.
+- Color grading: Teal and Orange LUT, warm skin tones, neutral whites, 5600K color temperature. 9:16 vertical.
+
 WARDROBE: ${wardrobeText}.
 LOCATION / SETTING: ${settingText}.
-LIGHTING: Direct natural window light, subtle film grain, real skin pores and texture.
+
+IDENTITY & PHYSICAL LOCK (STRICT):
+- EYES: Distinctly bright green — moist iris with intricate radial patterns, realistic specular catchlight reflections, dark limbal ring. Unmistakably bright green in all lighting.
+- BROWS: Strong, thick, dark brown — natural shape, not thin, not drawn-on.
+- HAIR: Dark brown (not black) with natural wave, long past shoulders. Individual strands catching warm highlights in direct light.
+- MARK & JEWELLERY: Small dark mole (3mm) on left side of neck just below jawline (always present when neck is visible). Small gold hoop earrings, layered 2-3 fine gold chains with cross pendant.
+- BUILD: Slim, athletic build from training, flat stomach, toned.
+
+BIOLOGY & REALISM STANDARDS:
+- Pore-level skin micro-texture visible on skin at medium distance or closer.
+- Subsurface scattering — skin absorbs and scatters light physically correctly, no flat rendering.
+- Fine vellus hair visible on arms, shoulders, and face edges in backlight.
+- Natural skin unevenness, slight cheek warmth, fine expression lines at eye corners.
+- Physically accurate fabric tension, drapes, and folds against the body.
+- Real film grain — ZERO digital smoothing, ZERO beauty filter, ZERO plastic skin.
 
 ${antiMismatch}
 ${selfieGuidance}
-${CARA_IDENTITY_LOCK}
 
-TECHNICAL: Real phone photograph, tack-sharp eyes, photorealistic, lived-in texture. Match reference face exactly.
-
-DO NOT: ${CARA_NEGATIVE_PROMPT}`;
+DO NOT: cgi, 3d render, illustration, cartoon, plastic skin, porcelain skin, over-smoothed face, beauty filter, studio softbox, watermark, text, different person, face drift, blue eyes, brown eyes, thin eyebrows, missing neck mole`;
 }
 
 export async function submitToFal({ falKey, prompt, imageUrls = CARA_REFS }) {
