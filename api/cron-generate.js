@@ -5,7 +5,7 @@
 
 import { createClient } from "@supabase/supabase-js";
 import { buildPrompt } from "./generate-submit.js";
-import { CARA_LORA, FAL_LORA_QUEUE_URL, FAL_LORA_REQUESTS_BASE, CARA_IMAGE_SIZE } from "./cara-config.js";
+import { CARA_REFS, FAL_EDIT_QUEUE_URL, FAL_EDIT_REQUESTS_BASE, CARA_IMAGE_SIZE } from "./cara-config.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL || "https://zvyioxhwdyocaanzcgqf.supabase.co",
@@ -118,7 +118,7 @@ async function submitImage(falKey, post) {
     photoDirection: post.photo_direction,
   });
 
-  const res = await fetch(FAL_LORA_QUEUE_URL, {
+  const res = await fetch(FAL_EDIT_QUEUE_URL, {
     method: "POST",
     headers: {
       Authorization: `Key ${falKey}`,
@@ -126,10 +126,10 @@ async function submitImage(falKey, post) {
     },
     body: JSON.stringify({
       prompt,
-      loras: [CARA_LORA],
+      image_urls: CARA_REFS,
       image_size: CARA_IMAGE_SIZE,
       output_format: "jpeg",
-      enable_safety_checker: true,
+      safety_tolerance: "6",
       num_images: 1,
     }),
   });
@@ -145,14 +145,14 @@ async function pollImage(falKey, requestId, maxMs = 180000) {
   const start = Date.now();
   while (Date.now() - start < maxMs) {
     await new Promise(r => setTimeout(r, 10000));
-    const statusRes = await fetch(`${FAL_LORA_REQUESTS_BASE}/${requestId}/status`, {
+    const statusRes = await fetch(`${FAL_EDIT_REQUESTS_BASE}/${requestId}/status`, {
       headers: { Authorization: `Key ${falKey}` },
     });
     const statusData = await statusRes.json();
     const status = statusData?.status;
 
     if (status === "COMPLETED") {
-      const resultRes = await fetch(`${FAL_LORA_REQUESTS_BASE}/${requestId}`, {
+      const resultRes = await fetch(`${FAL_EDIT_REQUESTS_BASE}/${requestId}`, {
         headers: { Authorization: `Key ${falKey}` },
       });
       const resultData = await resultRes.json();
