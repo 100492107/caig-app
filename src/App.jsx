@@ -3497,15 +3497,18 @@ async function unschedule(post) {
                     </button>
                   )}
 
-                  {/* Reject */}
+                 {/* Reject */}
                   <button
                     onClick={() => reject(post)}
                     disabled={busy}
                     style={{
-                      padding: "10px 14px", borderRadius: 8,
+                      padding: "10px 14px", 
+                      borderRadius: 8,
                       border: "1px solid var(--e1)",
-                      background: "transparent", color: "var(--t4)",
-                      fontSize: 13, cursor: busy ? "not-allowed" : "pointer",
+                      background: "transparent", 
+                      color: "var(--t4)",
+                      fontSize: 13, 
+                      cursor: busy ? "not-allowed" : "pointer",
                     }}
                   >
                     ✕
@@ -3515,9 +3518,9 @@ async function unschedule(post) {
             </div>
           );
         })}
-          </div>
-        </>
-      )}
+      </div>
+    </>
+  )}
 
       {activeTab === "scheduled" && (
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
