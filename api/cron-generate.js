@@ -5,22 +5,12 @@
 
 import { createClient } from "@supabase/supabase-js";
 import { buildPrompt } from "./generate-submit.js";
+import { CARA_LORA, FAL_LORA_QUEUE_URL, FAL_LORA_REQUESTS_BASE, CARA_IMAGE_SIZE } from "./cara-config.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL || "https://zvyioxhwdyocaanzcgqf.supabase.co",
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
-
-const FAL_QUEUE_URL = "https://queue.fal.run/fal-ai/nano-banana-2/edit";
-const FAL_BASE = "https://queue.fal.run/fal-ai/nano-banana-2/requests";
-
-const CARA_REFS = [
-  "https://v3b.fal.media/files/b/0a990cbf/7tn1zr6Tzvw4LP6NfoQJ5_Cara_Whitmore_10.png",
-  "https://v3b.fal.media/files/b/0a990cbf/GZpvO79sLCKUEXmb5OjDZ_Cara_Whitmore_14.png",
-  "https://v3b.fal.media/files/b/0a990cc0/hNz9MH3iKPSpX1SCu7JnC_Cara_Whitmore_16.png",
-  "https://v3b.fal.media/files/b/0a990cc0/aC52Bfy17019kTbWG4L_L_Cara_Whitmore_18.png",
-  "https://v3b.fal.media/files/b/0a990cc0/ne3QfVCW_NQnJZFjSnsST_Cara_Whitmore_23.jpeg",
-];
 
 // ─── Cara config — Fanvue track only ─────────────────────────────────────────
 // Keep this aligned with PERSONA_FILES.cara.fanvue in generate-batch.js.
@@ -128,7 +118,7 @@ async function submitImage(falKey, post) {
     photoDirection: post.photo_direction,
   });
 
-  const res = await fetch(FAL_QUEUE_URL, {
+  const res = await fetch(FAL_LORA_QUEUE_URL, {
     method: "POST",
     headers: {
       Authorization: `Key ${falKey}`,
@@ -136,10 +126,10 @@ async function submitImage(falKey, post) {
     },
     body: JSON.stringify({
       prompt,
-      image_urls: CARA_REFS,
-      image_size: { width: 1080, height: 1920 },
+      loras: [CARA_LORA],
+      image_size: CARA_IMAGE_SIZE,
       output_format: "jpeg",
-      safety_tolerance: "6",
+      enable_safety_checker: true,
       num_images: 1,
     }),
   });
@@ -155,14 +145,14 @@ async function pollImage(falKey, requestId, maxMs = 180000) {
   const start = Date.now();
   while (Date.now() - start < maxMs) {
     await new Promise(r => setTimeout(r, 10000));
-    const statusRes = await fetch(`${FAL_BASE}/${requestId}/status`, {
+    const statusRes = await fetch(`${FAL_LORA_REQUESTS_BASE}/${requestId}/status`, {
       headers: { Authorization: `Key ${falKey}` },
     });
     const statusData = await statusRes.json();
     const status = statusData?.status;
 
     if (status === "COMPLETED") {
-      const resultRes = await fetch(`${FAL_BASE}/${requestId}`, {
+      const resultRes = await fetch(`${FAL_LORA_REQUESTS_BASE}/${requestId}`, {
         headers: { Authorization: `Key ${falKey}` },
       });
       const resultData = await resultRes.json();
