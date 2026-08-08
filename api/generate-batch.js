@@ -793,10 +793,37 @@ export default async function handler(req, res) {
           fv_announce:    "Creator standing against plain wall, open button-down shirt, low-rise jeans. Strong directional light.",
           fv_preview:     "Creator at edge of bed leaning forward, loosely wrapped in satin sheet. Warm candlelight.",
         };
-        const shootBrief = post.photo_idea || FALLBACK_BRIEFS[post.post_type] || FALLBACK_BRIEFS["fv_tease"];
-        const postForImg = { ...post, photo_idea: shootBrief };
-        const imgPrompt = await generateImagePrompt(apiKey, persona, postForImg, i);
-        if (imgPrompt) post.image_prompt = imgPrompt;
+        const baseBrief = post.photo_idea || FALLBACK_BRIEFS[post.post_type] || FALLBACK_BRIEFS["fv_tease"];
+
+        // Carousel = 4 distinct slides that tell one continuous story
+        if (post.format === "carousel") {
+          const slideAngles = [
+            "Opening frame — wide or environmental, establishes the setting and mood of the moment",
+            "Closer — mid-action or mid-expression, the heart of what the caption is about",
+            "Detail or alternate angle — hands, jewellery, a small specific object, or a different viewpoint of the same scene",
+            "Closing frame — softer, more intimate, or looking slightly away; the quiet end of the moment",
+          ];
+          const slides = [];
+          for (let s = 0; s < 4; s++) {
+            const slideBrief = `${baseBrief}. SLIDE ${s + 1} of 4: ${slideAngles[s]}. Keep the same wardrobe, setting and time of day across all slides — only change framing, distance and exact pose so it feels like one continuous moment, not four different outfits.`;
+            const postForImg = { ...post, photo_idea: slideBrief };
+            const imgPrompt = await generateImagePrompt(apiKey, persona, postForImg, i * 10 + s);
+            slides.push({
+              index: s,
+              photo_idea: slideBrief,
+              image_prompt: imgPrompt || null,
+            });
+          }
+          post.slides = slides;
+          // Keep first slide as the primary image_prompt for backward compatibility
+          post.image_prompt = slides[0]?.image_prompt || null;
+          post.photo_idea = slides[0]?.photo_idea || baseBrief;
+        } else {
+          // Single image (reel_photo / static)
+          const postForImg = { ...post, photo_idea: baseBrief };
+          const imgPrompt = await generateImagePrompt(apiKey, persona, postForImg, i);
+          if (imgPrompt) post.image_prompt = imgPrompt;
+        }
       }
 
       const item = { id: `${Date.now()}_${i}`, ts: Date.now(), ...slot, ...post, status: "draft" };
