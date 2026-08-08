@@ -414,6 +414,27 @@ const IMG_SHOTS = [
     lighting: "Low warm lamp light, soft shadow, intimate.",
     camera: "iPhone 16 Pro, mirror selfie, 9:16",
   },
+  {
+    setting: "Private room interior, warm window light, white linen backdrop",
+    pose: "CANDID — leaning forward over the back of a armchair, chin resting on hands, looking directly into lens.",
+    wardrobe: "Unbuttoned white silk shirt over a fitted thin-strap crop top, low-rise shorts, gold cross necklace.",
+    lighting: "Soft warm morning daylight from side window.",
+    camera: "iPhone 16 Pro, 35mm perspective, 9:16 vertical",
+  },
+  {
+    setting: "Private balcony overlooking ocean, golden hour",
+    pose: "CANDID — standing at railing, body turned 45 degrees, looking back over shoulder with a relaxed expression.",
+    wardrobe: "Low-cut ribbed crop top, low-rise denim shorts, layered gold chains.",
+    lighting: "Warm golden hour backlight, rim light on hair and shoulders.",
+    camera: "Sony A7R V, 50mm f/1.8, 9:16 vertical",
+  },
+  {
+    setting: "Rooftop terrace lounge, bright daylight",
+    pose: "RECLINED — lying on side on a daybed lounger, propped up on one elbow, legs slightly bent.",
+    wardrobe: "High-cut two-piece resort set in solid white, sunglasses pushed up on head.",
+    lighting: "Bright direct sunlight, soft shadows.",
+    camera: "iPhone 16 Pro, slightly elevated angle, 9:16 vertical",
+  }
 ];
 
 async function callGemini(apiKey, system, user, maxTokens = 3000) {
