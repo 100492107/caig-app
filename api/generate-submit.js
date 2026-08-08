@@ -1,10 +1,17 @@
 // api/generate-submit.js
-// Submits a flux-lora generation job to fal.ai's async queue, using Cara's
-// trained LoRA weights for identity instead of reference-image editing.
+// Submits a nano-banana-2 generation job to fal.ai's async queue.
 // Caption / photo_idea drives setting + wardrobe + action.
 // Shot library only supplies camera framing when the caption is vague.
+// Identity comes from CARA_REFS (reference-image editing) + the ultra-specific
+// identity lock / negative prompt in cara-config.js — built off approved photos.
 
-import { CARA_LORA, CARA_TRIGGER, FAL_LORA_QUEUE_URL, CARA_IMAGE_SIZE } from "./cara-config.js";
+import {
+  CARA_REFS,
+  FAL_EDIT_QUEUE_URL,
+  CARA_IMAGE_SIZE,
+  CARA_IDENTITY_LOCK,
+  CARA_NEGATIVE_PROMPT,
+} from "./cara-config.js";
 
 // ─── LIGHTWEIGHT SHOT FRAMES (only used when caption is vague) ───────────────
 const FRAMES = [
@@ -126,8 +133,7 @@ CRITICAL MATCHING RULES (must follow):
     ? `SCENE TO DEPICT (this is the primary instruction — follow it closely):\n"${scene.slice(0, 400)}"\n`
     : `SCENE: A natural, candid moment in Cara's real life. Mid-action or quiet, not a posed model shot.\n`;
 
-  // CARA_TRIGGER must appear early — this is what activates the trained LoRA.
-  return `Photorealistic lifestyle photograph of ${CARA_TRIGGER}, 19, British. ${CARA_TRIGGER}'s exact face and identity, matching training data.
+  return `Photorealistic lifestyle photograph of Cara, 19, British. Recreate her exactly from the reference images — same face, same features, same identity.
 
 ${sceneBlock}
 CAMERA / FRAMING: ${frame}. 9:16 vertical. Feels like a real phone photo or candid mirror shot, not a studio production.
@@ -137,15 +143,21 @@ LIGHTING: Natural or available light that fits the moment (morning grey, soft wi
 
 ${antiMismatch}
 
-STYLE: Real phone photograph. Prefer selfie or mirror selfie framing when the scene allows. Tack-sharp eyes. Photorealistic. 9:16. Lived-in. Mild film grain.
+${CARA_IDENTITY_LOCK}
 
-DO NOT: plastic skin, porcelain skin, airbrushed skin, beauty filter, over-smoothed skin, formal blazer in training scenes, gym clothes in soft home scenes unless caption says training, studio softbox lighting, cartoon, CGI, text, watermark, nudity, face drift from ${CARA_TRIGGER}'s trained identity.`;
+TECHNICAL: Real phone photograph. Prefer selfie or mirror selfie framing when the scene allows. Tack-sharp eyes. Photorealistic. 9:16. Lived-in. Mild film grain. Match the reference face exactly.
+
+DO NOT: ${CARA_NEGATIVE_PROMPT}`;
 }
 
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
   const apiKey = process.env.FAL_API_KEY;
   if (!apiKey) return res.status(500).json({ error: "FAL_API_KEY not configured" });
+
+  if (!CARA_REFS.length) {
+    return res.status(500).json({ error: "CARA_REFS is empty — add reference image URLs to cara-config.js" });
+  }
 
   let body;
   try {
@@ -162,15 +174,15 @@ export default async function handler(req, res) {
 
   let qRes, qData;
   try {
-    qRes = await fetch(FAL_LORA_QUEUE_URL, {
+    qRes = await fetch(FAL_EDIT_QUEUE_URL, {
       method: "POST",
       headers: { Authorization: `Key ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         prompt,
-        loras: [CARA_LORA],
+        image_urls: CARA_REFS,
         image_size: CARA_IMAGE_SIZE,
         output_format: "jpeg",
-        enable_safety_checker: true,
+        safety_tolerance: "6",
         num_images: 1,
         seed: seed || undefined,
       }),
