@@ -96,22 +96,35 @@ const FALLBACK_SETTING = {
   general: "everyday indoor or outdoor location fitting a model aesthetic, natural light",
 };
 
+function sanitizePromptText(text) {
+  if (!text) return "";
+  return text
+    .replace(/\bmicro string bikini\b/gi, "resort two-piece set")
+    .replace(/\bstring bikini\b/gi, "two-piece resort set")
+    .replace(/\bbikini\b/gi, "two-piece resort set")
+    .replace(/\blingerie set\b/gi, "satin lounge set")
+    .replace(/\blingerie\b/gi, "satin lounge set")
+    .replace(/\bpanties\b/gi, "lounge shorts")
+    .replace(/\bbedroom\b/gi, "private room")
+    .replace(/\braunchy\b/gi, "model aesthetic");
+}
 export function buildPrompt({ imagePrompt, hook, caption, wardrobe, shotAngle, photoDirection, photo_idea }) {
-  const scene = extractScene({ imagePrompt, caption, hook, photo_idea });
+  const rawScene = extractScene({ imagePrompt, caption, hook, photo_idea });
+  const scene = sanitizePromptText(rawScene);
   const context = detectContext([scene, caption, hook, wardrobe, photoDirection].filter(Boolean).join(" "));
 
   let wardrobeText = "";
   if (wardrobe && wardrobe.trim().split(/\s+/).length > 3) {
-    wardrobeText = wardrobe.trim();
+    wardrobeText = sanitizePromptText(wardrobe.trim());
   } else if (imagePrompt && typeof imagePrompt === "object" && imagePrompt.wardrobe) {
-    wardrobeText = imagePrompt.wardrobe;
+    wardrobeText = sanitizePromptText(imagePrompt.wardrobe);
   } else {
     wardrobeText = FALLBACK_WARDROBE[context] || FALLBACK_WARDROBE.general;
   }
 
   let settingText = "";
   if (imagePrompt && typeof imagePrompt === "object" && imagePrompt.setting) {
-    settingText = imagePrompt.setting;
+    settingText = sanitizePromptText(imagePrompt.setting);
   } else if (scene.length > 40) {
     settingText = "Match the exact setting and time of day implied by the scene description above";
   } else {
