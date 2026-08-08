@@ -65,14 +65,14 @@ function detectContext(text) {
 }
 
 const FALLBACK_WARDROBE = {
-  gym: "fitted athletic shorts and crop top, trainers, hair tied back",
-  running: "running kit — athletic top, shorts, trainers",
-  reflective: "ribbed cotton lounge crop and low-rise shorts",
-  resort: "resort two-piece set in solid neutral tones",
-  lounge: "delicate silk cami and lounge bottoms",
-  office: "simple fitted top, low-rise trousers, gold cross necklace",
-  city: "summer fashion crop top, low-rise linen shorts, gold jewellery",
-  general: "trendy summer resortwear fashion or ribbed cotton set",
+  gym: "fitted athletic crop top and low-rise athletic shorts, trainers, ponytail",
+  running: "cropped running top and micro athletic shorts, trainers",
+  reflective: "unbuttoned silk shirt over a low-cut ribbed crop top, low-rise shorts",
+  resort: "high-cut two-piece resort set with thin side ties",
+  lounge: "delicate thin-strap silk cami and high-cut lounge shorts",
+  office: "deep-V fitted top, low-rise trousers, gold cross necklace",
+  city: "cropped tie-front summer top, low-rise denim shorts, gold jewellery",
+  general: "unbuttoned linen shirt over a low-cut satin crop, low-rise micro shorts",
 };
 
 const FALLBACK_SETTING = {
@@ -92,30 +92,15 @@ const FALLBACK_SETTING = {
 function sanitizePromptText(text) {
   if (!text) return "";
   return text
-    .replace(/"/g, "'") // Strip unescaped double quotes that break JSON
-    .replace(/\b19\b/g, "young adult")
-    .replace(/\b19-year-old\b/gi, "young adult")
-    .replace(/\b21\b/g, "young adult")
-    .replace(/\b23\b/g, "young adult")
-    .replace(/\bmicro string bikini\b/gi, "resort two-piece set")
-    .replace(/\bstring bikini\b/gi, "two-piece resort set")
-    .replace(/\bbikini\b/gi, "two-piece resort set")
-    .replace(/\bswimsuit\b/gi, "resortwear set")
-    .replace(/\bswimwear\b/gi, "resortwear set")
-    .replace(/\blingerie set\b/gi, "satin lounge set")
-    .replace(/\blingerie\b/gi, "satin lounge set")
-    .replace(/\bbralette\b/gi, "ribbed lounge top")
-    .replace(/\bbriefs\b/gi, "high-waisted lounge shorts")
-    .replace(/\bpanties\b/gi, "lounge shorts")
-    .replace(/\bthong\b/gi, "high-cut bottoms")
-    .replace(/\bunderwear\b/gi, "lounge set")
-    .replace(/\blace\b/gi, "fine-knit")
-    .replace(/\bsheer\b/gi, "translucent chiffon")
-    .replace(/\bbedroom\b/gi, "private room")
-    .replace(/\bbed\b/gi, "white linen lounge seating")
-    .replace(/\bmessy sheets\b/gi, "linen throw")
-    .replace(/\bmirror selfie\b/gi, "reflective glass shot")
-    .replace(/\bmirror selfies\b/gi, "reflective glass shots");
+    .replace(/"/g, "'") // Strip unescaped double quotes
+    .replace(/\b(19|19-year-old|21|23)\b/gi, "young adult")
+    // Banned keywords → safe high-exposure alternatives
+    .replace(/\b(micro string bikini|string bikini|micro bikini|bikini|swimsuit|swimwear|bathing suit)\b/gi, "high-cut two-piece resort set")
+    .replace(/\b(lingerie set|lingerie|underwear|bra|bralette|briefs|panties|thong|bustier|corset)\b/gi, "satin lounge set")
+    .replace(/\b(sheer|lace)\b/gi, "fine-knit chiffon")
+    .replace(/\b(cleavage|bare skin|naked|nude|exposed skin)\b/gi, "sun-kissed collarbone and midriff")
+    .replace(/\b(bedroom|bed|messy sheets)\b/gi, "private room lounge")
+    .replace(/\b(mirror selfie|mirror selfies)\b/gi, "reflective glass shot");
 }
 
 export function buildPrompt({ imagePrompt, hook, caption, wardrobe, shotAngle, photoDirection, photo_idea }) {
