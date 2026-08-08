@@ -505,15 +505,20 @@ Cara's register is: direct, a little blunt, occasionally sharp, warm underneath,
 She is not a brand account. She is not thirsty for likes. She posts because the result is real and she's not going to pretend otherwise.
 
 === WHAT MAKES A CARA POST ===
-- One specific true thing (a number, a standard, a moment from training or work, or just something small and funny) — not a vague gesture at "mindset"
-- A voice that is recognisably hers — direct, self-aware, grounded, occasionally sharp, sometimes just funny
-- Faith and discipline show up as facts of how she lives, not topics she's addressing
-- Short. 3-5 sentences maximum. No wasted words.
-- Lowercase mostly, one capitalised word maximum for real emphasis. No exclamation-mark hype. Max 1 emoji, only if it replaces a word.
-- Ends open, or on the proof itself — never a hard sell
+- One specific true thing (a number, a standard, a moment, or something small and funny). Not a vague gesture at "mindset".
+- A voice that is recognisably hers: direct, self-aware, grounded, occasionally sharp, sometimes just funny.
+- SHORT. 1 to 3 short sentences. Under 280 characters total for the whole caption. This is not a blog post. People scroll for the photo and the feeling, not a paragraph.
+- Lowercase mostly. One capitalised word max for real emphasis. No exclamation-mark hype. Max 1 emoji, only if it replaces a word.
+- Ends open or on the proof itself. Never a hard sell.
+
+=== HARD BANS (never break these) ===
+- NO em dashes (—) anywhere. Use a full stop or a comma instead.
+- NO hashtags inside the caption text. Hashtags go only in the separate hashtags field, and even there keep them minimal or empty.
+- NO spelling mistakes. British English. Proofread before you output.
+- NO long reflective paragraphs. If it looks like a journal entry, cut it.
 
 === WHAT'S IN THE SHOOT ===
-Training, discipline, and the life that comes from both — home gym, her own space, real moments of the work. Confident and tasteful. This is proof-of-standard content, the kind anyone building something real actually posts.
+Real phone moments: mirror selfies, close selfies, mid-action candid, home gym, her own space. Prefer genuine selfies and lived-in frames over polished editorial. Confident and tasteful. Proof of a life being lived, not a photoshoot.
 
 === WHAT TO NEVER DO ===
 - "link in bio for more", "exclusive content", "don't miss this"
@@ -521,16 +526,27 @@ Training, discipline, and the life that comes from both — home gym, her own sp
 - Exclamation marks for hype, or stacked emoji
 - Starting with "hey guys", "so", "I just", "I've been"
 - Ending with a hard CTA ("follow for more", "go check it out")
-- Repeating the same structure OR the same mood as the last post — vary the opening, the angle, the emotional register, the ending` : `=== WHAT MAKES A CARA POST ===
+- Em dashes
+- Hashtags in the caption body
+- Captions longer than 3 short sentences
+- Repeating the same structure OR the same mood as the last post` : `=== WHAT MAKES A CARA POST ===
 A post that opens with "I find that..." or "what I've noticed is..." or any abstract statement before a concrete scene is wrong. Rewrite it until something actually happens in the first line.
 
-She is not a static portrait or a mood board. She is mid-decision, mid-walk, mid-conversation. The caption should feel like it caught her doing something — and it should sound like a specific, funny, occasionally sentimental 19-year-old wrote it, not a composed brand voice.
+She is not a static portrait or a mood board. She is mid-decision, mid-walk, mid-conversation, or taking a quick selfie. The caption should feel like it caught her doing something, and it should sound like a specific, funny, occasionally sentimental 19-year-old wrote it, not a composed brand voice.
+
+LENGTH RULE: 1 to 3 short sentences. Under 280 characters for the whole caption. Not a blog. Not a diary entry. Short enough that someone reads it while looking at the photo.
+
+HARD BANS:
+- NO em dashes (—). Use a full stop or comma.
+- NO hashtags in the caption body.
+- NO spelling mistakes. British English.
+- NO long reflective writing.
 
 NICHE LOCK: rooted in ${persona.niche}. Faith shows through as a fact of how she lives, not a topic she's addressing.
 
-SHE NEVER SELLS. No pitching, no CTA toward a product, no "link in bio", nothing that could read as promotional. Lifestyle and aesthetic only — the moment she pitches, the proof dies. Being funny, sentimental, or unguarded does not break this rule.
+SHE NEVER SELLS. No pitching, no CTA toward a product, no "link in bio", nothing that could read as promotional. Lifestyle and aesthetic only.
 
-WHAT TO NEVER DO: open with "I find that", "what I've noticed", "there's something about", or any sentence that could be the opening of an essay rather than a moment. No vague gratitude. No "blessed". No unearned wisdom before the scene that justifies it. No selling. No sounding composed and polished in exactly the same way as the last post.`}
+WHAT TO NEVER DO: open with "I find that", "what I've noticed", "there's something about". No vague gratitude. No "blessed". No unearned wisdom. No selling. No em dashes. No hashtags in caption. No blog-length captions.`}
 
 FORMAT: Return ONLY a raw JSON object. No markdown fences. No explanation.`;
 
@@ -559,12 +575,12 @@ ${usedHooks.length > 0 ? `THESE OPENINGS ARE ALREADY USED — do not echo them:\
 
 Return ONLY this JSON (no code fences):
 {
-  "hook": "the opening line only — under 12 words — written in Cara's voice, not a headline",
-  "caption": "the complete post text, ready to paste. lowercase. 3-5 sentences. no hard sell at the end.",
-  "hashtags": "${fanvueMode ? "6-10 relevant hashtags as a single string" : "10-15 hashtags as a single string"}",
+  "hook": "the opening line only. under 10 words. Cara's voice, not a headline. no em dash.",
+  "caption": "1 to 3 short sentences. under 280 characters total. lowercase. no em dashes. no hashtags. no hard sell. british english, no spelling mistakes.",
+  "hashtags": "",
   "photo_direction": "portrait 9:16",
-  "photo_idea": "Concrete scene brief the image generator will follow exactly. Must include: (1) exact setting + time of day, (2) what Cara is physically doing right now, (3) wardrobe in plain fabric terms, (4) lighting + camera distance. 3-4 sentences. Write it as a real moment being caught on a phone, not a studio direction. No body-part close-ups, no 'beautiful', no 'cinematic'. Example: 'Early grey morning on the path by the river. Mid-walk, looking ahead, coat on, hair slightly damp. Soft overcast light, phone at chest height, three-quarter frame.'",
-  "cta": "a soft, natural call to action — one line, not a command",
+  "photo_idea": "Concrete phone-photo brief. Prefer selfie or mirror selfie when it fits. Must include: (1) exact setting + time of day, (2) what Cara is doing, (3) wardrobe in plain fabric terms, (4) lighting + whether it is a selfie, mirror selfie, or candid. 2-3 sentences. Real moment on a phone, not studio. Example: 'Morning mirror selfie in the bathroom. Oversized grey knit, hair down, soft window light. Phone at arm length, direct gaze.'",
+  "cta": "",
   "post_type": "${contentType.type}",
   "content_label": "${postTypeLabel}",
   "trend_hook": "${trends ? "one word" : "null"}"
@@ -600,9 +616,9 @@ async function generateImagePrompt(apiKey, persona, post, postIndex) {
     wardrobe: shot.wardrobe,
     setting: captionScene.length > 40 ? "Match the setting and light implied by the caption scene above" : shot.setting,
     lighting: captionScene.length > 40 ? "Natural light that fits the moment — morning grey, soft window, gym overhead, golden hour. Never studio softboxes." : shot.lighting,
-    technical: `${shot.camera || "iPhone 16 Pro"}, 9:16 vertical portrait, photorealistic, natural skin texture and pores, light freckles visible, realistic hair, mild film grain, zero plastic skin, zero AI artifacts. Feels like a real phone photo.`,
-    style_ref: "Authentic lifestyle Instagram aesthetic from real 19-year-old creators with organic followings. Candid, in-motion, lived-in moments — never a studio photoshoot, never glamour or boudoir, never a posed model casting. Caught living her life, not performing. Natural light, slight imperfections, real skin texture, light freckles.",
-    negative_prompt: "frontal headshot unless natural, posed studio portrait, model casting pose, plastic skin, over-smoothed skin, face drift, wrong eye colour, missing freckles, missing gold jewellery, watermark, text, cartoon, CGI, perfect symmetry, beauty-filter look, 28-year-old life-coach energy",
+    technical: `${shot.camera || "iPhone 16 Pro"}, 9:16 vertical portrait, photorealistic phone photo. Visible pores, light freckles, natural skin texture, slight unevenness, mild film grain. Zero plastic skin, zero beauty filter, zero airbrush, zero AI smooth. Feels like a real selfie or candid from a phone.`,
+    style_ref: "Real phone selfie / candid lifestyle from actual 19-year-old Instagram creators. Prefer mirror selfies and close selfies. Lived-in, slightly imperfect, natural light. Never studio, never glamour, never beauty-filter skin, never plastic or porcelain skin.",
+    negative_prompt: "plastic skin, porcelain skin, airbrushed skin, beauty filter, over-smoothed skin, flawless skin, wax skin, CGI skin, studio softbox, posed model casting, missing freckles, missing gold cross or coin pendant, face drift, wrong eye colour, watermark, text, cartoon, 28-year-old life-coach energy",
   };
 }
 
@@ -772,6 +788,25 @@ export default async function handler(req, res) {
 
       if (post.hook) usedHooks.push(post.hook);
       if (!studioMode) post.format = pickFormat();
+
+      // Clean caption: kill em dashes, strip hashtags from body, trim length
+      if (!studioMode && post.caption) {
+        post.caption = post.caption
+          .replace(/\u2014/g, ".")          // em dash → full stop
+          .replace(/\u2013/g, ",")          // en dash → comma
+          .replace(/--+/g, ".")            // double hyphen leftovers
+          .replace(/#[\w]+/g, "")          // strip hashtags from caption body
+          .replace(/[ \t]{2,}/g, " ")
+          .replace(/\n{3,}/g, "\n\n")
+          .trim();
+        // Hard length guard — keep it scroll-friendly
+        if (post.caption.length > 320) {
+          const cut = post.caption.slice(0, 300);
+          const lastStop = Math.max(cut.lastIndexOf("."), cut.lastIndexOf("!"), cut.lastIndexOf("?"));
+          post.caption = (lastStop > 80 ? cut.slice(0, lastStop + 1) : cut).trim();
+        }
+        post.hashtags = ""; // force empty — hashtags hurt reach and look spammy
+      }
 
       // Required disclosure — always appended server-side so it can't be dropped
       // by the model. Applies to Cara specifically, per the blueprint's B1 rule.
