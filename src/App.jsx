@@ -3276,7 +3276,7 @@ async function unschedule(post) {
                   </div>
                 )}
 
-                {/* Actions */}
+              {/* Actions */}
                 <div className="rv-actions" style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                   {/* Post Now (photo) */}
                   <button
@@ -3360,29 +3360,19 @@ async function unschedule(post) {
                   )}
 
                   {/* Reject */}
-<button
-  onClick={() => reject(post)}
-  disabled={busy}
-  style={{
-    padding: "10px 14px",
-    borderRadius: 8,
-    border: "1px solid var(--e1)",
-    background: "transparent",
-    color: "var(--t4)",
-    fontSize: 13,
-    cursor: busy ? "not-allowed" : "pointer",
-  }}
->
-  ✕
-</button>
-</div> {/* Closes .rv-actions */}
-</div> {/* Closes .rv-content */}
-</div> {/* Closes main post card container */}
-);
-})}
-</div> {/* Closes posts column container */}
-</>
-)}
+                  <button
+                    onClick={() => reject(post)}
+                    disabled={busy}
+                    style={{
+                      padding: "10px 14px", borderRadius: 8,
+                      border: "1px solid var(--e1)",
+                      background: "transparent", color: "var(--t4)",
+                      fontSize: 13, cursor: busy ? "not-allowed" : "pointer",
+                    }}
+                  >
+                    ✕
+                  </button>
+                </div>
 
                 {/* Schedule confirm row — photo */}
                 {schedulingId === post.id && schedulingFormat === "photo" && (
@@ -3459,6 +3449,13 @@ async function unschedule(post) {
                     </button>
                   </div>
                 )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </>
+  )}
 
                   {/* Post Now as Reel — same image/caption, Make.com renders it as a Reel-style video */}
                   <button
