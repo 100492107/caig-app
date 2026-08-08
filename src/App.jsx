@@ -3527,8 +3527,7 @@ async function unschedule(post) {
         })}
       </div>
     </>
-  ); // <--- Verify if you have an extra or missing bracket/parenthesis here
-}
+  )}
 
       {activeTab === "scheduled" && (
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
