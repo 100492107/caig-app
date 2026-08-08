@@ -599,7 +599,7 @@ async function generateImagePrompt(apiKey, persona, post, postIndex) {
     ? `PHYSICAL DESCRIPTORS (from flux.md — these are locked and must not drift):\n${personaFiles.flux.split("## SECTION 2")[0].replace(/^# flux\.md.*\n/, "").trim()}`
     : "";
 
-  const identityLock = `IDENTITY LOCK — HIGHEST PRIORITY: This is Cara Whitmore, 19. Use reference_image_1.png as the face source. Composite that exact face — bright green eyes, light freckles across nose and cheeks, dark brown wavy hair, same nose/lip/jaw shape, gold jewellery (layered chains + cross + coin pendant) — onto the body in this scene. Zero facial drift. Photorealistic. Seamless neck and jawline blend.${fluxNote ? " " + fluxNote : ""}`;
+  const identityLock = `IDENTITY LOCK — HIGHEST PRIORITY: This is Cara, 19, generated via her trained LoRA (identity comes from the LoRA weights, not a reference photo). Keep bright green eyes, light freckles across nose and cheeks, dark brown wavy hair, gold jewellery (layered chains + cross + coin pendant) consistent with her trained likeness. Zero facial drift from her trained identity. Photorealistic.${fluxNote ? " " + fluxNote : ""}`;
 
   const sceneDriven = captionScene.length > 40
     ? `Cara Whitmore (19) in the exact moment described here: "${captionScene.slice(0, 280)}". She is mid-action or mid-moment, not posing for a camera. Natural, lived-in, 19-year-old energy — funny, present, real.`
