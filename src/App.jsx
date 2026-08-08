@@ -3502,12 +3502,12 @@ async function unschedule(post) {
                     onClick={() => reject(post)}
                     disabled={busy}
                     style={{
-                      padding: "10px 14px", 
+                      padding: "10px 14px",
                       borderRadius: 8,
                       border: "1px solid var(--e1)",
-                      background: "transparent", 
+                      background: "transparent",
                       color: "var(--t4)",
-                      fontSize: 13, 
+                      fontSize: 13,
                       cursor: busy ? "not-allowed" : "pointer",
                     }}
                   >
@@ -3520,7 +3520,8 @@ async function unschedule(post) {
         })}
       </div>
     </>
-  )}
+  ); // <--- Verify if you have an extra or missing bracket/parenthesis here
+}
 
       {activeTab === "scheduled" && (
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
