@@ -11,8 +11,8 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-const FAL_QUEUE_URL  = "https://queue.fal.run/fal-ai/nano-banana-2/edit";
-const FAL_BASE       = "https://queue.fal.run/fal-ai/nano-banana-2/requests";
+const FAL_QUEUE_URL = "https://queue.fal.run/fal-ai/nano-banana-2/edit";
+const FAL_BASE = "https://queue.fal.run/fal-ai/nano-banana-2/requests";
 
 const CARA_REFS = [
   "https://v3b.fal.media/files/b/0a990cbf/7tn1zr6Tzvw4LP6NfoQJ5_Cara_Whitmore_10.png",
@@ -22,14 +22,18 @@ const CARA_REFS = [
   "https://v3b.fal.media/files/b/0a990cc0/ne3QfVCW_NQnJZFjSnsST_Cara_Whitmore_23.jpeg",
 ];
 
-// ─── Cara config — Fanvue only ────────────────────────────────────────────────
-
+// ─── Cara config — Fanvue track only ─────────────────────────────────────────
+// Keep this aligned with PERSONA_FILES.cara.fanvue in generate-batch.js.
+// This is only a lightweight fallback summary — generate-batch.js loads the
+// full persona by persona.id === "cara" and uses that instead, so this object
+// rarely drives the actual system prompt. Keep the age and tone in sync anyway.
 const CARA_PERSONA = {
   id: "cara",
   name: "Cara Whitmore",
-  niche: "Mindset · Money · Elite Success",
-  char: "Didn't come from money — built it through discipline, standards, and refusing to stay average. Trains most days, treats her body and her business the same way: with rules she doesn't negotiate on. Faith sits quietly underneath the discipline. Built her income deliberately and understands leverage and attention better than she lets on. Never explains the mechanics — just is what the mechanics produced.",
-  voice: "Direct, a little blunt, occasionally sharp — never cruel. Confidence, not arrogance. Talks TO people, not at them. Proof over promises. British. 23. Tough-love, not hustle-bro shouting.",
+  niche: "Mindset · Money · Discipline · Proof",
+  // Lightweight summary — full Fanvue persona + voice lives in generate-batch.js
+  char: "19. British. Didn't come from money — built everything through discipline, standards, and a refusal to stay average. Trains most days because discipline in one area bleeds into every other area. Faith sits quietly underneath. Genuinely funny in a dry, deadpan way — talks trash to herself in the gym mirror, competitive over things that don't matter, treats a cheat meal like a main character moment. Understands leverage and attention better than she lets on. Never explains the mechanics — just is what the mechanics produced.",
+  voice: "Direct, a little blunt, occasionally sharp — never cruel. Confidence, not arrogance. Talks TO people, not at them. Proof over promises. British. 19. Tough-love, not hustle-bro shouting. Short sentences. One capitalised word maximum for real emphasis. Has real range — funny and blunt one day, quietly proud the next, tired-but-honest another — never the same mood twice in a row.",
 };
 
 const FANVUE_PLATFORM = {
@@ -38,11 +42,11 @@ const FANVUE_PLATFORM = {
   times: ["10:00", "20:00"],
   purpose: "Private subscription page — posts to paying subscribers who already know Cara. She built this deliberately. She knows why people stay and why they subscribe. The content reflects that understanding without stating it.",
   contentMix: [
-    { type: "fv_ppv_caption", label: "photo set post",  weight: 3 },
-    { type: "fv_wall_post",   label: "personal post",   weight: 3 },
+    { type: "fv_ppv_caption", label: "photo set post", weight: 3 },
+    { type: "fv_wall_post",   label: "personal post", weight: 3 },
     { type: "fv_personality", label: "personality post", weight: 2 },
     { type: "fv_interact",    label: "interaction post", weight: 1 },
-    { type: "fv_tease",       label: "tease post",       weight: 1 },
+    { type: "fv_tease",       label: "tease post", weight: 1 },
   ],
 };
 
@@ -62,12 +66,10 @@ const CARA_PILLARS = [
   "The gap between what people assume about her life and what actually built it",
   "A standard she refuses to lower even when it would be easier to",
   "Something about momentum — how one good decision makes the next one easier",
+  "Something small, stupid, and completely unrelated to discipline that happened today",
 ];
 
-
-const POSTS_PER_DAY = 1; // one post every 2 days — cron only runs on even UTC days
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+const POSTS_PER_DAY = 1;
 
 function todayString() {
   return new Date().toISOString().split("T")[0];
@@ -79,16 +81,15 @@ function randomPillar() {
 
 function buildSlots() {
   return [{
-    personaId:     CARA_PERSONA.id,
-    platformId:    FANVUE_PLATFORM.id,
-    pillar:        randomPillar(),
+    personaId: CARA_PERSONA.id,
+    platformId: FANVUE_PLATFORM.id,
+    pillar: randomPillar(),
     scheduledDate: todayString(),
     scheduledTime: "19:00",
-    index:         0,
+    index: 0,
   }];
 }
 
-// Consume NDJSON stream from generate-batch, return post objects
 async function consumeBatchStream(response) {
   const posts = [];
   const reader = response.body.getReader();
@@ -102,49 +103,58 @@ async function consumeBatchStream(response) {
     buffer = lines.pop();
     for (const line of lines) {
       if (!line.trim()) continue;
-      try { const obj = JSON.parse(line); if (obj.post) posts.push(obj.post); } catch (_) {}
+      try {
+        const obj = JSON.parse(line);
+        if (obj.post) posts.push(obj.post);
+      } catch (_) {}
     }
   }
   if (buffer.trim()) {
-    try { const obj = JSON.parse(buffer); if (obj.post) posts.push(obj.post); } catch (_) {}
+    try {
+      const obj = JSON.parse(buffer);
+      if (obj.post) posts.push(obj.post);
+    } catch (_) {}
   }
   return posts;
 }
 
-// Submit image job to fal.ai, return requestId
 async function submitImage(falKey, post) {
   const prompt = buildPrompt({
-    imagePrompt:    post.image_prompt,
-    hook:           post.hook,
-    caption:        post.caption,
-    wardrobe:       post.wardrobe,
-    shotAngle:      post.shot_angle,
+    imagePrompt: post.image_prompt,
+    hook: post.hook,
+    caption: post.caption,
+    wardrobe: post.wardrobe,
+    shotAngle: post.shot_angle,
     photoDirection: post.photo_direction,
   });
 
   const res = await fetch(FAL_QUEUE_URL, {
     method: "POST",
-    headers: { Authorization: `Key ${falKey}`, "Content-Type": "application/json" },
+    headers: {
+      Authorization: `Key ${falKey}`,
+      "Content-Type": "application/json",
+    },
     body: JSON.stringify({
       prompt,
-      image_urls:     CARA_REFS,
-      image_size:     { width: 1080, height: 1920 },
-      output_format:  "jpeg",
+      image_urls: CARA_REFS,
+      image_size: { width: 1080, height: 1920 },
+      output_format: "jpeg",
       safety_tolerance: "6",
-      num_images:     1,
+      num_images: 1,
     }),
   });
+
   const data = await res.json();
-  if (!res.ok || !data.request_id) throw new Error(`fal.ai submit failed: ${JSON.stringify(data)}`);
+  if (!res.ok || !data.request_id) {
+    throw new Error(`fal.ai submit failed: ${JSON.stringify(data)}`);
+  }
   return data.request_id;
 }
 
-// Poll fal.ai until COMPLETED or FAILED — max 3 minutes, 10s intervals
 async function pollImage(falKey, requestId, maxMs = 180000) {
   const start = Date.now();
   while (Date.now() - start < maxMs) {
-    await new Promise(r => setTimeout(r, 10000)); // wait 10s between polls
-
+    await new Promise(r => setTimeout(r, 10000));
     const statusRes = await fetch(`${FAL_BASE}/${requestId}/status`, {
       headers: { Authorization: `Key ${falKey}` },
     });
@@ -160,16 +170,12 @@ async function pollImage(falKey, requestId, maxMs = 180000) {
       if (!url) throw new Error("fal.ai completed but no image URL in result");
       return url;
     }
-
     if (status === "FAILED" || status === "NOT_FOUND") {
       throw new Error(`fal.ai job ${status}`);
     }
-    // IN_QUEUE or IN_PROGRESS — keep polling
   }
   throw new Error("fal.ai image generation timed out after 3 minutes");
 }
-
-// ─── Handler ──────────────────────────────────────────────────────────────────
 
 export default async function handler(req, res) {
   if (req.headers.authorization !== `Bearer ${process.env.CRON_SECRET}`) {
@@ -184,7 +190,6 @@ export default async function handler(req, res) {
 
   const today = todayString();
 
-  // Duplicate guard — skip if already generated today
   const { data: existing } = await supabase
     .from("content_queue")
     .select("id")
@@ -195,12 +200,15 @@ export default async function handler(req, res) {
     .limit(1);
 
   if (existing?.length > 0) {
-    return res.status(200).json({ skipped: true, reason: "Already generated for today", date: today });
+    return res.status(200).json({
+      skipped: true,
+      reason: "Already generated for today",
+      date: today,
+    });
   }
 
   const slots = buildSlots();
 
-  // ── Step 1: Generate copy ──────────────────────────────────────────────────
   let posts = [];
   try {
     const genRes = await fetch(`${baseUrl}/api/generate-batch`, {
@@ -208,16 +216,18 @@ export default async function handler(req, res) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         slots,
-        personas:   [CARA_PERSONA],
-        platforms:  [FANVUE_PLATFORM],
+        personas: [CARA_PERSONA],
+        platforms: [FANVUE_PLATFORM],
         fanvueMode: true,
-        ideaSeed:   "",
+        ideaSeed: "",
       }),
     });
+
     if (!genRes.ok) {
       const err = await genRes.text();
       return res.status(500).json({ error: `generate-batch failed: ${err}` });
     }
+
     posts = await consumeBatchStream(genRes);
   } catch (e) {
     return res.status(500).json({ error: `Copy generation error: ${e.message}` });
@@ -227,7 +237,6 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: "No posts returned from generate-batch" });
   }
 
-  // ── Step 2: Generate image for each post, then save ───────────────────────
   const results = [];
 
   for (let i = 0; i < posts.length; i++) {
@@ -237,34 +246,33 @@ export default async function handler(req, res) {
 
     try {
       const requestId = await submitImage(falKey, post);
-      imageUrl = await pollImage(falKey, requestId, 150000); // 150s max per image
+      imageUrl = await pollImage(falKey, requestId, 150000);
     } catch (imgErr) {
-      // Image failed — still save the post, just without an image
       console.error(`[cron-generate] image failed for post ${i}:`, imgErr.message);
     }
 
     const row = {
-      id:              post.id || `cron_${Date.now()}_${i}`,
-      persona_id:      "cara",
-      persona_name:    "Cara Whitmore",
-      platform:        "fv_page",
-      pillar:          post.pillar || slot.pillar,
-      hook:            post.hook || "",
-      caption:         post.caption || "",
-      hashtags:        post.hashtags || "",
-      cta:             post.cta || null,
+      id: post.id || `cron_${Date.now()}_${i}`,
+      persona_id: "cara",
+      persona_name: "Cara Whitmore",
+      platform: "fv_page",
+      pillar: post.pillar || slot.pillar,
+      hook: post.hook || "",
+      caption: post.caption || "",
+      hashtags: post.hashtags || "",
+      cta: post.cta || null,
       photo_direction: post.photo_direction || null,
-      photo_idea:      post.photo_idea || null,
-      post_type:       post.post_type || null,
-      content_label:   post.content_label || null,
-      trend_hook:      post.trend_hook || null,
-      shot_angle:      post.shot_angle || null,
-      wardrobe:        post.wardrobe || null,
-      image_prompt:    post.image_prompt ? JSON.stringify(post.image_prompt) : null,
-      image_url:       imageUrl,
-      scheduled_date:  slot.scheduledDate,
-      scheduled_time:  slot.scheduledTime,
-      status:          "scheduled",
+      photo_idea: post.photo_idea || null,
+      post_type: post.post_type || null,
+      content_label: post.content_label || null,
+      trend_hook: post.trend_hook || null,
+      shot_angle: post.shot_angle || null,
+      wardrobe: post.wardrobe || null,
+      image_prompt: post.image_prompt ? JSON.stringify(post.image_prompt) : null,
+      image_url: imageUrl,
+      scheduled_date: slot.scheduledDate,
+      scheduled_time: slot.scheduledTime,
+      status: "scheduled",
     };
 
     const { error: insertError } = await supabase
@@ -272,17 +280,17 @@ export default async function handler(req, res) {
       .upsert(row, { onConflict: "id" });
 
     results.push({
-      index:      i,
-      post_type:  row.post_type,
-      time:       slot.scheduledTime,
-      has_image:  !!imageUrl,
-      saved:      !insertError,
-      error:      insertError?.message || null,
+      index: i,
+      post_type: row.post_type,
+      time: slot.scheduledTime,
+      has_image: !!imageUrl,
+      saved: !insertError,
+      error: insertError?.message || null,
     });
   }
 
   return res.status(200).json({
-    date:      today,
+    date: today,
     generated: posts.length,
     results,
   });
