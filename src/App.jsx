@@ -3360,19 +3360,29 @@ async function unschedule(post) {
                   )}
 
                   {/* Reject */}
-                  <button
-                    onClick={() => reject(post)}
-                    disabled={busy}
-                    style={{
-                      padding: "10px 14px", borderRadius: 8,
-                      border: "1px solid var(--e1)",
-                      background: "transparent", color: "var(--t4)",
-                      fontSize: 13, cursor: busy ? "not-allowed" : "pointer",
-                    }}
-                  >
-                    ✕
-                  </button>
-                </div>
+<button
+  onClick={() => reject(post)}
+  disabled={busy}
+  style={{
+    padding: "10px 14px",
+    borderRadius: 8,
+    border: "1px solid var(--e1)",
+    background: "transparent",
+    color: "var(--t4)",
+    fontSize: 13,
+    cursor: busy ? "not-allowed" : "pointer",
+  }}
+>
+  ✕
+</button>
+</div> {/* Closes .rv-actions */}
+</div> {/* Closes .rv-content */}
+</div> {/* Closes main post card container */}
+);
+})}
+</div> {/* Closes posts column container */}
+</>
+)}
 
                 {/* Schedule confirm row — photo */}
                 {schedulingId === post.id && schedulingFormat === "photo" && (
