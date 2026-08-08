@@ -59,7 +59,7 @@ BUILD: Slim, toned, natural athletic build.
 
 CRITICAL: Facial structure, eye color, freckle pattern, and skin/makeup finish must match the reference images exactly. Zero facial drift between generations — this must look like the same real person in every image, not a family resemblance.`;
 
-export const CARA_NEGATIVE_PROMPT = `plastic skin, porcelain skin, over-smoothed skin, wax skin, CGI skin, doll-like face, generic AI face, face drift, wrong eye colour, blue eyes, brown eyes, straight hair, black hair, blonde hair, missing freckles, missing gold jewellery, missing cross pendant, thin eyebrows, drawn-on eyebrows, studio softbox lighting, over-lit, glossy magazine finish, symmetrical posed model casting, cartoon, CGI, 3D render, illustration, text, watermark, logo, nudity, disfigured, blurry face, low resolution face, different person, inconsistent identity between shots, extra fingers, fused fingers, missing fingers, extra hands, extra arms, extra limbs, three arms, disconnected limbs, floating limbs, elongated arms, stretched arms, unnaturally long arms, arm bending at wrong angle, malformed hand, deformed hand, mutated hands, incorrect hand anatomy, wrong number of fingers, distorted body proportions, warped perspective, phone merging into hand, phone floating disconnected from hand`;
+export const CARA_NEGATIVE_PROMPT = "cgi, 3d render, illustration, cartoon, plastic skin, porcelain skin, over-smoothed skin, beauty filter, studio softbox lighting, watermark, text, different person, face drift";
 
 // ─── SELFIE / MIRROR-SELFIE ANATOMY GUIDANCE ───────────────────────────────
 // Selfie and mirror-selfie poses are the single biggest source of anatomy
