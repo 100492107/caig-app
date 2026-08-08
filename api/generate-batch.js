@@ -576,8 +576,7 @@ Return ONLY this JSON (no code fences):
   "caption": "1 to 3 short sentences. under 280 characters total. lowercase. no em dashes. no hashtags. no hard sell. british english, no spelling mistakes.",
   "hashtags": "",
   "photo_direction": "portrait 9:16",
- "photo_idea": "Concrete phone-photo brief. Must follow location & terminology rules: (1) REFLECTIVE SELFIES strictly in private room, bathroom, dressing area, or home gym. (2) OUTDOOR / PUBLIC / SHOPPING scenes must be standard arm's length selfies or candid photos taken of her. (3) Describe wardrobe using high-fashion resortwear terms (e.g. 'satin lounge set', 'fine-knit cami set', 'two-piece resort set', 'ribbed lounge top', 'high-waisted lounge shorts') — NEVER use the words 'lingerie', 'panties', 'bikini', 'bralette', 'briefs', or 'bedroom'. 2-3 sentences.", "post_type": "${contentType.type}",
-  "content_label": "${postTypeLabel}",
+ "photo_idea": "Concrete phone-photo brief in the style of high-fashion editorial. Describe the scene using specific garment cuts and dynamic poses rather than explicit categories: (1) Pose & Action (e.g., 'leaning forward over a marble counter', 'sitting on edge of lounge chair with knees drawn up', 'reaching up to tie hair'). (2) Specific Wardrobe Cuts (e.g., 'unbuttoned crop shirt over thin-strap ribbed top', 'low-rise micro shorts', 'silk slip dress with high thigh slit', 'partially unzipped fitted hoodie'). (3) Setting & Lighting (e.g., 'private room, warm directional window light'). NEVER use blacklisted words: 'lingerie', 'bikini', 'panties', 'briefs', 'sheer', 'cleavage'. 2-3 detailed sentences."  "content_label": "${postTypeLabel}",
   "trend_hook": "${trends ? "one word" : "null"}"
 }`;
 
