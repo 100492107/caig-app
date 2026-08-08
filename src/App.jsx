@@ -3294,7 +3294,7 @@ async function unschedule(post) {
     {isPosting ? "Posting…" : "🚀 Post Now"}
   </button>
 
-  {/* Schedule toggle */}
+  {/* Schedule photo — toggle button */}
   {!(schedulingId === post.id && schedulingFormat === "photo") && (
     <button
       onClick={() => {
@@ -3334,9 +3334,47 @@ async function unschedule(post) {
   >
     {isPosting ? "Posting…" : "🎬 Post Now as Reel"}
   </button>
+
+  {/* Schedule as Reel — toggle button */}
+  {!(schedulingId === post.id && schedulingFormat === "reel") && (
+    <button
+      onClick={() => {
+        setSchedulingId(post.id);
+        setSchedulingFormat("reel");
+        setScheduleDate(post.scheduled_date || "");
+        setScheduleTime(post.scheduled_time || "");
+      }}
+      disabled={!hasUrl || busy}
+      style={{
+        flex: 2, minWidth: 150,
+        padding: "10px 16px", borderRadius: 8,
+        border: "1px solid #A855F7",
+        background: "transparent",
+        color: hasUrl && !busy ? "#C084FC" : "var(--t4)",
+        fontSize: 13, fontWeight: 600,
+        cursor: hasUrl && !busy ? "pointer" : "not-allowed",
+      }}
+    >
+      🎬 Schedule as Reel
+    </button>
+  )}
+
+  {/* Reject */}
+  <button
+    onClick={() => reject(post)}
+    disabled={busy}
+    style={{
+      padding: "10px 14px", borderRadius: 8,
+      border: "1px solid var(--e1)",
+      background: "transparent", color: "var(--t4)",
+      fontSize: 13, cursor: busy ? "not-allowed" : "pointer",
+    }}
+  >
+    ✕
+  </button>
 </div>
 
-{/* Schedule confirm row — full width, always visible when open */}
+{/* Schedule confirm row — photo */}
 {schedulingId === post.id && schedulingFormat === "photo" && (
   <div style={{
     width: "100%",
@@ -3362,6 +3400,44 @@ async function unschedule(post) {
       onClick={() => confirmSchedule(post, "photo")}
       disabled={!scheduleDate || !scheduleTime}
       style={{ padding: "8px 14px", borderRadius: 8, border: "none", background: "var(--b1)", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer" }}
+    >
+      Confirm
+    </button>
+    <button
+      onClick={() => setSchedulingId(null)}
+      style={{ padding: "8px 10px", borderRadius: 8, border: "1px solid var(--e1)", background: "transparent", color: "var(--t4)", fontSize: 12, cursor: "pointer" }}
+    >
+      Cancel
+    </button>
+  </div>
+)}
+
+{/* Schedule confirm row — reel */}
+{schedulingId === post.id && schedulingFormat === "reel" && (
+  <div style={{
+    width: "100%",
+    display: "flex",
+    gap: 6,
+    flexWrap: "wrap",
+    alignItems: "center",
+    marginTop: 10,
+  }}>
+    <input
+      type="date"
+      value={scheduleDate}
+      onChange={e => setScheduleDate(e.target.value)}
+      style={{ flex: 1, minWidth: 130, padding: "8px 10px", borderRadius: 8, border: "1px solid var(--e2)", background: "var(--s2)", color: "var(--t1)", fontSize: 12 }}
+    />
+    <input
+      type="time"
+      value={scheduleTime}
+      onChange={e => setScheduleTime(e.target.value)}
+      style={{ flex: 1, minWidth: 100, padding: "8px 10px", borderRadius: 8, border: "1px solid var(--e2)", background: "var(--s2)", color: "var(--t1)", fontSize: 12 }}
+    />
+    <button
+      onClick={() => confirmSchedule(post, "reel")}
+      disabled={!scheduleDate || !scheduleTime}
+      style={{ padding: "8px 14px", borderRadius: 8, border: "none", background: "#A855F7", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer" }}
     >
       Confirm
     </button>
