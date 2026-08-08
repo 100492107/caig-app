@@ -636,6 +636,7 @@ function pickFormat() {
   for (const f of FORMAT_WEIGHTS) { acc += f.weight; if (r < acc) return f.format; }
   return "reel_photo";
 }
+
 // ─── STUDIO ANGLES ────────────────────────────────────────────────────────────
 const STUDIO_ANGLES = [
   { label: "the real one", instruction: "The version of this that no one else is saying. Honest, specific, grounded in actual experience. Not the optimised take — the true one." },
