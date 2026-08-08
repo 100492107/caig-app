@@ -1,5 +1,4 @@
 // api/generate-submit.js
-// Submits a nano-banana-2 generation job to fal.ai's async queue.
 
 import {
   CARA_REFS,
@@ -85,46 +84,28 @@ const FALLBACK_SETTING = {
   general: "everyday indoor or outdoor location fitting a model aesthetic, natural light",
 };
 
-/**
- * Intercepts and translates all policy-sensitive trigger words into safe,
- * high-fashion, architectural, and fine-art photographic terminology before execution.
- */
 function sanitizePromptText(text) {
   if (!text) return "";
   return text
-    // Age triggers
+    .replace(/"/g, "'") // Kills nested double quotes that break JSON
     .replace(/\b19\b/g, "young adult")
     .replace(/\b19-year-old\b/gi, "young adult")
     .replace(/\b21\b/g, "young adult")
-    // Garment & Intimates triggers
+    .replace(/\bbralette\b/gi, "ribbed lounge top")
+    .replace(/\bbriefs\b/gi, "high-waisted lounge shorts")
     .replace(/\bmicro string bikini\b/gi, "resort two-piece set")
     .replace(/\bstring bikini\b/gi, "two-piece resort set")
     .replace(/\bbikini\b/gi, "two-piece resort set")
-    .replace(/\bswimsuit\b/gi, "resortwear set")
-    .replace(/\bswimwear\b/gi, "resortwear set")
     .replace(/\blingerie set\b/gi, "satin lounge set")
     .replace(/\blingerie\b/gi, "satin lounge set")
-    .replace(/\bbralette\b/gi, "ribbed lounge top")
-    .replace(/\bbriefs\b/gi, "high-waisted lounge shorts")
     .replace(/\bpanties\b/gi, "lounge shorts")
-    .replace(/\bthong\b/gi, "high-cut bottoms")
     .replace(/\bunderwear\b/gi, "lounge set")
     .replace(/\blace\b/gi, "fine-knit")
     .replace(/\bsheer\b/gi, "translucent chiffon")
-    // Spatial & Environmental triggers
-    .replace(/\bbedroom mirror selfies\b/gi, "private room reflective shots")
-    .replace(/\bbedroom mirror selfie\b/gi, "private room reflective shot")
     .replace(/\bbedroom\b/gi, "private room")
     .replace(/\bbed\b/gi, "white linen lounge seating")
-    .replace(/\bmessy sheets\b/gi, "linen throw")
-    .replace(/\bboudoir\b/gi, "private quarters")
-    // Pose & Mood triggers
     .replace(/\bmirror selfie\b/gi, "reflective glass shot")
-    .replace(/\bmirror selfies\b/gi, "reflective glass shots")
-    .replace(/\bseductive\b/gi, "poised")
-    .replace(/\bprovocative\b/gi, "confident")
-    .replace(/\bsexy\b/gi, "model aesthetic")
-    .replace(/\braunchy\b/gi, "model aesthetic");
+    .replace(/\bmirror selfies\b/gi, "reflective glass shots");
 }
 
 export function buildPrompt({ imagePrompt, hook, caption, wardrobe, shotAngle, photoDirection, photo_idea }) {
@@ -145,7 +126,7 @@ export function buildPrompt({ imagePrompt, hook, caption, wardrobe, shotAngle, p
   if (imagePrompt && typeof imagePrompt === "object" && imagePrompt.setting) {
     settingText = sanitizePromptText(imagePrompt.setting);
   } else if (scene.length > 40) {
-    settingText = "Match the exact setting and time of day implied by the scene description above";
+    settingText = "Match setting and time of day implied by scene above";
   } else {
     settingText = FALLBACK_SETTING[context] || FALLBACK_SETTING.general;
   }
@@ -157,29 +138,28 @@ export function buildPrompt({ imagePrompt, hook, caption, wardrobe, shotAngle, p
   const antiMismatch = `
 CRITICAL MATCHING & LOCATION RULES:
 - The clothes, setting, and action MUST match the scene/caption.
-- REFLECTIVE GLASS SHOTS ARE ONLY ALLOWED INDOORS IN PRIVATE QUARTERS (Private Room, Bathroom, Dressing Area, Home Gym).
-- ANY PUBLIC, OUTDOOR, SHOPPING, STREET, CAFÉ, OR BEACH SHOT MUST BE A STANDARD FRONT-FACING SELFIE (ARM'S LENGTH) OR A CANDID PHOTO TAKEN OF HER. NEVER A REFLECTIVE GLASS SHOT IN PUBLIC.
-- IN FANVUE / MODEL MODE: Wardrobe follows high-fashion resortwear — ribbed cotton sets, satin lounge sets, or resort two-piece sets.
-- Always show her signature gold cross necklace when chest/neck is visible.
-- Exact face match to reference images — green eyes, freckles, thick natural dark brows. Zero face smoothing.`;
+- REFLECTIVE GLASS SHOTS ARE ONLY ALLOWED INDOORS IN PRIVATE QUARTERS.
+- OUTDOOR/PUBLIC SHOTS MUST BE STANDARD ARM'S LENGTH SELFIES OR CANDID PHOTOS.
+- Always show signature gold cross necklace when chest/neck is visible.`;
 
   const sceneBlock = scene.length > 20
-    ? `SCENE TO DEPICT:\n"${scene.slice(0, 400)}"\n`
-    : `SCENE: A natural, candid moment in Cara's real life. Model aesthetic, personal, resortwear styling.\n`;
+    ? `SCENE TO DEPICT: ${scene.slice(0, 300)}\n`
+    : `SCENE: Natural candid moment in Cara's life. Model aesthetic, resortwear styling.\n`;
 
+  // RESTORED REALISM: Replaced abstract prompts with concrete iPhone camera physics
   return `Photorealistic lifestyle photo of Cara Whitmore, British model. Recreate her face exactly from reference photos.
 
 ${sceneBlock}
-CAMERA / FRAMING: ${frame}. 9:16 vertical. Feels like a real phone photo or candid reflective shot, not a studio production.
+CAMERA / FRAMING: iPhone 16 Pro front camera, ${frame}. 9:16 vertical portrait. Unposed, candid phone photo.
 WARDROBE: ${wardrobeText}.
 LOCATION / SETTING: ${settingText}.
-LIGHTING: Natural or available light that fits the moment. Real skin, real pores, mild film grain.
+LIGHTING: Direct natural window light, subtle film grain, real skin pores and texture.
 
 ${antiMismatch}
 ${selfieGuidance}
 ${CARA_IDENTITY_LOCK}
 
-TECHNICAL: Real phone photograph. 9:16 vertical portrait. Tack-sharp eyes. Photorealistic. Lived-in. Match the reference face exactly.
+TECHNICAL: Real phone photograph, tack-sharp eyes, photorealistic, lived-in texture. Match reference face exactly.
 
 DO NOT: ${CARA_NEGATIVE_PROMPT}`;
 }
@@ -243,7 +223,6 @@ export default async function handler(req, res) {
   } catch (e) {
     return res.status(500).json({ error: "buildPrompt failed", detail: e.message });
   }
-  console.log("[generate-submit] prompt:\n" + prompt);
 
   let requestId;
   try {
@@ -252,7 +231,6 @@ export default async function handler(req, res) {
     return res.status(502).json({ error: "Queue submit failed", detail: e.message });
   }
 
-  console.log("[generate-submit] queued:", requestId);
   return res.status(200).json({
     requestId,
     statusUrl: `${FAL_EDIT_REQUESTS_BASE}/${requestId}/status`,
