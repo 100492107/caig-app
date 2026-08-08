@@ -2863,6 +2863,7 @@ async function generateImage(post) {
   // Schedule: set status=scheduled so cron picks it up at the right date/time
   async function schedulePost(post, format = "photo") {
     const imageUrl = images[post.id]?.url || post.image_url || null;
+    const imageUrls = images[post.id]?.urls || post.image_urls || null;
 
     if (post._inMemory) {
       // In-memory post: upsert full row into DB with status=ready
@@ -2885,7 +2886,8 @@ async function generateImage(post) {
         client_id:       post.client_id || null,
         scheduled_date:  post.scheduled_date || null,
         scheduled_time:  post.scheduled_time || null,
-        image_url:       imageUrl,
+        image_url: imageUrl,
+        ...(imageUrls ? { image_urls: imageUrls } : {}),
         post_format:     format,
         status:          "scheduled",
       };
@@ -2894,6 +2896,7 @@ async function generateImage(post) {
     } else {
       const update = { status: "scheduled", post_format: format };
       if (imageUrl) update.image_url = imageUrl;
+      if (imageUrls) update.image_urls = imageUrls;
       const res = await fetch("/api/queue-update", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
