@@ -147,15 +147,15 @@ IDENTITY LOCK — every single one of these must be exact:
 HAIR: Dark chocolate brown (espresso / dark roast). This is BROWN hair, not black. Warm brown tones in light, never blue-black or jet black. Long, natural wave, past the shoulders.
 EYES: Vivid bright green with dark limbal ring. Unmistakably green. Not hazel, not grey, not blue.
 BROWS: Strong, thick, dark, naturally shaped.
-SKIN: Medium-light warm olive. Natural pores. Light freckles across the nose and cheeks — required and visible. Slightly sun-kissed, dewy, no beauty filter, no plastic skin.
-FACE: Angular jawline, straight refined nose, full soft pink-rose lips. She is 19 — not mid-20s, not late-20s.
-JEWELLERY: Small gold hoop earrings. Layered fine gold chains including a cross pendant and a small coin pendant. These must appear whenever the neck is visible.
+SKIN: Medium-light warm olive. Visible natural pores. Light freckles across the nose and cheeks - required and clearly visible. Slight unevenness and real texture. Slightly sun-kissed. NO beauty filter. NO plastic skin. NO porcelain skin. NO airbrush. NO wax skin.
+FACE: Angular jawline, straight refined nose, full soft pink-rose lips. She is 19. Not mid-20s. Not late-20s.
+JEWELLERY: Small gold hoop earrings. Layered fine gold chains including a cross pendant and a small coin pendant. Must appear whenever the neck is visible.
 MOLE: Small dark mole on the left side of the neck, just below the jawline (~3mm). Present when neck is visible.
-EXPRESSION: Natural 19-year-old energy. Can be looking at camera, slightly off, mid-thought, or mid-action. Never forced model smile. Never polished life-coach energy.
+EXPRESSION: Natural 19-year-old energy. Looking at camera, slightly off, mid-thought, or mid-selfie. Never forced model smile. Never polished life-coach energy.
 
-TECHNICAL: Real photograph. Tack-sharp eyes. Photorealistic. 9:16. Lived-in lifestyle quality.
+TECHNICAL: Real phone photograph. Prefer selfie or mirror selfie framing when the scene allows. Tack-sharp eyes. Photorealistic. 9:16. Lived-in. Mild film grain. Match the reference face exactly.
 
-DO NOT: put formal/blazer clothes in training scenes, put gym clothes in soft home scenes unless caption says so, plastic skin, missing freckles, missing gold cross or coin, black or blue-black hair, wrong eye colour, studio lighting, cartoon, CGI, text, watermark, nudity.`;
+DO NOT: plastic skin, porcelain skin, airbrushed skin, beauty filter, over-smoothed skin, missing freckles, missing gold cross or coin, formal blazer in training scenes, gym clothes in soft home scenes unless caption says training, black or blue-black hair, wrong eye colour, studio softbox lighting, cartoon, CGI, text, watermark, nudity, face drift from reference.`;
 }
 
 export default async function handler(req, res) {
