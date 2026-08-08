@@ -2997,14 +2997,16 @@ async function unschedule(post) {
           )}
           <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
             {posts.map(post => {
-          const imgState   = images[post.id];
+          const imgState = images[post.id];
           const staleSuppressed = clearedIds.current.has(post.id);
           const displayImg = imgState?.localPreview || imgState?.url || (staleSuppressed ? null : post.image_url);
+          const allUrls = imgState?.urls || post.image_urls || (displayImg ? [displayImg] : []);
+          const isCarousel = (post.format === "carousel" || allUrls.length > 1) && allUrls.length > 1;
           const isUploading = uploading[post.id];
-          const isPosting   = posting[post.id];
+          const isPosting = posting[post.id];
           const isGenerating = generating[post.id];
-          const hasUrl      = !!(imgState?.url || (!staleSuppressed && post.image_url));
-          const busy        = isUploading || isPosting || isGenerating;
+          const hasUrl = !!(imgState?.url || (!staleSuppressed && post.image_url) || allUrls.length > 0);
+          const busy = isUploading || isPosting || isGenerating;
 
           return (
             <div key={post.id} style={{
