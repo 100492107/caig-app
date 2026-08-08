@@ -2622,56 +2622,60 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
     URL.revokeObjectURL(blobUrl);
   }
 
-  // Generate image via fal.ai LoRA — with optional Nano Banana Pro enhancement
-  async function generateImage(post) {
-    const setStatus = (stage, extra = {}) =>
-      setGenerating(g => ({ ...g, [post.id]: { stage, startedAt: g[post.id]?.startedAt || Date.now(), ...extra } }));
+  // Generate image via fal.ai — supports single image OR 4-slide carousel
+async function generateImage(post) {
+  const setStatus = (stage, extra = {}) =>
+    setGenerating(g => ({ ...g, [post.id]: { stage, startedAt: g[post.id]?.startedAt || Date.now(), ...extra } }));
 
-    setGenerating(g => ({ ...g, [post.id]: { stage: "submitting", startedAt: Date.now() } }));
-    // Suppress stale post.image_url from showing during/after generation
-    clearedIds.current.add(post.id);
-    setImages(im => { const n = { ...im }; delete n[post.id]; return n; });
-    setPosts(ps => ps.map(p => p.id === post.id ? { ...p, image_url: null } : p));
+  setGenerating(g => ({ ...g, [post.id]: { stage: "submitting", startedAt: Date.now() } }));
+  clearedIds.current.add(post.id);
+  setImages(im => { const n = { ...im }; delete n[post.id]; return n; });
+  setPosts(ps => ps.map(p => p.id === post.id ? { ...p, image_url: null, image_urls: null } : p));
 
-    try {
-      // ── Submit job to fal.ai async queue (returns instantly) ─────────────
+  try {
+    const isCarousel = post.format === "carousel" && Array.isArray(post.slides) && post.slides.length > 0;
+    const slides = isCarousel
+      ? post.slides
+      : [{ index: 0, image_prompt: post.image_prompt, photo_idea: post.photo_idea }];
+
+    const urls = [];
+
+    for (let s = 0; s < slides.length; s++) {
+      const slide = slides[s];
+      setStatus(isCarousel ? `slide ${s + 1}/${slides.length}` : "submitting", { slide: s + 1 });
+
+      // ── 1. Submit to fal.ai ──────────────────────────────────────────────
       const submitRes = await fetch("/api/generate-submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          imagePrompt: post.image_prompt,
+          imagePrompt: slide.image_prompt || post.image_prompt,
           photoDirection: post.photo_direction,
           hook: post.hook,
           caption: post.caption,
           wardrobe: post.wardrobe,
           shotAngle: post.shot_angle,
+          photo_idea: slide.photo_idea || post.photo_idea,
           seed: Math.floor(Math.random() * 9999999),
         }),
       });
 
-      // Safe JSON parse — Vercel 504s return HTML not JSON
       let submitData;
       const rawText = await submitRes.text();
       try { submitData = JSON.parse(rawText); }
       catch { throw new Error(`Server error (${submitRes.status}) — not JSON: ${rawText.slice(0, 120)}`); }
-
       if (!submitRes.ok) throw new Error(submitData?.error || `Submit failed (${submitRes.status})`);
       if (!submitData.requestId) throw new Error("No requestId returned from submit");
-
       const { requestId } = submitData;
-      setStatus("queued", { requestId });
 
-      // ── Server-side wait poll (one call per ~57s, server loops internally) ──
-      // ── Poll every 5s — short requests, no long-lived connections ───────
-      // wait=1 long-poll gets killed by browsers when tab backgrounds.
-      // Short polls are slower but reliable on mobile and backgrounded tabs.
+      setStatus(isCarousel ? `slide ${s + 1}/${slides.length} queued` : "queued", { requestId, slide: s + 1 });
+
+      // ── 2. Poll until complete ───────────────────────────────────────────
       let imageUrl = null;
       const POLL_MS = 5000;
-      const DEADLINE = Date.now() + 3 * 60 * 1000; // 3 min max
-
+      const DEADLINE = Date.now() + 3 * 60 * 1000;
       while (Date.now() < DEADLINE) {
         await new Promise(r => setTimeout(r, POLL_MS));
-
         let pollRes, pollData;
         try {
           pollRes = await fetch(`/api/generate-poll?requestId=${requestId}`);
@@ -2679,68 +2683,95 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
           try { pollData = JSON.parse(pollText); }
           catch { throw new Error(`Poll error (${pollRes.status}): ${pollText.slice(0, 120)}`); }
         } catch (e) {
-          // Network hiccup — just retry next interval
           console.warn("[poll] fetch failed, retrying:", e.message);
           continue;
         }
-
         if (!pollRes.ok) {
           const detail = pollData?.raw?.description ? ` (fal: ${pollData.raw.description})` : "";
           throw new Error((pollData?.error || `Poll failed (${pollRes.status})`) + detail);
         }
-
         const { status, queuePosition } = pollData;
-
         if (status === "IN_QUEUE") {
-          setStatus("queued", { requestId, queuePosition });
+          setStatus(isCarousel ? `slide ${s + 1}/${slides.length} queued` : "queued", { requestId, queuePosition, slide: s + 1 });
         } else if (status === "IN_PROGRESS") {
-          setStatus("generating", { requestId });
+          setStatus(isCarousel ? `slide ${s + 1}/${slides.length} generating` : "generating", { requestId, slide: s + 1 });
         } else if (status === "COMPLETED") {
-          imageUrl = pollData.imageUrl;
+          imageUrl = pollData.imageUrl || pollData.url;
           break;
         } else if (status === "FAILED") {
           throw new Error(pollData.error || "Generation failed on fal.ai");
         }
       }
+      if (!imageUrl) throw new Error(`Timed out on slide ${s + 1} (3 min)`);
 
-      if (!imageUrl) throw new Error("Timed out waiting for generation (3 min)");
+      // ── 3. Show immediately + store in background ───────────────────────
+      urls.push(imageUrl);
 
-      // ── Display immediately, store to Supabase in background ────────────
-      setStatus("saving", { requestId });
-      const publicUrl = imageUrl;
+      // Show the latest slide as we go (so user sees progress)
+      setImages(im => ({
+        ...im,
+        [post.id]: {
+          url: imageUrl,
+          localPreview: imageUrl,
+          urls: [...urls],           // accumulating array
+        },
+      }));
 
-      setImages(im => ({ ...im, [post.id]: { url: publicUrl, localPreview: publicUrl } }));
-      toast_("Image generated — review and post!", "ok");
-
-      // Auto-download to Mac (1 file for the post's platform)
-      downloadForPlatform(publicUrl, post.id, post.platform);
-
-      // Fire-and-forget: store to Supabase permanently in background
+      // Fire-and-forget store
       fetch("/api/store-image", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ falUrl: publicUrl, requestId, postId: post.id }),
+        body: JSON.stringify({
+          falUrl: imageUrl,
+          requestId,
+          postId: post.id,
+          slideIndex: isCarousel ? s : undefined,
+        }),
       }).then(r => r.json()).then(d => {
         if (d.publicUrl) {
-          // Silently swap fal.ai URL for permanent Supabase URL
-          setImages(im => ({ ...im, [post.id]: { url: d.publicUrl, localPreview: d.publicUrl } }));
-          if (!post._inMemory) {
-            fetch("/api/queue-update", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ id: post.id, update: { image_url: d.publicUrl } }),
-            });
-          }
+          // Swap fal URL for permanent one in the accumulating list
+          setImages(im => {
+            const current = im[post.id];
+            if (!current) return im;
+            const newUrls = [...(current.urls || [])];
+            newUrls[s] = d.publicUrl;
+            return {
+              ...im,
+              [post.id]: {
+                ...current,
+                url: newUrls[0] || d.publicUrl,
+                localPreview: newUrls[0] || d.publicUrl,
+                urls: newUrls,
+              },
+            };
+          });
         }
-      }).catch(() => {}); // ignore storage failures — fal.ai URL already displayed
-    } catch (e) {
-      lastErrors.current[post.id] = e.message;
-      setStatus("error", { error: e.message });
-      toast_(`Generation failed: ${e.message}`, "error");
-    } finally {
-      setTimeout(() => setGenerating(g => { const n = { ...g }; delete n[post.id]; return n; }), 4000);
+      }).catch(() => {});
     }
+
+    // ── 4. Save final result to queue ─────────────────────────────────────
+    toast_(isCarousel ? `Carousel generated (${urls.length} slides)` : "Image generated — review and post!", "ok");
+    downloadForPlatform(urls[0], post.id, post.platform);
+
+    if (!post._inMemory) {
+      const update = isCarousel
+        ? { image_url: urls[0], image_urls: urls }
+        : { image_url: urls[0] };
+      fetch("/api/queue-update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: post.id, update }),
+      });
+    }
+
+  } catch (e) {
+    lastErrors.current[post.id] = e.message;
+    setStatus("error", { error: e.message });
+    toast_(`Generation failed: ${e.message}`, "error");
+  } finally {
+    setTimeout(() => setGenerating(g => { const n = { ...g }; delete n[post.id]; return n; }), 4000);
   }
+}
 
   async function generateReel(post) {
     const imgState = images[post.id];
