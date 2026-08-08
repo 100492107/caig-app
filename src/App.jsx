@@ -1888,6 +1888,7 @@ function Autopilot({ queue, setQueue, setView, toast_, dbCreators = [], onDelete
           shot_angle:     item.shot_angle || null,
           wardrobe:       item.wardrobe || null,
           style_ref:      item.style_ref || null,
+          alter table content_queue add column if not exists image_urls jsonb;
         };
       });
       supabase.from("content_queue").upsert(rows).then(({ error }) => {
