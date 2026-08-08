@@ -8,6 +8,7 @@
 import {
   CARA_REFS,
   FAL_EDIT_QUEUE_URL,
+  FAL_EDIT_REQUESTS_BASE,
   CARA_IMAGE_SIZE,
   CARA_IDENTITY_LOCK,
   CARA_NEGATIVE_PROMPT,
@@ -179,6 +180,12 @@ export async function submitToFal({ falKey, prompt, imageUrls = CARA_REFS }) {
   if (!res.ok || !data.request_id) {
     throw new Error(`fal.ai submit failed: ${JSON.stringify(data)}`);
   }
+  // IMPORTANT: returns the plain request_id string, same contract as the
+  // original submitToFal. Do not change this to an object — any caller that
+  // imports submitToFal directly (rather than hitting this file's HTTP
+  // handler) is almost certainly doing `const requestId = await submitToFal(...)`
+  // and treating it as a string. Changing the return shape here is exactly
+  // the kind of silent contract break that caused the last two bugs.
   return data.request_id;
 }
 
@@ -220,5 +227,12 @@ export default async function handler(req, res) {
   }
 
   console.log("[generate-submit] queued:", requestId);
-  return res.status(200).json({ requestId });
+  // Same response shape this endpoint returned before the cara-config refactor —
+  // statusUrl/resultUrl restored so any caller hitting this HTTP endpoint
+  // directly (rather than importing submitToFal) still gets them.
+  return res.status(200).json({
+    requestId,
+    statusUrl: `${FAL_EDIT_REQUESTS_BASE}/${requestId}/status`,
+    resultUrl: `${FAL_EDIT_REQUESTS_BASE}/${requestId}`,
+  });
 }
