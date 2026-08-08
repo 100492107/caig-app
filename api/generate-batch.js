@@ -2,6 +2,8 @@
 // Streams each completed post back as NDJSON (one JSON line per post) so the
 // browser can save to queue in real-time regardless of screen state.
 
+import { CARA_IDENTITY_LOCK } from "./cara-config.js";
+
 // Persona files inlined — Vercel serverless has no runtime filesystem access.
 // Update these strings when persona files change.
 //
@@ -599,7 +601,7 @@ async function generateImagePrompt(apiKey, persona, post, postIndex) {
     ? `PHYSICAL DESCRIPTORS (from flux.md — these are locked and must not drift):\n${personaFiles.flux.split("## SECTION 2")[0].replace(/^# flux\.md.*\n/, "").trim()}`
     : "";
 
-  const identityLock = `IDENTITY LOCK — HIGHEST PRIORITY: This is Cara, 19, generated via her trained LoRA (identity comes from the LoRA weights, not a reference photo). Keep bright green eyes, light freckles across nose and cheeks, dark brown wavy hair, gold jewellery (layered chains + cross + coin pendant) consistent with her trained likeness. Zero facial drift from her trained identity. Photorealistic.${fluxNote ? " " + fluxNote : ""}`;
+  const identityLock = `${CARA_IDENTITY_LOCK}${fluxNote ? "\n\n" + fluxNote : ""}`;
 
   const sceneDriven = captionScene.length > 40
     ? `Cara Whitmore (19) in the exact moment described here: "${captionScene.slice(0, 280)}". She is mid-action or mid-moment, not posing for a camera. Natural, lived-in, 19-year-old energy — funny, present, real.`
