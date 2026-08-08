@@ -67,11 +67,13 @@ NOT: not a life coach. Not a brand. Not always composed — the range is the poi
 
     // ── FANVUE (used when fanvueMode is true) — kept separate from public ────
     fanvue: {
-      persona: `# persona.md — Cara Whitmore (Fanvue)
+      persona: `# persona.md — Cara Whitmore (Fanvue / Model Track)
 
 ## BACKSTORY
 
 Full name: Cara Whitmore. 19. British. She didn't come from money and doesn't pretend otherwise — everything she has now she built through discipline, standards, and a refusal to stay average. She left a safe, unremarkable path — a college course she wasn't finishing, a job that was fine and going nowhere — the day she decided fine wasn't good enough anymore.
+
+She is a model and digital creator. Her content focuses heavily on summer fashion, bikinis, lace lingerie, personal behind-the-scenes moments, and fitness. High skin exposure, model aesthetic, personal bedroom and vacation energy.
 
 She trains most days. Not for how it looks — because discipline in one area bleeds into every other area. She treats her body, her money, and her standards the same way: with rules she doesn't negotiate on, even on the days it would be easier to.
 
@@ -81,7 +83,7 @@ She built her income deliberately. She understands leverage, attention, and valu
 
 ## WHAT SHE'S ACTUALLY LIKE
 
-She is direct. She doesn't hedge her opinions to make them more comfortable to hear. She has bad days like anyone — she doesn't perform relentless positivity, and she doesn't wallow either. She resets and moves.
+She is direct, personal, and confident. She posts direct-to-audience intimate, authentic content — never corporate, never brand-speak. She knows her audience is here for her model looks, fit body, and unfiltered personality.
 
 She's also genuinely funny, in a dry, deadpan way — she just doesn't lead with it. She talks trash to herself in the gym mirror. She's competitive over things that objectively do not matter (the last resistance band, a parking space, being right). She has one pre-workout playlist that's mostly the same three songs on loop and no interest in changing that. She treats a cheat meal like a main character moment and will absolutely tell you about it.
 
@@ -109,7 +111,7 @@ NOT: Not hustle-bro shouting. Not a template quote account. Not fake humility. N
 
 FAITH: Present but not preached. One line, at most — being built for more, or a plain thanks — never a sermon, never asking anyone to agree.
 
-LIFE IN MOTION: Caught mid-rep, mid-drive, mid-decision — not posed. Every post should feel like proof of a life being lived at a standard, not a photoshoot pretending to be one.`,
+LIFE IN MOTION: Caught mid-rep, mid-drive, mid-decision — not posed. Every post should feel like proof of a life being lived at a standard, not a photoshoot pretending to be one. High skin exposure, bikinis, lace lingerie, personal bedroom, vacation, or pool energy.`,
     },
 
     // ── VISUAL IDENTITY (unchanged — already matches the flux.md reference) ─
@@ -244,178 +246,175 @@ const PUBLIC_ANGLES = [
   { label: "the ordinary oddity", instruction: "Something small, stupid, and specific she noticed today that has nothing to do with money or discipline — a weird thing about her flat, a stranger's dog, her own bad habit. Pure texture, mostly funny, no lesson attached." },
 ];
 
-// ─── IMAGE SHOT LIBRARY — 24 fully art-directed shots ─────────────────────────
-// Mindset / money / success aesthetic. Real variety: selfies, mirror selfies,
-// action/training shots, full body, candid lifestyle, and a few swimwear shots.
-// No travel/destination settings. Wardrobe described as fabric/composition only.
+// ─── IMAGE SHOT LIBRARY — 24 fully art-directed shots (Bikini/Lingerie & Location Enforced) ───
 const IMG_SHOTS = [
   {
-    setting: "Bathroom mirror, apartment, bright clean morning light, minimal marble or stone counter",
-    pose: "SELFIE — phone held at chest height, direct eye contact with the lens, composed and alert, getting-ready energy before the day starts.",
-    wardrobe: "Fitted white tank or bralette under an open shirt, hair still down, minimal makeup.",
-    lighting: "Bright, clean bathroom light, slightly cool and crisp.",
-    camera: "iPhone 16 Pro, front-facing mirror selfie, 9:16, direct gaze",
+    setting: "Bedroom interior, soft morning bed light, white linen sheets",
+    pose: "MIRROR SELFIE — full length standing in bedroom mirror, holding phone at chest height, relaxed model pose.",
+    wardrobe: "Matching white lace lingerie set with silk robe slipped off shoulders.",
+    lighting: "Soft warm morning daylight through bedroom window.",
+    camera: "iPhone 16 Pro, mirror selfie, full length, 9:16",
   },
   {
     setting: "Home gym mirror wall, rubber flooring, weights rack visible in reflection",
-    pose: "MIRROR SELFIE — full length, phone held low at hip or chest, outfit check before a session, confident stance, direct gaze into the mirror.",
-    wardrobe: "Matching gym set — fitted sports bra and leggings or bike shorts, trainers, hair in a high ponytail.",
+    pose: "MIRROR SELFIE — full length, phone held low at hip or chest, outfit check before a session, confident stance.",
+    wardrobe: "Matching athletic gym set — sports bra and booty shorts, trainers, hair in a high ponytail.",
     lighting: "Bright even gym lighting, slightly cool tone.",
     camera: "iPhone 16 Pro, mirror selfie, full length, 9:16, direct and confident",
   },
   {
     setting: "Driver's seat of a car, parked, soft daylight through the windscreen",
-    pose: "SELFIE — close crop, one hand near the wheel, sunglasses on or pushed up, direct to camera, composed half-smile.",
-    wardrobe: "Tailored jacket or blazer over a simple top, gold jewellery visible.",
+    pose: "SELFIE — close crop, one hand near the wheel, sunglasses on head, direct front-facing camera gaze.",
+    wardrobe: "Low-cut summer fashion top, gold cross necklace visible.",
     lighting: "Soft natural daylight, slight warmth.",
-    camera: "iPhone 16 Pro, close selfie, 9:16, direct gaze",
+    camera: "iPhone 16 Pro, front selfie, 9:16, direct gaze",
   },
   {
     setting: "Walk-in wardrobe or full-length bedroom mirror, neutral tones, soft daylight",
-    pose: "MIRROR SELFIE — full length, outfit check in a tailored blazer, phone visible in the reflection at chest height, confident and composed.",
-    wardrobe: "Sharp blazer, fitted trousers or a slip skirt, heels, minimal gold jewellery.",
+    pose: "MIRROR SELFIE — full length, outfit check in mirror, hand on hip, confident model stance.",
+    wardrobe: "Black lace bra top, low-rise summer trousers, heels, gold chains.",
     lighting: "Soft daylight from a nearby window, clean and even.",
-    camera: "Sony A7R V or iPhone 16 Pro, mirror selfie, full length, 9:16",
+    camera: "iPhone 16 Pro, mirror selfie, full length, 9:16",
   },
   {
     setting: "Gym hallway or locker area, plain wall, post-workout",
-    pose: "SELFIE — close crop, slightly flushed, hair damp at the hairline, direct gaze, genuine post-training energy, not glossy.",
-    wardrobe: "Sports bra or fitted training top, towel over one shoulder.",
+    pose: "SELFIE — close crop, slightly flushed, hair damp at the hairline, direct gaze, front-facing phone camera.",
+    wardrobe: "Sports bra or fitted crop top, towel over one shoulder.",
     lighting: "Practical gym lighting, slightly warm.",
-    camera: "iPhone 16 Pro, close selfie, 9:16, candid energy",
+    camera: "iPhone 16 Pro, front selfie, 9:16, candid energy",
   },
   {
     setting: "Home gym, rubber flooring, weights rack and bench in frame",
-    pose: "TRAINING — mid-rep on a deadlift or squat, full focus on the movement, not looking at camera. Strong, controlled form.",
-    wardrobe: "Fitted training set, wrist straps or lifting gloves, hair tied back.",
+    pose: "TRAINING — mid-rep on a deadlift or squat, full focus on the movement, not looking at camera.",
+    wardrobe: "Fitted athletic shorts and sports bra, hair tied back.",
     lighting: "Bright, even gym lighting, slight overhead highlight.",
     camera: "Sony A7R V, 50mm, medium distance, 9:16, sharp action-frozen moment",
   },
   {
-    setting: "Boxing gym or home gym with a hanging bag",
-    pose: "TRAINING — mid-punch at the bag, motion blur on the arm, full focus and intensity, not aware of camera.",
-    wardrobe: "Fitted training top, wraps on the hands, leggings.",
-    lighting: "Moody gym lighting, single overhead source, some shadow.",
-    camera: "Sony A7R V, 35mm, medium distance, 9:16, motion blur, high energy",
+    setting: "Outdoor beach resort walkway, palm trees in background",
+    pose: "CANDID FULL-BODY — walking toward camera, photo taken of her in motion, effortless model stride.",
+    wardrobe: "White crochet summer dress over a bikini, sunglasses, gold jewellery.",
+    lighting: "Bright midday tropical sunlight.",
+    camera: "Sony A7R V, 85mm, full length, 9:16 vertical",
   },
   {
     setting: "City park path or running track, early morning, cool light",
-    pose: "RUNNING — full body, mid-stride, determined expression, looking ahead not at camera. Genuine motion.",
-    wardrobe: "Fitted running set, trainers, hair in a ponytail moving with motion.",
+    pose: "RUNNING — full body, mid-stride, determined expression, photo taken of her moving.",
+    wardrobe: "Fitted running shorts and sports bra, trainers.",
     lighting: "Cool early morning light, slightly overcast.",
     camera: "Sony A7R V, 35mm, wide-medium distance, 9:16, motion-caught",
   },
   {
     setting: "Home office desk, notebook, laptop, coffee, morning light",
-    pose: "HANDS DETAIL — close on her hands writing in a planner or journal, focused, face out of frame or softly blurred behind.",
-    wardrobe: "Sleeve of a fitted top, gold rings visible on the hand.",
+    pose: "HANDS DETAIL — close on her hands writing in a planner or journal, focused, face softly blurred behind.",
+    wardrobe: "Silk cami, gold rings and cross necklace visible.",
     lighting: "Soft window light from one side.",
     camera: "Leica SL2, 85mm macro-leaning, 9:16, shallow depth of field",
   },
   {
-    setting: "Home office or co-working space, whiteboard or laptop with charts visible",
-    pose: "PRESENTING — mid-gesture, hand animated, caught mid-sentence, engaged and focused, not posed for camera.",
-    wardrobe: "Sharp blazer or fitted knit, minimal jewellery.",
-    lighting: "Bright, even daylight.",
-    camera: "iPhone 16 Pro, medium distance, 9:16, candid mid-motion",
+    setting: "Outdoor boutique street / shopping district, daytime",
+    pose: "STREET SELFIE — held at arm's length while walking, smiling slightly, sunglasses on head.",
+    wardrobe: "Summer fashion crop top, low-rise linen shorts, gold cross pendant visible.",
+    lighting: "Bright natural daylight.",
+    camera: "iPhone 16 Pro, front selfie camera, 9:16",
   },
   {
-    setting: "Plain wall or minimal apartment backdrop, bright daylight",
-    pose: "STANDING — full body, arms loosely crossed or hands in pockets, composed and direct, looking at camera with quiet confidence. Not smiling widely — settled and sure.",
-    wardrobe: "Sharp tailored blazer, fitted trousers, heeled boots.",
-    lighting: "Bright even daylight, minimal shadow.",
-    camera: "Sony A7R V, 50mm, full body distance, 9:16, editorial and direct",
+    setting: "Private apartment balcony overlooking the ocean at sunset",
+    pose: "CANDID PHOTO — standing at balcony railing looking back at the camera, wind in her hair.",
+    wardrobe: "Red triangle bikini top and denim shorts, sun-kissed skin.",
+    lighting: "Warm sunset backlight, golden hour rim light.",
+    camera: "Sony A7R V, 35mm, medium shot, 9:16",
   },
   {
     setting: "Outside her apartment building, city street, daylight",
-    pose: "WALKING — full body, mid-step, gym bag over one shoulder, looking ahead, not at camera. Genuine motion, going somewhere with purpose.",
-    wardrobe: "Matching athleisure set, oversized jacket over the top, trainers.",
+    pose: "WALKING — photo taken of her, mid-step, looking ahead, not at camera. Genuine motion.",
+    wardrobe: "Low-rise denim, fitted summer tank, oversized jacket over shoulders.",
     lighting: "Bright natural daylight.",
-    camera: "iPhone 16 Pro, medium distance, 9:16, candid street style",
+    camera: "Sony A7R V, 50mm, medium distance, 9:16, candid street style",
   },
   {
-    setting: "City apartment interior or rooftop terrace at dusk, skyline or string lights",
-    pose: "STANDING — full body, evening outfit, looking out or slightly off-camera, composed and elegant, not performing for the lens.",
-    wardrobe: "Fitted black dress or tailored evening separates, heels, minimal gold jewellery.",
+    setting: "City apartment interior or rooftop terrace at dusk, skyline backdrop",
+    pose: "STANDING — full body, evening outfit, looking off-camera, composed and elegant.",
+    wardrobe: "Low-back silk slip dress, heels, minimal gold jewellery.",
     lighting: "Blue hour, warm ambient light contrasting cool sky.",
     camera: "Leica SL2, 35mm, full body wide-medium, 9:16, cinematic",
   },
   {
     setting: "Home gym or studio, resting between sets",
-    pose: "SEATED ON A BENCH — full body, resting with water bottle, looking away, genuinely mid-recovery, unaware of camera.",
-    wardrobe: "Fitted training set, hair damp at the temples.",
+    pose: "SEATED ON A BENCH — full body, resting with water bottle, looking away, unaware of camera.",
+    wardrobe: "Sports bra and fitted gym shorts, hair damp.",
     lighting: "Practical gym lighting, natural and unfiltered.",
     camera: "Sony A7R V, 50mm, medium distance, 9:16, candid rest moment",
   },
   {
-    setting: "City street or apartment lobby, daylight",
-    pose: "WALKING — full body, oversized blazer over biker shorts and trainers, confident stride, looking ahead, not at camera.",
-    wardrobe: "Oversized blazer, fitted biker shorts, trainers, minimal gold jewellery.",
-    lighting: "Bright natural daylight.",
-    camera: "iPhone 16 Pro, medium-wide distance, 9:16, candid street style",
+    setting: "City street or outdoor cafe, daylight",
+    pose: "CANDID LIFESTYLE — sitting at table, photo taken of her holding iced coffee, looking at camera.",
+    wardrobe: "Summer fashion corset top and low-rise jeans, gold hoops.",
+    lighting: "Shaded daylight, clean soft tones.",
+    camera: "Sony A7R V, 50mm, 9:16 portrait",
   },
   {
-    setting: "Gym hallway mirror, post-training, practical lighting",
-    pose: "MIRROR SELFIE — full length, towel over one shoulder, phone visible in the reflection, composed and satisfied after a session.",
-    wardrobe: "Fitted training set, trainers.",
-    lighting: "Practical gym lighting, slightly warm.",
-    camera: "iPhone 16 Pro, mirror selfie, full length, 9:16",
+    setting: "Bathroom vanity mirror, clean marble space",
+    pose: "MIRROR SELFIE — getting ready selfie, phone in hand, looking into mirror reflection.",
+    wardrobe: "Delicate lace bralette and low-rise silk trousers, gold cross necklace.",
+    lighting: "Soft ambient bathroom lighting.",
+    camera: "iPhone 16 Pro, mirror selfie, 9:16",
   },
   {
     setting: "Rooftop pool on her apartment building, bright midday light, skyline in background",
-    pose: "SITTING ON THE EDGE — legs in the water, leaning back on both hands, face tilted toward the sun, eyes closed, relaxed and natural, not posed for camera.",
-    wardrobe: "Simple fitted swimsuit in a solid neutral tone — black, white, or sage. Hair slicked back or loosely tied.",
+    pose: "SITTING ON THE EDGE — legs in the water, leaning back on hands, eyes closed, relaxed and natural.",
+    wardrobe: "Micro string bikini in solid black or sage, hair slicked back.",
     lighting: "Bright midday sun, strong highlights on the water.",
     camera: "Sony A7R V, 50mm, pool-level side angle, 9:16, bright and editorial",
   },
   {
     setting: "Private pool on the building's amenity floor, warm afternoon light",
-    pose: "RECLINED ON A LOUNGER — reading something on her phone or a book, genuinely absorbed, knees bent, not posing for camera.",
-    wardrobe: "Simple one-piece swimsuit in a solid colour, sunglasses resting nearby.",
+    pose: "RECLINED ON A LOUNGER — photo taken of her reading something on her phone, relaxed pose.",
+    wardrobe: "Triangle bikini in neutral tones, sunglasses resting nearby.",
     lighting: "Warm afternoon sun, soft natural shadow.",
     camera: "iPhone 16 Pro, elevated angle, 9:16, candid and relaxed",
   },
   {
     setting: "Home terrace with a small plunge pool or hot tub, early morning light",
-    pose: "SEATED AT THE EDGE — feet in the water, looking out at the view, calm and unguarded, not aware of camera.",
-    wardrobe: "Fitted two-piece swimsuit, hair loosely tied.",
+    pose: "SEATED AT THE EDGE — feet in the water, photo taken of her looking out at the view.",
+    wardrobe: "Fitted two-piece string bikini, hair loosely tied.",
     lighting: "Soft early morning light, slightly cool.",
     camera: "Leica SL2, 50mm, medium distance, 9:16, quiet and natural",
   },
   {
-    setting: "Home office corner, desk with a planner, coffee, and a stack of books on money and mindset",
-    pose: "HANDS DETAIL — close on her hands turning a page or writing, face out of frame or softly blurred, the detail is the subject.",
-    wardrobe: "Sleeve of a knit jumper, gold ring visible.",
-    lighting: "Soft window light from one side.",
-    camera: "Leica SL2, 85mm, shallow depth of field, 9:16",
+    setting: "Bedroom bed, messy sheets, cozy morning",
+    pose: "MIRROR SELFIE — sitting on edge of bed facing bedroom mirror, relaxed and intimate.",
+    wardrobe: "Sheer silk cami and lace bottoms.",
+    lighting: "Soft diffuse window daylight.",
+    camera: "iPhone 16 Pro, mirror selfie, 9:16",
   },
   {
-    setting: "Kitchen, morning, clean counter, blender or coffee machine",
-    pose: "CANDID FROM THE SIDE — making a protein shake or coffee, focused on the task, unaware of camera, part of a routine not a performance.",
-    wardrobe: "Fitted gym set or oversized shirt, hair in a ponytail.",
+    setting: "Kitchen, morning, clean counter",
+    pose: "CANDID FROM THE SIDE — making coffee, photo taken of her focused on the task, unaware of camera.",
+    wardrobe: "Oversized unbuttoned shirt over a lace bralette.",
     lighting: "Bright morning window light.",
-    camera: "iPhone 16 Pro, medium distance, 9:16, candid morning routine",
+    camera: "Sony A7R V, 50mm, medium distance, 9:16, candid morning routine",
   },
   {
-    setting: "Living room sofa, soft daylight, a book visible on a side table",
-    pose: "READING — curled into the corner of the sofa, genuinely absorbed in a book, not looking at camera.",
-    wardrobe: "Oversized knit, hair down, relaxed but put-together.",
+    setting: "Living room sofa, soft daylight",
+    pose: "READING — curled into sofa, photo taken of her absorbed in a book.",
+    wardrobe: "Silk slip dress or cozy lounge shorts and tank.",
     lighting: "Soft natural daylight.",
     camera: "Leica SL2, 50mm, medium distance, 9:16, quiet and absorbed",
   },
   {
-    setting: "Street beside a parked car, daylight",
-    pose: "GETTING IN — one hand on the door, head turned slightly back, mid-motion, not posed, going somewhere with purpose.",
-    wardrobe: "Tailored coat or blazer, jeans, boots.",
-    lighting: "Natural daylight, soft shadow.",
-    camera: "Sony A7R V, 35mm, medium distance, 9:16, candid motion",
+    setting: "Beach shoreline, clear ocean water",
+    pose: "FRONT-FACING SELFIE — waist-deep in water, close-up selfie looking directly into lens.",
+    wardrobe: "Wet triangle bikini, damp wavy hair, natural skin freckles.",
+    lighting: "Bright direct sunlight, water reflections on skin.",
+    camera: "iPhone 16 Pro, front selfie, 9:16, close portrait",
   },
   {
-    setting: "Home gym or living room at night, single lamp or low ambient light",
-    pose: "STILL, SEATED ON THE FLOOR OR A BENCH — quiet, reflective, looking down or into the middle distance, unguarded. The discipline no one sees.",
-    wardrobe: "Simple fitted top and leggings, hair down.",
-    lighting: "Low warm lamp light, soft shadow, calm and still.",
-    camera: "Sony A7R V, 50mm, medium distance, 9:16, quiet and intimate",
+    setting: "Bedroom at night, single lamp or low ambient light",
+    pose: "MIRROR SELFIE — quiet reflective mirror selfie at night, low lighting.",
+    wardrobe: "Black lace lingerie set.",
+    lighting: "Low warm lamp light, soft shadow, intimate.",
+    camera: "iPhone 16 Pro, mirror selfie, 9:16",
   },
 ];
 
@@ -497,7 +496,7 @@ PERSONALITY ENFORCEMENT (non-negotiable for both tracks):
 - The reader should finish the caption feeling “I know this girl” rather than “this is high-quality content.”
 
 ${fanvueMode ? `=== WHAT YOU'RE DOING ===
-You post about training, mindset, and building the life you actually want — proof over promises. Some of it is shoot-style content (proper photos, sometimes self-shot, sometimes with a photographer), some of it is a real moment caught in motion. The point is proof: showing the standard, not just describing it. You post it the way anyone who's actually built something posts about it — matter-of-fact, a little proud, never explaining or justifying it.
+You post direct-to-audience model content: bikinis, lace lingerie, personal behind-the-scenes moments, summer fashion, and fitness. High skin exposure, personal bedroom, vacation, or pool energy. Personal, confident, direct. Some of it is shoot-style content (proper photos, sometimes self-shot, sometimes with a photographer), some of it is a real moment caught in motion. The point is proof: showing the standard, not just describing it. You post it the way anyone who's actually built something posts about it — matter-of-fact, a little proud, never explaining or justifying it.
 
 This is the single most important rule: every post must feel like it was written by a specific real person who has actually lived what she's describing, not generated. If it could have been written by any motivational account's social manager, it is wrong. If it reads like a quote-card caption, it is wrong. If it has zero humour or personality anywhere in it, it is also wrong — real people are not monotone.
 
@@ -520,7 +519,7 @@ She is not a brand account. She is not thirsty for likes. She posts because the 
 - NO long reflective paragraphs. If it looks like a journal entry, cut it.
 
 === WHAT'S IN THE SHOOT ===
-Real phone moments: mirror selfies, close selfies, mid-action candid, home gym, her own space. Prefer genuine selfies and lived-in frames over polished editorial. Confident and tasteful. Proof of a life being lived, not a photoshoot.
+Real phone moments: bedroom mirror selfies, close-up front selfies, mid-action candid, home gym, pool or vacation setting. Prefer genuine selfies and lived-in frames over polished editorial. Confident and tasteful model style. High skin exposure, bikinis, lace lingerie, summer fashion.
 
 === WHAT TO NEVER DO ===
 - "link in bio for more", "exclusive content", "don't miss this"
@@ -581,7 +580,7 @@ Return ONLY this JSON (no code fences):
   "caption": "1 to 3 short sentences. under 280 characters total. lowercase. no em dashes. no hashtags. no hard sell. british english, no spelling mistakes.",
   "hashtags": "",
   "photo_direction": "portrait 9:16",
-  "photo_idea": "Concrete phone-photo brief. Prefer selfie or mirror selfie when it fits. Must include: (1) exact setting + time of day, (2) what Cara is doing, (3) wardrobe in plain fabric terms, (4) lighting + whether it is a selfie, mirror selfie, or candid. 2-3 sentences. Real moment on a phone, not studio. Example: 'Morning mirror selfie in the bathroom. Oversized grey knit, hair down, soft window light. Phone at arm length, direct gaze.'",
+  "photo_idea": "Concrete phone-photo brief. Must follow location rules: (1) MIRROR SELFIES strictly in bedroom, bathroom, dressing room, or home gym. (2) OUTDOOR / PUBLIC / SHOPPING scenes must be standard arm's length selfies or candid photos taken of her. (3) Include wardrobe (bikinis, lace lingerie, summer fashion, high skin) + lighting + camera angle. 2-3 sentences. Real moment on a phone, not studio.",
   "cta": "",
   "post_type": "${contentType.type}",
   "content_label": "${postTypeLabel}",
@@ -607,7 +606,9 @@ async function generateImagePrompt(apiKey, persona, post, postIndex) {
     ? `Cara Whitmore (19) in the exact moment described here: "${captionScene.slice(0, 280)}". She is mid-action or mid-moment, not posing for a camera. Natural, lived-in, 19-year-old energy — funny, present, real.`
     : `Cara Whitmore (19) — ${shot.pose}`;
 
-  const subjectDesc = `${sceneDriven} FRAMING: real phone photo distance and angle. Do NOT default to a frontal close-up headshot. If she is walking, looking away, training, or in a quiet moment, she must NOT stare directly into the camera. Prefer full-body, three-quarter, or environmental framing.`;
+  const locationRuleConstraint = `LOCATION & FRAMING MANDATE: If the setting is outdoor, street, shopping, cafe, or public space, IT MUST BE A FRONT-FACING SELFIE OR CANDID PHOTO TAKEN OF HER. Never generate a mirror selfie in an outdoor or public setting. Mirror selfies are strictly restricted to bedroom, bathroom, dressing room, or home gym mirrors.`;
+
+  const subjectDesc = `${sceneDriven} FRAMING: real phone photo distance and angle. ${locationRuleConstraint} Do NOT default to a frontal close-up headshot. If she is walking, looking away, training, or in a quiet moment, she must NOT stare directly into the camera. Prefer full-body, three-quarter, or environmental framing.`;
 
   const angleNote = shot.pose.match(/HIGH ANGLE|LOW ANGLE|OVERHEAD|FLOOR|MIRROR SELFIE|MIRROR|FEET|SILHOUETTE|WALKING|CANDID|LAUGHING|SEATED|RECLINED|STANDING|HANDS|BROWSING|SELFIE|TRAINING|RUNNING|PRESENTING|GETTING IN/i)?.[0] || "natural candid";
 
@@ -618,9 +619,9 @@ async function generateImagePrompt(apiKey, persona, post, postIndex) {
     wardrobe: shot.wardrobe,
     setting: captionScene.length > 40 ? "Match the setting and light implied by the caption scene above" : shot.setting,
     lighting: captionScene.length > 40 ? "Natural light that fits the moment — morning grey, soft window, gym overhead, golden hour. Never studio softboxes." : shot.lighting,
-    technical: `${shot.camera || "iPhone 16 Pro"}, 9:16 vertical portrait, photorealistic phone photo. Visible pores, light freckles, natural skin texture, slight unevenness, mild film grain. Zero plastic skin, zero beauty filter, zero airbrush, zero AI smooth. Feels like a real selfie or candid from a phone.`,
-    style_ref: "Real phone selfie / candid lifestyle from actual 19-year-old Instagram creators. Prefer mirror selfies and close selfies. Lived-in, slightly imperfect, natural light. Never studio, never glamour, never beauty-filter skin, never plastic or porcelain skin.",
-    negative_prompt: "plastic skin, porcelain skin, airbrushed skin, beauty filter, over-smoothed skin, flawless skin, wax skin, CGI skin, studio softbox, posed model casting, missing freckles, missing gold cross or coin pendant, face drift, wrong eye colour, watermark, text, cartoon, 28-year-old life-coach energy",
+    technical: `${shot.camera || "iPhone 16 Pro"}, 9:16 vertical portrait, photorealistic phone photo. Visible pores, light freckles, natural skin texture, slight unevenness, mild film grain. Zero plastic skin, zero beauty filter, zero airbrush, zero AI smooth. Feels like a real selfie or candid from a phone. Exact match to reference face.`,
+    style_ref: "Real phone selfie / candid lifestyle from actual 19-year-old Instagram model creators. Lived-in, slightly imperfect, natural light. High skin exposure, bikinis, lace lingerie, summer fashion. Never studio, never glamour, never beauty-filter skin, never plastic or porcelain skin.",
+    negative_prompt: "plastic skin, porcelain skin, airbrushed skin, beauty filter, over-smoothed skin, flawless skin, wax skin, CGI skin, studio softbox, posed model casting, missing freckles, missing gold cross or coin pendant, face drift, wrong eye colour, watermark, text, cartoon, 28-year-old life-coach energy, mirror selfie in outdoor public space",
   };
 }
 
@@ -819,16 +820,16 @@ export default async function handler(req, res) {
       // Only generate image prompts for AI Creator mode (not studio)
       if (!studioMode) {
         const FALLBACK_BRIEFS = {
-          fv_tease:       "Creator at window, open silk shirt falling off shoulders, low-rise jeans. Strong directional daylight. Direct eye contact.",
-          fv_ppv:         "Creator on edge of bed leaning forward, wrapped loosely in white sheet, one shoulder bare. Warm candlelight.",
-          fv_ppv_caption: "Creator lying face-down on white bed, looking back over shoulder. Linen sheet across lower back. Morning light.",
-          fv_dm:          "Creator on bed, direct eye contact, golden-hour light. Thin-strap bodycon. Hair down, soft expression.",
-          fv_welcome:     "Creator on bed, direct eye contact, golden-hour light. Thin-strap bodycon. Hair down, soft expression.",
-          fv_personality: "Creator in bedroom, relaxed, oversized open shirt, low-rise jeans. Natural daylight. Genuine expression.",
-          fv_interact:    "Creator seated cross-legged on bed, looking straight into camera, thin-strap crop top. Warm soft light.",
-          fv_wall_post:   "Creator lying on bed back to camera, draped in white linen, looking over shoulder. Soft morning light.",
-          fv_announce:    "Creator standing against plain wall, open button-down shirt, low-rise jeans. Strong directional light.",
-          fv_preview:     "Creator at edge of bed leaning forward, loosely wrapped in satin sheet. Warm candlelight.",
+          fv_tease:       "Cara in bedroom mirror selfie, delicate lace lingerie set and open cardigan. Soft morning window light. Direct gaze.",
+          fv_ppv:         "Cara on edge of bed, silk lingerie robe slipped off shoulders. Warm ambient lighting, intimate candid feel.",
+          fv_ppv_caption: "Cara reclining on white linen bed, matching satin underwear set. Natural window light.",
+          fv_dm:          "Cara front-facing selfie in bed, thin-strap lace cami, hair down, soft relaxed expression.",
+          fv_welcome:     "Cara balcony selfie at sunset, string bikini and gold cross necklace, warm golden hour glow.",
+          fv_personality: "Cara bedroom mirror selfie, low-rise shorts and crop bralette. Natural morning daylight.",
+          fv_interact:    "Cara sitting on bed, direct eye contact selfie, sheer lingerie set, warm soft light.",
+          fv_wall_post:   "Cara candid photo on sunbed by pool, string bikini, looking back toward camera.",
+          fv_announce:    "Cara standing in bedroom, silk robe falling off shoulder, low-rise shorts. Strong directional light.",
+          fv_preview:     "Cara at edge of bed leaning forward, loosely wrapped in satin sheet. Warm candlelight.",
         };
         const baseBrief = post.photo_idea || FALLBACK_BRIEFS[post.post_type] || FALLBACK_BRIEFS["fv_tease"];
 
