@@ -3449,13 +3449,6 @@ async function unschedule(post) {
                     </button>
                   </div>
                 )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </>
-  )}
 
                   {/* Post Now as Reel — same image/caption, Make.com renders it as a Reel-style video */}
                   <button
