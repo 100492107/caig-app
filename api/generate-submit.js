@@ -121,14 +121,13 @@ export function buildPrompt({ imagePrompt, hook, caption, wardrobe, shotAngle, p
 
   // Hard anti-mismatch rules that the model must obey
   const antiMismatch = `
-const antiMismatch = `
-CRITICAL MATCHING & LOCATION RULES (must follow):
-- The clothes, setting, and action MUST match the scene/caption.
-- MIRROR SELFIES ARE ONLY ALLOWED INDOORS AT HOME (Bedroom, Bathroom, Dressing Room, Home Gym).
-- ANY PUBLIC, OUTDOOR, SHOPPING, STREET, CAFÉ, OR BEACH SHOT MUST BE A STANDARD SELFIE (ARM'S LENGTH) OR A CANDID PHOTO TAKEN OF HER. NEVER A MIRROR SELFIE IN PUBLIC.
-- IN FANVUE / MODEL MODE: Wardrobe must be high-skin, model-tier — lace lingerie, silk intimates, string bikinis, or trendy low-rise summer fashion.
-- Always show her signature gold cross necklace when chest/neck is visible.
-- Exact face match to reference images — green eyes, freckles, thick natural dark brows. Zero face smoothing.`;
+CRITICAL MATCHING RULES (must follow):
+- The clothes, setting, and action MUST match the scene/caption. 
+- Never put a blazer, tailored office wear, or formal clothes in a gym, training, or running scene.
+- Never put gym clothes in a soft indoor / cosy / evening scene unless the caption says she is training.
+- If the caption describes a walk, river, morning path, kitchen, sofa, candle, plants, or ordinary home moment — show that exact moment. Do not invent a gym or pool.
+- If the caption is about training or a session — show training clothes and a training environment.
+- Prefer the concrete details in the scene text over any generic "editorial" look.`;
 
   const sceneBlock = scene.length > 20
     ? `SCENE TO DEPICT (this is the primary instruction — follow it closely):\n"${scene.slice(0, 400)}"\n`
@@ -146,9 +145,41 @@ ${antiMismatch}
 
 ${CARA_IDENTITY_LOCK}
 
-TECHNICAL: Real iphone 17 pro max photograph. Prefer selfie or mirror selfie framing when the scene allows. Tack-sharp eyes. Photorealistic. 9:16. Lived-in. Mild film grain. Match the reference face exactly.
+TECHNICAL: Real phone photograph. Prefer selfie or mirror selfie framing when the scene allows. Tack-sharp eyes. Photorealistic. 9:16. Lived-in. Mild film grain. Match the reference face exactly.
 
 DO NOT: ${CARA_NEGATIVE_PROMPT}`;
+}
+
+/**
+ * Submits a generation job to fal.ai nano-banana-2/edit and returns the request_id.
+ * Restored as a named export — other endpoints (queue actions, "post as reel", etc.)
+ * depend on this exact name. If you rename it again, grep the whole api/ folder
+ * first ("submitToFal") or those callers will crash at import time, not at call
+ * time — which shows up as a generic FUNCTION_INVOCATION_FAILED with no useful
+ * detail, not a JSON error from your own code.
+ */
+export async function submitToFal({ falKey, prompt, imageUrls = CARA_REFS }) {
+  const res = await fetch(FAL_EDIT_QUEUE_URL, {
+    method: "POST",
+    headers: {
+      Authorization: `Key ${falKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      prompt,
+      image_urls: imageUrls,
+      image_size: CARA_IMAGE_SIZE,
+      output_format: "jpeg",
+      safety_tolerance: "6",
+      num_images: 1,
+    }),
+  });
+
+  const data = await res.json();
+  if (!res.ok || !data.request_id) {
+    throw new Error(`fal.ai submit failed: ${JSON.stringify(data)}`);
+  }
+  return data.request_id;
 }
 
 export default async function handler(req, res) {
@@ -170,37 +201,24 @@ export default async function handler(req, res) {
   }
 
   const { imagePrompt, hook, caption, wardrobe, shotAngle, photoDirection, photo_idea, seed } = body;
-  const prompt = buildPrompt({ imagePrompt, hook, caption, wardrobe, shotAngle, photoDirection, photo_idea });
+
+  let prompt;
+  try {
+    prompt = buildPrompt({ imagePrompt, hook, caption, wardrobe, shotAngle, photoDirection, photo_idea });
+  } catch (e) {
+    // buildPrompt should never throw, but guard anyway — an uncaught throw here
+    // previously would have crashed the whole function with no JSON response.
+    return res.status(500).json({ error: "buildPrompt failed", detail: e.message });
+  }
   console.log("[generate-submit] prompt:\n" + prompt);
 
-  let qRes, qData;
+  let requestId;
   try {
-    qRes = await fetch(FAL_EDIT_QUEUE_URL, {
-      method: "POST",
-      headers: { Authorization: `Key ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        prompt,
-        image_urls: CARA_REFS,
-        image_size: CARA_IMAGE_SIZE,
-        output_format: "jpeg",
-        safety_tolerance: "6",
-        num_images: 1,
-        seed: seed || undefined,
-      }),
-    });
-    qData = await qRes.json();
+    requestId = await submitToFal({ falKey: apiKey, prompt });
   } catch (e) {
-    return res.status(502).json({ error: "Failed to submit to fal.ai queue", detail: e.message });
+    return res.status(502).json({ error: "Queue submit failed", detail: e.message });
   }
 
-  if (!qRes.ok || !qData.request_id) {
-    return res.status(qRes.status || 502).json({ error: "Queue submit failed", detail: qData });
-  }
-
-  console.log("[generate-submit] queued:", qData.request_id);
-  return res.status(200).json({
-    requestId: qData.request_id,
-    statusUrl: qData.status_url,
-    resultUrl: qData.response_url,
-  });
+  console.log("[generate-submit] queued:", requestId);
+  return res.status(200).json({ requestId });
 }
