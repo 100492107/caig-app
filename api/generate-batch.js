@@ -821,18 +821,17 @@ export default async function handler(req, res) {
       // Only generate image prompts for AI Creator mode (not studio)
       if (!studioMode) {
         const FALLBACK_BRIEFS = {
-          const FALLBACK_BRIEFS = {
-          fv_tease:       "Cara in bedroom mirror selfie, ribbed cotton lounge crop and unbuttoned cardigan. Soft morning window light. Direct gaze.",
-          fv_ppv:         "Cara on edge of sunbed, silk wrap gown off one shoulder. Warm ambient lighting, relaxed candid feel.",
-          fv_ppv_caption: "Cara reclining on white linen lounge seating, matching silk cami and shorts set. Natural window light.",
-          fv_dm:          "Cara front-facing selfie in bedroom, thin-strap silk tank top, hair down, soft relaxed expression.",
-          fv_welcome:     "Cara balcony selfie at sunset, resort bikini top and gold cross necklace, warm golden hour glow.",
-          fv_personality: "Cara bedroom mirror selfie, low-rise summer shorts and fitted crop top. Natural morning daylight.",
+          fv_tease:       "Cara standing before reflective glass in private quarters, fine-knit cotton crop and unbuttoned cardigan. Soft morning window light. Direct gaze.",
+          fv_ppv:         "Cara on edge of white linen daybed, satin robe layer off one shoulder. Warm ambient lighting, relaxed candid feel.",
+          fv_ppv_caption: "Cara reclining on white linen lounge seating, matching silk cami set. Natural window light.",
+          fv_dm:          "Cara front-facing selfie in private room, thin-strap silk tank top, hair down, soft relaxed expression.",
+          fv_welcome:     "Cara balcony selfie at sunset, resort two-piece top and gold cross necklace, warm golden hour glow.",
+          fv_personality: "Cara in private room, low-rise summer shorts and fitted crop top. Natural morning daylight.",
           fv_interact:    "Cara sitting on daybed, direct eye contact selfie, ribbed cotton set, warm soft light.",
-          fv_wall_post:   "Cara candid photo on lounger by pool, high-cut swimsuit set, looking back toward camera.",
-          fv_announce:    "Cara standing in bedroom, silk kimono layer off shoulder, low-rise linen shorts. Strong directional light.",
+          fv_wall_post:   "Cara candid photo on lounger by private pool, high-cut two-piece set, looking back toward camera.",
+          fv_announce:    "Cara standing in private quarters, silk layer off shoulder, low-rise linen shorts. Strong directional light.",
           fv_preview:     "Cara at edge of seating area leaning forward, draped in a silk throw. Warm ambient light.",
-          };
+        };
         };
         const baseBrief = post.photo_idea || FALLBACK_BRIEFS[post.post_type] || FALLBACK_BRIEFS["fv_tease"];
 
