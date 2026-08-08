@@ -12,6 +12,7 @@ import {
   CARA_IMAGE_SIZE,
   CARA_IDENTITY_LOCK,
   CARA_NEGATIVE_PROMPT,
+  CARA_SELFIE_ANATOMY_GUIDANCE,
 } from "./cara-config.js";
 
 // ─── LIGHTWEIGHT SHOT FRAMES (only used when caption is vague) ───────────────
@@ -19,12 +20,16 @@ const FRAMES = [
   "35mm eye-level, three-quarter length",
   "50mm full-length, natural distance",
   "35mm medium shot, chest-up",
-  "phone selfie, arm's length",
-  "mirror selfie, full length, phone visible in reflection",
+  "close phone selfie, arm bent naturally, tight crop",
+  "mirror selfie, medium-close crop, phone visible in reflection",
   "35mm candid mid-action, not looking at camera",
   "50mm side profile, soft light",
   "24mm wide environmental, full body in context",
 ];
+
+function isSelfieFrame(frame) {
+  return /selfie|mirror/i.test(frame || "");
+}
 
 function pickRandom(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
@@ -75,7 +80,7 @@ const FALLBACK_WARDROBE = {
   gym: "fitted sports bra and leggings, trainers, hair in a ponytail or down",
   running: "running kit — sports bra or fitted top, shorts or leggings, trainers",
   mirror: "whatever she is checking in the mirror — keep it simple and real",
-  water: "simple string bikini or swimwear appropriate to the setting",
+  water: "simple modern bikini or swimwear appropriate to the setting",
   cosy: "oversized knit jumper or soft lounge clothes, bare legs or soft trousers",
   office: "simple fitted top or knit, tailored trousers or jeans, minimal gold jewellery",
   city: "casual city clothes — linen shirt, crop top, jeans or skirt, layered gold chains",
@@ -119,6 +124,8 @@ export function buildPrompt({ imagePrompt, hook, caption, wardrobe, shotAngle, p
   }
 
   const frame = pickRandom(FRAMES);
+  const selfieShot = isSelfieFrame(frame) || isSelfieFrame(scene) || isSelfieFrame(photoDirection);
+  const selfieGuidance = selfieShot ? `\n${CARA_SELFIE_ANATOMY_GUIDANCE}\n` : "";
 
   // Hard anti-mismatch rules that the model must obey
   const antiMismatch = `
@@ -143,7 +150,7 @@ LOCATION / SETTING: ${settingText}.
 LIGHTING: Natural or available light that fits the moment (morning grey, soft window, gym overhead, golden hour, etc.). Never studio softboxes. Real skin, real pores, mild film grain.
 
 ${antiMismatch}
-
+${selfieGuidance}
 ${CARA_IDENTITY_LOCK}
 
 TECHNICAL: Real phone photograph. Prefer selfie or mirror selfie framing when the scene allows. Tack-sharp eyes. Photorealistic. 9:16. Lived-in. Mild film grain. Match the reference face exactly.
