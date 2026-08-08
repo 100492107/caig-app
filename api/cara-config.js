@@ -40,16 +40,16 @@ export const CARA_IMAGE_SIZE = { width: 1080, height: 1920 }; // 9:16 vertical
 // If you retrain or swap refs, re-derive this from the new photos — don't
 // just tweak wording, re-verify against what's actually in the images.
 export const CARA_IDENTITY_LOCK = `IDENTITY LOCK — HIGHEST PRIORITY, ZERO DEVIATION ALLOWED:
-This is Cara. Use the provided reference images as the exact face and identity source. Composite that precise face onto the body/scene described below — do not blend, average, or drift toward a generic face.
+This is Cara Whitmore (19, British model). Use the provided reference images as the exact face and identity source. Composite that precise face onto the body/scene described below — do not blend, average, or drift toward a generic face.
 
-EYES: Green, leaning hazel-green in some lighting, medium-set, with visible definition around the iris. Never blue, never brown, never grey.
-EYEBROWS: Thick, dark brown, straight-to-softly-arched, natural (not thin, not overplucked, not drawn-on).
-HAIR: Dark brown, long (past shoulders), natural loose waves/curls — never straight, never black, never blonde or lightened throughout (warm brown/caramel highlights only where light catches it naturally).
-SKIN: Warm olive/tan undertone. Light freckles visible across the nose and upper cheeks in bright/natural light — must be present, not smoothed away. Natural texture, not airbrushed.
-FACE SHAPE: Oval face, softly angular jaw, straight nose, fuller lips in a soft pink-nude tone. Resting expression is calm/direct, not a wide smile by default.
-JEWELLERY: Small gold hoop or huggie earrings, worn consistently. Layered thin gold necklaces — at minimum a gold cross pendant, often paired with a small gold coin pendant — visible whenever the neck/chest area is in frame. This is a signature, non-negotiable detail.
-BUILD: Slim, toned, natural athletic build.
+FACIAL FEATURES (PIXEL REFERENCE EXACT MATCH TO REFS):
+EYES: Green, clear hazel-green with visible definition around the iris. Never blue, brown, or grey.
+EYEBROWS: Thick, dark brown, natural, straight-to-softly-arched.
+HAIR: Dark brown, long (past shoulders), natural loose waves/curls.
+SKIN: Warm olive/sun-kissed tone. Natural freckles visible across nose and upper cheeks. Natural skin texture.
+FACE SHAPE: Defined jawline, straight nose, full naturally pigmented lips in a soft rose tone.
+JEWELLERY: Small gold hoop earrings and signature thin gold chain with a cross pendant (always present when neck/chest is visible).
+BUILD: Slim, toned, athletic model build.
 
-CRITICAL: Facial structure, eye color, and freckle pattern must match the reference images exactly. Zero facial drift between generations — this must look like the same real person in every image, not a family resemblance.`;
-
-export const CARA_NEGATIVE_PROMPT = `plastic skin, porcelain skin, airbrushed skin, beauty filter, over-smoothed skin, flawless skin, wax skin, CGI skin, doll-like face, generic AI face, face drift, wrong eye colour, blue eyes, brown eyes, straight hair, black hair, blonde hair, missing freckles, missing gold jewellery, missing cross pendant, thin eyebrows, drawn-on eyebrows, studio softbox lighting, over-lit, glossy magazine finish, symmetrical posed model casting, cartoon, CGI, 3D render, illustration, text, watermark, logo, nudity, disfigured, extra fingers, extra limbs, mutated hands, blurry face, low resolution face, different person, inconsistent identity between shots`;
+CRITICAL IDENTITY RULE: Maintain exact face shape, eye color, and freckle pattern across every generation. Zero facial drift allowed.`;
+export const CARA_NEGATIVE_PROMPT = `plastic skin, porcelain skin, airbrushed skin, beauty filter, over-smoothed skin, wax skin, CGI skin, doll-like face, generic AI face, face drift, wrong eye colour, blue eyes, brown eyes, straight hair, black hair, blonde hair, missing freckles, missing gold cross pendant, thin eyebrows, studio softbox lighting, over-lit, cartoon, CGI, 3D render, watermark, text, logo, disfigured, extra fingers, mutated hands, blurry face, low resolution face, different person, inconsistent identity, mirror selfie outdoors, mirror selfie in public`;
