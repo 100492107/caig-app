@@ -1,17 +1,10 @@
 // api/generate-submit.js
-// Submits a nano-banana-2 generation job to fal.ai's async queue.
+// Submits a flux-lora generation job to fal.ai's async queue, using Cara's
+// trained LoRA weights for identity instead of reference-image editing.
 // Caption / photo_idea drives setting + wardrobe + action.
 // Shot library only supplies camera framing when the caption is vague.
 
-const QUEUE_URL = "https://queue.fal.run/fal-ai/nano-banana-2/edit";
-
-const CARA_REFS = [
-  "https://v3b.fal.media/files/b/0a990cbf/7tn1zr6Tzvw4LP6NfoQJ5_Cara_Whitmore_10.png",
-  "https://v3b.fal.media/files/b/0a990cbf/GZpvO79sLCKUEXmb5OjDZ_Cara_Whitmore_14.png",
-  "https://v3b.fal.media/files/b/0a990cc0/hNz9MH3iKPSpX1SCu7JnC_Cara_Whitmore_16.png",
-  "https://v3b.fal.media/files/b/0a990cc0/aC52Bfy17019kTbWG4L_L_Cara_Whitmore_18.png",
-  "https://v3b.fal.media/files/b/0a990cc0/ne3QfVCW_NQnJZFjSnsST_Cara_Whitmore_23.jpeg",
-];
+import { CARA_LORA, CARA_TRIGGER, FAL_LORA_QUEUE_URL, CARA_IMAGE_SIZE } from "./cara-config.js";
 
 // ─── LIGHTWEIGHT SHOT FRAMES (only used when caption is vague) ───────────────
 const FRAMES = [
@@ -133,7 +126,8 @@ CRITICAL MATCHING RULES (must follow):
     ? `SCENE TO DEPICT (this is the primary instruction — follow it closely):\n"${scene.slice(0, 400)}"\n`
     : `SCENE: A natural, candid moment in Cara's real life. Mid-action or quiet, not a posed model shot.\n`;
 
-  return `Photorealistic lifestyle photograph of Cara Whitmore, 19, British. Recreate her exactly from the reference images — same face, same features, same identity.
+  // CARA_TRIGGER must appear early — this is what activates the trained LoRA.
+  return `Photorealistic lifestyle photograph of ${CARA_TRIGGER}, 19, British. ${CARA_TRIGGER}'s exact face and identity, matching training data.
 
 ${sceneBlock}
 CAMERA / FRAMING: ${frame}. 9:16 vertical. Feels like a real phone photo or candid mirror shot, not a studio production.
@@ -143,19 +137,9 @@ LIGHTING: Natural or available light that fits the moment (morning grey, soft wi
 
 ${antiMismatch}
 
-IDENTITY LOCK — every single one of these must be exact:
-HAIR: Dark chocolate brown (espresso / dark roast). This is BROWN hair, not black. Warm brown tones in light, never blue-black or jet black. Long, natural wave, past the shoulders.
-EYES: Vivid bright green with dark limbal ring. Unmistakably green. Not hazel, not grey, not blue.
-BROWS: Strong, thick, dark, naturally shaped.
-SKIN: Medium-light warm olive. Visible natural pores. Light freckles across the nose and cheeks - required and clearly visible. Slight unevenness and real texture. Slightly sun-kissed. NO beauty filter. NO plastic skin. NO porcelain skin. NO airbrush. NO wax skin.
-FACE: Angular jawline, straight refined nose, full soft pink-rose lips. She is 19. Not mid-20s. Not late-20s.
-JEWELLERY: Small gold hoop earrings. Layered fine gold chains including a cross pendant and a small coin pendant. Must appear whenever the neck is visible.
-MOLE: Small dark mole on the left side of the neck, just below the jawline (~3mm). Present when neck is visible.
-EXPRESSION: Natural 19-year-old energy. Looking at camera, slightly off, mid-thought, or mid-selfie. Never forced model smile. Never polished life-coach energy.
+STYLE: Real phone photograph. Prefer selfie or mirror selfie framing when the scene allows. Tack-sharp eyes. Photorealistic. 9:16. Lived-in. Mild film grain.
 
-TECHNICAL: Real phone photograph. Prefer selfie or mirror selfie framing when the scene allows. Tack-sharp eyes. Photorealistic. 9:16. Lived-in. Mild film grain. Match the reference face exactly.
-
-DO NOT: plastic skin, porcelain skin, airbrushed skin, beauty filter, over-smoothed skin, missing freckles, missing gold cross or coin, formal blazer in training scenes, gym clothes in soft home scenes unless caption says training, black or blue-black hair, wrong eye colour, studio softbox lighting, cartoon, CGI, text, watermark, nudity, face drift from reference.`;
+DO NOT: plastic skin, porcelain skin, airbrushed skin, beauty filter, over-smoothed skin, formal blazer in training scenes, gym clothes in soft home scenes unless caption says training, studio softbox lighting, cartoon, CGI, text, watermark, nudity, face drift from ${CARA_TRIGGER}'s trained identity.`;
 }
 
 export default async function handler(req, res) {
@@ -178,15 +162,15 @@ export default async function handler(req, res) {
 
   let qRes, qData;
   try {
-    qRes = await fetch(QUEUE_URL, {
+    qRes = await fetch(FAL_LORA_QUEUE_URL, {
       method: "POST",
       headers: { Authorization: `Key ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         prompt,
-        image_urls: CARA_REFS,
-        image_size: { width: 1080, height: 1920 },
+        loras: [CARA_LORA],
+        image_size: CARA_IMAGE_SIZE,
         output_format: "jpeg",
-        safety_tolerance: "6",
+        enable_safety_checker: true,
         num_images: 1,
         seed: seed || undefined,
       }),
