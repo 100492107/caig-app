@@ -39,34 +39,28 @@ export const CARA_IMAGE_SIZE = { width: 1080, height: 1920 }; // 9:16 vertical
 // is something actually visible across multiple refs, not generic filler.
 // If you retrain or swap refs, re-derive this from the new photos — don't
 // just tweak wording, re-verify against what's actually in the images.
-//
-// SKIN/MAKEUP NOTE: previously this pushed hard on "unfiltered, not airbrushed,
-// mild film grain" to avoid plastic-AI skin — but that instruction was fighting
-// the reference images themselves if the refs show groomed/made-up skin, and
-// text instructions can out-compete reference-image influence in edit models.
-// The rule now is simpler and more reliable: match the reference finish
-// exactly, whatever it is, rather than pushing toward "raw" by default.
 export const CARA_IDENTITY_LOCK = `IDENTITY LOCK — HIGHEST PRIORITY, ZERO DEVIATION ALLOWED:
-This is Cara. Use the provided reference images as the exact face, identity, and finish source. Composite that precise face onto the body/scene described below — do not blend, average, or drift toward a generic face.
+This is Cara. Use the provided reference images CARA_REFS as the exact face and identity source. Composite that precise face onto the body/scene described below — do not blend, average, or drift toward a generic face. PIXEL RATIO 1:1, TRUE EXACT IDENTITY LOCK.
 
 EYES: Green, leaning hazel-green in some lighting, medium-set, with visible definition around the iris. Never blue, never brown, never grey.
 EYEBROWS: Thick, dark brown, straight-to-softly-arched, natural (not thin, not overplucked, not drawn-on).
 HAIR: Dark brown, long (past shoulders), natural loose waves/curls — never straight, never black, never blonde or lightened throughout (warm brown/caramel highlights only where light catches it naturally).
-SKIN & MAKEUP: Match the exact skin finish, tone, and makeup level shown in the reference images — do not add a "natural/unfiltered/no-makeup" look if the references show more polished, made-up skin, and do not add heavy polish if the references show bare skin. Light freckles visible across the nose and upper cheeks where the references show them. The goal is an exact match to the reference finish, not a generic "realistic" or "raw" style imposed on top of it.
+SKIN: Warm olive/tan undertone. Light freckles visible across the nose and upper cheeks in bright/natural light — must be present, not smoothed away. Natural texture, not airbrushed.
 FACE SHAPE: Oval face, softly angular jaw, straight nose, fuller lips in a soft pink-nude tone. Resting expression is calm/direct, not a wide smile by default.
 JEWELLERY: Small gold hoop or huggie earrings, worn consistently. Layered thin gold necklaces — at minimum a gold cross pendant, often paired with a small gold coin pendant — visible whenever the neck/chest area is in frame. This is a signature, non-negotiable detail.
 BUILD: Slim, toned, natural athletic build.
 
-CRITICAL: Facial structure, eye color, freckle pattern, and skin/makeup finish must match the reference images exactly. Zero facial drift between generations — this must look like the same real person in every image, not a family resemblance.`;
+CRITICAL: Facial structure, eye color, and freckle pattern must match the reference images exactly. Zero facial drift between generations — this must look like the same real person in every image, not a family resemblance.`;
 
-export const CARA_NEGATIVE_PROMPT = "cgi, 3d render, illustration, cartoon, plastic skin, porcelain skin, over-smoothed skin, beauty filter, studio softbox lighting, watermark, text, different person, face drift";
+export const CARA_NEGATIVE_PROMPT = `plastic skin, porcelain skin, airbrushed skin, beauty filter, over-smoothed skin, flawless skin, wax skin, CGI skin, doll-like face, generic AI face, face drift, wrong eye colour, blue eyes, brown eyes, straight hair, black hair, blonde hair, missing freckles, missing gold jewellery, missing cross pendant, thin eyebrows, drawn-on eyebrows, studio softbox lighting, over-lit, glossy magazine finish, symmetrical posed model casting, cartoon, CGI, 3D render, illustration, text, watermark, logo, nudity, disfigured, extra fingers, extra limbs, mutated hands, blurry face, low resolution face, different person, inconsistent identity between shots`;
 
-// ─── SELFIE / MIRROR-SELFIE ANATOMY GUIDANCE ───────────────────────────────
-// Selfie and mirror-selfie poses are the single biggest source of anatomy
-// errors in edit models — rendering an arm reaching toward camera, a phone,
-// and (for mirror shots) a reflected arm and phone all at once is a hard
-// geometry problem, and the model often "solves" it by inventing an extra
-// limb or over-stretching the arm. Append this whenever a selfie/mirror
-// framing is used, instead of leaving the model to improvise the geometry.
-export const CARA_SELFIE_ANATOMY_GUIDANCE = `SELFIE / PHONE ANATOMY (must follow exactly):
-One arm only, bent naturally at the elbow, phone held close to the body — never fully extended, never reaching far out of frame. The hand holding the phone shows natural grip. The other arm rests naturally at her side or in frame doing something ordinary (not holding anything else). Do not show the phone screen. For mirror selfies: the reflection shows the same single arm and phone, in the same natural bent position — not a second, differently-posed arm. If in doubt, favour a simpler, closer crop over a complex full-body selfie angle — a tighter, simpler shot is far less likely to distort anatomy than an ambitious full-length one.`;
+// Extra guidance appended only for selfie / reflective-glass framed shots — these
+// are the frame types most prone to AI hand/phone artifacts, so they get a
+// dedicated anatomy note on top of the general identity lock and negative prompt.
+export const CARA_SELFIE_ANATOMY_GUIDANCE = `SELFIE ANATOMY GUIDANCE — critical for phone-in-hand and reflective glass shots:
+- Exactly one phone, held naturally in one hand with five correctly proportioned fingers gripping it. No extra or fused fingers, no floating or duplicated phone.
+- The arm holding the phone should have natural, anatomically correct foreshortening, not an impossibly long or bent arm.
+- In reflective glass/mirror shots: the reflection must show the same single phone and matching hand position as the real hand. No duplicate phones, no mismatched reflection, no extra person visible in the glass.
+- Face stays clearly visible and unobscured by the phone, unless deliberately raised for a close lower-face crop, in which case eyes and upper face remain visible.
+- Standard rectangular smartphone silhouette. No warped, curved, or oversized phone body.
+- The other hand, if visible in frame, also has five correctly proportioned fingers.`;
