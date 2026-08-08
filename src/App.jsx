@@ -3031,36 +3031,101 @@ async function unschedule(post) {
                   overflow: "hidden",
                 }}
               >
-                {displayImg ? (
-                  <>
-                    <img
-                      src={displayImg}
-                      alt="Post image"
-                      style={{ width: "100%", objectFit: "contain", display: "block", background: "#000" }}
-                    />
-                    {/* Overlay hint on hover */}
-                    {!busy && (
-                      <div style={{
-                        position: "absolute", inset: 0,
-                        background: "rgba(0,0,0,0)",
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        transition: "background .15s",
-                      }}
-                        onMouseEnter={e => e.currentTarget.style.background = "rgba(0,0,0,.35)"}
-                        onMouseLeave={e => e.currentTarget.style.background = "rgba(0,0,0,0)"}
-                      >
-                        <span style={{
-                          color: "#fff", fontSize: 12, fontWeight: 600,
-                          opacity: 0, transition: "opacity .15s",
-                          background: "rgba(0,0,0,.6)", padding: "6px 12px", borderRadius: 8,
-                        }}
-                          onMouseEnter={e => e.currentTarget.style.opacity = 1}
-                          onMouseLeave={e => e.currentTarget.style.opacity = 0}
-                        >Click to replace image</span>
-                      </div>
-                    )}
-                  </>
-                ) : (
+                {displayImg || allUrls.length > 0 ? (
+  <>
+    {/* Main image / current slide */}
+    <img
+      src={displayImg || allUrls[0]}
+      alt="Post image"
+      style={{ width: "100%", objectFit: "contain", display: "block", background: "#000" }}
+    />
+
+    {/* Carousel strip — only when there are multiple slides */}
+    {isCarousel && (
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          position: "absolute",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          display: "flex",
+          gap: 6,
+          padding: "10px 12px",
+          background: "linear-gradient(transparent, rgba(0,0,0,.75))",
+          overflowX: "auto",
+        }}
+      >
+        {allUrls.map((url, idx) => (
+          <button
+            key={idx}
+            onClick={e => {
+              e.stopPropagation();
+              setImages(im => ({
+                ...im,
+                [post.id]: {
+                  ...(im[post.id] || {}),
+                  url,
+                  localPreview: url,
+                  urls: allUrls,
+                },
+              }));
+            }}
+            style={{
+              flex: "0 0 auto",
+              width: 52,
+              height: 72,
+              borderRadius: 6,
+              overflow: "hidden",
+              border: (displayImg || allUrls[0]) === url ? "2px solid #fff" : "2px solid transparent",
+              padding: 0,
+              cursor: "pointer",
+              background: "#111",
+            }}
+          >
+            <img
+              src={url}
+              alt={`Slide ${idx + 1}`}
+              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+            />
+          </button>
+        ))}
+        <div style={{
+          flex: "0 0 auto",
+          alignSelf: "center",
+          fontSize: 11,
+          color: "rgba(255,255,255,.7)",
+          fontWeight: 600,
+          paddingLeft: 4,
+        }}>
+          {allUrls.length} slides
+        </div>
+      </div>
+    )}
+
+    {/* Overlay hint on hover (single image only) */}
+    {!busy && !isCarousel && (
+      <div style={{
+        position: "absolute", inset: 0,
+        background: "rgba(0,0,0,0)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        transition: "background .15s",
+      }}
+        onMouseEnter={e => e.currentTarget.style.background = "rgba(0,0,0,.35)"}
+        onMouseLeave={e => e.currentTarget.style.background = "rgba(0,0,0,0)"}
+      >
+        <span style={{
+          color: "#fff", fontSize: 12, fontWeight: 600,
+          opacity: 0, transition: "opacity .15s",
+          background: "rgba(0,0,0,.6)", padding: "6px 12px", borderRadius: 8,
+        }}
+          onMouseEnter={e => e.currentTarget.style.opacity = 1}
+          onMouseLeave={e => e.currentTarget.style.opacity = 0}
+        >Click to replace image</span>
+      </div>
+    )}
+  </>
+) : (
                   <div style={{ textAlign: "center", color: "var(--t4)", fontSize: 13, padding: 32 }}>
                     {isUploading ? (
                       <div>Uploading…</div>
