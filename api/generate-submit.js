@@ -1,5 +1,5 @@
 // api/generate-submit.js
-// Submits a nano-banana-2 generation job to fal.ai's async queue.
+// Submits a GPT Image 2 (fal.ai) generation job to the async queue.
 // Merges ultra-realistic Sony A7R V camera physics from flux.md with safe prompt translation.
 
 import {
@@ -7,6 +7,7 @@ import {
   FAL_EDIT_QUEUE_URL,
   FAL_EDIT_REQUESTS_BASE,
   CARA_IMAGE_SIZE,
+  CARA_IMAGE_QUALITY,
   CARA_IDENTITY_LOCK,
   CARA_NEGATIVE_PROMPT,
   CARA_SELFIE_ANATOMY_GUIDANCE,
@@ -172,7 +173,9 @@ BIOLOGY & REALISM STANDARDS:
 ${antiMismatch}
 ${selfieGuidance}
 
-DO NOT: cgi, 3d render, illustration, cartoon, plastic skin, porcelain skin, over-smoothed face, beauty filter, studio softbox, watermark, text, different person, face drift, blue eyes, brown eyes, thin eyebrows, missing neck mole`;
+${CARA_IDENTITY_LOCK}
+
+DO NOT: ${CARA_NEGATIVE_PROMPT}`;
 }
 
 export async function submitToFal({ falKey, prompt, imageUrls = CARA_REFS }) {
@@ -186,9 +189,11 @@ export async function submitToFal({ falKey, prompt, imageUrls = CARA_REFS }) {
       prompt,
       image_urls: imageUrls,
       image_size: CARA_IMAGE_SIZE,
+      quality: CARA_IMAGE_QUALITY,
       output_format: "jpeg",
-      safety_tolerance: "6",
       num_images: 1,
+      // NOTE: no safety_tolerance — GPT Image 2 has no equivalent param.
+      // Moderation is OpenAI's own and isn't configurable here.
     }),
   });
 
