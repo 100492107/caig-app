@@ -1,26 +1,30 @@
 // api/generate-video-submit.js
 // Image → video via Seedance 2.5 (fal.ai).
 // POST { imageUrl, postId?, caption?, photo_idea?, hook? }
-// Returns { request_id, type: "video", postId }
 //
-// Prompt style follows ByteDance Seedance 2.5 guide:
-// Subject + Action + Scene + Camera + Audio, with short timed beats (5–8s max).
+// Motion style: real phone selfie energy — normal speed, clear human movement,
+// not slow-mo, not frozen limbs, no cinematic grade.
 
 function buildMotionPrompt({ caption, photo_idea, hook }) {
   const context = [photo_idea, caption, hook].filter(Boolean).join(" ").trim();
   const sceneHint = context
-    ? context.replace(/\s+/g, " ").slice(0, 220)
-    : "a natural candid moment in her day";
+    ? context.replace(/\s+/g, " ").slice(0, 180)
+    : "a casual mirror selfie moment";
 
-  // Seedance 2.5 responds best to concrete, staged action — not vague "subtle movement".
-  // Keep total runtime 5–8s. Image is the first frame; describe what happens next.
+  // Seedance freezes limbs when you only ask for "subtle micro-movement".
+  // Give clear, normal-speed actions so raised arms, hands, and pose actually move.
   return [
-    `Opening (0:00-0:02): Cara is already in the frame exactly as shown in the reference still. ${sceneHint}. She holds the same pose for a beat, then begins natural micro-movement — a soft shift of weight, a breath that moves the shoulders, eyes blink once.`,
-    `Main action (0:02-0:06): She continues the moment in a continuous single shot. Hair shifts slightly. Fabric settles with the body. Expression stays natural and present — not a posed model stare. Small, believable human motion only: a glance, a hand adjustment, a slight head turn, or walking energy if the still implies movement.`,
-    `Close (0:06-0:08): Motion settles. She finishes the gesture or holds the end of the moment. Camera stays stable with only tiny handheld drift. No jump cuts, no new wardrobe, no face change.`,
-    `Camera: locked or very gentle handheld, 9:16 vertical, photorealistic phone-video look, continuous take.`,
-    `Audio: soft ambient room tone or light outdoor atmosphere matching the scene; quiet natural sound only, no music, no voiceover, no text on screen.`,
-    `Style: real lifestyle phone footage, natural skin texture, real light, no beauty filter, no cinematic grade, no morphing, identity locked to the starting image.`,
+    `Real phone video, normal real-time speed, not slow motion, not cinematic.`,
+    `Starting from the exact still image of Cara. Scene context: ${sceneHint}.`,
+    `She is alive and moving naturally like a real girl filming a quick mirror selfie.`,
+    `In the first second she blinks and slightly adjusts her posture.`,
+    `If an arm is raised, she lowers it smoothly or shifts it — do not leave any limb frozen in place.`,
+    `She shifts her weight, the open shirt or fabric moves with her body, hair moves slightly.`,
+    `She may glance at the phone screen then back to the mirror, small natural head movement.`,
+    `Continuous single take, handheld phone feel, tiny natural camera shake only.`,
+    `Normal playback speed — everyday real life, not dramatic, not slow-mo, not dreamy.`,
+    `Photorealistic, natural skin, real light. No morphing, no face change, identity locked to the starting frame.`,
+    `No text on screen, no music, no voiceover.`,
   ].join(" ");
 }
 
@@ -59,10 +63,10 @@ export default async function handler(req, res) {
         body: JSON.stringify({
           image_url: imageUrl,
           prompt: motionPrompt,
-          duration: "8",          // 5–10s band; 8s is a strong default for Reels
-          resolution: "720p",     // max for Seedance 2.5 i2v
-          aspect_ratio: "auto",   // inherits 9:16 from Cara stills
-          generate_audio: true,   // ambient SFX on
+          duration: "5",          // shorter = tighter, less drift
+          resolution: "720p",
+          aspect_ratio: "auto",
+          generate_audio: false,  // no SFX
         }),
       }
     );
