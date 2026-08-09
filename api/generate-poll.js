@@ -1,10 +1,10 @@
 // api/generate-poll.js
-// Handles status polling for both image (GPT Image 2) and video (Kling) fal.ai jobs.
+// Handles status polling for both image (nano-banana-2) and video (Kling) fal.ai jobs.
 // GET ?requestId=xxx              → image poll (existing behaviour, unchanged)
 // POST { request_id, type }       → image or video poll (new)
 
 const FAL_BASES = {
-  image: "https://queue.fal.run/openai/gpt-image-2/requests",
+  image: "https://queue.fal.run/fal-ai/nano-banana-2/requests",
   video: "https://queue.fal.run/fal-ai/kling-video/v2.5/turbo/image-to-video/requests",
 };
 
