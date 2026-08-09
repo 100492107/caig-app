@@ -5,7 +5,7 @@
 
 import { createClient } from "@supabase/supabase-js";
 import { buildPrompt } from "./generate-submit.js";
-import { CARA_REFS, FAL_EDIT_QUEUE_URL, FAL_EDIT_REQUESTS_BASE, CARA_IMAGE_SIZE } from "./cara-config.js";
+import { CARA_REFS, FAL_EDIT_QUEUE_URL, FAL_EDIT_REQUESTS_BASE, CARA_IMAGE_SIZE, CARA_IMAGE_QUALITY } from "./cara-config.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL || "https://zvyioxhwdyocaanzcgqf.supabase.co",
@@ -128,9 +128,10 @@ async function submitImage(falKey, post) {
       prompt,
       image_urls: CARA_REFS,
       image_size: CARA_IMAGE_SIZE,
+      quality: CARA_IMAGE_QUALITY,
       output_format: "jpeg",
-      safety_tolerance: "6",
       num_images: 1,
+      // NOTE: no safety_tolerance — GPT Image 2 has no equivalent param.
     }),
   });
 
