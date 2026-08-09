@@ -2814,12 +2814,22 @@ async function generateImage(post) {
         });
         const pollData = await pollRes.json();
 
-        if (pollData.status === "COMPLETED" && pollData.url) {
-          setVideos(v => ({ ...v, [post.id]: { url: pollData.url } }));
-          setReelGenerating(r => { const n = { ...r }; delete n[post.id]; return n; });
-          toast_("Reel ready ✓", "ok");
-          return;
-        }
+       if (pollData.status === "COMPLETED" && pollData.url) {
+  setVideos(v => ({ ...v, [post.id]: { url: pollData.url } }));
+  setReelGenerating(r => { const n = { ...r }; delete n[post.id]; return n; });
+  if (!post._inMemory) {
+    fetch("/api/queue-update", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: post.id,
+        update: { video_url: pollData.url },
+      }),
+    }).catch(() => {});
+  }
+  toast_("Reel ready ✓", "ok");
+  return;
+}
         if (pollData.status === "FAILED") throw new Error("Kling generation failed");
       }
       throw new Error("Timed out after 5 minutes");
@@ -3216,7 +3226,7 @@ async function unschedule(post) {
                   }}>
                     <div style={{ fontSize: 28 }}>🎬</div>
                     <div style={{ fontSize: 13, color: "#a78bfa", fontWeight: 600 }}>
-                      {reelGenerating[post.id].stage === "submitting" ? "Submitting to Kling..." : "Generating reel..."}
+                      {reelGenerating[post.id].stage === "submitting" ? "Submitting to Seedance..." : "Generating reel..."}
                     </div>
                     <div style={{ fontSize: 11, color: "var(--t4)" }}>
                       {reelGenerating[post.id].elapsed > 0 ? `${reelGenerating[post.id].elapsed}s — usually 60–120s` : "Starting..."}
@@ -3224,19 +3234,46 @@ async function unschedule(post) {
                   </div>
                 )}
                 {videos[post.id]?.url && !reelGenerating[post.id] && (
-                  <div style={{ position: "absolute", inset: 0, background: "#000" }}>
-                    <video
-                      src={videos[post.id].url}
-                      controls
-                      style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }}
-                    />
-                    <div style={{
-                      position: "absolute", top: 8, left: 8,
-                      background: "#8b5cf6", color: "#fff",
-                      fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 4,
-                    }}>REEL READY</div>
-                  </div>
-                )}
+  <div
+    style={{ position: "absolute", inset: 0, background: "#000", zIndex: 5 }}
+    onClick={e => e.stopPropagation()}
+  >
+    <video
+      src={videos[post.id].url}
+      controls
+      playsInline
+      preload="auto"
+      style={{
+        width: "100%",
+        height: "100%",
+        objectFit: "contain",
+        display: "block",
+      }}
+    />
+    <div style={{
+      position: "absolute", top: 8, left: 8,
+      background: "#8b5cf6", color: "#fff",
+      fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 4,
+      zIndex: 6,
+    }}>
+      REEL READY
+    </div>
+    <a
+      href={videos[post.id].url}
+      target="_blank"
+      rel="noreferrer"
+      onClick={e => e.stopPropagation()}
+      style={{
+        position: "absolute", top: 8, right: 8,
+        background: "rgba(0,0,0,.7)", color: "#fff",
+        fontSize: 11, fontWeight: 600, padding: "4px 10px", borderRadius: 6,
+        textDecoration: "none", zIndex: 6,
+      }}
+    >
+      Open ↗
+    </a>
+  </div>
+)}
               </div>
 
               {/* Hidden file input */}
