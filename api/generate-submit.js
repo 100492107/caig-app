@@ -7,7 +7,6 @@ import {
   FAL_EDIT_QUEUE_URL,
   FAL_EDIT_REQUESTS_BASE,
   CARA_IMAGE_SIZE,
-  CARA_IMAGE_QUALITY,
   CARA_IDENTITY_LOCK,
   CARA_NEGATIVE_PROMPT,
   CARA_SELFIE_ANATOMY_GUIDANCE,
@@ -189,11 +188,9 @@ export async function submitToFal({ falKey, prompt, imageUrls = CARA_REFS }) {
       prompt,
       image_urls: imageUrls,
       image_size: CARA_IMAGE_SIZE,
-      quality: CARA_IMAGE_QUALITY,
       output_format: "jpeg",
+      safety_tolerance: "6",
       num_images: 1,
-      // NOTE: no safety_tolerance — GPT Image 2 has no equivalent param.
-      // Moderation is OpenAI's own and isn't configurable here.
     }),
   });
 
