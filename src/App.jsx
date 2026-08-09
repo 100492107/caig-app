@@ -3325,6 +3325,40 @@ async function unschedule(post) {
                       🕐 Schedule
                     </button>
                   )}
+{/* Generate Reel video from image (Seedance) */}
+<button
+  onClick={() => generateReel(post)}
+  disabled={!hasUrl || busy || !!reelGenerating[post.id]}
+  style={{
+    flex: 2,
+    minWidth: 140,
+    padding: "10px 16px",
+    borderRadius: 8,
+    border: "none",
+    background:
+      hasUrl && !busy && !reelGenerating[post.id] && !videos[post.id]?.url
+        ? "#8b5cf6"
+        : "var(--s2)",
+    color: "#fff",
+    fontSize: 13,
+    fontWeight: 700,
+    cursor:
+      hasUrl && !busy && !reelGenerating[post.id]
+        ? "pointer"
+        : "not-allowed",
+    opacity: hasUrl && !busy && !reelGenerating[post.id] ? 1 : 0.5,
+  }}
+>
+  {reelGenerating[post.id]
+    ? `🎬 ${
+        reelGenerating[post.id].stage === "submitting"
+          ? "Submitting…"
+          : `Generating… ${reelGenerating[post.id].elapsed || 0}s`
+      }`
+    : videos[post.id]?.url
+      ? "🎬 Reel ready"
+      : "🎬 Generate Reel"}
+</button>
 
                   {/* Post Now as Reel */}
                   <button
