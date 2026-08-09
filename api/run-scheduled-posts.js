@@ -33,18 +33,32 @@ const currentTime = `${String(ukTime.getHours()).padStart(2,'0')}:${String(ukTim
 
     const caption = [post.hook, post.caption, post.cta, post.hashtags].filter(Boolean).join("\n\n");
 
+    // A row with a video_url is a reel/video post regardless of what post_format
+    // says — video_url being present is the more reliable signal, since
+    // post_format can be left stale ("photo") from whenever the row was created.
+    const hasVideo = !!post.video_url;
+    const format = hasVideo ? "reel" : (post.post_format || "photo");
+
     try {
       const r = await fetch(MAKE_WEBHOOK, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ caption, imageUrl: post.image_url, postId: post.id, platform: "all", format: post.post_format || "photo" }),
+        body: JSON.stringify({
+          caption,
+          imageUrl: post.image_url,
+          videoUrl: post.video_url || null,
+          imageUrls: post.image_urls || null, // carousel slides, if present
+          postId: post.id,
+          platform: "all",
+          format,
+        }),
       });
       if (!r.ok) throw new Error("Make webhook failed");
       await supabase.from('content_queue').update({ status: 'posted' }).eq('id', post.id);
-      results.push({ id: post.id, status: 'posted' });
+      results.push({ id: post.id, status: 'posted', format });
     } catch (e) {
       await supabase.from('content_queue').update({ status: 'error', notes: e.message }).eq('id', post.id);
-      results.push({ id: post.id, status: 'error', error: e.message });
+      results.push({ id: post.id, status: 'error', error: e.message, format });
     }
   }
 
