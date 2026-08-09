@@ -11,12 +11,12 @@
 | **Hair** | Dark brown — not black. Long, past shoulders. Natural wave pattern, most visible when wet or damp. Worn down always. Individual strands catching warm highlights in direct light. Near-black and wet-strand textured when wet. |
 | **Brows** | Strong, thick, dark — one of her most defining features. Well-shaped but natural, not drawn on. Highly consistent — any generation where the brows are thin or light is wrong. |
 | **Jaw** | Defined and slightly angular — clean jawline, not soft or rounded. Visible structure from most angles. |
-| **Skin tone** | Medium-light, warm olive undertone. Glowy, no visible freckling. Looks slightly sun-kissed at all times. Pore-level micro-texture visible in close-ups. No beauty filter, no smoothing. |
+| **Skin tone** | Medium-light, warm olive undertone. Light freckles visible across the nose and upper cheeks in bright/natural light — must be present, not smoothed away. Looks slightly sun-kissed at all times. Pore-level micro-texture visible in close-ups. No beauty filter, no smoothing. |
 | **Nose** | Straight, refined, slightly narrow. Proportionate. |
 | **Lips** | Full, naturally pigmented — soft pink-rose with no gloss or liner. Slightly parted in resting expression. |
 | **Build** | Slim, athletic build from training. Not model-thin — toned, not muscular. Flat stomach, long limbs. |
 | **Ears** | Small gold hoop earrings — worn consistently. Always visible when hair is pushed back or wet. |
-| **Necklace** | Layered delicate gold chains — 2–3 thin strands at different lengths. Present in city, pool, and gym settings. A consistent accessory. |
+| **Necklace** | Layered delicate gold chains — 2–3 thin strands at different lengths, including a gold cross pendant (non-negotiable signature detail). Present in city, pool, and gym settings. |
 | **Distinguishing mark** | Small dark mole on the left side of the neck, just below the jawline. Approximately 3mm. Always present when the neck is visible and unobstructed. Never explained. |
 
 ---
@@ -126,9 +126,9 @@ No travel or destination setups. Everything is home, gym, or city — grounded a
 3. **The eyes must read bright green** — not grey, not hazel, not brown. In any lighting.
 4. **Hair when dry:** dark brown wave, worn down. **Hair when wet:** near-black, wet-strand texture, clinging to face and shoulders.
 5. **The mole on the left side of the neck must be present** in at minimum 60% of all generations where the neck is visible.
-6. **Layered gold chains** must be present in all city, pool, and gym settings where the neckline is visible.
+6. **Layered gold chains, including the cross pendant,** must be present in all city, pool, and gym settings where the neckline is visible.
 7. **Gold hoop earrings** present whenever ears are visible.
-8. **No beauty filter look.** Skin is real — pores exist in close-ups. Dewy, not plastic.
+8. **No beauty filter look.** Skin is real — pores and light freckling exist in close-ups. Dewy, not plastic.
 9. **Regenerate, do not edit,** if face drifts. Inpainting compounds artifacts.
 10. **Expression:** reserved, slightly cool. Slightly parted lips, direct or averted gaze, no wide smile. Comfortable being looked at, not performing.
 11. **Fabric realism:** clothing must drape, fold, and interact with the body with physically accurate folds, shadows, and highlights.
