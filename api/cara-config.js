@@ -31,23 +31,15 @@ export const CARA_LORA = {
 };
 export const CARA_TRIGGER = "Cara";
 
-// ── IMAGE MODEL: GPT Image 2 (OpenAI, via fal.ai) ──────────────────────────
-// Switched from fal-ai/nano-banana-2/edit. No safety_tolerance param exists on
-// this endpoint — moderation is OpenAI's own and is NOT configurable here.
-// Expect a higher rejection rate on high-skin-exposure content than nano-banana.
-export const FAL_EDIT_MODEL = "openai/gpt-image-2/edit";
+// ── IMAGE MODEL: nano-banana-2 (fal.ai) ─────────────────────────────────────
+// Reverted from GPT Image 2 — its edit endpoint has no safety_tolerance
+// equivalent and OpenAI's own moderation was rejecting/failing generations
+// for this content style. Back to the known-working setup.
+export const FAL_EDIT_MODEL = "fal-ai/nano-banana-2/edit";
 export const FAL_EDIT_QUEUE_URL = `https://queue.fal.run/${FAL_EDIT_MODEL}`;
 export const FAL_EDIT_REQUESTS_BASE = `https://queue.fal.run/${FAL_EDIT_MODEL.replace("/edit", "")}/requests`;
 
-// GPT Image 2 requires custom width/height to both be multiples of 16 — the old
-// 1080x1920 (1080 is NOT a multiple of 16) would be rejected. Using the built-in
-// portrait_16_9 preset instead avoids that entirely and is close enough to 9:16.
-export const CARA_IMAGE_SIZE = "portrait_16_9";
-
-// Quality tiers: auto | low | medium | high. High matches the fidelity you were
-// getting before but costs more per image ($8/$30 per 1M image tokens in/out at
-// high, per fal's pricing) — drop to "medium" if cost becomes a concern.
-export const CARA_IMAGE_QUALITY = "high";
+export const CARA_IMAGE_SIZE = { width: 1080, height: 1920 }; // 9:16 vertical
 
 // ─── ULTRA-SPECIFIC IDENTITY LOCK ──────────────────────────────────────────
 // Built directly off the 10 approved reference photos. Every descriptor below
