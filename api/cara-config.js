@@ -1,12 +1,10 @@
 // api/cara-config.js
 // Single source of truth for Cara's identity — reference-image editing via
-// GPT Image 2 (fal.ai) is the primary pipeline. LoRA config kept below but
-// UNUSED by the runtime pipeline — retained only in case you want to
-// regenerate a fresh reference set from it later.
+// nano-banana-2 (fal.ai) is the primary pipeline.
 
-// ⚠️ Two entries below (yacht sunbed, car selfie) are NOT part of the original
-// 10 verified reference photos — confirm these are actually Cara before relying
-// on them. Unverified refs broke identity lock once before (the blonde photos).
+// ⚠️ Two entries below (yacht sunbed, car selfie) were NOT part of the original
+// verified set. If face drifts or looks "off", remove those two first before
+// touching anything else.
 export const CARA_REFS = [
   "https://zvyioxhwdyocaanzcgqf.supabase.co/storage/v1/object/public/cara%20ref/Cara_1.jpg",
   "https://zvyioxhwdyocaanzcgqf.supabase.co/storage/v1/object/public/cara%20ref/Cara_2.jpg",
@@ -23,8 +21,7 @@ export const CARA_REFS = [
   "https://zvyioxhwdyocaanzcgqf.supabase.co/storage/v1/object/public/cara%20ref/Cara_10.jpeg",
 ];
 
-// Kept for reference / future retraining use only — NOT called by generate-submit.js
-// or cron-generate.js while CARA_REFS-based editing is the active pipeline.
+// Kept for reference / future retraining only — NOT used by the live pipeline.
 export const CARA_LORA = {
   path: "https://v3b.fal.media/files/b/0aa58574/6hWDSoNLAhVr4ndSlXbEt_pytorch_lora_weights.safetensors",
   scale: 1,
@@ -32,9 +29,6 @@ export const CARA_LORA = {
 export const CARA_TRIGGER = "Cara";
 
 // ── IMAGE MODEL: nano-banana-2 (fal.ai) ─────────────────────────────────────
-// Reverted from GPT Image 2 — its edit endpoint has no safety_tolerance
-// equivalent and OpenAI's own moderation was rejecting/failing generations
-// for this content style. Back to the known-working setup.
 export const FAL_EDIT_MODEL = "fal-ai/nano-banana-2/edit";
 export const FAL_EDIT_QUEUE_URL = `https://queue.fal.run/${FAL_EDIT_MODEL}`;
 export const FAL_EDIT_REQUESTS_BASE = `https://queue.fal.run/${FAL_EDIT_MODEL.replace("/edit", "")}/requests`;
@@ -42,10 +36,6 @@ export const FAL_EDIT_REQUESTS_BASE = `https://queue.fal.run/${FAL_EDIT_MODEL.re
 export const CARA_IMAGE_SIZE = { width: 1080, height: 1920 }; // 9:16 vertical
 
 // ─── ULTRA-SPECIFIC IDENTITY LOCK ──────────────────────────────────────────
-// Built directly off the 10 approved reference photos. Every descriptor below
-// is something actually visible across multiple refs, not generic filler.
-// If you retrain or swap refs, re-derive this from the new photos — don't
-// just tweak wording, re-verify against what's actually in the images.
 export const CARA_IDENTITY_LOCK = `IDENTITY LOCK — HIGHEST PRIORITY, ZERO DEVIATION ALLOWED:
 This is Cara. Use the provided reference images CARA_REFS as the exact face and identity source. Composite that precise face onto the body/scene described below — do not blend, average, or drift toward a generic face. PIXEL RATIO 1:1, TRUE EXACT IDENTITY LOCK.
 
@@ -61,9 +51,6 @@ CRITICAL: Facial structure, eye color, and freckle pattern must match the refere
 
 export const CARA_NEGATIVE_PROMPT = `plastic skin, porcelain skin, airbrushed skin, beauty filter, over-smoothed skin, flawless skin, wax skin, CGI skin, doll-like face, generic AI face, face drift, wrong eye colour, grey eyes, washed out eyes, dull eyes, desaturated eyes, blue eyes, brown eyes, straight hair, black hair, blonde hair, missing freckles, missing gold jewellery, missing cross pendant, thin eyebrows, drawn-on eyebrows, studio softbox lighting, over-lit, glossy magazine finish, symmetrical posed model casting, cartoon, CGI, 3D render, illustration, text, watermark, logo, nudity, disfigured, extra fingers, extra limbs, mutated hands, blurry face, low resolution face, different person, inconsistent identity between shots`;
 
-// Extra guidance appended only for selfie / reflective-glass framed shots — these
-// are the frame types most prone to AI hand/phone artifacts, so they get a
-// dedicated anatomy note on top of the general identity lock and negative prompt.
 export const CARA_SELFIE_ANATOMY_GUIDANCE = `SELFIE ANATOMY GUIDANCE — critical for phone-in-hand and reflective glass shots:
 - Exactly one phone, held naturally in one hand with five correctly proportioned fingers gripping it. No extra or fused fingers, no floating or duplicated phone.
 - The arm holding the phone should have natural, anatomically correct foreshortening, not an impossibly long or bent arm.
