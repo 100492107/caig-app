@@ -2797,8 +2797,6 @@ async function generateImage(post) {
   });
   const submitData = await submitRes.json();
   if (!submitRes.ok || !submitData.request_id) throw new Error(submitData.error || "Submit failed");
-      const submitData = await submitRes.json();
-      if (!submitRes.ok || !submitData.request_id) throw new Error(submitData.error || "Submit failed");
 
       setReelGenerating(r => ({ ...r, [post.id]: { stage: "generating", elapsed: 0 } }));
 
