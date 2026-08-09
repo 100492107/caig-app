@@ -1888,7 +1888,9 @@ if (results.length > 0) {
       shot_angle:      item.shot_angle || null,
       wardrobe:        item.wardrobe || null,
       style_ref:       item.style_ref || null,
-      image_urls:      item.image_urls || null // ✅ Corrected object property
+      image_urls:      item.image_urls || null, // ✅ Corrected object property
+      format:          item.format || null,
+      slides:          item.slides || null,
     };
   });
   supabase.from("content_queue").upsert(rows).then(({ error }) => {
@@ -2550,7 +2552,7 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
     setLoading(true);
     const { data, error } = await supabase
       .from("content_queue")
-      .select("id,persona_id,platform,hook,caption,cta,hashtags,image_prompt,photo_direction,shot_angle,wardrobe,scheduled_date,scheduled_time,status,image_url")
+      .select("id,persona_id,platform,hook,caption,cta,hashtags,image_prompt,photo_direction,shot_angle,wardrobe,scheduled_date,scheduled_time,status,image_url,image_urls,format,slides")
       .in("status", ["draft", "error"])
       .order("scheduled_date", { ascending: true })
       .order("scheduled_time", { ascending: true })
