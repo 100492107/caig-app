@@ -2785,15 +2785,18 @@ async function generateImage(post) {
 
     try {
       const submitRes = await fetch("/api/generate-video-submit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-        imageUrl,
-        postId: post.id,
-        caption: post.caption || "",
-        photo_idea: post.photo_idea || "",
-        hook: post.hook || "",
-     }),
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      imageUrl,
+      postId: post.id,
+      caption: post.caption || "",
+      photo_idea: post.photo_idea || "",
+      hook: post.hook || "",
+    }),
+  });
+  const submitData = await submitRes.json();
+  if (!submitRes.ok || !submitData.request_id) throw new Error(submitData.error || "Submit failed");
       const submitData = await submitRes.json();
       if (!submitRes.ok || !submitData.request_id) throw new Error(submitData.error || "Submit failed");
 
