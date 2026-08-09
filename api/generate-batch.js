@@ -414,27 +414,6 @@ const IMG_SHOTS = [
     lighting: "Low warm lamp light, soft shadow, intimate.",
     camera: "iPhone 16 Pro, mirror selfie, 9:16",
   },
-  {
-    setting: "Private room interior, warm window light, white linen backdrop",
-    pose: "CANDID — leaning forward over the back of a armchair, chin resting on hands, looking directly into lens.",
-    wardrobe: "Unbuttoned white silk shirt over a fitted thin-strap crop top, low-rise shorts, gold cross necklace.",
-    lighting: "Soft warm morning daylight from side window.",
-    camera: "iPhone 16 Pro, 35mm perspective, 9:16 vertical",
-  },
-  {
-    setting: "Private balcony overlooking ocean, golden hour",
-    pose: "CANDID — standing at railing, body turned 45 degrees, looking back over shoulder with a relaxed expression.",
-    wardrobe: "Low-cut ribbed crop top, low-rise denim shorts, layered gold chains.",
-    lighting: "Warm golden hour backlight, rim light on hair and shoulders.",
-    camera: "Sony A7R V, 50mm f/1.8, 9:16 vertical",
-  },
-  {
-    setting: "Rooftop terrace lounge, bright daylight",
-    pose: "RECLINED — lying on side on a daybed lounger, propped up on one elbow, legs slightly bent.",
-    wardrobe: "High-cut two-piece resort set in solid white, sunglasses pushed up on head.",
-    lighting: "Bright direct sunlight, soft shadows.",
-    camera: "iPhone 16 Pro, slightly elevated angle, 9:16 vertical",
-  }
 ];
 
 async function callGemini(apiKey, system, user, maxTokens = 3000) {
@@ -597,7 +576,8 @@ Return ONLY this JSON (no code fences):
   "caption": "1 to 3 short sentences. under 280 characters total. lowercase. no em dashes. no hashtags. no hard sell. british english, no spelling mistakes.",
   "hashtags": "",
   "photo_direction": "portrait 9:16",
- "photo_idea": "Concrete phone-photo brief in the style of high-fashion editorial photography. Describe revealing cuts and unbuttoned layers rather than explicit categories: (1) Pose & Action (e.g. 'leaning forward over a table', 'sitting on edge of lounge chair with knees drawn up', 'reaching up to tie hair'). (2) Specific Wardrobe Cuts (e.g. 'unbuttoned shirt slipping off shoulders over a thin-strap crop', 'low-rise micro shorts', 'silk slip dress with deep neckline and thigh slit', 'tie-front crop top'). (3) Setting & Lighting (e.g. 'private room, warm window light'). NEVER use words: 'lingerie', 'bikini', 'bra', 'panties', 'briefs', 'cleavage', 'bedroom'. 2-3 sentences."
+ "photo_idea": "Concrete phone-photo brief. Must follow location & terminology rules: (1) REFLECTIVE SELFIES strictly in private room, bathroom, dressing area, or home gym. (2) OUTDOOR / PUBLIC / SHOPPING scenes must be standard arm's length selfies or candid photos taken of her. (3) Describe wardrobe using high-fashion resortwear terms (e.g. 'satin lounge set', 'fine-knit cami set', 'two-piece resort set', 'ribbed lounge top', 'high-waisted lounge shorts') — NEVER use the words 'lingerie', 'panties', 'bikini', 'bralette', 'briefs', or 'bedroom'. 2-3 sentences.", "post_type": "${contentType.type}",
+  "content_label": "${postTypeLabel}",
   "trend_hook": "${trends ? "one word" : "null"}"
 }`;
 
@@ -640,15 +620,16 @@ async function generateImagePrompt(apiKey, persona, post, postIndex) {
 }
 
 const FORMAT_WEIGHTS = [
-  { format: "reel_photo", weight: 65 },
-  { format: "carousel",   weight: 25 },
-  { format: "static",     weight: 10 },
+  { format: "carousel",   weight: 100 },
 ];
 function pickFormat() {
+  // Forced to always return carousel — every post is a 4-slide carousel.
+  // Revert to weighted random by restoring reel_photo/static entries above
+  // with their old weights (65/25/10) if you want the mix back.
   const total = FORMAT_WEIGHTS.reduce((s, f) => s + f.weight, 0);
   let r = Math.random() * total, acc = 0;
   for (const f of FORMAT_WEIGHTS) { acc += f.weight; if (r < acc) return f.format; }
-  return "reel_photo";
+  return "carousel";
 }
 
 // ─── STUDIO ANGLES ────────────────────────────────────────────────────────────
@@ -834,17 +815,17 @@ export default async function handler(req, res) {
 
       // Only generate image prompts for AI Creator mode (not studio)
       if (!studioMode) {
-       const FALLBACK_BRIEFS = {
-          fv_tease:       "Cara in private quarters, unbuttoned white silk shirt slipping off both shoulders, low-rise micro shorts, fine-strap crop top. Leaning forward over a reflective surface. Soft window daylight.",
-          fv_ppv:         "Cara seated on edge of daybed, wearing an open silk wrap gown with deep-V neckline, knees drawn up. Warm ambient lighting, candid model pose.",
-          fv_ppv_caption: "Cara reclining on white linen lounge seating, matching satin cami and high-cut silk shorts set. Natural directional daylight.",
-          fv_dm:          "Cara close front-facing selfie in private room, low-cut ribbed tank, loose wavy hair over one shoulder, relaxed unguarded expression.",
-          fv_welcome:     "Cara balcony selfie at sunset, high-cut two-piece resort top and gold cross necklace, warm golden hour backlighting.",
-          fv_personality: "Cara in private dressing quarters, low-rise micro shorts and cropped fitted tee tied high at the waist. Natural daylight, casual phone reflection.",
-          fv_interact:    "Cara sitting cross-legged on daybed, leaning forward toward camera in a delicate thin-strap lounge set, warm soft light.",
-          fv_wall_post:   "Cara candid photo on lounger by private pool, high-cut string-tied two-piece set, lying on side looking back over shoulder.",
-          fv_announce:    "Cara standing in private quarters, unbuttoned linen shirt draped off arms, low-rise shorts. Strong directional side light.",
-          fv_preview:     "Cara at edge of seating area leaning forward, draped loosely in a silk throw over a fine-knit lounge set. Warm ambient light.",
+        const FALLBACK_BRIEFS = {
+          fv_tease:       "Cara standing before reflective glass in private quarters, fine-knit cotton crop and unbuttoned cardigan. Soft morning window light. Direct gaze.",
+          fv_ppv:         "Cara on edge of white linen daybed, satin robe layer off one shoulder. Warm ambient lighting, relaxed candid feel.",
+          fv_ppv_caption: "Cara reclining on white linen lounge seating, matching silk cami set. Natural window light.",
+          fv_dm:          "Cara front-facing selfie in private room, thin-strap silk tank top, hair down, soft relaxed expression.",
+          fv_welcome:     "Cara balcony selfie at sunset, resort two-piece top and gold cross necklace, warm golden hour glow.",
+          fv_personality: "Cara in private room, low-rise summer shorts and fitted crop top. Natural morning daylight.",
+          fv_interact:    "Cara sitting on daybed, direct eye contact selfie, ribbed cotton set, warm soft light.",
+          fv_wall_post:   "Cara candid photo on lounger by private pool, high-cut two-piece set, looking back toward camera.",
+          fv_announce:    "Cara standing in private quarters, silk layer off shoulder, low-rise linen shorts. Strong directional light.",
+          fv_preview:     "Cara at edge of seating area leaning forward, draped in a silk throw. Warm ambient light.",
         };
         const baseBrief = post.photo_idea || FALLBACK_BRIEFS[post.post_type] || FALLBACK_BRIEFS["fv_tease"];
 
