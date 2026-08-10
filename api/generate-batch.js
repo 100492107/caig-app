@@ -22,7 +22,7 @@ const PERSONA_FILES = {
 
 ## BACKSTORY
 
-Full name: Cara Whitmore. 21. British. Grew up adjacent to wealth — close enough to the people and the rooms that have it to know the unspoken rules (which fork, which brand doesn't need a logo, how to say no to something expensive without explaining why), never quite inside it. That gap is where her sense of humour actually comes from — she can spot a try-hard from across a room because she was one, briefly and badly, at about fifteen.
+Full name: Cara Whitmore. 19. British. Grew up adjacent to wealth — close enough to the people and the rooms that have it to know the unspoken rules (which fork, which brand doesn't need a logo, how to say no to something expensive without explaining why), never quite inside it. That gap is where her sense of humour actually comes from — she can spot a try-hard from across a room because she was one, briefly and badly, at about fifteen.
 
 Her faith comes first. Not a topic, not an aesthetic — the actual foundation everything else sits on top of. Ambition, taste, and how she treats people all come out of that, not the other way round.
 
@@ -150,6 +150,51 @@ const MOOD_POOL = [
 function pickMood(excludeId) {
   const pool = excludeId ? MOOD_POOL.filter(m => m.id !== excludeId) : MOOD_POOL;
   return pool[Math.floor(Math.random() * pool.length)];
+}
+
+// ─── WEEK ARCS — one continuous life per batch, not random posts ─────────────
+// Real people don't reinvent their personality every morning. A batch shares
+// ONE arc. Each post is a beat inside it. This is what stops Cara feeling random.
+const WEEK_ARCS = [
+  {
+    id: "flat_week",
+    title: "Quiet week at the flat",
+    spine: "Mostly home. Training, small rituals, ordinary hours. The life people think is boring until they realise it is the point.",
+    locations: ["Marylebone flat", "home gym corner", "kitchen counter", "hallway mirror", "sofa by the window"],
+    wardrobe_thread: "soft neutrals, lounge sets, one good oversized shirt, gold jewellery always on",
+  },
+  {
+    id: "training_block",
+    title: "Training block",
+    spine: "The week is built around sessions. Everything else fits around the work. Proof shows in the body and the hours.",
+    locations: ["home gym", "park path", "flat after training", "bathroom mirror", "kitchen with water"],
+    wardrobe_thread: "athletic sets, cropped tops, trainers, hair tied back, then soft recovery clothes",
+  },
+  {
+    id: "getting_ready",
+    title: "Getting ready / going out",
+    spine: "The in-between hours. Choosing what to wear, light, mirror, leaving the flat. Model energy without a runway.",
+    locations: ["bedroom mirror", "wardrobe rail", "hallway", "doorway", "street threshold"],
+    wardrobe_thread: "the outfit being chosen or worn: elevated casual, clean lines, jewellery on",
+  },
+  {
+    id: "away_night",
+    title: "Away for a night",
+    spine: "One short trip or hotel night. New light, same person. Still intentional.",
+    locations: ["hotel room", "window light", "bathroom mirror", "bed edge", "balcony or street below"],
+    wardrobe_thread: "travel-simple: slip, robe, one dress, jewellery that never comes off",
+  },
+  {
+    id: "ordinary_stretch",
+    title: "Ordinary stretch of days",
+    spine: "No big event. Coffee, light, a walk, a thought that stuck. This is the content that makes people stay.",
+    locations: ["flat windows", "street near home", "cafe table edge", "sofa", "kitchen"],
+    wardrobe_thread: "real clothes she would wear on a Tuesday, not a costume",
+  },
+];
+
+function pickWeekArc() {
+  return WEEK_ARCS[Math.floor(Math.random() * WEEK_ARCS.length)];
 }
 
 const MAX_RETRIES = 1;
@@ -460,7 +505,7 @@ async function researchTrends(apiKey, platformName, niche, fanvueMode) {
   try { return await callGemini(apiKey, system, user, 500); } catch (_) { return ""; }
 }
 
-async function generatePost(apiKey, persona, platform, pillar, postIndex, usedHooks, ideaSeed, fanvueMode, cachedTrends, mood) {
+async function generatePost(apiKey, persona, platform, pillar, postIndex, usedHooks, ideaSeed, fanvueMode, cachedTrends, mood, weekArc, previousBeat) {
   const mix = platform.contentMix;
   const totalWeight = mix.reduce((s, m) => s + m.weight, 0);
   let seed = Math.random() * totalWeight;
@@ -541,9 +586,35 @@ HARD BANS:
 
 NICHE LOCK: rooted in ${persona.niche}. Faith shows through as a fact of how she lives, not a topic she's addressing.
 
+=== STORYBOARD CONTINUITY (NON-NEGOTIABLE) ===
+This post is beat ${postIndex + 1} in a continuous week of Cara's life — not a random isolated caption.
+WEEK ARC: "${weekArc?.title || "ordinary days"}" — ${weekArc?.spine || "ordinary continuous days"}
+LOCATIONS TO STAY INSIDE THIS WEEK: ${(weekArc?.locations || ["her flat"]).join("; ")}
+WARDROBE THREAD FOR THIS WEEK: ${weekArc?.wardrobe_thread || "her real clothes, gold jewellery always on"}
+${previousBeat ? `PREVIOUS BEAT (continue from this life — do not repeat the same moment): "${previousBeat}"` : "This is the opening beat of the arc."}
+
+She is a MODEL. Looks carry the post. Caption is short human texture — not a blog, not a lesson, not a quote card.
+People follow because the life feels continuous and real. Random disconnected posts kill that.
+
+RULES FOR THIS POST:
+- story_beat: one plain sentence of which moment in her day/week this is
+- continuity_note: one concrete detail tying to the week arc or previous beat (same flat, same jewellery, same training block, etc.)
+- photo_idea: concrete phone photo — place from the locations list, body action, wardrobe from the thread, light. Specific enough to shoot.
+- Caption under 280 characters. 1–3 short sentences. No em dashes. No hashtags. No sermon.
+- Pull one real quirk only when it fits (eggs, plants, candle, getting lost, tea before milk) — never force.
+- If this post could be swapped with any other AI girl's post, it is wrong.
+
 SHE NEVER SELLS. No pitching, no CTA toward a product, no "link in bio", nothing that could read as promotional. Lifestyle and aesthetic only.
 
 WHAT TO NEVER DO: open with "I find that", "what I've noticed", "there's something about". No vague gratitude. No "blessed". No unearned wisdom. No selling. No em dashes. No hashtags in caption. No blog-length captions.`}
+
+
+=== STORYBOARD CONTINUITY (ALWAYS — BOTH TRACKS) ===
+Beat ${postIndex + 1} of a continuous week. ARC: "${weekArc?.title || "ordinary days"}" — ${weekArc?.spine || ""}
+Locations this week: ${(weekArc?.locations || ["her flat"]).join("; ")}
+Wardrobe thread: ${weekArc?.wardrobe_thread || "real clothes, gold jewellery on"}
+${previousBeat ? `Previous beat (continue, do not repeat): "${previousBeat}"` : "Opening beat of the arc."}
+She is a MODEL. Image is primary. Caption is short texture. story_beat + continuity_note + photo_idea are required and must fit this arc.
 
 FORMAT: Return ONLY a raw JSON object. No markdown fences. No explanation.`;
 
@@ -576,7 +647,10 @@ Return ONLY this JSON (no code fences):
   "caption": "1 to 3 short sentences. under 280 characters total. lowercase. no em dashes. no hashtags. no hard sell. british english, no spelling mistakes.",
   "hashtags": "",
   "photo_direction": "portrait 9:16",
- "photo_idea": "Concrete phone-photo brief. Must follow location & terminology rules: (1) REFLECTIVE SELFIES strictly in private room, bathroom, dressing area, or home gym. (2) OUTDOOR / PUBLIC / SHOPPING scenes must be standard arm's length selfies or candid photos taken of her. (3) Describe wardrobe using high-fashion resortwear terms (e.g. 'satin lounge set', 'fine-knit cami set', 'two-piece resort set', 'ribbed lounge top', 'high-waisted lounge shorts') — NEVER use the words 'lingerie', 'panties', 'bikini', 'bralette', 'briefs', or 'bedroom'. 2-3 sentences.", "post_type": "${contentType.type}",
+  "photo_idea": "Concrete phone-photo brief for a model. Use a location from THIS WEEK's location list. Wardrobe from the wardrobe thread. What she is doing with her body. Light. Rules: (1) REFLECTIVE SELFIES only in private room, bathroom, dressing area, or home gym. (2) OUTDOOR/PUBLIC = arm's length selfie or candid of her. (3) High-fashion resortwear terms only — NEVER lingerie, panties, bikini, bralette, briefs, bedroom. 2-3 sentences.",
+  "story_beat": "one plain sentence — which moment in her day/week this is",
+  "continuity_note": "one concrete detail tying this post to the week arc or previous beat",
+  "post_type": "${contentType.type}",
   "content_label": "${postTypeLabel}",
   "trend_hook": "${trends ? "one word" : "null"}"
 }`;
@@ -762,6 +836,9 @@ export default async function handler(req, res) {
 
   const usedHooks = [];
   let lastMoodId = null; // drives mood rotation so consecutive posts don't land in the same register
+  // One arc for the whole batch — continuity is the product
+  const weekArc = studioMode ? null : pickWeekArc();
+  let previousBeat = null;
 
   for (let i = 0; i < slots.length; i++) {
     const slot = slots[i];
@@ -782,7 +859,8 @@ export default async function handler(req, res) {
       } else {
         const mood = pickMood(lastMoodId);
         lastMoodId = mood.id;
-        post = await generatePost(apiKey, persona, platform, slot.pillar, i, [...usedHooks], ideaSeed || "", fanvueMode || false, trendsCache[platform.id] || "", mood);
+        post = await generatePost(apiKey, persona, platform, slot.pillar, i, [...usedHooks], ideaSeed || "", fanvueMode || false, trendsCache[platform.id] || "", mood, weekArc, previousBeat);
+        if (post.story_beat) previousBeat = post.story_beat;
       }
 
       if (post.hook) usedHooks.push(post.hook);
@@ -829,17 +907,17 @@ export default async function handler(req, res) {
         };
         const baseBrief = post.photo_idea || FALLBACK_BRIEFS[post.post_type] || FALLBACK_BRIEFS["fv_tease"];
 
-        // Carousel = 4 distinct slides that tell one continuous story
+        // Carousel = 4-beat storyboard of ONE moment (not 4 random similar selfies)
         if (post.format === "carousel") {
-          const slideAngles = [
-            "Opening frame — wide or environmental, establishes the setting and mood of the moment",
-            "Closer — mid-action or mid-expression, the heart of what the caption is about",
-            "Detail or alternate angle — hands, jewellery, a small specific object, or a different viewpoint of the same scene",
-            "Closing frame — softer, more intimate, or looking slightly away; the quiet end of the moment",
+          const storyBeats = [
+            `BEAT 1 SETUP — wider frame, establish where she is and what she is mid. ${post.story_beat || "the start of the moment"}. Same wardrobe and light for all 4 slides.`,
+            `BEAT 2 ACTION — the thing the caption is about. Mid-shot or three-quarter. She is doing something, not just posing.`,
+            `BEAT 3 DETAIL — hands, gold cross/jewellery, fabric, phone, coffee, or a small true object in the same scene.`,
+            `BEAT 4 CLOSE — face or tighter frame, end of the moment. Soft, done, or looking slightly away. Same continuous second in her day.`,
           ];
           const slides = [];
           for (let s = 0; s < 4; s++) {
-            const slideBrief = `${baseBrief}. SLIDE ${s + 1} of 4: ${slideAngles[s]}. Keep the same wardrobe, setting and time of day across all slides — only change framing, distance and exact pose so it feels like one continuous moment, not four different outfits.`;
+            const slideBrief = `${baseBrief}. CAROUSEL STORYBOARD ${s + 1}/4: ${storyBeats[s]} Continuous single moment — identical wardrobe, setting, time of day. Model energy, real phone photo, not a studio lookbook.`;
             const postForImg = { ...post, photo_idea: slideBrief };
             const imgPrompt = await generateImagePrompt(apiKey, persona, postForImg, i * 10 + s);
             slides.push({
@@ -849,7 +927,6 @@ export default async function handler(req, res) {
             });
           }
           post.slides = slides;
-          // Keep first slide as the primary image_prompt for backward compatibility
           post.image_prompt = slides[0]?.image_prompt || null;
           post.photo_idea = slides[0]?.photo_idea || baseBrief;
         } else {
@@ -860,7 +937,7 @@ export default async function handler(req, res) {
         }
       }
 
-      const item = { id: `${Date.now()}_${i}`, ts: Date.now(), ...slot, ...post, status: "draft" };
+      const item = { id: `${Date.now()}_${i}`, ts: Date.now(), ...slot, ...post, week_arc: weekArc?.id || null, status: "draft" };
       res.write(JSON.stringify({ post: item, index: i }) + "\n");
     } catch (e) {
       res.write(JSON.stringify({ error: true, index: i, reason: e.message }) + "\n");
