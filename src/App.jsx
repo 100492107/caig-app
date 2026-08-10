@@ -2606,23 +2606,57 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
     setUploading(u => ({ ...u, [post.id]: false }));
   }
 
-  // Download image to Mac — saves 1 file to ~/Downloads/caig/{platform}/
-  async function downloadForPlatform(imageUrl, postId, platform) {
-    let blob;
-    try {
-      const res = await fetch(imageUrl);
-      blob = await res.blob();
-    } catch { return; } // silently skip if image not reachable yet
+  // Download image(s) — works on desktop and mobile browsers (iOS share / save)
+  async function downloadForPlatform(imageUrl, postId, platform, extraUrls = []) {
+    const urls = [imageUrl, ...(extraUrls || [])].filter(Boolean);
+    if (!urls.length) return;
+    const ts = new Date().toISOString().slice(0, 10);
+    const base = `cara_${ts}_${String(postId).slice(-6)}`;
 
-    const blobUrl = URL.createObjectURL(blob);
-    const ts = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-    const a = document.createElement("a");
-    a.href = blobUrl;
-    a.download = `caig/${platform || "fanvue"}/cara_${ts}_${String(postId).slice(-6)}.jpg`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(blobUrl);
+    const fetchBlob = async (url, idx) => {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("fetch failed");
+      const blob = await res.blob();
+      const ext = (blob.type || "").includes("png") ? "png" : "jpg";
+      const name = urls.length > 1 ? `${base}_${idx + 1}.${ext}` : `${base}.${ext}`;
+      return { blob, name, file: new File([blob], name, { type: blob.type || "image/jpeg" }) };
+    };
+
+    try {
+      const items = [];
+      for (let i = 0; i < urls.length; i++) {
+        items.push(await fetchBlob(urls[i], i));
+      }
+
+      // iOS / Android: native share sheet → Save Image / Files
+      if (navigator.share && navigator.canShare) {
+        const files = items.map(i => i.file);
+        if (navigator.canShare({ files })) {
+          await navigator.share({ files, title: "Cara post" });
+          toast_("Shared — save from the sheet");
+          return;
+        }
+      }
+
+      // Desktop / fallback: trigger downloads
+      for (const item of items) {
+        const blobUrl = URL.createObjectURL(item.blob);
+        const a = document.createElement("a");
+        a.href = blobUrl;
+        a.download = item.name;
+        a.rel = "noopener";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(blobUrl);
+        if (items.length > 1) await new Promise(r => setTimeout(r, 250));
+      }
+      toast_(items.length > 1 ? `Downloaded ${items.length} images` : "Image downloaded");
+    } catch (e) {
+      // Last resort: open first image so user can long-press → Save Image
+      window.open(urls[0], "_blank", "noopener,noreferrer");
+      toast_("Opened image — long-press to save");
+    }
   }
 
   // Generate image via fal.ai — supports single image OR 4-slide carousel
@@ -3362,6 +3396,28 @@ async function unschedule(post) {
                       🕐 Schedule
                     </button>
                   )}
+
+                  {/* Download image(s) — phone-friendly for IG native music post */}
+                  <button
+                    onClick={() => {
+                      const url = imgState?.url || (!staleSuppressed && post.image_url) || allUrls[0];
+                      if (!url) return;
+                      downloadForPlatform(url, post.id, post.platform, isCarousel ? allUrls.slice(1) : []);
+                    }}
+                    disabled={!hasUrl || busy}
+                    style={{
+                      flex: 1, minWidth: 110,
+                      padding: "10px 14px", borderRadius: 8,
+                      border: "1px solid var(--e2)",
+                      background: hasUrl && !busy ? "rgba(52,211,153,.12)" : "var(--s2)",
+                      color: hasUrl && !busy ? "var(--green)" : "var(--t4)",
+                      fontSize: 13, fontWeight: 700,
+                      cursor: hasUrl && !busy ? "pointer" : "not-allowed",
+                    }}
+                  >
+                    ⬇ Download
+                  </button>
+
 {/* Generate Reel video from image (Seedance) */}
 <button
   onClick={() => generateReel(post)}
