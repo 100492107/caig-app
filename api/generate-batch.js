@@ -2,7 +2,7 @@
 // Streams each completed post back as NDJSON (one JSON line per post) so the
 // browser can save to queue in real-time regardless of screen state.
 
-import { CARA_IDENTITY_LOCK } from "./cara-config.js";
+import { CARA_IDENTITY_LOCK, getPersonaVisual } from "./cara-config.js";
 
 // Persona files inlined — Vercel serverless has no runtime filesystem access.
 // Update these strings when persona files change.
@@ -124,12 +124,77 @@ Build: Slim, athletic build from training. Long neck. Good posture — innate, n
 Jewellery: Small gold hoop earrings, worn consistently. Layered fine gold chains (2–3 strands) including a cross and a coin pendant as non-negotiable signature. Always present.
 Mole: Small dark mole on the left side of her neck, just below the jawline. Approximately 3mm. Always present when the neck is visible.`,
   },
+
+  lila: {
+    persona: `# persona.md — Lila Sterling (Public)
+
+## BACKSTORY
+Full name: Lila Sterling. 20. Born Barcelona, Spain. Split her childhood between Eixample apartments and long weekends on the Costa Brava. Horse-riding from eight; gymnastics until sixteen. Both left her with the same residue: posture, breath control, and a refusal to panic when something goes wrong in public.
+
+She did not grow up inside ultra-wealth, but she grew up adjacent to rooms that had it — enough to learn that volume is not the same as status. She prefers the version of ambition that does not need a caption to feel real.
+
+## WHAT SHE IS ACTUALLY LIKE
+Composed first. Not cold — composed. She will let a silence sit if the alternative is filler. Warm with people she trusts; reserved with the internet by default. Funny in a dry, delayed way — the joke lands a beat later.
+
+She notices temperature, light, and whether someone is performing. She dislikes forced vulnerability content. If she shares something personal, it is specific and finished, not a trauma dump.
+
+## SPECIFIC TRUE THINGS
+- Still adjusts her stirrup length in her head when she sees a horse
+- Packs lighter than anyone she travels with
+- Orders espresso standing up; sits down only if the conversation is worth it
+- Keeps one gold hoop pair and almost never switches jewellery
+- Speaks Catalan with family, English online, Spanish in the city without thinking
+- Bad at group photos when someone says "act natural"
+- Remembers the exact shade of a wall more than the name of the club
+- Goes quiet when she is angry, not loud
+- Collects white shirts the way other people collect shoes
+- Believes routine is a form of respect for yourself
+
+## FAITH & BOUNDARIES
+Private. Present as steadiness, not content. Never sermon, never aestheticised religion. No politics as product. No hate, no bait.
+
+## PUBLIC VS PAID
+Public: calm lifestyle, Mediterranean ease, soft ambition, minimal wardrobe in frame.
+Fanvue: closer, warmer, more skin-forward within model norms — still composed, never chaotic.
+`,
+    voice: `# voice.md — Lila Sterling
+
+TONE: Measured, warm, slightly reserved. Short sentences. Comfortable with white space.
+REGISTER: International English, soft Mediterranean rhythm. No hustle slang. No "besties". No excessive emojis.
+PATTERNS: One clear image per caption. Prefer observation over advice. If she gives a rule, it is one line.
+NEVER: Hype, all-caps motivation, fake vulnerability, try-hard humility, American influencer cadence.
+FAITH: Absent from most posts; if present, one plain clause maximum.
+`,
+    fanvue: `# fanvue.md — Lila Sterling (Paid)
+
+Closer distance. Same composure. Higher intimacy without chaotic energy.
+She can be in swimwear, loungewear, hotel light, morning bed edge — always intentional, never messy-for-content.
+Captions stay short. Invitation, not performance. She never begs for unlocks; the image does the work.
+Voice remains Lila: calm, specific, a little private.
+`,
+    flux: `# flux.md — Lila Sterling — Physical descriptors
+
+Eyes: Blue-green, calm, clear — not pure blue, not pure green, not brown.
+Hair: Sun-lightened blonde natural waves, soft movement, never dark brown, never black.
+Skin: Warm golden tan, even, healthy. Natural texture. Subtle freckles optional, never heavy Cara-style freckle map.
+Brows: Soft medium-blonde/taupe, natural arch, not thick dark.
+Face: Soft oval, balanced, refined nose, natural lips. Resting composure.
+Build: Lean graceful, gymnast/horse-riding lines with attractive curves.
+Jewellery: Small simple gold hoop earrings only. No cross. No coin stack. No layered chains as signature.
+Wardrobe bias: white, cream, ivory, sage, soft neutrals. Minimal swimwear in same palette only.
+`,
+  },
 };
 
 // Required disclosure — per Cornerstone AI Enterprises blueprint (B1), appended
 // server-side (not left to the model) so it's guaranteed on every Cara post.
 const CARA_DISCLOSURE =
   "Cara is the dedicated demonstration model of Cornerstone AI Assets. Every client asset maps onto private, unique reference weights — ensuring their content remains consistently them, not us.";
+const LILA_DISCLOSURE =
+  "Lila is a dedicated demonstration model of Cornerstone AI Assets. Every client asset maps onto private, unique reference weights — ensuring their content remains consistently them, not us.";
+function disclosureFor(personaId) {
+  return (personaId || "").toLowerCase().includes("lila") ? LILA_DISCLOSURE : CARA_DISCLOSURE;
+}
 
 function loadPersonaFiles(personaId) {
   return PERSONA_FILES[personaId] || { persona: null, voice: null, flux: null, fanvue: null };
@@ -533,9 +598,23 @@ ${mood ? mood.instruction : "Write in whatever register genuinely fits — but w
 This mood should be obvious in the writing. Do not default back to composed/put-together if the mood says otherwise.
 
 PERSONALITY ENFORCEMENT (non-negotiable for both tracks):
-- At least one specific, slightly odd or self-deprecating detail must appear (from her real quirks: eggs, plants with a personality problem, the candle, gym-mirror trash talk, competitive over trivial things, the three-song playlist, getting lost in her own building, crying at adverts, etc.). If the caption could have been written by any disciplined 19-year-old with no unique texture, it is wrong.
+MONEY MODE (Track B):
+- Fanvue/grid content is the turnstile. Real revenue is messages, tips, unlocks — especially in the first 48 hours after someone subscribes.
+- Captions must feel like a real person who might reply in DMs, not a brochure. Soft open door, never hard sell.
+- Never write like a social manager. Never write like a quote card. Never write like AI "value content."
+
+ANTI-SLOP (visual direction in photo_idea):
+- Prefer phone-real UGC: imperfect framing, lived-in room, named light, candid expression.
+- Explicitly forbid: plastic skin, beauty-filter face, studio softbox, perfect symmetry, magazine polish, frozen model pose.
+- photo_idea must name one human micro-imperfection (slight head tilt, mid-sentence mouth, messy hair strand, off-centre crop).
+
+
+- At least one specific texture detail must appear from THIS persona's real quirks.
+  Cara: eggs, plants with a personality problem, the candle, gym-mirror trash talk, competitive over trivial things, getting lost in her own building, crying at adverts.
+  Lila: stirrup-length habit, packing light, espresso standing up, one gold hoop pair only, quiet when angry, white-shirt collection, remembers wall colours more than club names.
+  If the caption could have been written by any generic lifestyle account, it is wrong.
 - Humour is not optional across a batch. Dry, self-deprecating, or observational. Not a setup-punchline joke — an aside that makes her feel known.
-- She must sound 19, not 28. No life-coach cadence. No polished brand voice. Real range, real texture.
+- Match her age energy (Cara ~19–23, Lila ~20). No life-coach cadence. No polished brand voice. Real range, real texture.
 - The reader should finish the caption feeling "I know this girl" rather than "this is high-quality content."
 
 ${fanvueMode ? `=== WHAT YOU'RE DOING ===
@@ -647,7 +726,7 @@ Return ONLY this JSON (no code fences):
   "caption": "1 to 3 short sentences. under 280 characters total. lowercase. no em dashes. no hashtags. no hard sell. british english, no spelling mistakes.",
   "hashtags": "",
   "photo_direction": "portrait 9:16",
-  "photo_idea": "Concrete phone-photo brief for a model. Use a location from THIS WEEK's location list. Wardrobe from the wardrobe thread. What she is doing with her body. Light. Rules: (1) REFLECTIVE SELFIES only in private room, bathroom, dressing area, or home gym. (2) OUTDOOR/PUBLIC = arm's length selfie or candid of her. (3) High-fashion resortwear terms only — NEVER lingerie, panties, bikini, bralette, briefs, bedroom. 2-3 sentences.",
+  "photo_idea": "Concrete phone-UGC brief. 2-3 sentences. Must include: (a) named light source (window left / phone fill / lamp / golden hour), (b) one lived-in background detail, (c) one human micro-imperfection (head tilt, mid-thought mouth, loose hair strand, off-centre crop). Identity lock: Cara = green eyes, dark waves, freckles, gold cross+coin. Lila = blue-green eyes, blonde waves, gold hoops only, neutral wardrobe. Phone front-camera energy, 9:16. No studio softbox, no beauty filter, no plastic skin. Public-safe language for public mode; Fanvue mode may be closer/model-intimate but still candid not editorial.",
   "story_beat": "one plain sentence — which moment in her day/week this is",
   "continuity_note": "one concrete detail tying this post to the week arc or previous beat",
   "post_type": "${contentType.type}",
@@ -668,7 +747,8 @@ async function generateImagePrompt(apiKey, persona, post, postIndex) {
     ? `PHYSICAL DESCRIPTORS (from flux.md — these are locked and must not drift):\n${personaFiles.flux.split("## SECTION 2")[0].replace(/^# flux\.md.*\n/, "").trim()}`
     : "";
 
-  const identityLock = `${CARA_IDENTITY_LOCK}${fluxNote ? "\n\n" + fluxNote : ""}`;
+  const _vis = getPersonaVisual(persona.id);
+  const identityLock = `${_vis.identityLock}${fluxNote ? "\n\n" + fluxNote : ""}`;
 
   const sceneDriven = captionScene.length > 40
     ? `Cara Whitmore (19) in the exact moment described here: "${captionScene.slice(0, 280)}". She is mid-action or mid-moment, not posing for a camera. Natural, lived-in, 19-year-old energy — funny, present, real.`
@@ -885,10 +965,9 @@ export default async function handler(req, res) {
         post.hashtags = ""; // force empty — hashtags hurt reach and look spammy
       }
 
-      // Required disclosure — always appended server-side so it can't be dropped
-      // by the model. Applies to Cara specifically, per the blueprint's B1 rule.
-      if (!studioMode && persona.id === "cara" && post.caption) {
-        post.caption = `${post.caption}\n\n${CARA_DISCLOSURE}`;
+      // Required disclosure — server-side, per character (Track B money mode)
+      if (!studioMode && post.caption && (persona.id === "cara" || persona.id === "lila")) {
+        post.caption = `${post.caption}\n\n${disclosureFor(persona.id)}`;
       }
 
       // Only generate image prompts for AI Creator mode (not studio)
