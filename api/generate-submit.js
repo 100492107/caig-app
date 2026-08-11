@@ -7,9 +7,8 @@ import {
   FAL_EDIT_QUEUE_URL,
   FAL_EDIT_REQUESTS_BASE,
   CARA_IMAGE_SIZE,
-  CARA_IDENTITY_LOCK,
-  CARA_NEGATIVE_PROMPT,
-  CARA_SELFIE_ANATOMY_GUIDANCE,
+  IMAGE_SIZE_9x16,
+  getPersonaVisual,
 } from "./cara-config.js";
 
 const FRAMES = [
@@ -103,7 +102,11 @@ function sanitizePromptText(text) {
     .replace(/\b(mirror selfie|mirror selfies)\b/gi, "reflective glass shot");
 }
 
-export function buildPrompt({ imagePrompt, hook, caption, wardrobe, shotAngle, photoDirection, photo_idea }) {
+export function buildPrompt({
+  imagePrompt, hook, caption, wardrobe, shotAngle, photoDirection, photo_idea,
+  personaId = "cara",
+}) {
+  const visual = getPersonaVisual(personaId);
   const rawScene = extractScene({ imagePrompt, caption, hook, photo_idea });
   const scene = sanitizePromptText(rawScene);
   const context = detectContext([scene, caption, hook, wardrobe, photoDirection].filter(Boolean).join(" "));
@@ -117,6 +120,13 @@ export function buildPrompt({ imagePrompt, hook, caption, wardrobe, shotAngle, p
     wardrobeText = FALLBACK_WARDROBE[context] || FALLBACK_WARDROBE.general;
   }
 
+  // Lila wardrobe bias: force neutrals if fallback is too loud
+  if (visual.id === "lila") {
+    wardrobeText = wardrobeText
+      .replace(/\b(red|neon|hot pink|bright orange|loud)\b/gi, "soft cream")
+      .replace(/\b(patterned|print|floral loud)\b/gi, "clean minimal");
+  }
+
   let settingText = "";
   if (imagePrompt && typeof imagePrompt === "object" && imagePrompt.setting) {
     settingText = sanitizePromptText(imagePrompt.setting);
@@ -128,56 +138,50 @@ export function buildPrompt({ imagePrompt, hook, caption, wardrobe, shotAngle, p
 
   const frame = pickRandom(FRAMES);
   const selfieShot = isSelfieFrame(frame) || isSelfieFrame(scene) || isSelfieFrame(photoDirection);
-  const selfieGuidance = selfieShot ? `\n${CARA_SELFIE_ANATOMY_GUIDANCE}\n` : "";
+  const selfieGuidance = selfieShot ? `\n${visual.selfieGuidance}\n` : "";
+
+  const jewelleryRule = visual.id === "lila"
+    ? "- Jewellery: small simple gold hoop earrings only. No cross, no coin stack."
+    : "- Always show her signature gold cross necklace when chest/neck is visible.";
 
   const antiMismatch = `
 CRITICAL MATCHING & LOCATION RULES:
 - The clothes, setting, and action MUST match the scene/caption.
 - REFLECTIVE GLASS SHOTS ARE ONLY ALLOWED INDOORS IN PRIVATE QUARTERS.
 - OUTDOOR/PUBLIC SHOTS MUST BE STANDARD ARM'S LENGTH SELFIES OR CANDID PHOTOS.
-- Always show her signature gold cross necklace when chest/neck is visible.`;
+${jewelleryRule}`;
 
   const sceneBlock = scene.length > 20
     ? `SCENE TO DEPICT: ${scene.slice(0, 300)}\n`
-    : `SCENE: Natural candid moment in Cara's life. Model aesthetic, resortwear styling.\n`;
+    : `SCENE: Natural candid UGC moment in ${visual.name}'s life. Phone-real, not studio.\n`;
 
-  // FULL FLUX.MD TECHNICAL AND PHYSICAL SPECIFICATIONS INTEGRATED
-  return `RAW photorealistic fashion photograph of Cara Whitmore. Recreate her face and features identically from reference images CARA_REFS.
+  // Money-mode default: phone UGC core + identity lock (editorial fashion language retired as default)
+  return `${visual.ugcStillCore}
+
+RAW photorealistic mobile photograph of ${visual.name}. Recreate her face and features identically from reference images.
 
 ${sceneBlock}
-CAMERA & TECHNICAL SPECIFICATIONS:
-- Shot on Sony A7R V, ${frame}, ISO 100, 1/200s shutter.
-- Tack-sharp focus on eyes and skin, shallow depth of field, creamy circular background bokeh.
-- High dynamic range, subtle chromatic aberration at frame edges only.
-- Color grading: Teal and Orange LUT, warm skin tones, neutral whites, 5600K color temperature. 9:16 vertical.
+CAMERA & FRAME:
+- ${frame}
+- Vertical 9:16. Tack-sharp eyes. Natural phone or prime-lens realism — not glossy magazine polish.
+- Quality: 4K ultra-clear, ultra-detailed, pore-level skin, sharp iris — nano-banana-2 photoreal (not soft AI).
 
-WARDROBE: ${wardrobeText}.
-LOCATION / SETTING: ${settingText}.
-
-IDENTITY & PHYSICAL LOCK (STRICT):
-- EYES: Distinctly bright green — moist iris with intricate radial patterns, realistic specular catchlight reflections, dark limbal ring. Unmistakably bright green in all lighting.
-- BROWS: Strong, thick, dark brown — natural shape, not thin, not drawn-on.
-- HAIR: Dark brown (not black) with natural wave, long past shoulders. Individual strands catching warm highlights in direct light.
-- MARK & JEWELLERY: Small dark mole (3mm) on left side of neck just below jawline (always present when neck is visible). Small gold hoop earrings, layered 2-3 fine gold chains with cross pendant.
-- BUILD: Slim, athletic build from training, flat stomach, toned.
-
-BIOLOGY & REALISM STANDARDS:
-- Pore-level skin micro-texture visible on skin at medium distance or closer.
-- Subsurface scattering — skin absorbs and scatters light physically correctly, no flat rendering.
-- Fine vellus hair visible on arms, shoulders, and face edges in backlight.
-- Natural skin unevenness, slight cheek warmth, fine expression lines at eye corners.
-- Physically accurate fabric tension, drapes, and folds against the body.
-- Real film grain — ZERO digital smoothing, ZERO beauty filter, ZERO plastic skin.
-
-${antiMismatch}
+WARDROBE: ${wardrobeText}
+SETTING: ${settingText}
+${shotAngle ? `SHOT ANGLE: ${sanitizePromptText(shotAngle)}` : ""}
+${photoDirection ? `DIRECTION: ${sanitizePromptText(photoDirection)}` : ""}
 ${selfieGuidance}
+${antiMismatch}
 
-${CARA_IDENTITY_LOCK}
+${visual.identityLock}
 
-DO NOT: ${CARA_NEGATIVE_PROMPT}`;
+DO NOT: ${visual.negative}`;
 }
 
-export async function submitToFal({ falKey, prompt, imageUrls = CARA_REFS }) {
+
+export async function submitToFal({ falKey, prompt, imageUrls = null, personaId = "cara" }) {
+  const visual = getPersonaVisual(personaId);
+  if (!imageUrls || !imageUrls.length) imageUrls = visual.refs;
   const res = await fetch(FAL_EDIT_QUEUE_URL, {
     method: "POST",
     headers: {
@@ -211,13 +215,9 @@ export async function submitToFal({ falKey, prompt, imageUrls = CARA_REFS }) {
 
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
-  
+
   const apiKey = process.env.FAL_API_KEY;
   if (!apiKey) return res.status(500).json({ error: "FAL_API_KEY environment variable is not configured" });
-
-  if (!CARA_REFS || !CARA_REFS.length) {
-    return res.status(500).json({ error: "CARA_REFS is empty in cara-config.js" });
-  }
 
   let body;
   try {
@@ -228,24 +228,44 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "Invalid JSON request body" });
   }
 
-  const { imagePrompt, hook, caption, wardrobe, shotAngle, photoDirection, photo_idea } = body;
+  const {
+    imagePrompt, hook, caption, wardrobe, shotAngle, photoDirection, photo_idea,
+    personaId, persona_id,
+  } = body;
+
+  const _personaId = personaId || persona_id || "cara";
+  const _visual = getPersonaVisual(_personaId);
+  if (!_visual.refs || !_visual.refs.length) {
+    return res.status(500).json({
+      error: `${_visual.id.toUpperCase()}_REFS is empty in cara-config.js — upload refs first`,
+    });
+  }
 
   let prompt;
   try {
-    prompt = buildPrompt({ imagePrompt, hook, caption, wardrobe, shotAngle, photoDirection, photo_idea });
+    prompt = buildPrompt({
+      imagePrompt, hook, caption, wardrobe, shotAngle, photoDirection, photo_idea,
+      personaId: _personaId,
+    });
   } catch (e) {
     return res.status(500).json({ error: "buildPrompt failed", detail: e.message });
   }
 
   let requestId;
   try {
-    requestId = await submitToFal({ falKey: apiKey, prompt });
+    requestId = await submitToFal({
+      falKey: apiKey,
+      prompt,
+      imageUrls: _visual.refs,
+      personaId: _personaId,
+    });
   } catch (e) {
     return res.status(502).json({ error: "Queue submit failed", detail: e.message });
   }
 
   return res.status(200).json({
     requestId,
+    personaId: _personaId,
     statusUrl: `${FAL_EDIT_REQUESTS_BASE}/${requestId}/status`,
     resultUrl: `${FAL_EDIT_REQUESTS_BASE}/${requestId}`,
   });
