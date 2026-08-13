@@ -5,7 +5,7 @@
 
 const FAL_BASES = {
   // Grok Imagine Image 2.0 edit pipeline
-  image: "https://queue.fal.run/xai/grok-imagine-image/v2.0/requests",
+  image: "https://queue.fal.run/xai/grok-imagine-image/v2.0/edit/requests",
   // Seedance 2.5 image-to-video
   video: "https://queue.fal.run/bytedance/seedance-2.5/image-to-video/requests",
 };
@@ -52,7 +52,9 @@ export default async function handler(req, res) {
     } catch {
       return res.status(502).json({
         error: "fal.ai returned non-JSON",
-        raw: rawText.slice(0, 200),
+        httpStatus: statusRes.status,
+        raw: rawText.slice(0, 300),
+        polled: `${FAL_BASE}/${requestId}/status`,
       });
     }
   } catch (e) {
