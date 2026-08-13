@@ -1,12 +1,13 @@
 // api/cara-config.js
-// Multi-persona visual identity - Cara Whitmore + Lila Sterling
-// nano-banana-2 (fal.ai) reference-image editing is the primary pipeline.
+// Multi-persona visual identity — Cara Whitmore + Lila Sterling
+// Primary pipeline: Grok Imagine Image 2.0 (fal.ai) with reference images
 
-export const FAL_EDIT_MODEL = "fal-ai/nano-banana-2/edit";
+export const FAL_EDIT_MODEL = "xai/grok-imagine-image/v2.0/edit";
 export const FAL_EDIT_QUEUE_URL = `https://queue.fal.run/${FAL_EDIT_MODEL}`;
-export const FAL_EDIT_REQUESTS_BASE = `https://queue.fal.run/${FAL_EDIT_MODEL.replace("/edit", "")}/requests`;
+export const FAL_EDIT_REQUESTS_BASE = "https://queue.fal.run/xai/grok-imagine-image/v2.0/requests";
 export const IMAGE_SIZE_9x16 = { width: 1080, height: 1920 };
 export const CARA_IMAGE_SIZE = IMAGE_SIZE_9x16;
+export const GROK_RESOLUTION = "2k";
 
 export const CARA_REFS = [
   "https://zvyioxhwdyocaanzcgqf.supabase.co/storage/v1/object/public/cara%20ref/Cara_1.jpg",
@@ -24,45 +25,34 @@ export const CARA_REFS = [
   "https://zvyioxhwdyocaanzcgqf.supabase.co/storage/v1/object/public/cara%20ref/Cara_10.jpeg",
 ];
 
-export const CARA_LORA = {
-  path: "https://v3b.fal.media/files/b/0aa58574/6hWDSoNLAhVr4ndSlXbEt_pytorch_lora_weights.safetensors",
-  scale: 1,
-};
+// Grok edit: send first 3 refs for identity lock
+export function refsForSubmit(refs) {
+  return (refs || []).slice(0, 3);
+}
+
 export const CARA_TRIGGER = "Cara";
 
-export const CARA_IDENTITY_LOCK = `IDENTITY LOCK - HIGHEST PRIORITY, ZERO DEVIATION ALLOWED:
-This is Cara Whitmore. Use the provided reference images as the exact face and identity source. Composite that precise face onto the body/scene described - do not blend, average, or drift toward a generic face.
+export const CARA_IDENTITY_LOCK = `IDENTITY LOCK — HIGHEST PRIORITY:
+Purely fictional adult woman. Match the provided reference images EXACTLY for face, body, skin, hair, freckles, mole, jewellery, and proportions — pixel-level consistency with the references. Do not blend, average, or invent a different face. Do not change eye colour, brow shape, hair colour, or facial structure away from the references.
+Jewellery from refs (gold hoops, layered gold chains with cross/coin when visible) must appear when neck/chest is in frame.
+Slim athletic natural build matching refs.
+Zero facial drift between generations.`;
 
-EYES: Vivid, saturated GREEN - defining, non-negotiable. Medium-set, clear iris definition. Must read unmistakably green in every lighting condition. NEVER grey, hazel-brown, blue, or dull.
-EYEBROWS: Thick, dark brown, straight-to-softly-arched, natural (not thin, not overplucked).
-HAIR: Dark brown, long (past shoulders), natural loose waves - never straight, never black, never fully blonde.
-SKIN: Warm olive/tan undertone. Light freckles across nose and upper cheeks in bright light - must be present. Natural texture, not airbrushed.
-FACE SHAPE: Oval, softly angular jaw, straight nose, fuller soft pink-nude lips. Resting expression calm/direct.
-JEWELLERY: Small gold hoop or huggie earrings. Layered thin gold necklaces - gold cross pendant + often gold coin pendant - visible when neck/chest in frame. Signature, non-negotiable.
-BUILD: Slim, toned, natural athletic.
-CRITICAL: Facial structure, eye colour, freckle pattern must match references exactly. Zero facial drift.`;
+export const CARA_NEGATIVE_PROMPT = `plastic skin, porcelain skin, airbrushed skin, beauty filter, over-smoothed skin, CGI skin, doll-like face, generic AI face, face drift, different person from references, wrong identity, celebrity likeness, underage, text, watermark, logo, extra fingers, extra limbs, mutated hands, blurry face, transparent fabric, full nudity, genitals`;
 
-export const CARA_NEGATIVE_PROMPT = `plastic skin, porcelain skin, airbrushed skin, beauty filter, over-smoothed skin, flawless skin, wax skin, CGI skin, doll-like face, generic AI face, face drift, wrong eye colour, grey eyes, washed out eyes, blue eyes, brown eyes, straight hair, black hair, fully blonde hair, missing freckles, missing gold jewellery, missing cross pendant, thin eyebrows, studio softbox lighting, glossy magazine finish, cartoon, CGI, 3D render, text, watermark, logo, extra fingers, extra limbs, mutated hands, blurry face, different person, Lila Sterling face, blonde waves as primary hair`;
+export const CARA_SELFIE_ANATOMY_GUIDANCE = `SELFIE ANATOMY:
+- One phone, natural grip, five correct fingers. No extra/fused fingers, no floating phone.
+- Natural arm foreshortening.
+- Mirror shots: reflection matches the same single phone and hand.
+- Face visible unless deliberate crop; eyes/upper face remain readable when cropped low.`;
 
-export const CARA_SELFIE_ANATOMY_GUIDANCE = `SELFIE ANATOMY GUIDANCE:
-- Exactly one phone, held naturally in one hand with five correctly proportioned fingers. No extra or fused fingers, no floating phone.
-- Arm holding the phone has natural foreshortening.
-- Mirror/glass: reflection shows the same single phone and matching hand. No duplicate phones, no extra person in glass.
-- Face stays clearly visible unless deliberate lower-face crop (eyes/upper face still visible).
-- Other hand, if visible, has five correct fingers.`;
-
-export const CARA_UGC_STILL_CORE = `Ultra-realistic mobile front-camera selfie of Cara Whitmore (identity LOCKED to reference images - do not change face, freckles, green eyes, dark-brown wavy hair, or gold layered chains with cross and coin).
-Candid lifestyle UGC, vertical 9:16, half-body or close-up, short distance, slight wide-angle phone distortion. She is documenting her life, not posing for a brand.
-Real skin texture: visible pores, natural under-eye, freckles, no beauty filter, no plastic skin.
-Expression: mid-thought or soft direct gaze at phone lens, micro-imperfection, not a model smile.
-Setting: lived-in home, hotel, bathroom mirror, or casual outdoor - one imperfect background detail. Background slightly soft. No clean studio.
-Lighting: named only - phone fill / window left / lamp behind / golden hour. Never studio softbox.
-Photography: authentic mobile selfie, slight grain if low light, shallow DOF, native phone look.
-Quality: 4K ultra-clear, ultra-detailed, sharp iris catchlights, pore-level skin, fabric weave visible — photoreal not AI-soft.
-Model pipeline: nano-banana-2 edit with reference identity lock.
+export const CARA_UGC_STILL_CORE = `Ultra-realistic mobile photograph of a purely fictional adult woman. Face and body LOCKED to the reference images — match references exactly, do not alter identity.
+Candid lifestyle / model UGC, vertical 9:16 preferred. Real skin texture, visible pores, no beauty filter, no plastic skin.
+Expression natural: soft direct gaze or mid-thought, not a stiff model smile.
+Private or lived-in settings. Named natural light only (window, phone fill, golden hour, lamp). No studio softbox.
+Quality: 4K ultra-clear, photoreal, fabric and skin detail visible.
 No text, no logos, no watermarks.`;
 
-// Upload Lila solo refs to Supabase and paste public URLs here (8-12 shots, no Cara in frame).
 export const LILA_REFS = [
   "https://zvyioxhwdyocaanzcgqf.supabase.co/storage/v1/object/public/lila%20ref/lila_1.jpeg",
   "https://zvyioxhwdyocaanzcgqf.supabase.co/storage/v1/object/public/lila%20ref/lila_2.jpeg",
@@ -82,40 +72,26 @@ export const LILA_REFS = [
 
 export const LILA_TRIGGER = "Lila";
 
-export const LILA_IDENTITY_LOCK = `IDENTITY LOCK - HIGHEST PRIORITY, ZERO DEVIATION ALLOWED:
-This is Lila Sterling. Use the provided reference images as the exact face and identity source. Composite that precise face onto the body/scene described - do not blend toward Cara or a generic blonde face.
+export const LILA_IDENTITY_LOCK = `IDENTITY LOCK — HIGHEST PRIORITY:
+Purely fictional adult woman. Match the provided reference images EXACTLY for face, body, skin, hair, and proportions — pixel-level consistency with the references. Do not blend toward any other identity or a generic face.
+From refs: sun-lightened blonde natural waves, blue-green calm eyes, warm golden tan, lean graceful build, small simple gold hoop earrings only (no cross, no coin stack).
+Zero facial drift. Must read as the same person as the Lila reference set.`;
 
-EYES: Blue-green, calm and composed - clear, cool-warm mix, not pure blue, not pure green, not brown. Steady gaze.
-EYEBROWS: Soft, naturally arched, medium-blonde/taupe, not heavy, not drawn-on.
-HAIR: Sun-lightened blonde natural waves, soft with movement, shoulder-to-mid length energy. Never dark brown, never black, never tight curls, never severe straight.
-SKIN: Warm golden tan, healthy and even. Natural texture, light freckles optional but subtle. No olive-heavy Cara undertone.
-FACE SHAPE: Soft oval, balanced features, refined nose, natural lips. Resting expression composed, serene - not wide performative smile by default.
-JEWELLERY: Small simple gold hoop earrings ONLY. No cross pendant, no coin pendant, no layered chain stack. Keep neck clean except optional single fine chain if scene requires - default is hoops only.
-BUILD: Lean graceful, gymnast / horse-riding physique with attractive curves. Long lines, not bulky.
-CRITICAL: Must read as Lila, not Cara. Blonde waves + blue-green eyes + gold hoops + golden tan are the non-negotiable cluster. Zero facial drift.`;
-
-export const LILA_NEGATIVE_PROMPT = `plastic skin, porcelain skin, airbrushed skin, beauty filter, over-smoothed skin, CGI skin, doll-like face, generic AI face, face drift, dark brown hair, black hair, vivid emerald green eyes as primary, heavy freckle pattern like Cara, gold cross pendant, gold coin pendant, layered chain stack, thick dark eyebrows, studio softbox lighting, glossy magazine finish, loud patterns, neon colours, bright saturated wardrobe, cartoon, CGI, 3D render, text, watermark, logo, extra fingers, extra limbs, mutated hands, blurry face, different person, Cara Whitmore face, dark wavy hair`;
+export const LILA_NEGATIVE_PROMPT = `plastic skin, porcelain skin, airbrushed skin, beauty filter, CGI skin, doll-like face, face drift, dark brown hair, black hair, gold cross pendant, gold coin pendant, layered chain stack, different person from references, celebrity likeness, underage, text, watermark, logo, extra fingers, extra limbs, mutated hands, blurry face, transparent fabric, full nudity, genitals, loud neon wardrobe`;
 
 export const LILA_SELFIE_ANATOMY_GUIDANCE = CARA_SELFIE_ANATOMY_GUIDANCE;
 
-export const LILA_UGC_STILL_CORE = `Ultra-realistic mobile front-camera selfie of Lila Sterling (identity LOCKED to reference images - do not change face, blue-green eyes, sun-lightened blonde natural waves, warm golden tan, or small simple gold hoop earrings).
-Candid lifestyle UGC, vertical 9:16, half-body or close-up, short distance, slight wide-angle phone distortion. She is documenting her life, not posing for a brand.
-Real skin texture: visible pores, natural under-eye, healthy even tan, no beauty filter, no plastic skin.
-Expression: composed, calm, thoughtful - soft gaze at lens or slight glance away. Serene energy, not performative.
-Wardrobe: minimalist elevated - white, cream, ivory, sage, soft neutrals only. Clean lines. Swimwear only simple white/cream/neutral. Never loud patterns or bright colours.
-Setting: lived-in or sunlit casual (terrace, bedroom, beach towel, hotel) - one imperfect detail. No clean studio.
-Lighting: named only - window left / golden hour / phone fill / open shade. Never studio softbox.
-Photography: authentic mobile selfie, natural grain if needed, shallow DOF, native phone look.
-Quality: 4K ultra-clear, ultra-detailed, sharp iris catchlights, pore-level skin, fabric weave visible — photoreal not AI-soft.
-Model pipeline: nano-banana-2 edit with reference identity lock.
+export const LILA_UGC_STILL_CORE = `Ultra-realistic mobile photograph of a purely fictional adult woman. Face and body LOCKED to the Lila reference images — match references exactly.
+Candid lifestyle UGC, vertical 9:16 preferred. Real skin, no beauty filter, no plastic skin.
+Composed, calm expression. Wardrobe bias: white, cream, ivory, sage, soft neutrals; minimal swim in same palette.
+Named natural light only. No studio softbox.
+Quality: 4K ultra-clear, photoreal.
 No text, no logos, no watermarks.`;
 
-export const UGC_MOTION_BRIEF = `Use the first frame as exact identity reference. Match the subject face and body exactly.
-Camera: handheld phone selfie / chest-up or mid-shot, natural micro-shakes, 9:16, normal speed (not slow-mo).
-Audio intent: phone-mic presence, room tone only. No music bed. No voiceover slogan.
-Timing: open mid-moment; body with natural blinks, one gaze break, one micro pause, one posture shift; end trails off or interrupted. No slogan ending.
-Behavioral beats (pick 2-3): glance away, adjust phone grip, half-smile at own thought, shrug, react to off-screen sound.
-Always: real skin texture, no beauty filter, lips natural, imperfect presence.`;
+export const UGC_MOTION_BRIEF = `Use the first frame as exact identity reference. Match face and body exactly.
+Camera: handheld phone, chest-up or mid-shot, natural micro-shake, 9:16, normal speed.
+Motion: open mid-moment; natural blink, one gaze break, one micro pause, one posture shift; end unresolved.
+Real skin texture, no beauty filter, imperfect presence.`;
 
 export function getPersonaVisual(personaId = "cara") {
   const id = (personaId || "cara").toLowerCase();
