@@ -1,29 +1,30 @@
 // api/generate-submit.js
-// Submits a GPT Image 2 (fal.ai) generation job to the async queue.
-// Merges ultra-realistic Sony A7R V camera physics from flux.md with safe prompt translation.
+// Submits Grok Imagine Image 2.0 (fal.ai) generation job to the async queue.
+// Identity = pixel-match reference images. More suggestive wardrobe allowed (clothed / underboob OK).
 
 import {
   CARA_REFS,
   FAL_EDIT_QUEUE_URL,
   FAL_EDIT_REQUESTS_BASE,
-  CARA_IMAGE_SIZE,
-  IMAGE_SIZE_9x16,
+  GROK_RESOLUTION,
   getPersonaVisual,
+  refsForSubmit,
 } from "./cara-config.js";
 
 const FRAMES = [
-  "85mm prime lens at f/1.8, three-quarter length, creamy background bokeh",
-  "50mm prime lens, full-length portrait, natural distance, tack-sharp focus on skin",
-  "85mm macro-leaning close-up, chest-up, shallow depth of field, sharp iris reflections",
+  "85mm prime feel, three-quarter length, soft natural bokeh",
+  "50mm full-length portrait, natural distance, sharp skin",
+  "close chest-up, shallow depth, sharp eyes",
   "close phone selfie angle, arm bent naturally, tight crop, natural window light",
-  "reflective glass shot, medium-close crop, phone visible in reflection",
-  "35mm candid mid-action shot, not looking at camera, motion-caught focus",
-  "50mm side profile, soft directional 5600K light",
-  "24mm wide environmental portrait, full body in context, high dynamic range",
+  "mirror reflection shot, medium-close crop, phone visible in reflection, private interior only",
+  "35mm candid mid-action, not looking at camera",
+  "50mm side profile, soft directional daylight",
+  "low angle near floor looking up, short crop top, ~24mm phone wide feel",
+  "bed edge or lounge three-quarter, soft morning window light",
 ];
 
 function isSelfieFrame(frame) {
-  return /selfie|reflective|glass/i.test(frame || "");
+  return /selfie|reflective|mirror|glass/i.test(frame || "");
 }
 
 function pickRandom(arr) {
@@ -55,51 +56,47 @@ function detectContext(text) {
   const t = (text || "").toLowerCase();
   if (/gym|train|workout|deadlift|squat|rep|boxing|punch|weights|session/.test(t)) return "gym";
   if (/run|running|jog|track|park path/.test(t)) return "running";
-  if (/reflective|glass|outfit check|getting ready/.test(t)) return "reflective";
-  if (/rooftop|resort|water|ocean|beach|plunge|terrace/.test(t)) return "resort";
-  if (/kitchen|sofa|couch|living room|at home|indoors|jumper|knit|candle|morning light|private quarters|lounge/.test(t)) return "lounge";
+  if (/mirror|reflective|glass|outfit check|getting ready/.test(t)) return "reflective";
+  if (/rooftop|resort|water|ocean|beach|plunge|terrace|pool/.test(t)) return "resort";
+  if (/kitchen|sofa|couch|living room|at home|indoors|jumper|knit|candle|morning light|private|lounge|bed/.test(t)) return "lounge";
   if (/office|desk|planner|laptop|notebook|journal/.test(t)) return "office";
   if (/balcony|city|street|evening|going out/.test(t)) return "city";
   return "general";
 }
 
+// More suggestive defaults — Grok 2.0 tolerates these; still clothed
 const FALLBACK_WARDROBE = {
-  gym: "fitted athletic crop top and low-rise athletic shorts, trainers, ponytail",
+  gym: "fitted athletic crop top ending high on the ribcage and low-rise athletic shorts, trainers",
   running: "cropped running top and micro athletic shorts, trainers",
-  reflective: "unbuttoned silk shirt over a low-cut ribbed crop top, low-rise shorts",
-  resort: "high-cut two-piece resort set with thin side ties",
-  lounge: "delicate thin-strap silk cami and high-cut lounge shorts",
-  office: "deep-V fitted top, low-rise trousers, gold cross necklace",
-  city: "cropped tie-front summer top, low-rise denim shorts, gold jewellery",
-  general: "unbuttoned linen shirt over a low-cut satin crop, low-rise micro shorts",
+  reflective: "very short ribbed crop top with under-bust hem lift from posture, low-rise shorts",
+  resort: "minimal triangle string two-piece or high-cut resort set with thin side ties",
+  lounge: "thin-strap satin or silk cami and high-cut lounge shorts, or oversized open shirt over minimal set",
+  office: "fitted deep-neck top, low-rise trousers, jewellery from refs",
+  city: "cropped summer top, low-rise denim, gold jewellery from refs",
+  general: "extremely short ribbed crop top (hem above under-bust fold so underside curve can show), low-rise denim or shorts",
 };
 
 const FALLBACK_SETTING = {
-  gym: "home gym space, rubber mat flooring, weights rack visible in background",
+  gym: "home gym space, rubber mat, weights rack soft in background",
   running: "park path or quiet road, early morning light",
-  reflective: "reflective glass wall in private interior, warm window light",
-  resort: "rooftop infinity edge or terrace plunge pool, natural bright daylight",
-  lounge: "private interior on white linen lounge seating, warm afternoon window light",
-  office: "desk area, soft side window light, notebook and coffee",
-  city: "private balcony or quiet boutique street",
-  general: "everyday indoor or outdoor location fitting a model aesthetic, natural light",
+  reflective: "private interior mirror or glass, warm window light",
+  resort: "hotel room, terrace, or private pool edge, bright daylight",
+  lounge: "private bedroom or lounge, white linen, soft window light",
+  office: "desk area, soft side window light",
+  city: "private balcony or quiet street threshold",
+  general: "bright modern private interior or glass corridor, natural light",
 };
 
 /**
- * Strips safety trigger words AND unescaped quotes while preserving high-fashion intent.
+ * Light sanitize — keep suggestive clothing language; only strip hard blocks.
  */
 function sanitizePromptText(text) {
   if (!text) return "";
   return text
-    .replace(/"/g, "'") // Strip unescaped double quotes
-    .replace(/\b(19|19-year-old|21|23)\b/gi, "young adult")
-    // Banned keywords → safe high-exposure alternatives
-    .replace(/\b(micro string bikini|string bikini|micro bikini|bikini|swimsuit|swimwear|bathing suit)\b/gi, "high-cut two-piece resort set")
-    .replace(/\b(lingerie set|lingerie|underwear|bra|bralette|briefs|panties|thong|bustier|corset)\b/gi, "satin lounge set")
-    .replace(/\b(sheer|lace)\b/gi, "fine-knit chiffon")
-    .replace(/\b(cleavage|bare skin|naked|nude|exposed skin)\b/gi, "sun-kissed collarbone and midriff")
-    .replace(/\b(bedroom|bed|messy sheets)\b/gi, "private room lounge")
-    .replace(/\b(mirror selfie|mirror selfies)\b/gi, "reflective glass shot");
+    .replace(/"/g, "'")
+    .replace(/\b(19|19-year-old)\b/gi, "young adult")
+    .replace(/\b(nude|naked|genitals|explicit sex)\b/gi, "")
+    .replace(/\b(underage|minor|teen)\b/gi, "adult");
 }
 
 export function buildPrompt({
@@ -120,10 +117,9 @@ export function buildPrompt({
     wardrobeText = FALLBACK_WARDROBE[context] || FALLBACK_WARDROBE.general;
   }
 
-  // Lila wardrobe bias: force neutrals if fallback is too loud
   if (visual.id === "lila") {
     wardrobeText = wardrobeText
-      .replace(/\b(red|neon|hot pink|bright orange|loud)\b/gi, "soft cream")
+      .replace(/\b(red|neon|hot pink|bright orange|loud navy)\b/gi, "soft cream")
       .replace(/\b(patterned|print|floral loud)\b/gi, "clean minimal");
   }
 
@@ -141,30 +137,30 @@ export function buildPrompt({
   const selfieGuidance = selfieShot ? `\n${visual.selfieGuidance}\n` : "";
 
   const jewelleryRule = visual.id === "lila"
-    ? "- Jewellery: small simple gold hoop earrings only. No cross, no coin stack."
-    : "- Always show her signature gold cross necklace when chest/neck is visible.";
+    ? "- Jewellery: small simple gold hoop earrings only (from refs). No cross, no coin stack."
+    : "- When neck/chest visible, include jewellery exactly as in reference images (gold hoops, layered chains, cross/coin if present in refs).";
 
   const antiMismatch = `
 CRITICAL MATCHING & LOCATION RULES:
-- The clothes, setting, and action MUST match the scene/caption.
-- REFLECTIVE GLASS SHOTS ARE ONLY ALLOWED INDOORS IN PRIVATE QUARTERS.
-- OUTDOOR/PUBLIC SHOTS MUST BE STANDARD ARM'S LENGTH SELFIES OR CANDID PHOTOS.
-${jewelleryRule}`;
+- Clothes, setting, and action MUST match the scene/caption.
+- Mirror / reflective glass shots ONLY indoors in private quarters.
+- Outdoor/public shots: arm's-length selfie or candid — not bathroom mirror outdoors.
+${jewelleryRule}
+- Clothing stays on. Underboob / short hem / open shirt OK. No full nudity, no transparent fabric, no genitals.`;
 
   const sceneBlock = scene.length > 20
-    ? `SCENE TO DEPICT: ${scene.slice(0, 300)}\n`
-    : `SCENE: Natural candid UGC moment in ${visual.name}'s life. Phone-real, not studio.\n`;
+    ? `SCENE TO DEPICT: ${scene.slice(0, 320)}\n`
+    : `SCENE: Natural candid UGC / model moment. Phone-real, not studio.\n`;
 
-  // Money-mode default: phone UGC core + identity lock (editorial fashion language retired as default)
   return `${visual.ugcStillCore}
 
-RAW photorealistic mobile photograph of ${visual.name}. Recreate her face and features identically from reference images.
+RAW photorealistic photograph. Recreate face and body identically from the reference images — exact pixel identity lock.
 
 ${sceneBlock}
 CAMERA & FRAME:
 - ${frame}
-- Vertical 9:16. Tack-sharp eyes. Natural phone or prime-lens realism — not glossy magazine polish.
-- Quality: 4K ultra-clear, ultra-detailed, pore-level skin, sharp iris — nano-banana-2 photoreal (not soft AI).
+- Vertical 9:16 when possible. Tack-sharp eyes. Natural phone or prime-lens realism.
+- Quality: 4K ultra-clear, pore-level skin, sharp iris — photoreal not soft AI.
 
 WARDROBE: ${wardrobeText}
 SETTING: ${settingText}
@@ -178,10 +174,11 @@ ${visual.identityLock}
 DO NOT: ${visual.negative}`;
 }
 
-
 export async function submitToFal({ falKey, prompt, imageUrls = null, personaId = "cara" }) {
   const visual = getPersonaVisual(personaId);
   if (!imageUrls || !imageUrls.length) imageUrls = visual.refs;
+  const urls = refsForSubmit(imageUrls);
+
   const res = await fetch(FAL_EDIT_QUEUE_URL, {
     method: "POST",
     headers: {
@@ -190,11 +187,10 @@ export async function submitToFal({ falKey, prompt, imageUrls = null, personaId 
     },
     body: JSON.stringify({
       prompt,
-      image_urls: imageUrls,
-      image_size: CARA_IMAGE_SIZE,
-      output_format: "jpeg",
-      safety_tolerance: "6",
+      image_urls: urls,
       num_images: 1,
+      resolution: GROK_RESOLUTION,
+      output_format: "jpeg",
     }),
   });
 
@@ -268,5 +264,6 @@ export default async function handler(req, res) {
     personaId: _personaId,
     statusUrl: `${FAL_EDIT_REQUESTS_BASE}/${requestId}/status`,
     resultUrl: `${FAL_EDIT_REQUESTS_BASE}/${requestId}`,
+    model: "xai/grok-imagine-image/v2.0/edit",
   });
 }
