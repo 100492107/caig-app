@@ -1,11 +1,12 @@
 // api/generate-poll.js
-// Status polling for image (nano-banana-2) and video (Seedance 2.5) fal.ai jobs.
+// Status polling for image (Grok Imagine Image 2.0) and video (Seedance 2.5) fal.ai jobs.
 // GET  ?requestId=xxx              → image poll (legacy)
 // POST { request_id, type }        → image or video poll
 
 const FAL_BASES = {
-  image: "https://queue.fal.run/fal-ai/nano-banana-2/requests",
-  // Seedance 2.5 image-to-video (replaces Kling)
+  // Grok Imagine Image 2.0 edit pipeline
+  image: "https://queue.fal.run/xai/grok-imagine-image/v2.0/requests",
+  // Seedance 2.5 image-to-video
   video: "https://queue.fal.run/bytedance/seedance-2.5/image-to-video/requests",
 };
 
@@ -75,7 +76,6 @@ export default async function handler(req, res) {
     }
 
     if (type === "video") {
-      // Seedance returns { video: { url } } — same shape as Kling
       const videoUrl = resultData?.video?.url;
       if (!videoUrl) {
         console.error("[poll] no video URL:", JSON.stringify(resultData).slice(0, 300));
@@ -88,19 +88,19 @@ export default async function handler(req, res) {
       return res.status(200).json({ status: "COMPLETED", url: videoUrl });
     }
 
-    // Image
+    // Image — Grok 2.0 returns images[0].url
     const falUrl = resultData?.images?.[0]?.url;
     if (!falUrl) {
-      const description = resultData?.description || "";
-      console.error("[poll] no image URL. desc:", description);
+      const description = resultData?.detail || resultData?.description || "";
+      console.error("[poll] no image URL. body:", JSON.stringify(resultData).slice(0, 400));
       return res.status(502).json({
         status: "FAILED",
         error: description
-          ? `Blocked by safety filter: ${description}`
+          ? `Blocked or empty result: ${typeof description === "string" ? description : JSON.stringify(description)}`
           : "Result had no image URL",
       });
     }
-    console.log("[poll] image COMPLETED:", requestId, falUrl);
+    console.log("[poll] image COMPLETED (Grok 2.0):", requestId, falUrl);
     return res.status(200).json({
       status: "COMPLETED",
       imageUrl: falUrl,
