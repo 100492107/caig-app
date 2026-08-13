@@ -1875,8 +1875,18 @@ function Autopilot({ queue, setQueue, setView, toast_, dbCreators = [], onDelete
             // Server started processing this slot
             setProg(p => p.map((x, j) => (j === msg.index ? { ...x, genStatus: "running" } : x)));
           } else if (msg.post) {
-            // Completed post — save immediately
-            const item = msg.post;
+            // Completed post — save immediately; normalise persona fields for Review
+            const raw = msg.post;
+            const pid = (raw.personaId || raw.persona_id || "cara").toLowerCase();
+            const isLila = pid.includes("lila");
+            const item = {
+              ...raw,
+              personaId: isLila ? "lila" : "cara",
+              persona_id: isLila ? "lila" : "cara",
+              personaName: raw.personaName || raw.persona_name || (isLila ? "Lila Sterling" : "Cara Whitmore"),
+              persona_name: raw.personaName || raw.persona_name || (isLila ? "Lila Sterling" : "Cara Whitmore"),
+              status: raw.status || "draft",
+            };
             results.push(item);
             savedCount++;
             setQueue(prev => [item, ...prev.filter(x => x.id !== item.id)]);
@@ -2537,6 +2547,7 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
   const [scheduleDate, setScheduleDate] = useState("");
   const [scheduleTime, setScheduleTime] = useState("");
   const [activeTab, setActiveTab] = useState("review");
+  const [personaFilter, setPersonaFilter] = useState("all"); // all | cara | lila
   const [scheduledPosts, setScheduledPosts] = useState([]);
   const [generating, setGenerating] = useState({}); // { [postId]: { stage, elapsed, error } | null }
   const [reelGenerating, setReelGenerating] = useState({});
@@ -2556,27 +2567,36 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
   // Merge DB drafts + in-memory queue items into one list
   function mergeQueues(dbPosts, memQueue) {
     const dbIds = new Set(dbPosts.map(p => p.id));
-    // Convert in-memory queue items to same shape as DB posts
     const memPosts = memQueue
       .filter(i => !dbIds.has(i.id) && !["posted"].includes(i.status))
-      .map(i => ({
-        id:             i.id,
-        persona_id:     i.personaId || "cara",
-        platform:       i.platform || i.platformId || "fanvue",
-        hook:           i.hook,
-        caption:        i.caption,
-        cta:            i.cta,
-        hashtags:       i.hashtags,
-        image_prompt:   i.image_prompt || i.imagePrompt || null,
-        photo_direction: i.photo_direction || i.photoDirection || i.photo_idea || null,
-        shot_angle:     i.shot_angle || i.shotAngle || null,
-        wardrobe:       i.wardrobe || null,
-        scheduled_date: i.date || i.scheduled_date || null,
-        scheduled_time: i.time || i.scheduled_time || null,
-        status:         i.status || "pending",
-        image_url:      i.image_url || i.imageUrl || i.visualAsset || null,
-        _inMemory:      true,
-      }));
+      .map(i => {
+        const pid = (i.personaId || i.persona_id || "cara").toLowerCase();
+        const isLila = pid.includes("lila");
+        return {
+          id:              i.id,
+          persona_id:      isLila ? "lila" : "cara",
+          persona_name:    i.personaName || i.persona_name || (isLila ? "Lila Sterling" : "Cara Whitmore"),
+          platform:        i.platform || i.platformId || "fanvue",
+          pillar:          i.pillar || null,
+          hook:            i.hook,
+          caption:         i.caption,
+          cta:             i.cta,
+          hashtags:        i.hashtags,
+          image_prompt:    i.image_prompt || i.imagePrompt || null,
+          photo_direction: i.photo_direction || i.photoDirection || i.photo_idea || null,
+          photo_idea:      i.photo_idea || null,
+          shot_angle:      i.shot_angle || i.shotAngle || null,
+          wardrobe:        i.wardrobe || null,
+          scheduled_date:  i.date || i.scheduledDate || i.scheduled_date || null,
+          scheduled_time:  i.time || i.scheduledTime || i.scheduled_time || null,
+          status:          i.status || "draft",
+          image_url:       i.image_url || i.imageUrl || i.visualAsset || null,
+          image_urls:      i.image_urls || i.urls || null,
+          format:          i.format || null,
+          slides:          i.slides || null,
+          _inMemory:       true,
+        };
+      });
     return [...dbPosts, ...memPosts];
   }
 
@@ -2584,8 +2604,8 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
     setLoading(true);
     const { data, error } = await supabase
       .from("content_queue")
-      .select("id,persona_id,platform,hook,caption,cta,hashtags,image_prompt,photo_direction,shot_angle,wardrobe,scheduled_date,scheduled_time,status,image_url,image_urls,format,slides")
-      .in("status", ["draft", "error"])
+      .select("id,persona_id,persona_name,platform,pillar,hook,caption,cta,hashtags,image_prompt,photo_direction,photo_idea,shot_angle,wardrobe,scheduled_date,scheduled_time,status,image_url,image_urls,format,slides")
+      .in("status", ["draft", "error", "ready", "pending"])
       .order("scheduled_date", { ascending: true })
       .order("scheduled_time", { ascending: true })
       .limit(50);
@@ -2614,7 +2634,7 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
 
     try {
       const ext = file.name.split(".").pop() || "jpg";
-      const path = `cara/posts/${post.id}_${Date.now()}.${ext}`;
+      const path = `${((post.persona_id || "cara").toLowerCase().includes("lila") ? "lila" : "cara")}/posts/${post.id}_${Date.now()}.${ext}`;
 
       const { error: upErr } = await supabase.storage
         .from("post-images")
@@ -2643,7 +2663,7 @@ function ReviewQueue({ toast_, queue = [], setQueue }) {
     const urls = [imageUrl, ...(extraUrls || [])].filter(Boolean);
     if (!urls.length) return;
     const ts = new Date().toISOString().slice(0, 10);
-    const base = `cara_${ts}_${String(postId).slice(-6)}`;
+    const base = `${String(postId).toLowerCase().includes("lila") ? "lila" : "cara"}_${ts}_${String(postId).slice(-6)}`;
 
     const fetchBlob = async (url, idx) => {
       const res = await fetch(url);
@@ -3151,6 +3171,38 @@ async function unschedule(post) {
             }}
           >📅 Scheduled ({scheduledPosts.length})</button>
         </div>
+
+        {/* Persona filter — who is this post for */}
+        {activeTab === "review" && (
+          <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap", alignItems: "center" }}>
+            <span style={{ fontSize: 11, color: "var(--t4)", fontWeight: 600, letterSpacing: ".04em", textTransform: "uppercase" }}>Show</span>
+            {[
+              { id: "all",  label: "All",   color: "var(--t2)" },
+              { id: "cara", label: "Cara",  color: "#34D399" },
+              { id: "lila", label: "Lila",  color: "#60A5FA" },
+            ].map(f => (
+              <button
+                key={f.id}
+                onClick={() => setPersonaFilter(f.id)}
+                style={{
+                  padding: "6px 14px", borderRadius: 999, cursor: "pointer",
+                  border: personaFilter === f.id ? `1px solid ${f.color}` : "1px solid var(--e1)",
+                  background: personaFilter === f.id ? f.color : "var(--s2)",
+                  color: personaFilter === f.id ? "#0a0a0a" : "var(--t2)",
+                  fontSize: 12, fontWeight: 700,
+                }}
+              >{f.label}</button>
+            ))}
+            <span style={{ fontSize: 12, color: "var(--t4)", marginLeft: 4 }}>
+              {posts.filter(p => {
+                if (personaFilter === "all") return true;
+                const pid = (p.persona_id || "").toLowerCase();
+                return personaFilter === "lila" ? pid.includes("lila") : !pid.includes("lila");
+              }).length} posts
+            </span>
+          </div>
+        )}
+
         {/* Image mode label */}
         <div className="rv-mode-toggle" style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 14px", background: "var(--s1)", border: "1px solid var(--e1)", borderRadius: 10 }}>
           <div style={{ flex: 1 }}>
@@ -3168,8 +3220,19 @@ async function unschedule(post) {
             </div>
           )}
           <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-            {posts.map(post => {
+            {posts
+          .filter(post => {
+            if (personaFilter === "all") return true;
+            const pid = (post.persona_id || post.personaId || "cara").toLowerCase();
+            return personaFilter === "lila" ? pid.includes("lila") : !pid.includes("lila");
+          })
+          .map(post => {
           const imgState = images[post.id];
+          const pid = (post.persona_id || post.personaId || "cara").toLowerCase();
+          const isLila = pid.includes("lila");
+          const personaLabel = post.persona_name || post.personaName || (isLila ? "Lila Sterling" : "Cara Whitmore");
+          const personaColor = isLila ? "#60A5FA" : "#34D399";
+          const personaHandle = isLila ? "@lilasterling" : "@carawhitmore";
           const staleSuppressed = clearedIds.current.has(post.id);
           const displayImg = imgState?.localPreview || imgState?.url || (staleSuppressed ? null : post.image_url);
           const allUrls = imgState?.urls || post.image_urls || (displayImg ? [displayImg] : []);
@@ -3183,10 +3246,32 @@ async function unschedule(post) {
           return (
             <div key={post.id} style={{
               background: "var(--s1)",
-              border: "1px solid var(--e1)",
+              border: `1px solid ${isLila ? "rgba(96,165,250,.35)" : "var(--e1)"}`,
               borderRadius: 14,
               overflow: "visible",
             }}>
+              {/* Persona identity bar */}
+              <div style={{
+                display: "flex", alignItems: "center", justifyContent: "space-between",
+                padding: "10px 14px", borderBottom: "1px solid var(--e1)",
+                background: isLila ? "rgba(96,165,250,.08)" : "rgba(52,211,153,.08)",
+              }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <span style={{
+                    width: 10, height: 10, borderRadius: "50%", background: personaColor,
+                    boxShadow: `0 0 0 3px ${isLila ? "rgba(96,165,250,.2)" : "rgba(52,211,153,.2)"}`,
+                  }} />
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "var(--t0)", lineHeight: 1.2 }}>{personaLabel}</div>
+                    <div style={{ fontSize: 11, color: "var(--t3)" }}>{personaHandle} · {(post.platform || "fanvue").toString()}</div>
+                  </div>
+                </div>
+                <span style={{
+                  fontSize: 10, fontWeight: 700, letterSpacing: ".06em", textTransform: "uppercase",
+                  padding: "4px 8px", borderRadius: 6,
+                  background: personaColor, color: "#0a0a0a",
+                }}>{isLila ? "LILA" : "CARA"}</span>
+              </div>
               {/* Image area — click to upload */}
               <div
                 className="rv-img-area"
