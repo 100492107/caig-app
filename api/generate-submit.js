@@ -206,7 +206,8 @@ export async function submitToFal({ falKey, prompt, imageUrls = null, personaId 
     throw new Error(`fal.ai submit failed (${res.status}): ${JSON.stringify(data)}`);
   }
 
-  return data.request_id;
+  // Return full queue payload so poll can use fal's status_url / response_url
+  return data;
 }
 
 export default async function handler(req, res) {
@@ -247,9 +248,9 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: "buildPrompt failed", detail: e.message });
   }
 
-  let requestId;
+  let queueData;
   try {
-    requestId = await submitToFal({
+    queueData = await submitToFal({
       falKey: apiKey,
       prompt,
       imageUrls: _visual.refs,
@@ -259,11 +260,17 @@ export default async function handler(req, res) {
     return res.status(502).json({ error: "Queue submit failed", detail: e.message });
   }
 
+  const requestId = queueData.request_id;
   return res.status(200).json({
     requestId,
     personaId: _personaId,
-    statusUrl: `${FAL_EDIT_REQUESTS_BASE}/${requestId}/status`,
-    resultUrl: `${FAL_EDIT_REQUESTS_BASE}/${requestId}`,
+    // Prefer URLs fal itself returns — most reliable for polling
+    statusUrl: queueData.status_url || `${FAL_EDIT_REQUESTS_BASE}/${requestId}/status`,
+    resultUrl: queueData.response_url || `${FAL_EDIT_REQUESTS_BASE}/${requestId}`,
     model: "xai/grok-imagine-image/v2.0/edit",
+    queue: {
+      status: queueData.status,
+      queue_position: queueData.queue_position,
+    },
   });
 }
