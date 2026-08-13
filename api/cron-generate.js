@@ -5,7 +5,7 @@
 
 import { createClient } from "@supabase/supabase-js";
 import { buildPrompt } from "./generate-submit.js";
-import { CARA_REFS, FAL_EDIT_QUEUE_URL, FAL_EDIT_REQUESTS_BASE, CARA_IMAGE_SIZE } from "./cara-config.js";
+import { CARA_REFS, FAL_EDIT_QUEUE_URL, FAL_EDIT_REQUESTS_BASE, GROK_RESOLUTION, refsForSubmit } from "./cara-config.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL || "https://zvyioxhwdyocaanzcgqf.supabase.co",
@@ -126,11 +126,10 @@ async function submitImage(falKey, post) {
     },
     body: JSON.stringify({
       prompt,
-      image_urls: CARA_REFS,
-      image_size: CARA_IMAGE_SIZE,
-      output_format: "jpeg",
-      safety_tolerance: "6",
+      image_urls: refsForSubmit(CARA_REFS),
       num_images: 1,
+      resolution: GROK_RESOLUTION || "2k",
+      output_format: "jpeg",
     }),
   });
 
