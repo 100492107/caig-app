@@ -66,14 +66,14 @@ function detectContext(text) {
 
 // More suggestive defaults — Grok 2.0 tolerates these; still clothed
 const FALLBACK_WARDROBE = {
-  gym: "fitted athletic crop top ending high on the ribcage and low-rise athletic shorts, trainers",
-  running: "cropped running top and micro athletic shorts, trainers",
-  reflective: "very short ribbed crop top with under-bust hem lift from posture, low-rise shorts",
-  resort: "minimal triangle string two-piece or high-cut resort set with thin side ties",
-  lounge: "thin-strap satin or silk cami and high-cut lounge shorts, or oversized open shirt over minimal set",
-  office: "fitted deep-neck top, low-rise trousers, jewellery from refs",
-  city: "cropped summer top, low-rise denim, gold jewellery from refs",
-  general: "extremely short ribbed crop top (hem above under-bust fold so underside curve can show), low-rise denim or shorts",
+  gym: "fitted athletic crop top and low-rise training shorts, trainers",
+  running: "cropped running top and athletic shorts, trainers",
+  reflective: "short ribbed crop top and low-rise denim, casual indoor outfit",
+  resort: "simple two-piece resort set with thin straps, clean lines",
+  lounge: "thin-strap cami and soft lounge shorts, or oversized open shirt over a simple set",
+  office: "fitted top, low-rise trousers, jewellery matching references",
+  city: "cropped summer top, low-rise denim, jewellery matching references",
+  general: "short ribbed crop top and low-rise denim, casual indoor look",
 };
 
 const FALLBACK_SETTING = {
@@ -95,8 +95,14 @@ function sanitizePromptText(text) {
   return text
     .replace(/"/g, "'")
     .replace(/\b(19|19-year-old)\b/gi, "young adult")
-    .replace(/\b(nude|naked|genitals|explicit sex)\b/gi, "")
-    .replace(/\b(underage|minor|teen)\b/gi, "adult");
+    .replace(/\b(nude|naked|genitals|explicit sex|nsfw|porn|xxx)\b/gi, "")
+    .replace(/\b(underage|minor|teen)\b/gi, "adult")
+    // Phrases that often trip fal content checkers even when clothed
+    .replace(/\b(underboob|under-bust|under bust|sideboob|cleavage)\b/gi, "midriff")
+    .replace(/\b(micro string|string bikini|micro bikini|thong)\b/gi, "two-piece set")
+    .replace(/\b(lingerie|bralette|panties|briefs)\b/gi, "lounge set")
+    .replace(/\b(hem above the under-bust fold|underside curve of the breasts)\b/gi, "short hem at the ribcage")
+    .replace(/\b(bare breasts|exposed breasts|exposed chest)\b/gi, "open neckline");
 }
 
 export function buildPrompt({
@@ -146,7 +152,7 @@ CRITICAL MATCHING & LOCATION RULES:
 - Mirror / reflective glass shots ONLY indoors in private quarters.
 - Outdoor/public shots: arm's-length selfie or candid — not bathroom mirror outdoors.
 ${jewelleryRule}
-- Clothing stays on. Underboob / short hem / open shirt OK. No full nudity, no transparent fabric, no genitals.`;
+- Clothing stays on. Short crop tops and open shirts OK. No full nudity, no transparent fabric, no genitals.`;
 
   const sceneBlock = scene.length > 20
     ? `SCENE TO DEPICT: ${scene.slice(0, 320)}\n`
