@@ -2466,7 +2466,7 @@ function GeneratingStatus({ genState }) {
   const stageInfo = {
     submitting: { icon: "📡", label: "Submitting job…",    sub: "Sending to fal.ai queue" },
     queued:     { icon: "⏳", label: "In queue…",          sub: queuePosition != null ? `Queue position: ${queuePosition}` : "Waiting for worker" },
-    generating: { icon: "🍌", label: "Generating…",        sub: "nano-banana-2 reading Cara's reference images and building scene" },
+    generating: { icon: "🍌", label: "Generating…",        sub: "Grok Imagine 2.0 reading reference images and building scene" },
     saving:     { icon: "💾", label: "Saving…",            sub: "Uploading to Supabase Storage" },
     error:      { icon: "❌", label: "Failed",             sub: error || "Unknown error" },
   };
@@ -2709,10 +2709,12 @@ async function generateImage(post) {
 
     const urls = [];
 
+    const slideErrors = [];
     for (let s = 0; s < slides.length; s++) {
       const slide = slides[s];
       setStatus(isCarousel ? `slide ${s + 1}/${slides.length}` : "submitting", { slide: s + 1 });
 
+      try {
       // ── 1. Submit to fal.ai ──────────────────────────────────────────────
       const submitRes = await fetch("/api/generate-submit", {
         method: "POST",
@@ -2733,9 +2735,29 @@ async function generateImage(post) {
       let submitData;
       const rawText = await submitRes.text();
       try { submitData = JSON.parse(rawText); }
-      catch { throw new Error(`Server error (${submitRes.status}) — not JSON: ${rawText.slice(0, 120)}`); }
-      if (!submitRes.ok) throw new Error(submitData?.error || `Submit failed (${submitRes.status})`);
-      if (!submitData.requestId) throw new Error("No requestId returned from submit");
+      catch {
+        const msg = `Server error (${submitRes.status}) — not JSON: ${rawText.slice(0, 120)}`;
+        if (!isCarousel) throw new Error(msg);
+        slideErrors.push({ slide: s + 1, error: msg });
+        urls.push(null);
+        continue;
+      }
+      if (!submitRes.ok) {
+        // 422 content checker etc. — skip this slide in carousel, fail hard for single
+        const msg = submitData?.detail || submitData?.error || `Submit failed (${submitRes.status})`;
+        if (!isCarousel) throw new Error(typeof msg === "string" ? msg : JSON.stringify(msg));
+        slideErrors.push({ slide: s + 1, error: typeof msg === "string" ? msg : "content flagged" });
+        urls.push(null);
+        setStatus(isCarousel ? `slide ${s + 1}/${slides.length} skipped` : "error", { slide: s + 1 });
+        continue;
+      }
+      if (!submitData.requestId) {
+        const msg = "No requestId returned from submit";
+        if (!isCarousel) throw new Error(msg);
+        slideErrors.push({ slide: s + 1, error: msg });
+        urls.push(null);
+        continue;
+      }
       const { requestId, statusUrl, resultUrl } = submitData;
 
       setStatus(isCarousel ? `slide ${s + 1}/${slides.length} queued` : "queued", { requestId, slide: s + 1 });
@@ -2755,14 +2777,23 @@ async function generateImage(post) {
           });
           const pollText = await pollRes.text();
           try { pollData = JSON.parse(pollText); }
-          catch { throw new Error(`Poll error (${pollRes.status}): ${pollText.slice(0, 120)}`); }
+          catch {
+            console.warn("[poll] non-JSON, retrying");
+            continue;
+          }
         } catch (e) {
           console.warn("[poll] fetch failed, retrying:", e.message);
           continue;
         }
         if (!pollRes.ok) {
-          const detail = pollData?.raw?.description ? ` (fal: ${pollData.raw.description})` : "";
-          throw new Error((pollData?.error || `Poll failed (${pollRes.status})`) + detail);
+          const detail = pollData?.error || `Poll failed (${pollRes.status})`;
+          // content checker mid-job
+          if (isCarousel) {
+            slideErrors.push({ slide: s + 1, error: detail });
+            imageUrl = null;
+            break;
+          }
+          throw new Error(detail);
         }
         const { status, queuePosition } = pollData;
         if (status === "IN_QUEUE") {
@@ -2773,10 +2804,21 @@ async function generateImage(post) {
           imageUrl = pollData.imageUrl || pollData.url;
           break;
         } else if (status === "FAILED") {
-          throw new Error(pollData.error || "Generation failed on fal.ai");
+          const msg = pollData.error || "Generation failed on fal.ai";
+          if (!isCarousel) throw new Error(msg);
+          slideErrors.push({ slide: s + 1, error: msg });
+          imageUrl = null;
+          break;
         }
       }
-      if (!imageUrl) throw new Error(`Timed out on slide ${s + 1} (3 min)`);
+      if (!imageUrl) {
+        if (!isCarousel) throw new Error(`Timed out on slide ${s + 1} (3 min)`);
+        if (!slideErrors.find(e => e.slide === s + 1)) {
+          slideErrors.push({ slide: s + 1, error: "timeout or flagged" });
+        }
+        urls.push(null);
+        continue;
+      }
 
       // ── 3. Show immediately + store in background ───────────────────────
       urls.push(imageUrl);
@@ -2821,16 +2863,50 @@ async function generateImage(post) {
           });
         }
       }).catch(() => {});
+      } catch (slideErr) {
+        // Per-slide unexpected error — keep going for carousels
+        console.warn("[slide]", s + 1, slideErr.message);
+        if (!isCarousel) throw slideErr;
+        slideErrors.push({ slide: s + 1, error: slideErr.message });
+        if (urls.length <= s) urls.push(null);
+      }
     }
 
     // ── 4. Save final result to queue ─────────────────────────────────────
-    toast_(isCarousel ? `Carousel generated (${urls.length} slides)` : "Image generated — review and post!", "ok");
-    downloadForPlatform(urls[0], post.id, post.platform);
+    const okUrls = urls.filter(Boolean);
+    if (!okUrls.length) {
+      const reason = slideErrors.map(e => `slide ${e.slide}: ${e.error}`).join("; ") || "all slides failed";
+      throw new Error(reason);
+    }
+
+    // Compact nulls out for storage/display but keep order of successes
+    const finalUrls = okUrls;
+    // Update images state to only successful URLs
+    setImages(im => ({
+      ...im,
+      [post.id]: {
+        url: finalUrls[0],
+        localPreview: finalUrls[0],
+        urls: finalUrls,
+        slideErrors: slideErrors.length ? slideErrors : undefined,
+      },
+    }));
+
+    const skipped = slideErrors.length
+      ? ` (${slideErrors.length} slide${slideErrors.length > 1 ? "s" : ""} skipped — content filter)`
+      : "";
+    toast_(
+      isCarousel
+        ? `Carousel: ${finalUrls.length} image${finalUrls.length > 1 ? "s" : ""} ready${skipped}`
+        : "Image generated — review and post!",
+      "ok"
+    );
+    downloadForPlatform(finalUrls[0], post.id, post.platform);
 
     if (!post._inMemory) {
       const update = isCarousel
-        ? { image_url: urls[0], image_urls: urls }
-        : { image_url: urls[0] };
+        ? { image_url: finalUrls[0], image_urls: finalUrls }
+        : { image_url: finalUrls[0] };
       fetch("/api/queue-update", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -3078,7 +3154,7 @@ async function unschedule(post) {
         {/* Image mode label */}
         <div className="rv-mode-toggle" style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 14px", background: "var(--s1)", border: "1px solid var(--e1)", borderRadius: 10 }}>
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: "var(--t1)" }}>⚡ nano-banana-2 · Cara refs</div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: "var(--t1)" }}>⚡ Grok Imagine 2.0 · refs</div>
             <div style={{ fontSize: 11, color: "var(--t4)", marginTop: 2 }}>Context-aware shot · wardrobe · setting selection</div>
           </div>
         </div>
