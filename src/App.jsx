@@ -2736,7 +2736,7 @@ async function generateImage(post) {
       catch { throw new Error(`Server error (${submitRes.status}) — not JSON: ${rawText.slice(0, 120)}`); }
       if (!submitRes.ok) throw new Error(submitData?.error || `Submit failed (${submitRes.status})`);
       if (!submitData.requestId) throw new Error("No requestId returned from submit");
-      const { requestId } = submitData;
+      const { requestId, statusUrl, resultUrl } = submitData;
 
       setStatus(isCarousel ? `slide ${s + 1}/${slides.length} queued` : "queued", { requestId, slide: s + 1 });
 
@@ -2748,7 +2748,11 @@ async function generateImage(post) {
         await new Promise(r => setTimeout(r, POLL_MS));
         let pollRes, pollData;
         try {
-          pollRes = await fetch(`/api/generate-poll?requestId=${requestId}`);
+          pollRes = await fetch("/api/generate-poll", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ request_id: requestId, type: "image", status_url: statusUrl, result_url: resultUrl }),
+          });
           const pollText = await pollRes.text();
           try { pollData = JSON.parse(pollText); }
           catch { throw new Error(`Poll error (${pollRes.status}): ${pollText.slice(0, 120)}`); }
