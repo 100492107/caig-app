@@ -4,7 +4,8 @@
 
 export const FAL_EDIT_MODEL = "xai/grok-imagine-image/v2.0/edit";
 export const FAL_EDIT_QUEUE_URL = `https://queue.fal.run/${FAL_EDIT_MODEL}`;
-export const FAL_EDIT_REQUESTS_BASE = "https://queue.fal.run/xai/grok-imagine-image/v2.0/requests";
+// MUST include /edit — status/result live under the full endpoint id
+export const FAL_EDIT_REQUESTS_BASE = "https://queue.fal.run/xai/grok-imagine-image/v2.0/edit/requests";
 export const IMAGE_SIZE_9x16 = { width: 1080, height: 1920 };
 export const CARA_IMAGE_SIZE = IMAGE_SIZE_9x16;
 export const GROK_RESOLUTION = "2k";
@@ -15,7 +16,7 @@ export const CARA_REFS = [
   "https://zvyioxhwdyocaanzcgqf.supabase.co/storage/v1/object/public/cara%20ref/Cara_8.png",
 ];
 
-// Grok edit: send first 3 refs for identity lock
+// Grok edit: max 3 refs — these arrays are already 3
 export function refsForSubmit(refs) {
   return (refs || []).slice(0, 3);
 }
