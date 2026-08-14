@@ -1091,16 +1091,42 @@ select{cursor:pointer;appearance:none}
   .cs-card-hook{font-size:15px}
   .cs-card-actions{flex-wrap:wrap}
   .cs-voice-pill{gap:6px}
-  /* ReviewQueue mobile */
+  /* ReviewQueue mobile — compact cards, no full-screen scroll per item */
   .rv-mode-toggle{flex-wrap:wrap}
   .rv-date-row{flex-wrap:wrap}
   .rv-date-row>button{flex:1 1 100%!important;min-width:0!important}
-  .rv-wrap{padding:16px 12px 80px!important}
+  .rv-wrap{padding:12px 10px 96px!important}
   .rv-actions{flex-direction:column!important}
   .rv-actions>button{flex:none!important;width:100%!important;min-width:0!important}
-  .rv-img-area{min-height:280px!important}
-  .rv-content{padding:12px 14px!important}
+  .rv-img-area{
+    min-height:0!important;
+    max-height:38vh!important;
+    height:38vh!important;
+    overflow:hidden!important;
+  }
+  .rv-img-area img{
+    width:100%!important;
+    height:100%!important;
+    max-height:38vh!important;
+    object-fit:contain!important;
+    background:#000!important;
+  }
+  .rv-content{padding:10px 12px!important}
+  .rv-caption{
+    max-height:72px!important;
+    font-size:12px!important;
+    line-height:1.45!important;
+  }
+  /* Autopilot / generate forms */
+  .ap-title{font-size:28px!important}
+  .pgrid{grid-template-columns:1fr 1fr!important}
+  .main{overflow-x:hidden}
+  .view{max-width:100vw;overflow-x:hidden}
+  /* UGC centre */
+  .ugc-wrap, .ugc-centre{padding:12px 12px 100px!important}
+  button, .tni, .bni{min-height:44px}
 }
+
 @media(max-width:400px){
   .home-stats{grid-template-columns:repeat(2,1fr)}
   .home-modules{grid-template-columns:1fr}
@@ -3278,8 +3304,10 @@ async function unschedule(post) {
                 onClick={() => !busy && fileRefs.current[post.id]?.click()}
                 style={{
                   background: "var(--s2)",
-                  minHeight: 220,
+                  minHeight: 180,
+                  maxHeight: 420,
                   display: "flex",
+                  overflow: "hidden",
                   alignItems: "flex-start",
                   justifyContent: "center",
                   position: "relative",
@@ -3294,7 +3322,7 @@ async function unschedule(post) {
     <img
       src={displayImg || allUrls[0]}
       alt="Post image"
-      style={{ width: "100%", objectFit: "contain", display: "block", background: "#000" }}
+      style={{ width: "100%", maxHeight: "100%", objectFit: "contain", display: "block", background: "#000" }}
     />
 
     {/* Carousel strip — only when there are multiple slides */}
@@ -3540,7 +3568,7 @@ async function unschedule(post) {
                 </div>
 
                 {/* Caption */}
-                <div style={{
+                <div className="rv-caption" style={{
                   fontSize: 13, color: "var(--t1)", lineHeight: 1.65,
                   whiteSpace: "pre-wrap", marginBottom: 14,
                   maxHeight: 130, overflowY: "auto",
@@ -8053,9 +8081,9 @@ export default function App() {
       {/* ── BOTTOM NAV (mobile) ─────────────────────────────────────────────── */}
 <nav className="bnav">
   {[
-    { id: "home",       label: "Home",     ic: Ic.home   },
     { id: "review",     label: "Review",   ic: Ic.list, badge: ready > 0 ? ready : null },
     { id: "autopilot",  label: "Content",  ic: IcContent },
+    { id: "ugc",        label: "UGC",      ic: Ic.rocket },
     { id: "calendar",   label: "Calendar", ic: Ic.cal    },
   ].map(n => (
     <button key={n.id} className={`bni${view === n.id ? " on" : ""}`} onClick={() => setView(n.id)}>
@@ -8093,8 +8121,8 @@ export default function App() {
       }}
     >
       {[
+        { id: "home",       label: "Home" },
         { id: "queue",      label: "Queue" },
-        { id: "ugc",        label: "UGC Centre" },
         { id: "settings",   label: "Settings" },
         { id: "dms",        label: "DM Inbox" },
         { id: "proposals",  label: "Proposals" },
