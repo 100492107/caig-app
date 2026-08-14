@@ -6957,6 +6957,295 @@ const STUDIO_ANGLES = [
   { label: "the number", instruction: "Lead with a specific, true number. Not a round estimate — a real one. Let the number do the work, then explain it." },
 ];
 
+
+function UGCCentre({ toast_ }) {
+  const [personaId, setPersonaId] = React.useState("cara");
+  const [mode, setMode] = React.useState("hold");
+  const [brandName, setBrandName] = React.useState("");
+  const [productNotes, setProductNotes] = React.useState("");
+  const [scene, setScene] = React.useState("Modern apartment, soft window light, candid phone selfie energy, vertical 9:16");
+  const [variants, setVariants] = React.useState(3);
+  const [productPreview, setProductPreview] = React.useState(null);
+  const [productUrl, setProductUrl] = React.useState("");
+  const [uploading, setUploading] = React.useState(false);
+  const [running, setRunning] = React.useState(false);
+  const [status, setStatus] = React.useState("");
+  const [results, setResults] = React.useState([]);
+  const [captions, setCaptions] = React.useState(null);
+  const fileRef = React.useRef(null);
+
+  const modes = [
+    { id: "hold", label: "Holding product" },
+    { id: "wear", label: "Wearing (apparel)" },
+    { id: "use", label: "Using (lifestyle)" },
+    { id: "beauty", label: "Beauty / makeup" },
+  ];
+
+  async function uploadProduct(file) {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) { toast_("Image files only", "warn"); return; }
+    if (file.size > 15 * 1024 * 1024) { toast_("Max 15MB", "warn"); return; }
+    setUploading(true);
+    setProductPreview(URL.createObjectURL(file));
+    try {
+      const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+      const path = `ugc/products/${Date.now()}_${Math.random().toString(36).slice(2, 7)}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("post-images")
+        .upload(path, file, { contentType: file.type, upsert: true });
+      if (upErr) throw new Error(upErr.message);
+      const { data: urlData } = supabase.storage.from("post-images").getPublicUrl(path);
+      const publicUrl = urlData?.publicUrl;
+      if (!publicUrl) throw new Error("No public URL");
+      setProductUrl(publicUrl);
+      toast_("Product uploaded", "ok");
+    } catch (e) {
+      toast_(`Upload failed: ${e.message}`, "error");
+      setProductPreview(null);
+      setProductUrl("");
+    }
+    setUploading(false);
+  }
+
+  async function pollJob(job) {
+    const DEADLINE = Date.now() + 3 * 60 * 1000;
+    while (Date.now() < DEADLINE) {
+      await new Promise(r => setTimeout(r, 4000));
+      const pollRes = await fetch("/api/generate-poll", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          request_id: job.requestId,
+          type: "image",
+          status_url: job.statusUrl,
+          result_url: job.resultUrl,
+        }),
+      });
+      const text = await pollRes.text();
+      let data;
+      try { data = JSON.parse(text); } catch { continue; }
+      if (data.status === "COMPLETED") {
+        return data.imageUrl || data.url;
+      }
+      if (data.status === "FAILED") {
+        throw new Error(data.error || "Generation failed");
+      }
+    }
+    throw new Error("Timed out");
+  }
+
+  async function runPack() {
+    if (!productUrl) { toast_("Upload a product image first", "warn"); return; }
+    setRunning(true);
+    setResults([]);
+    setCaptions(null);
+    setStatus("Submitting to Grok 2.0…");
+    try {
+      const res = await fetch("/api/ugc-submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          productImageUrl: productUrl,
+          personaId,
+          mode,
+          scene,
+          brandName,
+          productNotes,
+          variants,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || data.error || "Submit failed");
+      setCaptions(data.captions || null);
+      const urls = [];
+      for (let i = 0; i < data.jobs.length; i++) {
+        setStatus(`Generating ${i + 1}/${data.jobs.length}…`);
+        try {
+          const url = await pollJob(data.jobs[i]);
+          urls.push(url);
+          setResults([...urls]);
+          // fire-and-forget store
+          fetch("/api/store-image", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              falUrl: url,
+              requestId: data.jobs[i].requestId,
+              postId: `ugc_${Date.now()}_${i}`,
+              slideIndex: i,
+            }),
+          }).catch(() => {});
+        } catch (e) {
+          console.warn("variant failed", i, e.message);
+          toast_(`Variant ${i + 1} failed: ${e.message}`, "warn");
+        }
+      }
+      if (!urls.length) throw new Error("All variants failed");
+      setStatus(`Done — ${urls.length} stills`);
+      toast_(`UGC pack ready (${urls.length} stills)`, "ok");
+    } catch (e) {
+      setStatus("");
+      toast_(`UGC failed: ${e.message}`, "error");
+    }
+    setRunning(false);
+  }
+
+  function downloadAll() {
+    results.forEach((url, i) => {
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `ugc_${personaId}_${i + 1}.jpg`;
+      a.target = "_blank";
+      a.click();
+    });
+  }
+
+  const card = {
+    background: "var(--s1)", border: "1px solid var(--e1)", borderRadius: 14, padding: 16,
+  };
+
+  return (
+    <div style={{ maxWidth: 960, margin: "0 auto", padding: "16px 16px 100px" }}>
+      <h2 style={{ fontSize: 22, fontWeight: 700, color: "var(--t0)", margin: "0 0 6px" }}>UGC Centre</h2>
+      <p style={{ fontSize: 13, color: "var(--t3)", margin: "0 0 20px" }}>
+        Upload a brand product → generate Cara or Lila wearing / holding / using it → captions + pack download.
+        B2B Lane: £500–£1,000 packs. Identity locked to Supabase refs via Grok Imagine 2.0.
+      </p>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+        {/* Left: setup */}
+        <div style={{ ...card, display: "flex", flexDirection: "column", gap: 14 }}>
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "var(--t4)", letterSpacing: ".06em", marginBottom: 8 }}>PERSONA</div>
+            <div style={{ display: "flex", gap: 8 }}>
+              {["cara", "lila"].map(id => (
+                <button key={id} type="button" onClick={() => setPersonaId(id)}
+                  style={{
+                    flex: 1, padding: "10px 12px", borderRadius: 10, cursor: "pointer", fontWeight: 700, fontSize: 13,
+                    border: personaId === id ? "1px solid " + (id === "lila" ? "#60A5FA" : "#34D399") : "1px solid var(--e1)",
+                    background: personaId === id ? (id === "lila" ? "rgba(96,165,250,.15)" : "rgba(52,211,153,.15)") : "var(--s2)",
+                    color: "var(--t0)",
+                  }}>{id === "cara" ? "Cara Whitmore" : "Lila Sterling"}</button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "var(--t4)", letterSpacing: ".06em", marginBottom: 8 }}>USE MODE</div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+              {modes.map(m => (
+                <button key={m.id} type="button" onClick={() => setMode(m.id)}
+                  style={{
+                    padding: "10px 8px", borderRadius: 10, cursor: "pointer", fontSize: 12, fontWeight: 600,
+                    border: mode === m.id ? "1px solid var(--b1)" : "1px solid var(--e1)",
+                    background: mode === m.id ? "var(--b1)" : "var(--s2)",
+                    color: mode === m.id ? "#fff" : "var(--t1)",
+                  }}>{m.label}</button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "var(--t4)", letterSpacing: ".06em", marginBottom: 8 }}>PRODUCT IMAGE</div>
+            <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }}
+              onChange={e => uploadProduct(e.target.files?.[0])} />
+            <button type="button" disabled={uploading || running}
+              onClick={() => fileRef.current?.click()}
+              style={{
+                width: "100%", minHeight: 140, borderRadius: 12, border: "1px dashed var(--e2)",
+                background: "var(--s2)", cursor: "pointer", color: "var(--t2)", fontSize: 13,
+              }}>
+              {productPreview ? (
+                <img src={productPreview} alt="product" style={{ maxHeight: 160, maxWidth: "100%", objectFit: "contain" }} />
+              ) : (uploading ? "Uploading…" : "Click to upload product (PNG/JPG)")}
+            </button>
+            {productUrl && <div style={{ fontSize: 10, color: "var(--t4)", marginTop: 6, wordBreak: "break-all" }}>Ready</div>}
+          </div>
+
+          <label style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: "var(--t4)" }}>BRAND NAME (optional)</span>
+            <input value={brandName} onChange={e => setBrandName(e.target.value)} placeholder="e.g. GlowLab"
+              style={{ padding: "10px 12px", borderRadius: 8, border: "1px solid var(--e1)", background: "var(--s2)", color: "var(--t0)", fontSize: 13 }} />
+          </label>
+
+          <label style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: "var(--t4)" }}>PRODUCT NOTES</span>
+            <input value={productNotes} onChange={e => setProductNotes(e.target.value)} placeholder="e.g. matte red lipstick, gold cap"
+              style={{ padding: "10px 12px", borderRadius: 8, border: "1px solid var(--e1)", background: "var(--s2)", color: "var(--t0)", fontSize: 13 }} />
+          </label>
+
+          <label style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: "var(--t4)" }}>SCENE</span>
+            <textarea value={scene} onChange={e => setScene(e.target.value)} rows={3}
+              style={{ padding: "10px 12px", borderRadius: 8, border: "1px solid var(--e1)", background: "var(--s2)", color: "var(--t0)", fontSize: 13, resize: "vertical" }} />
+          </label>
+
+          <label style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: "var(--t4)" }}>VARIANTS</span>
+            <select value={variants} onChange={e => setVariants(Number(e.target.value))}
+              style={{ padding: "8px 10px", borderRadius: 8, border: "1px solid var(--e1)", background: "var(--s2)", color: "var(--t0)" }}>
+              {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n}</option>)}
+            </select>
+          </label>
+
+          <button type="button" disabled={running || uploading || !productUrl} onClick={runPack}
+            style={{
+              padding: "14px 16px", borderRadius: 12, border: "none", cursor: running ? "wait" : "pointer",
+              background: running ? "var(--s3)" : "var(--b1)", color: "#fff", fontWeight: 700, fontSize: 14,
+            }}>
+            {running ? (status || "Generating…") : `Generate UGC pack (${variants})`}
+          </button>
+        </div>
+
+        {/* Right: results */}
+        <div style={{ ...card, minHeight: 420 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "var(--t4)", letterSpacing: ".06em" }}>PACK OUTPUT</div>
+            {results.length > 0 && (
+              <button type="button" onClick={downloadAll}
+                style={{ padding: "6px 12px", borderRadius: 8, border: "1px solid var(--e1)", background: "var(--s2)", color: "var(--t1)", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
+                Open all
+              </button>
+            )}
+          </div>
+          {!results.length && (
+            <div style={{ color: "var(--t4)", fontSize: 13, padding: "40px 0", textAlign: "center" }}>
+              {running ? status : "Stills appear here as each variant completes."}
+            </div>
+          )}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+            {results.map((url, i) => (
+              <a key={i} href={url} target="_blank" rel="noreferrer" style={{ display: "block", borderRadius: 10, overflow: "hidden", border: "1px solid var(--e1)" }}>
+                <img src={url} alt={`ugc ${i + 1}`} style={{ width: "100%", display: "block", background: "#000" }} />
+              </a>
+            ))}
+          </div>
+
+          {captions && (
+            <div style={{ marginTop: 18 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "var(--t4)", letterSpacing: ".06em", marginBottom: 8 }}>CAPTIONS (edit before send)</div>
+              {["tiktok", "instagram", "ad_hook"].map(k => (
+                <div key={k} style={{ marginBottom: 10 }}>
+                  <div style={{ fontSize: 11, color: "var(--t3)", marginBottom: 4, textTransform: "uppercase" }}>{k.replace("_", " ")}</div>
+                  {(captions[k] || []).map((line, i) => (
+                    <div key={i} style={{ fontSize: 13, color: "var(--t1)", padding: "6px 0", borderBottom: "1px solid var(--e1)" }}>{line}</div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div style={{ marginTop: 16, padding: 12, borderRadius: 10, background: "var(--s2)", fontSize: 12, color: "var(--t3)", lineHeight: 1.5 }}>
+            <strong style={{ color: "var(--t1)" }}>Operator flow:</strong> upload packshot → pick persona + mode → generate → QC face/product → send client stills + captions.
+            Price £500–£1,000. Optional Seedance clip from best still later in Review.
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
 function ContentStudio() {
   const VOICE_KEY = "cs_brand_voice";
   const savedVoice = (() => { try { return JSON.parse(localStorage.getItem(VOICE_KEY) || "null"); } catch { return null; } })();
@@ -7621,6 +7910,13 @@ export default function App() {
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
             Content Studio
           </button>
+          <button className={`tni${view === "ugc" ? " on" : ""}`} onClick={() => setView("ugc")}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+              <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+              <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+            </svg>
+            UGC Centre
+          </button>
 
           {profile?.role === "admin" && (
             <button className={`tni${view === "admin" ? " on" : ""}`} onClick={() => setView("admin")}>
@@ -7742,6 +8038,7 @@ export default function App() {
           {view === "onboarding" && (canAccess(profile?.tier, "onboarding", profile?.role) ? <Onboarding /> : <LockedModule moduleName="Automate Ops"        currentTier={profile?.tier} />)}
           {view === "queue"      && <Queue queue={queue} setQueue={setQueue} toast_={toast_} />}
           {view === "studio"     && <ContentStudio />}
+          {view === "ugc"        && <UGCCentre toast_={toast_} />}
           {view === "review"     && <ReviewQueue toast_={toast_} queue={queue} setQueue={setQueue} />}
           {view === "dms"        && <DMInbox toast_={toast_} />}
           {view === "calendar"   && <CalView queue={queue} />}
@@ -7797,6 +8094,7 @@ export default function App() {
     >
       {[
         { id: "queue",      label: "Queue" },
+        { id: "ugc",        label: "UGC Centre" },
         { id: "settings",   label: "Settings" },
         { id: "dms",        label: "DM Inbox" },
         { id: "proposals",  label: "Proposals" },
