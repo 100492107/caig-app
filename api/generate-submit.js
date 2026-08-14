@@ -160,13 +160,15 @@ ${jewelleryRule}
 
   return `${visual.ugcStillCore}
 
-RAW photorealistic photograph. Recreate face and body identically from the reference images — exact pixel identity lock.
+RAW unretouched photorealistic photograph. Recreate face and body identically from the reference images — exact pixel identity lock. Same person as refs, not a similar-looking model.
 
 ${sceneBlock}
 CAMERA & FRAME:
 - ${frame}
 - Vertical 9:16 when possible. Tack-sharp eyes. Natural phone or prime-lens realism.
-- Quality: 4K ultra-clear, pore-level skin, sharp iris — photoreal not soft AI.
+- Quality: 4K ultra-clear phone capture. Visible pores on nose/cheeks, natural skin micro-texture, subtle uneven tone. Sharp iris. Photoreal — not soft AI, not beauty campaign.
+
+SKIN HARD RULE: Must match reference skin exactly — real human texture with pores and natural variation. Forbidden: plastic, waxy, porcelain, airbrushed, over-smoothed, glossy CGI, Facetune, beauty-filter glow.
 
 WARDROBE: ${wardrobeText}
 SETTING: ${settingText}
@@ -182,8 +184,11 @@ DO NOT: ${visual.negative}`;
 
 export async function submitToFal({ falKey, prompt, imageUrls = null, personaId = "cara" }) {
   const visual = getPersonaVisual(personaId);
-  if (!imageUrls || !imageUrls.length) imageUrls = visual.refs;
-  const urls = refsForSubmit(imageUrls);
+  // ALWAYS push persona Supabase refs — identity lock depends on image_urls every job
+  const urls = refsForSubmit(visual.refs);
+  if (!urls.length) {
+    throw new Error(`No reference images configured for persona ${visual.id}`);
+  }
 
   const res = await fetch(FAL_EDIT_QUEUE_URL, {
     method: "POST",
