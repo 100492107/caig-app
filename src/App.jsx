@@ -18,6 +18,32 @@ function savePersonaOverride(id, patch) {
 }
 
 // ─── DATA ─────────────────────────────────────────────────────────────────────
+const PUBLIC_ACCOUNT_PERSONA = {
+  id: "cara_lila", name: "Cara & Lila", handle: "@caraandlila", niche: "Quiet ambition · style · everyday life · two very different personalities", color: "#A78BFA",
+  avatarUrl: null, avatarInitials: "C&L",
+  char: "The public account belongs to Cara Whitmore and Lila Sterling together. Cara is 19, British, dry, funny, faith-first, edit-first, and quietly ambitious; she grew up adjacent to wealth and is building a life deliberately without needing to perform it. Lila is 20, Barcelona-connected, measured, observant, calm, and understated; she notices light, temperature, rooms, pace, and small details. They are not a blended personality. Some posts are clearly Cara, some clearly Lila, and some are naturally both of them. The account feels like two real women with different rhythms who genuinely know each other.",
+  voice: "Shared-account voice: specific, human, understated and visually led. Never generic influencer copy. Cara can be dry, funny, self-aware or blunt. Lila can be measured, quiet and observational. When together, use natural chemistry, teasing, contrast, shared moments and 'we' only when it sounds earned. Faith is quiet and factual, never a sermon. Short captions with concrete details. The image and the lived moment do most of the work.",
+  pillars: [
+    "A real moment from Cara's week",
+    "A real moment from Lila's week",
+    "A moment they shared together",
+    "The contrast between Cara's bluntness and Lila's calm",
+    "Quiet standards, routines and ordinary ambition",
+    "Style, rooms, travel, food, training, books and the details they notice",
+    "Funny little failures, habits and private jokes that make them feel known",
+    "Faith as a quiet foundation when it genuinely belongs in the moment",
+    "What they are building without turning the account into a lecture",
+    "The difference between how a day looks online and what actually happened",
+    "Small luxuries that are really choices, routines or restraint",
+    "Shared experiences where one of them notices something the other misses",
+    "A candid conversation, disagreement or opinion between them",
+    "A visual diary of the week that feels continuous rather than random",
+  ],
+  products: [],
+  b2b: "Beauty, wellness, travel, minimal apparel, quiet luxury and lifestyle brands",
+  statusKey: "live",
+};
+
 const PERSONAS = [
   {
     id: "cara", name: "Cara Whitmore", handle: "@carawhitmore", niche: "Mindset · Money · Elite Success", color: "#34D399",
@@ -230,6 +256,34 @@ const FANVUE_PLATFORMS = [
     ],
   },
 ];
+
+const FANVUE_DUO_PERSONA = {
+  id: "cara_lila",
+  name: "Cara & Lila",
+  handle: "@caraandlila",
+  niche: "Fanvue · shared chemistry · personality · lifestyle · private moments",
+  color: "#A78BFA",
+  avatarUrl: null,
+  avatarInitials: "C&L",
+  char: "Cara Whitmore and Lila Sterling are two distinct fictional adult women sharing one Fanvue presence. Cara is 19, British, dry, funny and quietly confident. Lila is 20, Barcelona-connected, measured, warm and observant. They can appear separately or together. Together, the appeal is their contrast, natural chemistry, private jokes, shared routines and moments that feel like a genuine friendship.",
+  voice: "Shared Fanvue voice: intimate, playful and personal without becoming explicit. Cara can tease, joke and be blunt. Lila can be softer, calmer and more observational. Together they can use natural banter, contrast and shared memories. Never pretend they are one person. Keep the content suggestive but non-explicit.",
+  pillars: [
+    "A private-feeling moment between Cara and Lila",
+    "A playful disagreement or inside joke",
+    "Getting ready together before going out",
+    "A quiet morning or evening they shared",
+    "A behind-the-scenes moment from a shoot or trip",
+    "The difference between Cara's energy and Lila's energy",
+    "A fan question that naturally involves both of them",
+    "One of them teasing the other",
+    "A shared routine, meal, workout, walk or travel moment",
+    "A subtle teaser where the image creates the intrigue",
+    "A candid detail that makes the two-person relationship feel real",
+    "A private joke or moment that only makes sense between them"
+  ],
+  products: ["Fanvue subscription"],
+  statusKey: "live",
+};
 
 const FANVUE_PILLARS = [
   "The moment she decided average wasn't an option anymore — what actually triggered it",
@@ -1722,8 +1776,8 @@ const QueueItem = memo(function QueueItem({ item, onDelete, onStatus, onAsset })
 
 // ─── AUTOPILOT VIEW ───────────────────────────────────────────────────────────
 function Autopilot({ queue, setQueue, setView, toast_, dbCreators = [], onDeleteCreator }) {
-  const [selP, setSelP] = useState(PERSONAS.map((p) => p.id));
-  const [selPl, setSelPl] = useState(["tiktok", "youtube"]);
+  const [selP, setSelP] = useState([PUBLIC_ACCOUNT_PERSONA.id]);
+  const [selPl, setSelPl] = useState(["instagram", "facebook", "tiktok", "youtube"]);
   const [step, setStep] = useState(1);
   const [running, setRunning] = useState(false);
   const [prog, setProg] = useState([]);
@@ -1790,8 +1844,9 @@ function Autopilot({ queue, setQueue, setView, toast_, dbCreators = [], onDelete
   } : null;
 
   const overrides = getPersonaOverrides();
-  const basePersonas = PERSONAS.map(p => overrides[p.id] ? { ...p, ...overrides[p.id] } : p);
-  const allPersonas = [...basePersonas, ...dbPersonas, ...(customPersonaObj ? [customPersonaObj] : [])];
+  const basePublic = [PUBLIC_ACCOUNT_PERSONA].map(p => overrides[p.id] ? { ...p, ...overrides[p.id] } : p);
+  const baseFanvue = [FANVUE_DUO_PERSONA, ...PERSONAS].map(p => overrides[p.id] ? { ...p, ...overrides[p.id] } : p);
+  const allPersonas = [...(fanvueMode ? baseFanvue : basePublic), ...dbPersonas, ...(customPersonaObj ? [customPersonaObj] : [])];
 
   const toggleP = (id) => {
     setSelP((s) => {
@@ -1903,14 +1958,15 @@ function Autopilot({ queue, setQueue, setView, toast_, dbCreators = [], onDelete
           } else if (msg.post) {
             // Completed post — save immediately; normalise persona fields for Review
             const raw = msg.post;
-            const pid = (raw.personaId || raw.persona_id || "cara").toLowerCase();
-            const isLila = pid.includes("lila");
+            const pid = (raw.personaId || raw.persona_id || "cara_lila").toLowerCase();
+            const isDuo = ["cara_lila", "duo", "cara&lila"].includes(pid);
+            const isLila = !isDuo && pid.includes("lila");
             const item = {
               ...raw,
-              personaId: isLila ? "lila" : "cara",
-              persona_id: isLila ? "lila" : "cara",
-              personaName: raw.personaName || raw.persona_name || (isLila ? "Lila Sterling" : "Cara Whitmore"),
-              persona_name: raw.personaName || raw.persona_name || (isLila ? "Lila Sterling" : "Cara Whitmore"),
+              personaId: isDuo ? "cara_lila" : (isLila ? "lila" : "cara"),
+              persona_id: isDuo ? "cara_lila" : (isLila ? "lila" : "cara"),
+              personaName: raw.personaName || raw.persona_name || (isDuo ? "Cara & Lila" : (isLila ? "Lila Sterling" : "Cara Whitmore")),
+              persona_name: raw.personaName || raw.persona_name || (isDuo ? "Cara & Lila" : (isLila ? "Lila Sterling" : "Cara Whitmore")),
               status: raw.status || "draft",
             };
             results.push(item);
@@ -1990,14 +2046,15 @@ if (results.length > 0) {
       <div className="ap">
         <div className="ap-header">
           <div className="ap-header-title">Content Engine</div>
-          <div className="ap-header-sub">Select a persona and platform — the engine generates on-brand content in seconds.</div>
+          <div className="ap-header-sub">Select the shared account or a Fanvue persona and platform — the engine generates on-brand content in seconds.</div>
           <div className="fanvue-toggle-row">
             <button
               className={`fanvue-toggle-btn${fanvueMode ? " fv-on" : ""}`}
               onClick={() => {
                 const next = !fanvueMode;
                 setFanvueMode(next);
-                setSelPl(next ? ["fv_instagram", "fv_tiktok", "fv_reddit", "fv_x"] : ["tiktok", "youtube"]);
+                setSelP(next ? ["cara_lila"] : [PUBLIC_ACCOUNT_PERSONA.id]);
+                setSelPl(next ? ["fv_instagram", "fv_tiktok", "fv_reddit", "fv_x"] : ["instagram", "facebook", "tiktok", "youtube"]);
               }}
             >
               <span className="fanvue-toggle-dot" />
@@ -2017,10 +2074,10 @@ if (results.length > 0) {
             <div className="step-hd" onClick={() => setStep(step === 1 ? 0 : 1)}>
               <div className="step-num">{selP.length > 0 && step !== 1 ? "\u2713" : "1"}</div>
               <div className="step-info">
-                <div className="step-label">Choose your personas</div>
+                <div className="step-label">Choose the account</div>
                 <div className="step-summary">
                   {step === 1
-                    ? "Select which characters to generate content for"
+                    ? "Public account: Cara & Lila together. Fanvue mode can generate Cara, Lila, or both together."
                     : personaNames}
                 </div>
               </div>
@@ -2303,7 +2360,7 @@ if (results.length > 0) {
                   ) : (
                     <>
                       {Ic.rocket}
-                      {total > 0 ? `Generate ${total} posts for next week` : "Select personas & platforms first"}
+                      {total > 0 ? `Generate ${total} posts for next week` : "Select account & platforms first"}
                     </>
                   )}
                 </button>
@@ -3174,7 +3231,7 @@ async function unschedule(post) {
       <div style={{ marginBottom: 24 }}>
         <h2 style={{ fontSize: 20, fontWeight: 700, color: "var(--t0)", margin: 0 }}>Review Queue</h2>
         <p style={{ fontSize: 13, color: "var(--t3)", margin: "6px 0 12px" }}>
-          Review generated posts, generate images with Cara's LoRA, then post or schedule.
+          Review generated posts, generate images using the Cara/Lila reference pipeline, then post or schedule.
         </p>
         {/* Tab bar */}
         <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
@@ -3203,9 +3260,10 @@ async function unschedule(post) {
           <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap", alignItems: "center" }}>
             <span style={{ fontSize: 11, color: "var(--t4)", fontWeight: 600, letterSpacing: ".04em", textTransform: "uppercase" }}>Show</span>
             {[
-              { id: "all",  label: "All",   color: "var(--t2)" },
-              { id: "cara", label: "Cara",  color: "#34D399" },
-              { id: "lila", label: "Lila",  color: "#60A5FA" },
+              { id: "all",       label: "All",        color: "var(--t2)" },
+              { id: "cara_lila", label: "Cara & Lila", color: "#A78BFA" },
+              { id: "cara",      label: "Cara",        color: "#34D399" },
+              { id: "lila",      label: "Lila",        color: "#60A5FA" },
             ].map(f => (
               <button
                 key={f.id}
@@ -3222,8 +3280,11 @@ async function unschedule(post) {
             <span style={{ fontSize: 12, color: "var(--t4)", marginLeft: 4 }}>
               {posts.filter(p => {
                 if (personaFilter === "all") return true;
-                const pid = (p.persona_id || "").toLowerCase();
-                return personaFilter === "lila" ? pid.includes("lila") : !pid.includes("lila");
+                const pid = (p.persona_id || p.personaId || "").toLowerCase();
+                if (personaFilter === "cara_lila") return pid === "cara_lila" || pid === "duo" || pid === "cara&lila";
+                if (personaFilter === "cara") return pid.includes("cara") && !pid.includes("lila");
+                if (personaFilter === "lila") return pid.includes("lila") && !pid.includes("cara");
+                return true;
               }).length} posts
             </span>
           </div>
