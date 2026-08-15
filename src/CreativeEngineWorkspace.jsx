@@ -48,7 +48,7 @@ const FORMATS = [
   ["photo_story", "Photo story", "Sequential stills that tell a small narrative."],
 ];
 
-const ACCOUNTS = ["Cara & Lila public account", "Cornerstone AI Group", "B2B client / brand"];
+const ACCOUNTS = ["Cara & Lila", "Cornerstone AI Group", "Client Account"];
 
 function parseJson(text) {
   const clean = String(text || "").replace(/```json|```/g, "").trim();
@@ -73,10 +73,15 @@ function formatLabel(list, ids) {
   return ids.map(id => list.find(x => x[0] === id)?.[1]).filter(Boolean).join(", ") || "Let Gemini choose";
 }
 
+function newCreativeId() {
+  if (typeof crypto !== "undefined" && crypto.randomUUID) return crypto.randomUUID();
+  return `ce_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+}
+
 export default function CreativeEngineWorkspace() {
   const [people, setPeople] = useState(["cara_lila"]);
   const [account, setAccount] = useState(ACCOUNTS[0]);
-  const [brand, setBrand] = useState("Cornerstone AI Group");
+  const [clientAccountName, setClientAccountName] = useState("");
   const [productName, setProductName] = useState("");
   const [productUrl, setProductUrl] = useState("");
   const [productPreview, setProductPreview] = useState("");
@@ -89,10 +94,12 @@ export default function CreativeEngineWorkspace() {
   const [hypotheses, setHypotheses] = useState([]);
   const [chosen, setChosen] = useState(null);
   const [production, setProduction] = useState(null);
+  const [creativeId, setCreativeId] = useState(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
 
   const toggle = (setter, id) => setter(v => v.includes(id) ? v.filter(x => x !== id) : [...v, id]);
+  const destinationName = account === "Client Account" ? (clientAccountName.trim() || "Client Account") : account;
 
   async function uploadProduct(file) {
     if (!file) return;
@@ -114,12 +121,12 @@ export default function CreativeEngineWorkspace() {
   }
 
   async function generateHypotheses() {
-    setBusy(true); setMessage("Gemini is building the creative board…"); setHypotheses([]); setChosen(null); setProduction(null);
+    setBusy(true); setMessage("Gemini is building the creative board…"); setHypotheses([]); setChosen(null); setProduction(null); setCreativeId(null);
     try {
       const peopleLabel = people.map(id => PEOPLE.find(p => p.id === id)?.name).join(", ");
       const purposeLabel = PURPOSES.find(x => x[0] === purpose)?.[1] || purpose;
       const system = `You are the senior creative strategist inside Cornerstone AI Group. Create a board of distinct hypotheses before any production happens. The goal is to help an executive choose what to make. Never return generic AI-UGC filler. Cara is direct, dry, disciplined and British. Lila is measured, warm, observant and understated. Cara + Lila means two separate personalities with real contrast and chemistry. If a product is supplied, never invent claims or features. Match the selected platform and purpose. Return JSON only.`;
-      const user = `BRIEF\nAccount: ${account}\nBrand: ${brand}\nPeople: ${peopleLabel}\nProduct: ${productName || "None"}\nProduct URL: ${productUrl || "None"}\nPlatform: ${platform}\nPurpose: ${purposeLabel}\nHooks I like: ${formatLabel(HOOKS, hookIds)}\nAngles I like: ${formatLabel(ANGLES, angleIds)}\nFormats I like: ${formatLabel(FORMATS, formatIds)}\nExtra idea: ${seed || "None"}\n\nReturn exactly {"hypotheses":[...]} with 6 objects. Each object must contain: id, title, hook, angle, format, creator, why_it_might_work, visual_opening, caption_direction, cta, variation_prompt. At least 4 concepts must differ in psychological mechanism, not merely wording. If Cara + Lila is selected, at least 2 should use the duo and at least 1 should feature only one of them.`;
+      const user = `BRIEF\nDestination account: ${destinationName}\nPeople: ${peopleLabel}\nProduct: ${productName || "None"}\nProduct URL: ${productUrl || "None"}\nPlatform: ${platform}\nPurpose: ${purposeLabel}\nHooks I like: ${formatLabel(HOOKS, hookIds)}\nAngles I like: ${formatLabel(ANGLES, angleIds)}\nFormats I like: ${formatLabel(FORMATS, formatIds)}\nExtra idea: ${seed || "None"}\n\nReturn exactly {"hypotheses":[...]} with 6 objects. Each object must contain: id, title, hook, angle, format, creator, why_it_might_work, visual_opening, caption_direction, cta, variation_prompt. At least 4 concepts must differ in psychological mechanism, not merely wording. If Cara + Lila is selected, at least 2 should use the duo and at least 1 should feature only one of them.`;
       const out = parseJson(await askGemini(system, user));
       setHypotheses(Array.isArray(out.hypotheses) ? out.hypotheses : []);
       setMessage(`${Array.isArray(out.hypotheses) ? out.hypotheses.length : 0} hypotheses ready.`);
@@ -134,13 +141,47 @@ export default function CreativeEngineWorkspace() {
     return "cara";
   }
 
+  function buildQueueRow({ status = "draft", imageUrl = null, imageUrls = null, videoUrl = null }) {
+    const id = creativeId || newCreativeId();
+    if (!creativeId) setCreativeId(id);
+    return {
+      id,
+      persona_id: creatorIdForProduction(chosen?.creator),
+      persona_name: chosen?.creator || "Cara & Lila",
+      platform,
+      status,
+      pillar: purpose,
+      hook: production?.hook || "",
+      caption: production?.caption || "",
+      hashtags: production?.hashtags || "",
+      cta: production?.cta || null,
+      photo_direction: production?.reelDirection || production?.photoIdea || null,
+      photo_idea: production?.photoIdea || null,
+      post_type: production?.postFormat || "single_photo",
+      content_label: `${destinationName} · Creative Engine`,
+      image_prompt: production?.imagePrompt ? JSON.stringify(production.imagePrompt) : null,
+      image_url: imageUrl,
+      image_urls: imageUrls,
+      video_url: videoUrl,
+      scheduled_date: new Date().toISOString().slice(0, 10),
+      scheduled_time: new Date().toTimeString().slice(0, 5),
+    };
+  }
+
+  async function persistDraft(mediaOverride = {}) {
+    const row = buildQueueRow(mediaOverride);
+    const { error } = await supabase.from("content_queue").upsert(row, { onConflict: "id" });
+    if (error) throw new Error(`Could not save creative: ${error.message}`);
+    return row.id;
+  }
+
   async function turnIntoProduction(h) {
-    setBusy(true); setChosen(h); setProduction({ stage: "briefing" }); setMessage("Building production brief…");
+    setBusy(true); setChosen(h); setProduction({ stage: "briefing" }); setMessage("Building production brief…"); setCreativeId(newCreativeId());
     try {
       const system = `You are the production director for Cornerstone AI Group. Turn one approved creative hypothesis into a complete production brief. Keep the exact selected identity. Do not invent product claims. Return JSON only.`;
-      const user = `CHOSEN HYPOTHESIS\nTitle: ${h.title}\nHook: ${h.hook}\nAngle: ${h.angle}\nFormat: ${h.format}\nCreator: ${h.creator}\nWhy: ${h.why_it_might_work}\nVisual opening: ${h.visual_opening}\nCaption direction: ${h.caption_direction}\nCTA: ${h.cta}\n\nCONTEXT\nAccount: ${account}\nBrand: ${brand}\nProduct: ${productName || "None"}\nProduct URL: ${productUrl || "None"}\nPlatform: ${platform}\nPurpose: ${PURPOSES.find(x=>x[0]===purpose)?.[1] || purpose}\n\nReturn exactly {"hook","caption","hashtags","cta","postFormat","photoIdea","imagePrompt","slides","reelDirection"}. postFormat is single_photo, carousel or reel. For carousel return 3-5 slides each with imagePrompt and photoIdea. For duo imagery make it explicit that Cara and Lila remain two distinct people. For public social captions, never mention AI.`;
+      const user = `CHOSEN HYPOTHESIS\nTitle: ${h.title}\nHook: ${h.hook}\nAngle: ${h.angle}\nFormat: ${h.format}\nCreator: ${h.creator}\nWhy: ${h.why_it_might_work}\nVisual opening: ${h.visual_opening}\nCaption direction: ${h.caption_direction}\nCTA: ${h.cta}\n\nCONTEXT\nDestination account: ${destinationName}\nProduct: ${productName || "None"}\nProduct URL: ${productUrl || "None"}\nPlatform: ${platform}\nPurpose: ${PURPOSES.find(x=>x[0]===purpose)?.[1] || purpose}\n\nReturn exactly {"hook","caption","hashtags","cta","postFormat","photoIdea","imagePrompt","slides","reelDirection"}. postFormat is single_photo, carousel or reel. For carousel return 3-5 slides each with imagePrompt and photoIdea. For duo imagery make it explicit that Cara and Lila remain two distinct people. For public social captions, never mention AI.`;
       const out = parseJson(await askGemini(system, user, 4500));
-      setProduction({ stage: "ready", ...out }); setMessage("Production brief ready.");
+      setProduction({ stage: "ready", ...out }); setMessage("Production brief ready. Generate media to save the creative automatically.");
     } catch (e) { setProduction({ stage: "error", error: e.message }); setMessage(e.message); }
     finally { setBusy(false); }
   }
@@ -175,7 +216,9 @@ export default function CreativeEngineWorkspace() {
         fetch("/api/store-image", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ falUrl: url, requestId: sd.requestId, postId: `creative_${Date.now()}_${i}`, slideIndex: i }) }).catch(() => {});
         setProduction(p => ({ ...p, imageUrls: [...urls], imageUrl: urls[0] }));
       }
-      setProduction(p => ({ ...p, stage: "image_ready", imageUrls: urls, imageUrl: urls[0] })); setMessage(isCarousel ? `Carousel ready — ${urls.length} images.` : "Image ready.");
+      setProduction(p => ({ ...p, stage: "image_ready", imageUrls: urls, imageUrl: urls[0] }));
+      await persistDraft({ status: "draft", imageUrl: urls[0], imageUrls: urls.length > 1 ? urls : null, videoUrl: null });
+      setMessage(isCarousel ? `Carousel ready and saved to the app — ${urls.length} images.` : "Image ready and saved to the app.");
     } catch (e) { setProduction(p => ({ ...p, stage: "ready" })); setMessage(e.message); }
     finally { setBusy(false); }
   }
@@ -185,41 +228,25 @@ export default function CreativeEngineWorkspace() {
     setBusy(true); setProduction(p => ({ ...p, stage: "generating_video" })); setMessage("Generating Reel…");
     try {
       const personaId = creatorIdForProduction(chosen?.creator);
-      const sr = await fetch("/api/generate-video-submit", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ imageUrl: production.imageUrl, postId: `creative_${Date.now()}`, caption: production.caption, photo_idea: production.photoIdea, hook: production.hook, personaId, resolution: "720p", duration: "8" }) });
+      const sr = await fetch("/api/generate-video-submit", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ imageUrl: production.imageUrl, postId: creativeId || `creative_${Date.now()}`, caption: production.caption, photo_idea: production.photoIdea, hook: production.hook, personaId, resolution: "720p", duration: "8" }) });
       const sd = await sr.json();
       if (!sr.ok) throw new Error(sd?.error || "Video submit failed");
       const videoUrl = await poll(sd.request_id, sd.status_url, sd.result_url, "video");
-      setProduction(p => ({ ...p, stage: "video_ready", videoUrl })); setMessage("Reel ready.");
+      setProduction(p => ({ ...p, stage: "video_ready", videoUrl }));
+      await persistDraft({ status: "draft", imageUrl: production.imageUrl, imageUrls: production.imageUrls?.length > 1 ? production.imageUrls : null, videoUrl });
+      setMessage("Reel ready and saved to the app.");
     } catch (e) { setProduction(p => ({ ...p, stage: "image_ready" })); setMessage(e.message); }
     finally { setBusy(false); }
   }
 
   async function sendToReview() {
     if (!production?.imageUrl) return;
-    const urls = production.imageUrls?.length > 1 ? production.imageUrls : null;
-    const personaId = creatorIdForProduction(chosen?.creator);
-    const payload = {
-      persona_id: personaId,
-      persona_name: chosen?.creator || "Cara & Lila",
-      platform,
-      status: "ready",
-      post_format: production.postFormat || "single_photo",
-      post_type: production.postFormat || "single_photo",
-      hook: production.hook,
-      caption: production.caption,
-      hashtags: production.hashtags,
-      cta: production.cta,
-      image_url: production.imageUrl,
-      image_urls: urls,
-      video_url: production.videoUrl || null,
-      photo_direction: production.reelDirection || production.photoIdea,
-      image_prompt: production.imagePrompt || null,
-      scheduled_date: new Date().toISOString().slice(0, 10),
-      scheduled_time: new Date().toTimeString().slice(0, 5),
-    };
-    const { error } = await supabase.from("content_queue").insert(payload);
-    if (error) setMessage(`Review queue could not save: ${error.message}`);
-    else setMessage("Saved to the existing Review Queue.");
+    setBusy(true); setMessage("Saving to Review Queue…");
+    try {
+      await persistDraft({ status: "ready", imageUrl: production.imageUrl, imageUrls: production.imageUrls?.length > 1 ? production.imageUrls : null, videoUrl: production.videoUrl || null });
+      setMessage("Saved to the existing Review Queue.");
+    } catch (e) { setMessage(e.message); }
+    finally { setBusy(false); }
   }
 
   async function publishToMake() {
@@ -232,13 +259,14 @@ export default function CreativeEngineWorkspace() {
         imageUrl: production.imageUrl,
         imageUrls: production.imageUrls?.length > 1 ? production.imageUrls : null,
         videoUrl: production.videoUrl || null,
-        postId: `creative_${Date.now()}`,
+        postId: creativeId || `creative_${Date.now()}`,
         platform: "all",
         format: production.videoUrl ? "reel" : (production.imageUrls?.length > 1 ? "carousel" : "photo"),
       }) });
       const d = await r.json();
       if (!r.ok) throw new Error(d?.error || "Make publish failed");
-      setMessage("Sent to Make. Facebook/Instagram publishing continues through your existing webhook scenario.");
+      await persistDraft({ status: "posted", imageUrl: production.imageUrl, imageUrls: production.imageUrls?.length > 1 ? production.imageUrls : null, videoUrl: production.videoUrl || null });
+      setMessage("Sent to Make and marked as posted in the app.");
     } catch (e) { setMessage(e.message); }
     finally { setBusy(false); }
   }
@@ -259,7 +287,7 @@ export default function CreativeEngineWorkspace() {
         <div className="cw-step">01 · Creative brief</div>
         <div className="cw-grid four">
           <label>Account<select value={account} onChange={e=>setAccount(e.target.value)}>{ACCOUNTS.map(x=><option key={x}>{x}</option>)}</select></label>
-          <label>Brand<input value={brand} onChange={e=>setBrand(e.target.value)} /></label>
+          {account === "Client Account" && <label>Client account name<input value={clientAccountName} onChange={e=>setClientAccountName(e.target.value)} placeholder="e.g. GlowLab" /></label>}
           <label>Platform<select value={platform} onChange={e=>setPlatform(e.target.value)}>{PLATFORMS.map(x=><option key={x}>{x}</option>)}</select></label>
           <label>Purpose<select value={purpose} onChange={e=>setPurpose(e.target.value)}>{PURPOSES.map(x=><option key={x[0]} value={x[0]}>{x[1]}</option>)}</select></label>
         </div>
@@ -278,8 +306,8 @@ export default function CreativeEngineWorkspace() {
       {production && <section className="cw-card"><div className="cw-step">03 · Produce</div>{production.stage === "briefing" && <div className="cw-loading">Building production brief…</div>}{production.stage === "error" && <div className="cw-error">{production.error}</div>}{production.stage !== "briefing" && production.stage !== "error" && <>
         <div className="cw-production"><div><div className="cw-label">Hook</div><div className="cw-output strong">{production.hook}</div><div className="cw-label">Caption</div><div className="cw-output">{production.caption}</div><div className="cw-label">Visual direction</div><div className="cw-output">{production.photoIdea || production.reelDirection}</div></div><div><div className="cw-label">Format</div><div className="cw-output">{production.postFormat}</div><div className="cw-label">Hashtags / CTA</div><div className="cw-output">{production.hashtags}\n\n{production.cta}</div><button className="cw-primary" disabled={busy || production.stage === "generating_images" || production.stage === "generating_video"} onClick={generateImages}>{production.stage === "generating_images" ? "Generating…" : "Generate media"}</button></div></div>
         {(production.imageUrls?.length > 0 || production.videoUrl) && <div className="cw-media"><div className="cw-media-main">{production.videoUrl ? <video controls src={production.videoUrl} /> : <img src={production.imageUrls?.[0]} alt="Generated creative" />}</div>{production.imageUrls?.length > 1 && <div className="cw-thumbs">{production.imageUrls.map(u=><img key={u} src={u} alt="Slide" />)}</div>}</div>}
-        {production.imageUrl && !production.videoUrl && <div className="cw-actions"><button className="cw-secondary" onClick={generateReel} disabled={busy}>Generate Reel</button><button className="cw-secondary" onClick={sendToReview}>Send to Review Queue</button><button className="cw-secondary" onClick={downloadMedia}>Download media</button><button className="cw-primary" onClick={publishToMake} disabled={busy}>Send to Facebook + Instagram via Make</button></div>}
-        {production.videoUrl && <div className="cw-actions"><button className="cw-secondary" onClick={sendToReview}>Send to Review Queue</button><button className="cw-secondary" onClick={downloadMedia}>Download media</button><button className="cw-primary" onClick={publishToMake} disabled={busy}>Send Reel to Facebook + Instagram via Make</button></div>}
+        {production.imageUrl && !production.videoUrl && <div className="cw-actions"><button className="cw-secondary" onClick={generateReel} disabled={busy}>Generate Reel</button><button className="cw-secondary" onClick={sendToReview} disabled={busy}>Send to Review Queue</button><button className="cw-secondary" onClick={downloadMedia}>Download media</button><button className="cw-primary" onClick={publishToMake} disabled={busy}>Send to Facebook + Instagram via Make</button></div>}
+        {production.videoUrl && <div className="cw-actions"><button className="cw-secondary" onClick={sendToReview} disabled={busy}>Send to Review Queue</button><button className="cw-secondary" onClick={downloadMedia}>Download media</button><button className="cw-primary" onClick={publishToMake} disabled={busy}>Send Reel to Facebook + Instagram via Make</button></div>}
       </>}</section>}
 
       {message && <div className="cw-status">{message}</div>}
