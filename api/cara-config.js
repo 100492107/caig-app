@@ -78,8 +78,30 @@ Camera: handheld phone, chest-up or mid-shot, natural micro-shake, 9:16, normal 
 Motion: open mid-moment; natural blink, one gaze break, one micro pause, one posture shift; end unresolved.
 Real skin texture, no beauty filter, imperfect presence.`;
 
+export const DUO_REFS = [CARA_REFS[0], LILA_REFS[0]];
+
+export const DUO_IDENTITY_LOCK = `IDENTITY LOCK — HIGHEST PRIORITY:
+When the cast is BOTH, generate two distinct fictional adult women together: Cara Whitmore and Lila Sterling. Never blend them into one face. Cara must match Cara references exactly: bright green eyes, dark brown natural waves, freckles, slim athletic build, Cara jewellery from refs. Lila must match Lila references exactly: blue-green calm eyes, sun-lightened blonde natural waves, warm golden-tan skin, lean graceful build, simple gold hoops only. Preserve distinct facial structure, hair, skin tone, proportions and jewellery. Zero face drift. Both women must remain recognisably separate throughout the image.`;
+
+export const DUO_NEGATIVE_PROMPT = `blended face, merged identity, same woman twice, duplicate face, swapped eyes, swapped hair, swapped jewellery, generic AI face, plastic skin, porcelain skin, airbrushed skin, beauty filter, CGI skin, studio softbox, text, watermark, logo, extra fingers, extra limbs, mutated hands, underage, full nudity, genitals`;
+
+export const DUO_UGC_STILL_CORE = `Ultra-realistic mobile photograph of two fictional adult women, Cara Whitmore and Lila Sterling, together. Their identities are locked separately to their reference images and must remain distinct. Vertical 9:16 preferred. Candid lifestyle UGC, natural human skin texture, visible pores, real fabric detail, lived-in settings, named natural light only, no studio softbox, no beauty filter, no plastic skin, no text, no logos, no watermarks.`;
+
 export function getPersonaVisual(personaId = "cara") {
   const id = (personaId || "cara").toLowerCase();
+  if (["duo", "cara_lila", "cara&lila"].includes(id)) {
+    return {
+      id: "duo",
+      name: "Cara & Lila",
+      refs: DUO_REFS,
+      identityLock: DUO_IDENTITY_LOCK,
+      negative: DUO_NEGATIVE_PROMPT,
+      selfieGuidance: CARA_SELFIE_ANATOMY_GUIDANCE,
+      ugcStillCore: DUO_UGC_STILL_CORE,
+      trigger: "Cara & Lila",
+      storagePrefix: "cara-lila",
+    };
+  }
   if (id === "lila" || id === "lila_sterling") {
     return {
       id: "lila",
