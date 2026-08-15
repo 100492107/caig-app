@@ -15,6 +15,28 @@ import { CARA_IDENTITY_LOCK, getPersonaVisual } from "./cara-config.js";
 //
 // Both tracks: Cara is 19. Keep this consistent everywhere — persona text, image identity
 // lock, cron-generate.js summary. A stray "23" anywhere will drift the voice older.
+const DUO_PUBLIC_PERSONA = {
+  id: "cara_lila",
+  name: "Cara & Lila",
+  handle: "@caraandlila",
+  niche: "Quiet ambition · style · everyday life · two very different personalities",
+  color: "#A78BFA",
+  char: "Cara Whitmore and Lila Sterling share one public account. Cara is 19, British, dry, funny, faith-first, edit-first and quietly ambitious. Lila is 20, Barcelona-connected, measured, observant and understated. They remain two distinct people. Posts may feature Cara alone, Lila alone, or both together.",
+  voice: "Specific, human, visually led. Cara is dry and funny. Lila is measured and observational. Together they have natural chemistry, teasing, contrast and shared moments. Never generic influencer copy. Never hard-sell.",
+  pillars: [
+    "A real moment from Cara's week",
+    "A real moment from Lila's week",
+    "A moment they shared together",
+    "The contrast between their personalities",
+    "Quiet standards, routines and ordinary ambition",
+    "Style, rooms, travel, food, training and the details they notice",
+    "Funny little failures and habits that make them feel known",
+    "Quiet faith when it genuinely belongs",
+    "What they are building without turning the account into a lecture",
+    "A continuous visual diary of the week"
+  ]
+};
+
 const PERSONA_FILES = {
   cara: {
     // ── PUBLIC / QUIET LUXURY (default — used when fanvueMode is false) ──────
@@ -183,6 +205,26 @@ Build: Lean graceful, gymnast/horse-riding lines with attractive curves.
 Jewellery: Small simple gold hoop earrings only. No cross. No coin stack. No layered chains as signature.
 Wardrobe bias: white, cream, ivory, sage, soft neutrals. Minimal swimwear in same palette only.
 `,
+  },
+  duo: {
+    persona: `# persona.md — Cara & Lila (Fanvue / Shared Track)
+
+Cara Whitmore and Lila Sterling are two distinct fictional adult women sharing one Fanvue presence. Cara is 19, British, dry, funny, faith-first, edit-first and quietly ambitious. Lila is 20, Barcelona-connected, measured, observant and understated.
+
+They can appear separately or together. Their chemistry comes from contrast: Cara says the blunt thing, Lila notices the detail, and both have their own rhythms, tastes and sense of humour. Together they can tease each other, disagree lightly, share routines, travel, meals, getting-ready moments and private jokes.
+
+The shared track is intimate, playful and personal, but non-explicit. Suggestive atmosphere is fine. Never merge them into one identity. When both are pictured, use "we" only when both naturally own the moment.`,
+    voice: `Specific, warm, intimate and understated. Cara can be cheeky and dry. Lila can be soft and observant. Together they should sound like two women who genuinely know each other, not a blended creator persona. Create intrigue through personality, access, atmosphere and shared chemistry rather than graphic sexual language.`,
+    flux: null,
+    fanvue: {
+      persona: `# fanvue.md — Cara & Lila (Shared Fanvue Track)
+
+One shared page, two separate identities. Posts may feature Cara, Lila or both. The strongest shared posts feel private and specific: getting ready together, a quiet morning, a trip, a behind-the-scenes shoot, an inside joke, a playful disagreement or a moment where one notices something the other misses.
+
+Keep the content suggestive but non-explicit. The relationship and access are the hook. Never collapse both women into one voice or one face.`,
+      voice: `Personal, playful, intimate and understated. Cara brings dry humour and directness. Lila brings calm and observation. Together they use natural banter, teasing and shared references. Never generic. Never crude.`
+    }
+  },
   },
 };
 
@@ -570,7 +612,132 @@ async function researchTrends(apiKey, platformName, niche, fanvueMode) {
   try { return await callGemini(apiKey, system, user, 500); } catch (_) { return ""; }
 }
 
-async function generatePost(apiKey, persona, platform, pillar, postIndex, usedHooks, ideaSeed, fanvueMode, cachedTrends, mood, weekArc, previousBeat) {
+function pickDuoCast() {
+  const r = Math.random();
+  if (r < 0.35) return "cara";
+  if (r < 0.70) return "lila";
+  return "both";
+}
+
+function getDuoCastProfile(cast) {
+  const cara = PERSONA_FILES.cara || {};
+  const lila = PERSONA_FILES.lila || {};
+  if (cast === "cara") {
+    return {
+      personaText: cara.persona || "",
+      voiceText: cara.voice || "",
+      label: "Cara Whitmore",
+      names: "Cara Whitmore",
+      profile: "Cara is the speaker in this post. Lila may appear in the image only if the photo brief says so."
+    };
+  }
+  if (cast === "lila") {
+    return {
+      personaText: lila.persona || "",
+      voiceText: lila.voice || "",
+      label: "Lila Sterling",
+      names: "Lila Sterling",
+      profile: "Lila is the speaker in this post. Cara may appear in the image only if the photo brief says so."
+    };
+  }
+  return {
+    personaText: `${cara.persona || ""}\n\n=== LILA ===\n${lila.persona || ""}`,
+    voiceText: `${cara.voice || ""}\n\n=== LILA VOICE ===\n${lila.voice || ""}`,
+    label: "Cara & Lila",
+    names: "Cara and Lila",
+    profile: "Both women are present and distinct. The caption can use 'we' only when it naturally describes a shared moment. It can also clearly sound like Cara, clearly sound like Lila, or briefly show both voices through contrast."
+  };
+}
+
+function generateDuoPublicPost(apiKey, platform, pillar, postIndex, usedHooks, ideaSeed, cachedTrends, mood, weekArc, previousBeat) {
+  const mix = platform.contentMix || [{ type: "lifestyle", label: "lifestyle", weight: 1, format: "photo", direction: "natural lifestyle" }];
+  const totalWeight = mix.reduce((s, m) => s + m.weight, 0);
+  let seed = Math.random() * totalWeight;
+  let acc = 0, contentType = mix[0];
+  for (const m of mix) { acc += m.weight; if (seed < acc) { contentType = m; break; } }
+
+  const angle = PUBLIC_ANGLES[Math.floor(Math.random() * PUBLIC_ANGLES.length)];
+  const cast = pickDuoCast();
+  const profile = getDuoCastProfile(cast);
+  const trends = cachedTrends || "";
+
+  const system = `You are the copywriter for one shared public social account belonging to Cara Whitmore and Lila Sterling.
+
+=== ACCOUNT RULE ===
+This is ONE public account, not two separate feeds. Cara and Lila can appear alone or together. Every post must make the cast obvious from the image brief and the writing.
+
+=== THE TWO PEOPLE ===
+CARA PUBLIC PERSONA:
+${PERSONA_FILES.cara?.persona || ""}
+
+CARA VOICE:
+${PERSONA_FILES.cara?.voice || ""}
+
+LILA PUBLIC PERSONA:
+${PERSONA_FILES.lila?.persona || ""}
+
+LILA VOICE:
+${PERSONA_FILES.lila?.voice || ""}
+
+=== THIS POST'S CAST ===
+${cast.toUpperCase()}: ${profile.profile}
+
+=== NON-NEGOTIABLE CAPTION RULES ===
+- Write from the actual persona material above. Use concrete details, habits, humour, places, routines, quirks and observations from the source persona rather than generic lifestyle language.
+- Never invent a generic influencer identity on top of the source material.
+- If cast is CARA, the caption should sound unmistakably like Cara: dry, funny, specific, self-aware, sharp when appropriate.
+- If cast is LILA, the caption should sound unmistakably like Lila: measured, warm, sparse, observant, detail-led.
+- If cast is BOTH, create genuine chemistry. Contrast their personalities. Use 'we' only when they are actually sharing the moment. Do not flatten them into one voice.
+- Public content only. No hard selling. No product funnel language. No 'link in bio'.
+- Faith stays quiet and factual when it genuinely belongs. Never preach.
+- 1 to 3 short sentences. Under 280 characters for caption. Hook under 10 words.
+- British English. No hashtags in caption. No quote-card phrasing. No marketing-speak.
+- No em dash. Use full stops or commas.
+- The image is primary. Caption adds human texture, not an essay.
+
+=== WEEK CONTINUITY ===
+Beat ${postIndex + 1}. Week arc: ${weekArc?.title || "ordinary days"} — ${weekArc?.spine || "a continuous lived-in week"}.
+Locations: ${(weekArc?.locations || ["their normal week"]).join("; ")}.
+Wardrobe thread: ${weekArc?.wardrobe_thread || "real clothes that fit the moment"}.
+${previousBeat ? `Previous beat: ${previousBeat}` : "Opening beat."}
+
+${mood ? `CURRENT MOOD: ${mood.instruction}` : "Use the emotional register that genuinely fits the moment."}`;
+
+  const user = `Write a ${contentType.label || contentType.type} for ${platform.name}.
+
+POST CAST: ${cast}
+PILLAR: "${pillar}"
+ANGLE: "${angle.label}" — ${angle.instruction}
+${ideaSeed ? `SEED IDEA: "${ideaSeed}"` : ""}
+${trends ? `CURRENT CONTEXT (only use if natural): ${trends}` : ""}
+${usedHooks.length ? `DO NOT ECHO THESE OPENINGS:\n${usedHooks.map((h, i) => `${i + 1}. "${h}"`).join("\n")}` : ""}
+
+The post should be a specific moment, not a lecture. Pull a real texture detail from the relevant persona(s) when it fits: Cara's egg problem, plants, candle, tea-before-milk opinion, getting lost, crying at adverts, gym-mirror trash talk; Lila's espresso-standing habit, packing light, stirrup-length habit, one-pair gold hoops, white-shirt collection, quietness when angry, remembering wall colours. Never force a quirk just to prove you used it.
+
+Return ONLY JSON:
+{
+  "cast": "${cast}",
+  "speaker": "${cast === "both" ? "cara_or_lila_or_both" : cast}",
+  "hook": "under 10 words, natural first line",
+  "caption": "1-3 short sentences, under 280 characters",
+  "hashtags": "",
+  "photo_direction": "portrait 9:16",
+  "photo_idea": "2-3 sentences. Clearly state whether Cara, Lila, or both appear. Describe a believable lived-in moment, named natural light, one background detail, one small human imperfection, and the relationship/chemistry if both are present. Do not turn it into a catalogue shoot.",
+  "story_beat": "one plain sentence describing this moment",
+  "continuity_note": "one concrete continuity detail",
+  "post_type": "${contentType.type}",
+  "content_label": "${contentType.label || contentType.type}",
+  "trend_hook": "${trends ? "one word or null" : "null"}"
+}`;
+
+  return parseJSON(callGemini(apiKey, system, user, 3000));
+}
+
+function generatePost(apiKey, persona, platform, pillar, postIndex, usedHooks, ideaSeed, fanvueMode, cachedTrends, mood, weekArc, previousBeat) {
+  if (!fanvueMode && persona.id === "cara_lila") {
+    return generateDuoPublicPost(apiKey, platform, pillar, postIndex, usedHooks, ideaSeed, cachedTrends, mood, weekArc, previousBeat);
+  }
+
   const mix = platform.contentMix;
   const totalWeight = mix.reduce((s, m) => s + m.weight, 0);
   let seed = Math.random() * totalWeight;
@@ -738,26 +905,24 @@ Return ONLY this JSON (no code fences):
 }
 
 async function generateImagePrompt(apiKey, persona, post, postIndex) {
-  // Caption/photo_idea drives the scene. Shot library is only a fallback for wardrobe/camera defaults.
   const captionScene = (post.photo_idea || post.caption || post.hook || "").trim();
   const shot = IMG_SHOTS[postIndex % IMG_SHOTS.length];
-
-  const personaFiles = loadPersonaFiles(persona.id);
+  const cast = post.cast || (persona.id === "cara_lila" ? "both" : persona.id);
+  const visualId = cast === "both" ? "duo" : cast;
+  const personaFiles = loadPersonaFiles(visualId);
   const fluxNote = personaFiles.flux
-    ? `PHYSICAL DESCRIPTORS (from flux.md — these are locked and must not drift):\n${personaFiles.flux.split("## SECTION 2")[0].replace(/^# flux\.md.*\n/, "").trim()}`
+    ? `PHYSICAL DESCRIPTORS — locked and must not drift:\n${personaFiles.flux.split("## SECTION 2")[0].replace(/^# flux\.md.*\n/, "").trim()}`
     : "";
+  const visual = getPersonaVisual(visualId);
+  const identityLock = `${visual.identityLock}${fluxNote ? "\n\n" + fluxNote : ""}`;
 
-  const _vis = getPersonaVisual(persona.id);
-  const identityLock = `${_vis.identityLock}${fluxNote ? "\n\n" + fluxNote : ""}`;
-
+  const names = cast === "both" ? "Cara Whitmore and Lila Sterling" : (cast === "lila" ? "Lila Sterling" : "Cara Whitmore");
   const sceneDriven = captionScene.length > 40
-    ? `Cara Whitmore (19) in the exact moment described here: "${captionScene.slice(0, 280)}". She is mid-action or mid-moment, not posing for a camera. Natural, lived-in, 19-year-old energy — funny, present, real.`
-    : `Cara Whitmore (19) — ${shot.pose}`;
+    ? `${names} in the exact moment described here: "${captionScene.slice(0, 300)}". ${cast === "both" ? "Both women are together in the same scene with distinct identities, natural chemistry and different expressions/postures." : "The subject is mid-action or mid-moment, not posing for a catalogue camera."}`
+    : `${names} — ${shot.pose}`;
 
-  const locationRuleConstraint = `LOCATION & FRAMING MANDATE: If the setting is outdoor, street, shopping, cafe, or public space, IT MUST BE A FRONT-FACING SELFIE OR CANDID PHOTO TAKEN OF HER. Never generate a mirror selfie in an outdoor or public setting. Mirror selfies are strictly restricted to bedroom, bathroom, dressing room, or home gym mirrors.`;
-
-  const subjectDesc = `${sceneDriven} FRAMING: real phone photo distance and angle. ${locationRuleConstraint} Do NOT default to a frontal close-up headshot. If she is walking, looking away, training, or in a quiet moment, she must NOT stare directly into the camera. Prefer full-body, three-quarter, or environmental framing.`;
-
+  const locationRuleConstraint = `LOCATION & FRAMING MANDATE: outdoor/public settings must be arm's-length selfie or candid. Mirror shots only indoors in private quarters.`;
+  const subjectDesc = `${sceneDriven} FRAMING: real phone photo distance and angle. ${locationRuleConstraint} Do NOT default to a frontal headshot. Prefer full-body, three-quarter or environmental framing.`;
   const angleNote = shot.pose.match(/HIGH ANGLE|LOW ANGLE|OVERHEAD|FLOOR|MIRROR SELFIE|MIRROR|FEET|SILHOUETTE|WALKING|CANDID|LAUGHING|SEATED|RECLINED|STANDING|HANDS|BROWSING|SELFIE|TRAINING|RUNNING|PRESENTING|GETTING IN/i)?.[0] || "natural candid";
 
   return {
@@ -767,9 +932,11 @@ async function generateImagePrompt(apiKey, persona, post, postIndex) {
     wardrobe: shot.wardrobe,
     setting: captionScene.length > 40 ? "Match the setting and light implied by the caption scene above" : shot.setting,
     lighting: captionScene.length > 40 ? "Natural light that fits the moment — morning grey, soft window, golden hour." : shot.lighting,
-    technical: `${shot.camera || "iPhone 16 Pro Max"}, 9:16 vertical portrait, photorealistic phone photo. Visible pores, light freckles, natural skin texture, minimal make-up, mild film grain. Zero plastic skin, zero airbrush. Exact match to reference face.`,
-    style_ref: "Real phone selfie / candid resortwear lifestyle from actual young adult Instagram creators. Two-piece swimwear, satin sleepwear, summer fashion. Lived-in, slightly imperfect, natural light.",
-    negative_prompt: "plastic skin, porcelain skin, airbrushed skin, beauty filter, over-smoothed skin, wax skin, CGI skin, studio softbox, posed model casting, missing freckles, missing gold cross or coin pendant, face drift, wrong eye colour, watermark, text, cartoon, mirror selfie in outdoor public space",
+    technical: `${shot.camera || "iPhone 16 Pro Max"}, 9:16 vertical portrait, photorealistic phone photo. Visible pores, natural skin texture, mild film grain. Zero plastic skin, zero airbrush. Exact identity match to references.`,
+    style_ref: cast === "both"
+      ? "Real phone selfie / candid lifestyle image of Cara and Lila together. Two distinct women, authentic shared moment, natural chemistry, lived-in environment, understated luxury.":
+        "Real phone selfie / candid lifestyle from an actual young adult creator. Lived-in, natural, slightly imperfect.",
+    negative_prompt: `${visual.negative}, plastic skin, porcelain skin, airbrushed skin, beauty filter, studio softbox, posed model casting, face drift, wrong eye colour, wrong hair colour, watermark, text, cartoon`,
   };
 }
 
@@ -922,7 +1089,9 @@ export default async function handler(req, res) {
 
   for (let i = 0; i < slots.length; i++) {
     const slot = slots[i];
-    const persona = personas.find(p => p.id === slot.personaId);
+    const persona = (!fanvueMode && slot.personaId === "cara_lila")
+      ? { id: "cara_lila", ...DUO_PUBLIC_PERSONA }
+      : personas.find(p => p.id === slot.personaId);
     const platform = platforms.find(p => p.id === slot.platformId);
 
     if (!persona || !platform) {
