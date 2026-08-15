@@ -3,11 +3,11 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import AppLanding from './AppLanding.jsx'
 import MainAppShell from './MainAppShell.jsx'
-import CreativeEngineWorkspace from './CreativeEngineWorkspaceV4.jsx'
+import CreativeEngineHub from './CreativeEngineHub.jsx'
 
 const path = window.location.pathname.replace(/\/+$/, '') || '/'
 const component = path === '/creative'
-  ? <CreativeEngineWorkspace />
+  ? <CreativeEngineHub />
   : path === '/main-app'
     ? <MainAppShell />
     : <AppLanding />
