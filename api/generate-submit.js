@@ -128,6 +128,9 @@ export function buildPrompt({
       .replace(/\b(red|neon|hot pink|bright orange|loud navy)\b/gi, "soft cream")
       .replace(/\b(patterned|print|floral loud)\b/gi, "clean minimal");
   }
+  if (visual.id === "duo") {
+    wardrobeText = wardrobeText.replace(/\b(red|neon|hot pink|bright orange)\b/gi, "soft neutral");
+  }
 
   let settingText = "";
   if (imagePrompt && typeof imagePrompt === "object" && imagePrompt.setting) {
@@ -144,7 +147,9 @@ export function buildPrompt({
 
   const jewelleryRule = visual.id === "lila"
     ? "- Jewellery: small simple gold hoop earrings only (from refs). No cross, no coin stack."
-    : "- When neck/chest visible, include jewellery exactly as in reference images (gold hoops, layered chains, cross/coin if present in refs).";
+    : visual.id === "duo"
+      ? "- Jewellery: Cara keeps the jewellery from Cara references; Lila keeps simple gold hoops only. Never swap jewellery between them."
+      : "- When neck/chest visible, include jewellery exactly as in reference images (gold hoops, layered chains, cross/coin if present in refs).";
 
   const antiMismatch = `
 CRITICAL MATCHING & LOCATION RULES:
@@ -158,9 +163,13 @@ ${jewelleryRule}
     ? `SCENE TO DEPICT: ${scene.slice(0, 320)}\n`
     : `SCENE: Natural candid UGC / model moment. Phone-real, not studio.\n`;
 
+  const subjectRule = visual.id === "duo"
+    ? "Recreate BOTH women identically from their reference images. Cara and Lila must remain separate, recognisable identities in the same frame. Do not merge faces or create duplicates."
+    : "Recreate face and body identically from the reference images — exact pixel identity lock. Same person as refs, not a similar-looking model.";
+
   return `${visual.ugcStillCore}
 
-RAW unretouched photorealistic photograph. Recreate face and body identically from the reference images — exact pixel identity lock. Same person as refs, not a similar-looking model.
+RAW unretouched photorealistic photograph. ${subjectRule}
 
 ${sceneBlock}
 CAMERA & FRAME:
