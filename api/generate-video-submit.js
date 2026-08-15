@@ -8,11 +8,13 @@ const DEFAULT_RESOLUTION = "720p";
 const DEFAULT_DURATION = "8";
 
 function buildMotionPrompt({ caption, photo_idea, hook, personaId = "cara" }) {
-  const isLila = (personaId || "").toLowerCase().includes("lila");
-  const name = isLila ? "Lila Sterling" : "Cara Whitmore";
-  const energy = isLila
-    ? "Composed, serene, soft micro-expressions. Never performative."
-    : "Alive, human, slight micro-hesitation OK. Not a polished commercial take.";
+  const pid = (personaId || "").toLowerCase();
+  const isDuo = ["duo", "cara_lila", "cara&lila"].includes(pid);
+  const isLila = !isDuo && pid.includes("lila");
+  const name = isDuo ? "Cara and Lila" : (isLila ? "Lila Sterling" : "Cara Whitmore");
+  const energy = isDuo
+    ? "Natural shared chemistry. Small reactions to each other, easy conversation energy, no synchronized posing."
+    : (isLila ? "Composed, serene, soft micro-expressions. Never performative." : "Alive, human, slight micro-hesitation OK. Not a polished commercial take.");
   const sceneHint = [photo_idea, caption, hook].filter(Boolean).join(" ").slice(0, 220) || "Candid lived-in moment, phone-documented";
 
   // Structured brief (same family as high-detail Seedance 2.5 prompts users paste in UI)
