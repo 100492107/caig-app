@@ -93,7 +93,8 @@ export default function MPTVideoStudio() {
   async function queueProduction() {
     if (!selected) return;
     setBusy(true);
-    setMessage('Saving production brief…');
+    setMessage('Saving Track B production brief…');
+
     const payload = parsePayload(selected);
     payload.production_config = {
       mode,
@@ -105,14 +106,70 @@ export default function MPTVideoStudio() {
       reference_assets: [],
     };
 
-    const { error } = await supabase.from('mpt_video_jobs').insert({
+    const { data: project, error: projectError } = await supabase
+      .from('track_b_content_projects')
+      .insert({
+        title: selected.content_label || 'Cornerstone creative',
+        source_type: 'creative_brief',
+        brief: {
+          content_queue_id: selected.id,
+          hook: selected.hook || null,
+          caption: selected.caption || null,
+          photo_direction: selected.photo_direction || null,
+          photo_idea: selected.photo_idea || null,
+          notes: selected.notes || null,
+        },
+        status: 'planned',
+      })
+      .select('id')
+      .single();
+
+    if (projectError) {
+      setMessage(`Could not create Track B project: ${projectError.message}`);
+      setBusy(false);
+      return;
+    }
+
+    const { data: mptJob, error: mptError } = await supabase.from('mpt_video_jobs').insert({
       content_queue_id: selected.id,
       status: 'queued',
       payload,
-    });
+    }).select('id').single();
 
-    if (error) setMessage(`Could not queue production: ${error.message}`);
-    else setMessage(`${modeInfo.label} queued. Phase 1 execution currently uses the local MPT adapter; richer local/premium adapters plug into the same production brief.`);
+    if (mptError) {
+      setMessage(`Could not queue execution job: ${mptError.message}`);
+      setBusy(false);
+      return;
+    }
+
+    const { data: productionJob, error: productionError } = await supabase
+      .from('track_b_production_jobs')
+      .insert({
+        project_id: project.id,
+        mode,
+        target_duration_seconds: Number(duration),
+        output_count: Number(outputs),
+        provider_strategy: provider,
+        estimated_credits: estimateResult.credits,
+        estimated_compute_tier: estimateResult.tier,
+        config: payload.production_config,
+        status: 'queued',
+        source_job_id: mptJob.id,
+      })
+      .select('id')
+      .single();
+
+    if (productionError) {
+      setMessage(`Execution queued, but Track B production record failed: ${productionError.message}`);
+      await load();
+      setBusy(false);
+      return;
+    }
+
+    await supabase.from('track_b_content_projects').update({ status: 'in_production' }).eq('id', project.id);
+    await supabase.from('track_b_production_jobs').update({ config: { ...payload.production_config, track_b_production_job_id: productionJob.id } }).eq('id', productionJob.id);
+
+    setMessage(`${modeInfo.label} queued. Project and production records are now persisted in Track B; Phase 1 execution uses the proven local MPT adapter while richer adapters are added.`);
     await load();
     setBusy(false);
   }
@@ -181,7 +238,7 @@ export default function MPTVideoStudio() {
 
         <section style={card}>
           <div style={{ fontWeight: 800 }}>Production history</div>
-          <div style={{ color: '#7f8798', fontSize: 12, margin: '6px 0 14px' }}>The production brief persists even while the execution layer evolves beyond MPT.</div>
+          <div style={{ color: '#7f8798', fontSize: 12, margin: '6px 0 14px' }}>Production briefs persist independently of the execution provider, so the local MPT baseline can evolve into richer local and premium adapters without losing creative history.</div>
           {jobs.map((j) => {
             const cfg = j?.payload?.production_config || {};
             return (
