@@ -3,7 +3,7 @@ import CreativeEngineWorkspace from "./CreativeEngineWorkspaceV5.jsx";
 import TikTokSlideshowStudio from "./TikTokSlideshowStudio.jsx";
 import DistributionLab from "./DistributionLab.jsx";
 import MPTVideoStudio from "./MPTVideoStudio.jsx";
-import TrackBAssetLibrary from "./TrackBAssetLibrary.jsx";
+import TrackBAssetLibrary from "./TrackBAssetLibraryV2.jsx";
 
 const pane = (visible) => ({ display: visible ? "block" : "none" });
 
