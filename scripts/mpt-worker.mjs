@@ -32,6 +32,23 @@ function findFilePath(data) {
     || null;
 }
 
+function normalizeMptFilePath(filePath) {
+  if (typeof filePath !== 'string') return null;
+  const cleaned = filePath.replace(/\\/g, '/');
+  const marker = '/storage/tasks/';
+  const markerIndex = cleaned.indexOf(marker);
+  if (markerIndex >= 0) return cleaned.slice(markerIndex + marker.length).replace(/^\/+/, '');
+  return cleaned.replace(/^\/+/, '');
+}
+
+function buildDownloadCandidates(filePath) {
+  const normalized = normalizeMptFilePath(filePath);
+  const candidates = [];
+  if (normalized) candidates.push(`${MPT_URL}/api/v1/download/${normalized.split('/').map(encodeURIComponent).join('/')}`);
+  if (filePath) candidates.push(`${MPT_URL}/api/v1/download/${encodeURIComponent(filePath)}`);
+  return [...new Set(candidates)];
+}
+
 function buildMptPayload(job) {
   const p = job.payload || {};
   const payload = {
@@ -114,25 +131,39 @@ async function waitForMpt(taskId) {
     const status = safeStatus(json);
     const filePath = findFilePath(json);
     if (['completed', 'complete', 'success', 'finished', 'done'].includes(status) && filePath) return { json, filePath };
-    if (['failed', 'error', 'cancelled', 'canceled'].includes(status)) throw new Error(`MPT task ${taskId} ended with status ${status}: ${JSON.stringify(json)}`);
+    if (json?.data?.state === 1 && filePath) return { json, filePath };
+    if (['failed', 'error', 'cancelled', 'canceled'].includes(status) || json?.data?.state === -1) {
+      throw new Error(`MPT task ${taskId} ended with failure: ${JSON.stringify(json)}`);
+    }
     await sleep(POLL_MS);
   }
   throw new Error(`MPT task ${taskId} timed out after 20 minutes.`);
 }
 
 async function downloadAndStore(filePath, jobId) {
-  const response = await fetch(`${MPT_URL}/api/v1/download/${encodeURIComponent(filePath)}`);
-  if (!response.ok) throw new Error(`MPT download failed (${response.status}) for ${filePath}`);
-  const arrayBuffer = await response.arrayBuffer();
-  const buffer = Buffer.from(arrayBuffer);
-  const storagePath = `creative/mpt/${jobId}.mp4`;
-  const { error } = await supabase.storage.from('post-images').upload(storagePath, buffer, {
-    contentType: 'video/mp4',
-    upsert: true,
-  });
-  if (error) throw new Error(`Supabase video upload failed: ${error.message}`);
-  const { data } = supabase.storage.from('post-images').getPublicUrl(storagePath);
-  return { storagePath, publicUrl: data.publicUrl };
+  let lastError = null;
+  for (const url of buildDownloadCandidates(filePath)) {
+    try {
+      const response = await fetch(url, { headers: { Accept: 'video/mp4,application/octet-stream,*/*' } });
+      if (!response.ok) {
+        lastError = new Error(`MPT download failed (${response.status}) for ${filePath} via ${url}`);
+        continue;
+      }
+      const arrayBuffer = await response.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      const storagePath = `creative/mpt/${jobId}.mp4`;
+      const { error } = await supabase.storage.from('post-images').upload(storagePath, buffer, {
+        contentType: 'video/mp4',
+        upsert: true,
+      });
+      if (error) throw new Error(`Supabase video upload failed: ${error.message}`);
+      const { data } = supabase.storage.from('post-images').getPublicUrl(storagePath);
+      return { storagePath, publicUrl: data.publicUrl };
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError || new Error(`Unable to download MPT file ${filePath}`);
 }
 
 async function claimJob() {
@@ -157,10 +188,26 @@ async function claimJob() {
   return claimed || null;
 }
 
+async function recoverProcessingJob() {
+  const { data, error } = await supabase
+    .from('mpt_video_jobs')
+    .select('*')
+    .eq('status', 'processing')
+    .not('mpt_task_id', 'is', null)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  return data || null;
+}
+
 async function processJob(job) {
   try {
-    const taskId = await enqueueToMpt(job);
-    await supabase.from('mpt_video_jobs').update({ mpt_task_id: taskId }).eq('id', job.id);
+    let taskId = job.mpt_task_id;
+    if (!taskId) {
+      taskId = await enqueueToMpt(job);
+      await supabase.from('mpt_video_jobs').update({ mpt_task_id: taskId }).eq('id', job.id);
+    }
     const result = await waitForMpt(taskId);
     const stored = await downloadAndStore(result.filePath, job.id);
     const { error } = await supabase.from('mpt_video_jobs').update({
@@ -169,6 +216,7 @@ async function processJob(job) {
       output_path: stored.storagePath,
       output_url: stored.publicUrl,
       completed_at: new Date().toISOString(),
+      error_message: null,
     }).eq('id', job.id);
     if (error) throw error;
     console.log(`[MPT] completed ${job.id} -> ${stored.publicUrl}`);
@@ -184,7 +232,8 @@ async function processJob(job) {
 console.log(`[MPT] worker online. MPT=${MPT_URL}; voice=${MPT_VOICE_NAME}`);
 for (;;) {
   try {
-    const job = await claimJob();
+    let job = await claimJob();
+    if (!job) job = await recoverProcessingJob();
     if (job) await processJob(job);
     else await sleep(LOOP_IDLE_MS);
   } catch (error) {
