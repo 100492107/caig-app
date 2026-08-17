@@ -23,12 +23,13 @@ function safeStatus(data) {
 }
 
 function findFilePath(data) {
-  return data?.data?.file_path
-    || data?.data?.video_url
-    || data?.data?.path
-    || data?.data?.file
-    || data?.file_path
-    || data?.video_url
+  const d = data?.data ?? data ?? {};
+  return d.file_path
+    || d.video_url
+    || d.path
+    || d.file
+    || (Array.isArray(d.videos) && d.videos[0])
+    || (Array.isArray(d.combined_videos) && d.combined_videos[0])
     || null;
 }
 
@@ -130,8 +131,7 @@ async function waitForMpt(taskId) {
     if (!response.ok) throw new Error(`MPT task query failed (${response.status}): ${JSON.stringify(json)}`);
     const status = safeStatus(json);
     const filePath = findFilePath(json);
-    if (['completed', 'complete', 'success', 'finished', 'done'].includes(status) && filePath) return { json, filePath };
-    if (json?.data?.state === 1 && filePath) return { json, filePath };
+    if ((['completed', 'complete', 'success', 'finished', 'done'].includes(status) || json?.data?.state === 1) && filePath) return { json, filePath };
     if (['failed', 'error', 'cancelled', 'canceled'].includes(status) || json?.data?.state === -1) {
       throw new Error(`MPT task ${taskId} ended with failure: ${JSON.stringify(json)}`);
     }
@@ -208,8 +208,11 @@ async function processJob(job) {
       taskId = await enqueueToMpt(job);
       await supabase.from('mpt_video_jobs').update({ mpt_task_id: taskId }).eq('id', job.id);
     }
+    console.log(`[MPT] processing ${job.id}; task=${taskId}`);
     const result = await waitForMpt(taskId);
+    console.log(`[MPT] task complete ${taskId}; file=${result.filePath}`);
     const stored = await downloadAndStore(result.filePath, job.id);
+    console.log(`[MPT] stored ${job.id}; path=${stored.storagePath}`);
     const { error } = await supabase.from('mpt_video_jobs').update({
       status: 'completed',
       file_path: result.filePath,
