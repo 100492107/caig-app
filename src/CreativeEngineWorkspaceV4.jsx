@@ -130,17 +130,8 @@ export default function CreativeEngineWorkspaceV4() {
     try {
       const peopleLabel = people.map(id => PEOPLE.find(p => p.id === id)?.name).join(", ");
       const purposeLabel = purposes.find(x => x[0] === purpose)?.[1] || purpose;
-      const system = `You are the creative director of a premium creator studio. The goal is NOT more AI content. The goal is content that feels authored, specific, socially native and human-reviewed. Build six distinct hypotheses that could plausibly exist on a real person's feed.
-
-CORE ANTI-SLOP STANDARD:
-${HUMAN_RULES.map((r,i)=>`${i+1}. ${r}`).join("\n")}
-
-${isFanvue ? "Fanvue mode: the audience already knows the creator. Favour intimacy, personality, routines, specific thoughts and subscriber value. Keep it non-explicit. Do not fabricate private life details." : "Public mode: optimise for attention and personality without generic creator-speak. The account should feel like a real person or brand with a point of view, not a content factory."}
-Cara: direct, dry, disciplined, British. Lila: measured, warm, observant, understated. Cara + Lila: two distinct personalities with chemistry, contrast and natural interaction.
-Return JSON only.`;
-      const user = `MODE: ${isFanvue ? "FANVUE" : "PUBLIC"}\nDESTINATION: ${destination}\nPEOPLE: ${peopleLabel}\nPRODUCT: ${productName || "None"}\nPRODUCT URL: ${productUrl || "None"}\nPLATFORM: ${platformValue}\nPURPOSE: ${purposeLabel}\nPREFERRED HOOK TYPES: ${hookIds.join(", ") || "Let the director choose"}\nPREFERRED ANGLES: ${angleIds.join(", ") || "Let the director choose"}\nPREFERRED FORMATS: ${formatIds.join(", ") || "Let the director choose"}\nHUMAN CONTEXT FROM ME: ${humanContext || "None supplied"}\nPRODUCT FACTS / PROOF: ${productFacts || "None supplied"}\nTHINGS TO AVOID: ${avoid || "None supplied"}\nIDEA SEED: ${seed || "None"}
-
-Return exactly {"hypotheses":[...]} with 6 objects. Each object must contain: id,title,hook,angle,format,creator,mechanism,scene,why_it_feels_human,visual_language,caption_direction,cta,variation_prompt,slop_risks. The scene must contain at least 2 concrete visual details. The caption_direction must specify what the person should actually say/notice/ask rather than describing a marketing objective. At least 4 concepts must use materially different psychological mechanisms. Do not use generic influencer phrases. Do not invent testimonials, results or first-person experiences that were not supplied. Return one or two concepts that are deliberately quieter or observational rather than all being high-energy.`;
+      const system = `You are the creative director of a premium creator studio. The goal is NOT more AI content. The goal is content that feels authored, specific, socially native and human-reviewed. Build six distinct hypotheses that could plausibly exist on a real person's feed.\n\nCORE ANTI-SLOP STANDARD:\n${HUMAN_RULES.map((r,i)=>`${i+1}. ${r}`).join("\n")}\n\n${isFanvue ? "Fanvue mode: the audience already knows the creator. Favour intimacy, personality, routines, specific thoughts and subscriber value. Keep it non-explicit. Do not fabricate private life details." : "Public mode: optimise for attention and personality without generic creator-speak. The account should feel like a real person or brand with a point of view, not a content factory."}\nCara: direct, dry, disciplined, British. Lila: measured, warm, observant, understated. Cara + Lila: two distinct personalities with chemistry, contrast and natural interaction.\nReturn JSON only.`;
+      const user = `MODE: ${isFanvue ? "FANVUE" : "PUBLIC"}\nDESTINATION: ${destination}\nPEOPLE: ${peopleLabel}\nPRODUCT: ${productName || "None"}\nPRODUCT URL: ${productUrl || "None"}\nPLATFORM: ${platformValue}\nPURPOSE: ${purposeLabel}\nPREFERRED HOOK TYPES: ${hookIds.join(", ") || "Let the director choose"}\nPREFERRED ANGLES: ${angleIds.join(", ") || "Let the director choose"}\nPREFERRED FORMATS: ${formatIds.join(", ") || "Let the director choose"}\nHUMAN CONTEXT FROM ME: ${humanContext || "None supplied"}\nPRODUCT FACTS / PROOF: ${productFacts || "None supplied"}\nTHINGS TO AVOID: ${avoid || "None supplied"}\nIDEA SEED: ${seed || "None"}\n\nReturn exactly {"hypotheses":[...]} with 6 objects. Each object must contain: id,title,hook,angle,format,creator,mechanism,scene,why_it_feels_human,visual_language,caption_direction,cta,variation_prompt,slop_risks. The scene must contain at least 2 concrete visual details. The caption_direction must specify what the person should actually say/notice/ask rather than describing a marketing objective. At least 4 concepts must use materially different psychological mechanisms. Do not use generic influencer phrases. Do not invent testimonials, results or first-person experiences that were not supplied. Return one or two concepts that are deliberately quieter or observational rather than all being high-energy.`;
       const out = parseJson(await gemini(system, user));
       const hs = Array.isArray(out.hypotheses) ? out.hypotheses.slice(0, 6) : [];
       setHypotheses(hs);
@@ -153,10 +144,7 @@ Return exactly {"hypotheses":[...]} with 6 objects. Each object must contain: id
     const personaRule = isFanvue
       ? `This is Fanvue mode. Keep it non-explicit and subscriber-focused. If Cara appears, append this required disclosure exactly: ${DISCLOSURE}`
       : "Do not mention AI unless the account's disclosure policy explicitly requires it.";
-    const system = `You are the production director and human editor for a premium creator studio. Turn one approved hypothesis into a complete production brief. Apply this anti-slop gate before returning anything:
-${HUMAN_RULES.map((r,i)=>`${i+1}. ${r}`).join("\n")}
-
-You must make the output feel like a real post with a reason to exist. No generic hook ladders, no empty CTAs, no fake personal claims, no 'viral' promises, no polished ad language where a normal person would be simpler. ${personaRule} Return JSON only.`;
+    const system = `You are the production director and human editor for a premium creator studio. Turn one approved hypothesis into a complete production brief. Apply this anti-slop gate before returning anything:\n${HUMAN_RULES.map((r,i)=>`${i+1}. ${r}`).join("\n")}\n\nYou must make the output feel like a real post with a reason to exist. No generic hook ladders, no empty CTAs, no fake personal claims, no 'viral' promises, no polished ad language where a normal person would be simpler. ${personaRule} Return JSON only.`;
     const user = `HYPOTHESIS\nTitle: ${h.title}\nHook: ${h.hook}\nAngle: ${h.angle}\nFormat: ${h.format}\nCreator: ${h.creator}\nMechanism: ${h.mechanism}\nScene: ${h.scene}\nWhy human: ${h.why_it_feels_human}\nVisual language: ${h.visual_language}\nCaption direction: ${h.caption_direction}\nCTA: ${h.cta}\nSlop risks: ${(h.slop_risks || []).join(" | ")}\n\nCONTEXT\nDestination: ${destination}\nProduct: ${productName || "None"}\nProduct URL: ${productUrl || "None"}\nProduct facts: ${productFacts || "None"}\nPlatform: ${platformValue}\nPurpose: ${purposes.find(x=>x[0]===purpose)?.[1] || purpose}\nMy human context: ${humanContext || "None"}\nThings to avoid: ${avoid || "None"}\n\nReturn {hook,caption,hashtags,cta,postFormat,photoIdea,imagePrompt,slides,reelDirection,humanityScore,slopChecks}. humanityScore is 0-100. slopChecks must be an array of concise pass/fail statements. The caption should read like an actual person wrote it, not a content writer. The visual brief must include believable environment, posture, wardrobe, camera behaviour, lighting and small imperfections. Do not over-stage. If carousel, provide 3-5 coherent slides where each slide has a distinct job.`;
     const production = parseJson(await gemini(system, user, 5000));
 
@@ -237,15 +225,31 @@ You must make the output feel like a real post with a reason to exist. No generi
   async function buildSingle(index) {
     const h = hypotheses[index];
     if (!h || testSet[index]?.status === "generating" || testSet[index]?.status === "image_ready") return;
-    setTestSet(prev => { const next=[...prev]; next[index] = { index, hypothesis:h, status:"briefing" }; return next; });
+    setTestSet(prev => {
+      const next = Array.from({ length: Math.max(prev.length, index + 1) }, (_, i) => prev[i] || null);
+      next[index] = { index, hypothesis: h, status: "briefing" };
+      return next;
+    });
     try {
       const production = await buildProduction(h);
-      setTestSet(prev => { const next=[...prev]; next[index] = { ...(next[index] || { index, hypothesis:h }), production, status:"generating" }; return next; });
-      const result = await generateMediaForItem({ index, hypothesis:h, production });
-      setTestSet(prev => { const next=[...prev]; next[index] = result; return next; });
+      setTestSet(prev => {
+        const next = Array.from({ length: Math.max(prev.length, index + 1) }, (_, i) => prev[i] || null);
+        next[index] = { ...(next[index] || { index, hypothesis: h }), production, status: "generating" };
+        return next;
+      });
+      const result = await generateMediaForItem({ index, hypothesis: h, production });
+      setTestSet(prev => {
+        const next = Array.from({ length: Math.max(prev.length, index + 1) }, (_, i) => prev[i] || null);
+        next[index] = result;
+        return next;
+      });
       await loadSaved();
     } catch (e) {
-      setTestSet(prev => { const next=[...prev]; next[index] = { ...(next[index] || { index, hypothesis:h }), status:"error", error:e.message }; return next; });
+      setTestSet(prev => {
+        const next = Array.from({ length: Math.max(prev.length, index + 1) }, (_, i) => prev[i] || null);
+        next[index] = { ...(next[index] || { index, hypothesis: h }), status: "error", error: e.message };
+        return next;
+      });
     }
   }
 
@@ -290,7 +294,7 @@ You must make the output feel like a real post with a reason to exist. No generi
         <div className="ce-grid" style={{marginTop:14}}>{hypotheses.map((h,i)=><article key={h.id||i} className={`ce-card ${preferredId===h.id?"ce-selected":""}`} style={{...cardStyle,borderColor:preferredId===h.id?"#D4AF37":"#262A3C"}}><div className="ce-row-meta">TEST {i+1} · {h.mechanism}</div><div className="ce-title" style={{fontSize:18}}>{h.title}</div><div className="ce-row-meta" style={{marginTop:6}}>{h.creator} · {h.format} · {h.angle}</div><p className="ce-row-meta" style={{marginTop:10,color:"#d8dbe6"}}><strong>Hook:</strong> {h.hook}</p><p className="ce-row-meta" style={{marginTop:6}}><strong>Scene:</strong> {h.scene}</p><p className="ce-row-meta" style={{marginTop:6}}><strong>Why it feels human:</strong> {h.why_it_feels_human}</p><p className="ce-row-meta" style={{marginTop:6,color:"#9aa0b6"}}><strong>Slop risk:</strong> {cleanList(h.slop_risks).join(" · ") || "Low"}</p><div className="ce-actions" style={{marginTop:12}}><button className="btn btn-dim" onClick={()=>setPreferredId(h.id)}>Flag preferred</button><button className="btn btn-dim" onClick={()=>buildSingle(i)} disabled={batchBusy}>Generate this test</button></div></article>)}</div>
       </section>}
 
-      {testSet.length > 0 && <section className="ce-card" style={{...cardStyle,gridColumn:"1 / -1"}}><div className="ce-section"><div><div className="ce-title">Test set</div><div className="ce-sub">All six remain in the system. Each has media, a caption and a saved production record.</div></div><div className="ce-badge ce-measuring">{testSet.filter(x=>x.status==="image_ready").length}/6 ready</div></div><div className="ce-list">{testSet.map((t,i)=><div className="ce-row" key={i}><div className="ce-row-main"><div className="ce-row-title">Test {i+1} · {t.hypothesis?.title}</div><div className="ce-row-meta">{t.hypothesis?.creator} · {t.hypothesis?.format} · {t.hypothesis?.angle} · {t.status}</div>{t.error&&<div className="ce-row-meta" style={{color:"#ff7b7b"}}>{t.error}</div>}{t.production?.humanityScore!=null&&<div className="ce-row-meta" style={{color:"#D4AF37"}}>Humanity score: {t.production.humanityScore}/100</div>}</div><div className="ce-row-actions"><button className="btn btn-dim" onClick={()=>{const u=t.production?.caption||""; navigator.clipboard?.writeText(u); setMessage(`Caption copied for Test ${i+1}.`);}}>Copy caption</button>{t.imageUrl&&<a className="btn btn-dim" href={t.imageUrl} target="_blank" rel="noreferrer">Open media</a>}<button className="btn btn-dim" onClick={()=>buildSingle(i)} disabled={t.status==="image_ready"||batchBusy}>{t.status==="image_ready"?"Ready":"Retry"}</button></div></div>)}</div></section>}
+      {testSet.length > 0 && <section className="ce-card" style={{...cardStyle,gridColumn:"1 / -1"}}><div className="ce-section"><div><div className="ce-title">Test set</div><div className="ce-sub">All six remain in the system. Each has media, a caption and a saved production record.</div></div><div className="ce-badge ce-measuring">{testSet.filter(Boolean).filter(x=>x.status==="image_ready").length}/6 ready</div></div><div className="ce-list">{testSet.filter(Boolean).map((t,i)=><div className="ce-row" key={t?.index ?? i}><div className="ce-row-main"><div className="ce-row-title">Test {(t?.index ?? i)+1} · {t?.hypothesis?.title}</div><div className="ce-row-meta">{t?.hypothesis?.creator} · {t?.hypothesis?.format} · {t?.hypothesis?.angle} · {t?.status || "queued"}</div>{t?.error&&<div className="ce-row-meta" style={{color:"#ff7b7b"}}>{t.error}</div>}{t?.production?.humanityScore!=null&&<div className="ce-row-meta" style={{color:"#D4AF37"}}>Humanity score: {t.production.humanityScore}/100</div>}</div><div className="ce-row-actions"><button className="btn btn-dim" onClick={()=>{const u=t?.production?.caption||""; navigator.clipboard?.writeText(u); setMessage(`Caption copied for Test ${(t?.index ?? i)+1}.`);}}>Copy caption</button>{t?.imageUrl&&<a className="btn btn-dim" href={t.imageUrl} target="_blank" rel="noreferrer">Open media</a>}<button className="btn btn-dim" onClick={()=>buildSingle(t?.index ?? i)} disabled={t?.status==="image_ready"||batchBusy}>{t?.status==="image_ready"?"Ready":"Retry"}</button></div></div>)}</div></section>}
 
       <section className="ce-card" style={{...cardStyle,gridColumn:"1 / -1"}}><div className="ce-title">Saved creative</div><div className="ce-sub">The existing content queue remains the operational source of truth.</div><div className="ce-list" style={{marginTop:12}}>{saved.slice(0,20).map(row=><div className="ce-row" key={row.id}><div className="ce-row-main"><div className="ce-row-title">{row.content_label}</div><div className="ce-row-meta">{row.persona_name} · {row.platform} · {row.post_type} · {row.status}</div></div><button className="btn btn-dim" onClick={()=>{navigator.clipboard?.writeText(row.caption||"");setMessage("Saved caption copied.");}}>Copy caption</button></div>)}{saved.length===0&&<div className="ce-empty">No saved Creative Engine posts yet.</div>}</div></section>
     </div>
