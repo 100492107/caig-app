@@ -17,6 +17,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
 });
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const ignoredMptTaskIds = new Set();
 
 function safeStatus(data) {
   return String(data?.data?.status ?? data?.status ?? data?.data?.task_status ?? '').toLowerCase();
@@ -201,10 +202,9 @@ async function recoverProcessingJob() {
     .in('status', ['processing', 'error'])
     .not('mpt_task_id', 'is', null)
     .order('created_at', { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    .limit(20);
   if (error) throw error;
-  return data || null;
+  return (data || []).find((job) => !ignoredMptTaskIds.has(job.mpt_task_id)) || null;
 }
 
 async function processJob(job) {
@@ -233,10 +233,15 @@ async function processJob(job) {
     if (error) throw error;
     console.log(`[MPT] completed ${job.id} -> ${stored.publicUrl}`);
   } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
     console.error(`[MPT] failed ${job.id}:`, error);
+    if (job.mpt_task_id && (message.includes('MPT task query failed (404)') || message.includes('ended with failure'))) {
+      ignoredMptTaskIds.add(job.mpt_task_id);
+      console.warn(`[MPT] not retrying stale/failed task ${job.mpt_task_id} during this worker session.`);
+    }
     await supabase.from('mpt_video_jobs').update({
       status: 'error',
-      error_message: error instanceof Error ? error.message : String(error),
+      error_message: message,
     }).eq('id', job.id);
   }
 }
