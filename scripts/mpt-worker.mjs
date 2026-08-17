@@ -33,7 +33,7 @@ function findFilePath(data) {
 
 function buildMptPayload(job) {
   const p = job.payload || {};
-  return {
+  const payload = {
     video_subject: p.video_subject || p.hook || 'Short-form social video',
     video_script: p.video_script || p.caption || '',
     video_terms: p.video_terms || p.visual_direction || '',
@@ -46,16 +46,6 @@ function buildMptPayload(job) {
     video_count: Number(p.video_count || 1),
     video_source: p.video_source || 'pexels',
     video_materials: Array.isArray(p.video_materials) ? p.video_materials : [],
-    custom_audio_file: p.custom_audio_file || '',
-    video_language: p.video_language || 'en',
-    voice_name: p.voice_name || '',
-    voice_volume: Number(p.voice_volume ?? 1),
-    voice_rate: Number(p.voice_rate ?? 1),
-    bgm_type: p.bgm_type || 'random',
-    bgm_file: p.bgm_file || '',
-    bgm_volume: Number(p.bgm_volume ?? 0.2),
-    video_music_prompt: p.video_music_prompt || '',
-    sonilo_bgm_prompt: p.sonilo_bgm_prompt || '',
     subtitle_enabled: Boolean(p.subtitle_enabled ?? true),
     subtitle_position: p.subtitle_position || 'bottom',
     custom_position: Number(p.custom_position || 70),
@@ -68,9 +58,37 @@ function buildMptPayload(job) {
     stroke_width: Number(p.stroke_width ?? 1.5),
     n_threads: Number(p.n_threads || 2),
     paragraph_number: Number(p.paragraph_number || 1),
-    video_script_prompt: p.video_script_prompt || '',
-    custom_system_prompt: p.custom_system_prompt || '',
   };
+
+  const optionalStringFields = [
+    'custom_audio_file',
+    'video_language',
+    'voice_name',
+    'bgm_type',
+    'bgm_file',
+    'video_music_prompt',
+    'sonilo_bgm_prompt',
+    'video_script_prompt',
+    'custom_system_prompt',
+  ];
+  for (const key of optionalStringFields) {
+    const value = p[key];
+    if (typeof value === 'string' && value.trim() !== '') payload[key] = value;
+  }
+
+  const optionalNumericFields = [
+    ['voice_volume', 1],
+    ['voice_rate', 1],
+    ['bgm_volume', 0.2],
+  ];
+  for (const [key, fallback] of optionalNumericFields) {
+    if (p[key] !== undefined && p[key] !== null && p[key] !== '') payload[key] = Number(p[key]);
+    else payload[key] = fallback;
+  }
+
+  // Respect the configured MPT defaults unless CAIG explicitly provides a non-empty override.
+  // In particular, do not send voice_name: "" because that overrides the configured TTS voice.
+  return payload;
 }
 
 async function enqueueToMpt(job) {
