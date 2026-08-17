@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import CreativeEngineWorkspace from "./CreativeEngineWorkspaceV5.jsx";
 import TikTokSlideshowStudio from "./TikTokSlideshowStudio.jsx";
 import DistributionLab from "./DistributionLab.jsx";
-import CornerstoneAIAssetsProductionStudio from "./CornerstoneAIAssetsProductionStudioV2.jsx";
+import CornerstoneAIAssetsProductionStudio from "./CornerstoneAIAssetsProductionStudioV3.jsx";
 import TrackBAssetLibrary from "./TrackBAssetLibraryV2.jsx";
 
 const pane = (visible) => ({ display: visible ? "block" : "none" });
