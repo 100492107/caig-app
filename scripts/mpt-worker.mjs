@@ -198,7 +198,7 @@ async function recoverProcessingJob() {
   const { data, error } = await supabase
     .from('mpt_video_jobs')
     .select('*')
-    .eq('status', 'processing')
+    .in('status', ['processing', 'error'])
     .not('mpt_task_id', 'is', null)
     .order('created_at', { ascending: false })
     .limit(1)
@@ -213,6 +213,9 @@ async function processJob(job) {
     if (!taskId) {
       taskId = await enqueueToMpt(job);
       await supabase.from('mpt_video_jobs').update({ mpt_task_id: taskId }).eq('id', job.id);
+    }
+    if (job.status === 'error') {
+      await supabase.from('mpt_video_jobs').update({ status: 'processing', error_message: null }).eq('id', job.id);
     }
     console.log(`[MPT] processing ${job.id}; task=${taskId}`);
     const result = await waitForMpt(taskId);
