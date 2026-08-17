@@ -35,6 +35,26 @@ function readBody(req) {
   });
 }
 
+function normalizeCreativeResponse(text) {
+  try {
+    const parsed = JSON.parse(text);
+    if (parsed && Array.isArray(parsed.hypotheses)) {
+      parsed.hypotheses = parsed.hypotheses.map((h) => ({
+        ...h,
+        slop_risks: Array.isArray(h?.slop_risks)
+          ? h.slop_risks.filter(Boolean)
+          : h?.slop_risks
+            ? [String(h.slop_risks)]
+            : [],
+      }));
+      return JSON.stringify(parsed);
+    }
+  } catch (_) {
+    // Keep non-JSON responses untouched; the client has its own parser/error handling.
+  }
+  return text;
+}
+
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
@@ -74,7 +94,7 @@ export default async function handler(req, res) {
 
     if (!text) return res.status(502).json({ error: "Empty response from Gemini" });
 
-    return res.status(200).json({ text });
+    return res.status(200).json({ text: normalizeCreativeResponse(text) });
   } catch (err) {
     return res.status(500).json({ error: err.message || "Internal server error" });
   }
