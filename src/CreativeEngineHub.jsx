@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import CreativeEngineWorkspace from "./CreativeEngineWorkspaceV5.jsx";
 import TikTokSlideshowStudio from "./TikTokSlideshowStudio.jsx";
 import DistributionLab from "./DistributionLab.jsx";
-import MPTVideoStudio from "./MPTVideoStudio.jsx";
+import CornerstoneAIAssetsProductionStudio from "./CornerstoneAIAssetsProductionStudio.jsx";
 import TrackBAssetLibrary from "./TrackBAssetLibraryV2.jsx";
 
 const pane = (visible) => ({ display: visible ? "block" : "none" });
@@ -14,7 +14,7 @@ export default function CreativeEngineHub() {
     ["assets", "Asset Library"],
     ["formats", "Distribution Lab"],
     ["slideshow", "Carousel Studio"],
-    ["mpt", "CornerstoneAIAssets Production"],
+    ["production", "CornerstoneAIAssets Production"],
   ];
 
   return <div>
@@ -28,6 +28,6 @@ export default function CreativeEngineHub() {
     <div style={pane(view === "assets")}><TrackBAssetLibrary /></div>
     <div style={pane(view === "formats")}><DistributionLab /></div>
     <div style={pane(view === "slideshow")}><TikTokSlideshowStudio /></div>
-    <div style={pane(view === "mpt")}><MPTVideoStudio /></div>
+    <div style={pane(view === "production")}><CornerstoneAIAssetsProductionStudio /></div>
   </div>;
 }
