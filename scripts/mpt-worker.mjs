@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const MPT_URL = (process.env.MPT_URL || 'http://127.0.0.1:8080').replace(/\/$/, '');
+const MPT_VOICE_NAME = process.env.MPT_VOICE_NAME || 'en-AU-NatashaNeural-Female';
 const POLL_MS = Number(process.env.MPT_POLL_MS || 2500);
 const LOOP_IDLE_MS = Number(process.env.MPT_IDLE_MS || 4000);
 
@@ -63,7 +64,6 @@ function buildMptPayload(job) {
   const optionalStringFields = [
     'custom_audio_file',
     'video_language',
-    'voice_name',
     'bgm_type',
     'bgm_file',
     'video_music_prompt',
@@ -76,6 +76,9 @@ function buildMptPayload(job) {
     if (typeof value === 'string' && value.trim() !== '') payload[key] = value;
   }
 
+  const requestedVoice = typeof p.voice_name === 'string' ? p.voice_name.trim() : '';
+  payload.voice_name = requestedVoice || MPT_VOICE_NAME;
+
   const optionalNumericFields = [
     ['voice_volume', 1],
     ['voice_rate', 1],
@@ -86,8 +89,6 @@ function buildMptPayload(job) {
     else payload[key] = fallback;
   }
 
-  // Respect the configured MPT defaults unless CAIG explicitly provides a non-empty override.
-  // In particular, do not send voice_name: "" because that overrides the configured TTS voice.
   return payload;
 }
 
@@ -180,7 +181,7 @@ async function processJob(job) {
   }
 }
 
-console.log(`[MPT] worker online. MPT=${MPT_URL}`);
+console.log(`[MPT] worker online. MPT=${MPT_URL}; voice=${MPT_VOICE_NAME}`);
 for (;;) {
   try {
     const job = await claimJob();
