@@ -36,9 +36,12 @@ function findFilePath(data) {
 function normalizeMptFilePath(filePath) {
   if (typeof filePath !== 'string') return null;
   const cleaned = filePath.replace(/\\/g, '/');
-  const marker = '/storage/tasks/';
-  const markerIndex = cleaned.indexOf(marker);
-  if (markerIndex >= 0) return cleaned.slice(markerIndex + marker.length).replace(/^\/+/, '');
+  const storageMarker = '/storage/tasks/';
+  const storageIndex = cleaned.indexOf(storageMarker);
+  if (storageIndex >= 0) return cleaned.slice(storageIndex + storageMarker.length).replace(/^\/+/, '');
+  const tasksMarker = '/tasks/';
+  const tasksIndex = cleaned.indexOf(tasksMarker);
+  if (tasksIndex >= 0) return cleaned.slice(tasksIndex + tasksMarker.length).replace(/^\/+/, '');
   return cleaned.replace(/^\/+/, '');
 }
 
@@ -46,7 +49,10 @@ function buildDownloadCandidates(filePath) {
   const normalized = normalizeMptFilePath(filePath);
   const candidates = [];
   if (normalized) candidates.push(`${MPT_URL}/api/v1/download/${normalized.split('/').map(encodeURIComponent).join('/')}`);
-  if (filePath) candidates.push(`${MPT_URL}/api/v1/download/${encodeURIComponent(filePath)}`);
+  if (filePath) {
+    const stripped = String(filePath).replace(/^\/+/, '');
+    candidates.push(`${MPT_URL}/api/v1/download/${stripped.split('/').map(encodeURIComponent).join('/')}`);
+  }
   return [...new Set(candidates)];
 }
 
