@@ -10,7 +10,7 @@ if [[ "$(uname -s)" != "Darwin" ]]; then
 fi
 
 if ! command -v brew >/dev/null 2>&1; then
-  echo "Homebrew is required: https://brew.sh"
+  echo "Homebrew is required. Install it from https://brew.sh and rerun this script."
   exit 1
 fi
 
@@ -24,7 +24,7 @@ fi
 VENV="$ROOT/.venv-caption"
 "$PYTHON" -m venv "$VENV"
 "$VENV/bin/python" -m pip install --upgrade pip
-"$VENV/bin/python" -m pip install mlx-whisper
+"$VENV/bin/python" -m pip install -r scripts/requirements-caption-local.txt
 
 cat > "$ROOT/.env.caption.local" <<EOF
 SUPABASE_URL=${SUPABASE_URL:-}
@@ -34,10 +34,9 @@ WHISPER_URL=http://127.0.0.1:8787
 WHISPER_MODEL=mlx-community/whisper-large-v3-turbo
 EOF
 
-chmod +x "$ROOT/scripts/caption-worker.mjs" "$ROOT/scripts/mlx-whisper-server.py" 2>/dev/null || true
-
 echo "Local caption stack installed."
-echo "1) Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in .env.caption.local"
-echo "2) Run: $VENV/bin/python scripts/mlx-whisper-server.py"
-echo "3) In another terminal run: npm run caption:worker"
-echo "4) Open CAIG → Caption Studio and queue a render."
+echo "1) Put your Supabase URL and service-role key into .env.caption.local"
+echo "2) Apply the caption migration in Supabase"
+echo "3) Terminal A: source .env.caption.local && $VENV/bin/python scripts/mlx-whisper-server.py"
+echo "4) Terminal B: source .env.caption.local && npm run caption:worker"
+echo "5) Open CAIG → Caption Studio and queue a render."
