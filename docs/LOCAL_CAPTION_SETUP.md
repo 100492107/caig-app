@@ -1,6 +1,6 @@
 # CAIG Local Caption Worker
 
-The caption engine is intentionally split into a cloud UI/job queue and a local rendering worker. Heavy transcription and FFmpeg rendering stay on the machine running the worker.
+The caption engine is split into a cloud UI/job queue and a local rendering worker. Heavy transcription and FFmpeg rendering stay on the machine running the worker.
 
 ## macOS setup
 
