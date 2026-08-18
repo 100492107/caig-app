@@ -1,6 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
 
-const SUPABASE_URL = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+function normaliseSupabaseUrl(value) {
+  return String(value || '').replace(/\/+$/, '').replace(/\/rest\/v1$/i, '');
+}
+
+const SUPABASE_URL = normaliseSupabaseUrl(process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL);
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const QWEN_URL = (process.env.QWEN_URL || 'http://127.0.0.1:8000').replace(/\/$/, '');
 const QWEN_MODEL = process.env.QWEN_MODEL || 'mlx-community/Qwen3-8B-4bit';
@@ -81,7 +85,7 @@ async function processJob(job) {
   }
 }
 
-console.log(`[QWEN] worker online. endpoint=${QWEN_URL}; model=${QWEN_MODEL}`);
+console.log(`[QWEN] worker online. endpoint=${QWEN_URL}; model=${QWEN_MODEL}; supabase=${SUPABASE_URL}`);
 for (;;) {
   try {
     const job = await claimJob();
