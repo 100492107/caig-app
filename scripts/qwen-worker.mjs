@@ -3,7 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const QWEN_URL = (process.env.QWEN_URL || 'http://127.0.0.1:8000').replace(/\/$/, '');
-const QWEN_MODEL = process.env.QWEN_MODEL || 'orcarouter/Qwen3.8-27B-Uncensored-MLX';
+const QWEN_MODEL = process.env.QWEN_MODEL || 'mlx-community/Qwen3-8B-4bit';
 const POLL_MS = Number(process.env.QWEN_POLL_MS || 4000);
 const IDLE_MS = Number(process.env.QWEN_IDLE_MS || 3000);
 
