@@ -50,10 +50,10 @@ function escapeAssText(text) {
   return safe(text).replace(/[{}\\]/g, '').replace(/\r?\n/g, ' ');
 }
 
-function hexToAss(hex, alpha = '00') {
+function hexToAss(hex) {
   const clean = safe(hex, '#FFFFFF').replace('#', '').padEnd(6, 'F').slice(0, 6);
   const r = clean.slice(0, 2); const g = clean.slice(2, 4); const b = clean.slice(4, 6);
-  return `${alpha}${b}${g}${r}`.toUpperCase();
+  return `${b}${g}${r}`.toUpperCase();
 }
 
 function styleConfig(style) {
@@ -152,7 +152,7 @@ function createAss(job, words) {
   }
 
   if (opts.punch_in !== false) {
-    // A subtle global scale/zoom is applied by the FFmpeg filtergraph below.
+    // A subtle global scale/zoom can be added to the filtergraph without touching caption timing.
   }
   return lines.join('\n') + '\n';
 }
