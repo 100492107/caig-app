@@ -4,6 +4,16 @@ function normaliseSupabaseUrl(value) {
   return String(value || '').replace(/\/+$/, '').replace(/\/rest\/v1$/i, '');
 }
 
+function cleanModelOutput(value) {
+  let text = String(value ?? '');
+  // Do not expose model reasoning blocks in CAIG results.
+  text = text.replace(/<think>[\s\S]*?<\/think>/gi, '');
+  text = text.replace(/<analysis>[\s\S]*?<\/analysis>/gi, '');
+  text = text.replace(/<reasoning>[\s\S]*?<\/reasoning>/gi, '');
+  text = text.replace(/^\s*(<\|im_end\|>|<\|endoftext\|>)\s*$/gim, '');
+  return text.trim();
+}
+
 const SUPABASE_URL = normaliseSupabaseUrl(process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL);
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const QWEN_URL = (process.env.QWEN_URL || 'http://127.0.0.1:8000').replace(/\/$/, '');
@@ -44,6 +54,13 @@ async function claimJob() {
   return claimed || null;
 }
 
+function buildSystemPrompt(job) {
+  const base = job.system_prompt || 'You are the local creative director for CornerstoneAIAssets.';
+  const wantsPackage = ['video_package', 'content_package', 'repurpose'].includes(job.job_type);
+  if (!wantsPackage) return base;
+  return `${base}\n\nFor production-oriented jobs, return a clean, machine-friendly CONTENT PACKAGE with these headings in order:\nHOOK\nSCRIPT\nSHOT LIST\nVISUAL PROMPTS\nCAPTION PLAN\nB-ROLL\nEDIT NOTES\nCTA\nDo not include chain-of-thought or meta commentary. Write only the usable production output.`;
+}
+
 async function callQwen(job) {
   const options = job.options || {};
   const response = await fetch(`${QWEN_URL}/v1/chat/completions`, {
@@ -52,7 +69,7 @@ async function callQwen(job) {
     body: JSON.stringify({
       model: job.model || QWEN_MODEL,
       messages: [
-        { role: 'system', content: job.system_prompt || 'You are the local creative director for CornerstoneAIAssets.' },
+        { role: 'system', content: buildSystemPrompt(job) },
         { role: 'user', content: job.user_prompt },
       ],
       temperature: Number(options.temperature ?? 0.8),
@@ -62,8 +79,8 @@ async function callQwen(job) {
   });
   const json = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(`Qwen request failed (${response.status}): ${JSON.stringify(json)}`);
-  const result = json?.choices?.[0]?.message?.content;
-  if (!result) throw new Error(`Qwen returned no message content: ${JSON.stringify(json)}`);
+  const result = cleanModelOutput(json?.choices?.[0]?.message?.content);
+  if (!result) throw new Error(`Qwen returned no usable message content: ${JSON.stringify(json)}`);
   return result;
 }
 
