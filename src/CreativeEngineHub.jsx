@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import AICreatorWorkspaceUnified from "./AICreatorWorkspaceUnified.jsx";
+import AICreatorWorkspaceFlowV2 from "./AICreatorWorkspaceFlowV2.jsx";
 import DistributionLab from "./DistributionLab.jsx";
 import TrackBAssetLibrary from "./TrackBAssetLibraryV2.jsx";
 import CaptionStudio from "./CaptionStudio.jsx";
@@ -24,7 +24,7 @@ export default function CreativeEngineHub() {
       <span style={{marginLeft:"auto",fontSize:11,color:"#777d94"}}>CornerstoneAIAssets · Track B</span>
     </div>
 
-    <div style={pane(view === "engine")}><AICreatorWorkspaceUnified /></div>
+    <div style={pane(view === "engine")}><AICreatorWorkspaceFlowV2 /></div>
     <div style={pane(view === "assets")}><TrackBAssetLibrary /></div>
     <div style={pane(view === "formats")}><DistributionLab /></div>
     <div style={pane(view === "captions")}><CaptionStudio /></div>
