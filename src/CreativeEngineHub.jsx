@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import AICreatorWorkspace from "./AICreatorWorkspace.jsx";
+import AICreatorWorkspace from "./AICreatorWorkspaceV2.jsx";
 import TikTokSlideshowStudio from "./TikTokSlideshowStudio.jsx";
 import DistributionLab from "./DistributionLab.jsx";
 import CornerstoneAIAssetsProductionStudio from "./CornerstoneAIAssetsProductionStudioV7.jsx";
