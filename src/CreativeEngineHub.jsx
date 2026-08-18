@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import AICreatorWorkspaceTrackB from "./AICreatorWorkspaceTrackB.jsx";
 import TrackBAssetLibrary from "./TrackBAssetLibraryV2.jsx";
 import CaptionStudio from "./CaptionStudio.jsx";
@@ -6,8 +6,65 @@ import LocalAIStudio from "./LocalAIStudio.jsx";
 
 const pane = (visible) => ({ display: visible ? "block" : "none" });
 
+function extractFirstJsonValue(text) {
+  const source = String(text || "");
+  const start = source.search(/[\[{]/);
+  if (start < 0) throw new Error("No JSON value found");
+
+  const open = source[start];
+  const close = open === "{" ? "}" : "]";
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+
+  for (let i = start; i < source.length; i += 1) {
+    const ch = source[i];
+    if (inString) {
+      if (escaped) escaped = false;
+      else if (ch === "\\") escaped = true;
+      else if (ch === '"') inString = false;
+      continue;
+    }
+    if (ch === '"') {
+      inString = true;
+      continue;
+    }
+    if (ch === open) depth += 1;
+    else if (ch === close) {
+      depth -= 1;
+      if (depth === 0) return source.slice(start, i + 1);
+    }
+  }
+  throw new Error("Incomplete JSON value");
+}
+
+function useSafeQwenJsonParser(enabled) {
+  useEffect(() => {
+    if (!enabled || typeof JSON === "undefined" || typeof JSON.parse !== "function") return undefined;
+    const originalParse = JSON.parse;
+    const patchedParse = function safeParse(value, reviver) {
+      try {
+        return originalParse.call(JSON, value, reviver);
+      } catch (error) {
+        const message = String(error?.message || "");
+        if (typeof value === "string" && message.includes("non-whitespace character after JSON")) {
+          const firstValue = extractFirstJsonValue(value);
+          return originalParse.call(JSON, firstValue, reviver);
+        }
+        throw error;
+      }
+    };
+    JSON.parse = patchedParse;
+    return () => {
+      if (JSON.parse === patchedParse) JSON.parse = originalParse;
+    };
+  }, [enabled]);
+}
+
 export default function CreativeEngineHub() {
   const [view, setView] = useState("engine");
+  useSafeQwenJsonParser(view === "engine");
+
   const tabs = [
     ["engine", "AI Creator"],
     ["assets", "Asset Library"],
