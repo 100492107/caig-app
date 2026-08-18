@@ -6,7 +6,12 @@ import os from 'node:os';
 import path from 'node:path';
 
 const execFileAsync = promisify(execFile);
-const SUPABASE_URL = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+
+function normaliseSupabaseUrl(value) {
+  return String(value || '').replace(/\/+$/, '').replace(/\/rest\/v1$/i, '');
+}
+
+const SUPABASE_URL = normaliseSupabaseUrl(process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL);
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const FFMPEG_BIN = process.env.FFMPEG_BIN || 'ffmpeg';
 const WHISPER_URL = (process.env.WHISPER_URL || '').replace(/\/$/, '');
@@ -204,7 +209,7 @@ async function processJob(job) {
   }
 }
 
-console.log(`[CAPTION] worker online. ffmpeg=${FFMPEG_BIN}; whisper=${WHISPER_URL || 'disabled'}`);
+console.log(`[CAPTION] worker online. ffmpeg=${FFMPEG_BIN}; whisper=${WHISPER_URL || 'disabled'}; supabase=${SUPABASE_URL}`);
 for (;;) {
   try {
     const job = await claimJob();
