@@ -9,6 +9,12 @@ if [[ "$(uname -s)" != "Darwin" ]]; then
   exit 1
 fi
 
+if [[ "$(uname -m)" != "arm64" ]]; then
+  echo "This MLX caption setup expects an Apple Silicon Mac (arm64)."
+  echo "For Intel Macs, keep the FFmpeg worker and use a different local Whisper backend."
+  exit 1
+fi
+
 if ! command -v brew >/dev/null 2>&1; then
   echo "Homebrew is required. Install it from https://brew.sh and rerun this script."
   exit 1
@@ -37,6 +43,6 @@ EOF
 echo "Local caption stack installed."
 echo "1) Put your Supabase URL and service-role key into .env.caption.local"
 echo "2) Apply the caption migration in Supabase"
-echo "3) Terminal A: source .env.caption.local && $VENV/bin/python scripts/mlx-whisper-server.py"
+echo "3) Terminal A: source .env.caption.local && npm run caption:whisper"
 echo "4) Terminal B: source .env.caption.local && npm run caption:worker"
 echo "5) Open CAIG → Caption Studio and queue a render."
