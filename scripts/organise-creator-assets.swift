@@ -11,9 +11,8 @@ let documents = home.appendingPathComponent("Documents", isDirectory: true)
 let assetsRoot = home.appendingPathComponent("Business/CornerstoneAIAssets", isDirectory: true)
 let logURL = home.appendingPathComponent("Desktop/creator-asset-organiser-report.csv")
 let apply = CommandLine.arguments.contains("--apply")
-let threshold = Float(0.55)
-let duoThreshold = Float(0.62)
-
+let threshold: Float = 0.55
+let duoThreshold: Float = 0.62
 let imageExtensions = Set(["jpg", "jpeg", "png", "webp", "heic", "heif"])
 
 func isImage(_ url: URL) -> Bool {
@@ -30,12 +29,48 @@ func allImages(in root: URL) -> [URL] {
     }
 }
 
-func featurePrint(for url: URL) -> VNFeaturePrintObservation? {
-    guard let source = CGImageSourceCreateWithURL(url as CFURL, nil),
-          let image = CGImageSourceCreateImageAtIndex(source, 0, nil) else { return nil }
+func loadCGImage(_ url: URL) -> CGImage? {
+    guard let source = CGImageSourceCreateWithURL(url as CFURL, nil) else { return nil }
+    return CGImageSourceCreateImageAtIndex(source, 0, nil)
+}
 
-    let request = VNGenerateFaceFeaturePrintRequest()
+func faceCroppedImage(_ image: CGImage) -> CGImage? {
+    let request = VNDetectFaceRectanglesRequest()
     let handler = VNImageRequestHandler(cgImage: image, orientation: .up, options: [:])
+    do {
+        try handler.perform([request])
+    } catch {
+        return nil
+    }
+    guard let faces = request.results, let face = faces.max(by: { a, b in
+        (a.boundingBox.width * a.boundingBox.height) < (b.boundingBox.width * b.boundingBox.height)
+    }) else {
+        return nil
+    }
+
+    let box = face.boundingBox
+    let w = CGFloat(image.width)
+    let h = CGFloat(image.height)
+    let faceX = box.origin.x * w
+    let faceY = (1 - box.origin.y - box.height) * h
+    let faceW = box.width * w
+    let faceH = box.height * h
+
+    let marginX = faceW * 0.8
+    let marginY = faceH * 1.0
+    let x = max(0, faceX - marginX)
+    let y = max(0, faceY - marginY)
+    let maxX = min(w, faceX + faceW + marginX)
+    let maxY = min(h, faceY + faceH + marginY)
+    let crop = CGRect(x: x, y: y, width: maxX - x, height: maxY - y).integral
+    return image.cropping(to: crop)
+}
+
+func featurePrint(for url: URL) -> VNFeaturePrintObservation? {
+    guard let image = loadCGImage(url) else { return nil }
+    let target = faceCroppedImage(image) ?? image
+    let request = VNGenerateImageFeaturePrintRequest()
+    let handler = VNImageRequestHandler(cgImage: target, orientation: .up, options: [:])
     do {
         try handler.perform([request])
         return request.results?.first as? VNFeaturePrintObservation
@@ -58,7 +93,6 @@ func references(in folder: URL) -> [Reference] {
 
 let caraReferenceFolder = assetsRoot.appendingPathComponent("01_CARA/01_References", isDirectory: true)
 let lilaReferenceFolder = assetsRoot.appendingPathComponent("02_LILA/01_References", isDirectory: true)
-
 let caraRefs = references(in: caraReferenceFolder)
 let lilaRefs = references(in: lilaReferenceFolder)
 
@@ -85,10 +119,11 @@ func bestDistance(_ image: URL, refs: [Reference]) -> Float? {
 
 func hintedMode(for url: URL) -> String {
     let s = url.path.lowercased()
-    if s.contains("fanvue") || s.contains("fanvue page") { return "03_Fanvue" }
+    if s.contains("fanvue") { return "03_Fanvue" }
     if s.contains("carousel") || s.contains("slide") { return "04_Carousels" }
-    if s.contains("reel") || s.contains("video") || s.contains("tiktok") || s.contains("short") { return "05_Simple_Reels" }
-    if s.contains("reference") || s.contains("facecard") || s.contains("identity") || s.contains("character") || s.contains("model sheet") { return "01_References" }
+    if s.contains("reel") || s.contains("video") { return "06_Advanced_Reels" }
+    if s.contains("tiktok") || s.contains("short") || s.contains("instagram") || s.contains("social") { return "02_Social" }
+    if s.contains("reference") || s.contains("facecard") || s.contains("identity") || s.contains("character") || s.contains("model sheet") || s.contains("whitmore") || s.contains("cara_") || s.contains("lila_") { return "01_References" }
     return "02_Social"
 }
 
@@ -123,7 +158,7 @@ func uniqueDestination(_ url: URL) -> URL {
 
 func csvEscape(_ value: String) -> String {
     let escaped = value.replacingOccurrences(of: "\"", with: "\"\"")
-    return "\"\(escaped)\""
+    return "\"" + escaped + "\""
 }
 
 let sources = [downloads, documents].filter { fm.fileExists(atPath: $0.path) }
@@ -135,8 +170,7 @@ var uncertain = 0
 var ignored = 0
 
 for url in candidates {
-    let lower = url.path.lowercased()
-    if lower.contains("/cornerstoneaiassets/") { ignored += 1; continue }
+    if url.path.hasPrefix(assetsRoot.path + "/") { ignored += 1; continue }
     if url.path == logURL.path { continue }
 
     let cara = bestDistance(url, refs: caraRefs)
@@ -174,7 +208,7 @@ for url in candidates {
         let folder = assetsRoot.appendingPathComponent("99_UNCERTAIN", isDirectory: true)
         ensure(folder)
         let dest = uniqueDestination(folder.appendingPathComponent(url.lastPathComponent))
-        csv += "\(csvEscape(url.path)),\(csvEscape(dest.path)),uncertain,\(String(format: \"%.3f\", confidence)),\(csvEscape(reason))\n"
+        csv += csvEscape(url.path) + "," + csvEscape(dest.path) + ",uncertain," + String(confidence) + "," + csvEscape(reason) + "\n"
         if apply { try? fm.moveItem(at: url, to: dest) }
         continue
     }
@@ -183,10 +217,14 @@ for url in candidates {
     let folder = targetFolder(person: person, mode: mode)
     ensure(folder)
     let dest = uniqueDestination(folder.appendingPathComponent(url.lastPathComponent))
-    csv += "\(csvEscape(url.path)),\(csvEscape(dest.path)),\(person),\(String(format: \"%.3f\", confidence)),\(csvEscape(reason))\n"
+    csv += csvEscape(url.path) + "," + csvEscape(dest.path) + "," + person + "," + String(confidence) + "," + csvEscape(reason) + "\n"
     if apply {
-        try? fm.moveItem(at: url, to: dest)
-        moves += 1
+        do {
+            try fm.moveItem(at: url, to: dest)
+            moves += 1
+        } catch {
+            print("MOVE FAILED: \(url.path) -> \(dest.path): \(error.localizedDescription)")
+        }
     }
 }
 
