@@ -1,10 +1,7 @@
 import React, { useState } from "react";
-import AICreatorWorkspace from "./AICreatorWorkspaceV2.jsx";
-import TikTokSlideshowStudio from "./TikTokSlideshowStudio.jsx";
+import AICreatorWorkspaceUnified from "./AICreatorWorkspaceUnified.jsx";
 import DistributionLab from "./DistributionLab.jsx";
-import CornerstoneAIAssetsProductionStudio from "./CornerstoneAIAssetsProductionStudioV7.jsx";
 import TrackBAssetLibrary from "./TrackBAssetLibraryV2.jsx";
-import FanvueStudio from "./FanvueStudio.jsx";
 import CaptionStudio from "./CaptionStudio.jsx";
 import LocalAIStudio from "./LocalAIStudio.jsx";
 
@@ -16,11 +13,8 @@ export default function CreativeEngineHub() {
     ["engine", "AI Creator"],
     ["assets", "Asset Library"],
     ["formats", "Distribution Lab"],
-    ["slideshow", "Carousel Studio"],
     ["captions", "Caption Studio"],
     ["localai", "Local AI"],
-    ["fanvue", "Fanvue Studio"],
-    ["production", "Reel Studio"],
   ];
 
   return <div>
@@ -30,13 +24,10 @@ export default function CreativeEngineHub() {
       <span style={{marginLeft:"auto",fontSize:11,color:"#777d94"}}>CornerstoneAIAssets · Track B</span>
     </div>
 
-    <div style={pane(view === "engine")}><AICreatorWorkspace /></div>
+    <div style={pane(view === "engine")}><AICreatorWorkspaceUnified /></div>
     <div style={pane(view === "assets")}><TrackBAssetLibrary /></div>
     <div style={pane(view === "formats")}><DistributionLab /></div>
-    <div style={pane(view === "slideshow")}><TikTokSlideshowStudio /></div>
     <div style={pane(view === "captions")}><CaptionStudio /></div>
     <div style={pane(view === "localai")}><LocalAIStudio /></div>
-    <div style={pane(view === "fanvue")}><FanvueStudio /></div>
-    <div style={pane(view === "production")}><CornerstoneAIAssetsProductionStudio /></div>
   </div>;
 }
