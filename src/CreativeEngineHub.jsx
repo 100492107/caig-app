@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import CreativeEngineWorkspace from "./CreativeEngineWorkspaceV5.jsx";
 import TikTokSlideshowStudio from "./TikTokSlideshowStudio.jsx";
 import DistributionLab from "./DistributionLab.jsx";
-import CornerstoneAIAssetsProductionStudio from "./CornerstoneAIAssetsProductionStudioV6.jsx";
+import CornerstoneAIAssetsProductionStudio from "./CornerstoneAIAssetsProductionStudioV7.jsx";
 import TrackBAssetLibrary from "./TrackBAssetLibraryV2.jsx";
 import FanvueStudio from "./FanvueStudio.jsx";
 import CaptionStudio from "./CaptionStudio.jsx";
@@ -20,7 +20,7 @@ export default function CreativeEngineHub() {
     ["captions", "Caption Studio"],
     ["localai", "Local AI"],
     ["fanvue", "Fanvue Studio"],
-    ["production", "CornerstoneAIAssets Production"],
+    ["production", "Reel Studio"],
   ];
 
   return <div>
