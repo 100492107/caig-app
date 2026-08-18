@@ -1,0 +1,221 @@
+import React, { useEffect, useMemo, useState } from "react";
+import { supabase } from "./supabase";
+import "./creativeWorkspace.css";
+
+const QWEN = "mlx-community/Qwen3-8B-4bit";
+const DISCLOSURE = "Cara is the dedicated demonstration model of Cornerstone AI Assets. Every client asset maps onto private, unique reference weights — ensuring their content remains consistently them, not us.";
+const PEOPLE = [
+  ["cara", "Cara", "Direct · dry · disciplined · British"],
+  ["lila", "Lila", "Warm · measured · observant · understated"],
+  ["cara_lila", "Cara + Lila", "Distinct personalities · chemistry · contrast"],
+];
+const PUBLIC_BIBLES = {
+  cara: "Cara Whitmore. Adult fictional creator. Direct, dry, disciplined, British. Training, discipline, money, work, routines, confidence, humour, ordinary life and specific observations. Practical, understated. Never generic motivational filler.",
+  lila: "Lila Sterling. Adult fictional creator. Warm, measured, observant, understated. Lifestyle, travel, wellness, beauty, routines, quiet opinions, small observations and believable aspiration. Calm, not loud. Never generic influencer filler.",
+  duo: "Cara + Lila are two separate adult fictional creators. Cara is direct, dry, disciplined and British. Lila is warm, measured, observant and understated. Shared content uses contrast, chemistry, banter, lifestyle and small believable interactions. Never merge their identities.",
+};
+const FANVUE_PURPOSES = {
+  "Personal post": "Private-page lifestyle. Bedroom, lounge, balcony, poolside or travel. Attractive, personal and intimate without explicit nudity.",
+  "Photo set": "Cohesive private-page set. Resort, pool, sunbed, bedroom or terrace. Swimwear, fitted lounge pieces or tasteful boudoir styling. One believable environment and consistent light/wardrobe.",
+  "Personality": "Private-page personality. Getting ready, lazy morning, kitchen, bedroom, lounge, pool or travel. Human and playful with a teasing undertone.",
+  "Interaction": "Direct-to-subscriber scene. Close selfie, bed, lounge chair, sunbed, balcony or pool edge. Eye contact, playful expression and a reason to reply.",
+  "Tease": "Private-page teaser. Resort/boudoir/editorial mood, swimwear, silk or fitted lounge styling, confident direct gaze, suggestive framing and a sense there is more behind the paywall. Clothed and non-explicit.",
+  "Behind the scenes": "Getting ready, fixing hair, choosing an outfit, poolside, hotel room, sunbed, travel day or preparing a shoot. Flirty, candid and imperfect.",
+};
+const CAROUSEL = ["Story / conflict", "Useful list", "Identity / aspiration", "Quick hit", "Proof / comparison", "Visual reveal"];
+const ADVANCED = [["h3", "MiniMax H3", 8], ["kling", "Kling 3.0 Pro", 5], ["seedance", "Seedance 2.0 Fast", 10], ["grok", "Grok Imagine Video", 6]];
+
+function parse(text) {
+  const s = String(text || "").replace(/```json|```/g, "").trim();
+  try { return JSON.parse(s); } catch {}
+  const m = s.match(/\{[\s\S]*\}/);
+  if (m) return JSON.parse(m[0]);
+  throw new Error("Qwen returned invalid JSON");
+}
+const idFor = (p) => (p === "cara_lila" ? "duo" : p);
+const nameFor = (p) => PEOPLE.find((x) => x[0] === p)?.[1] || "Cara";
+function jsonNotes(x) { try { return x?.notes ? JSON.parse(x.notes) : {}; } catch { return {}; } }
+async function qwen(title, persona, system, user, jobType = "content_package") {
+  const { data, error } = await supabase.from("local_ai_jobs").insert({ title, job_type: jobType, model: QWEN, persona_id: idFor(persona), system_prompt: system, user_prompt: user, options: { max_tokens: 3000, temperature: 0.62 }, status: "queued", production_status: "not_started" }).select("id").single();
+  if (error) throw error;
+  return data.id;
+}
+async function waitQwen(id, setMessage) {
+  const end = Date.now() + 8 * 60 * 1000;
+  while (Date.now() < end) {
+    await new Promise((r) => setTimeout(r, 3500));
+    const { data, error } = await supabase.from("local_ai_jobs").select("status,result,error_message").eq("id", id).maybeSingle();
+    if (error) throw error;
+    if (!data) throw new Error("Qwen job disappeared.");
+    if (data.status === "completed") return data.result || "";
+    if (data.status === "error") throw new Error(data.error_message || "Qwen failed.");
+    setMessage(`Qwen is working locally… ${data.status}`);
+  }
+  throw new Error("Qwen timed out. Make sure the local Qwen worker is running.");
+}
+async function waitImage(r, setMessage) {
+  const end = Date.now() + 4 * 60 * 1000;
+  while (Date.now() < end) {
+    await new Promise((x) => setTimeout(x, 3000));
+    const res = await fetch("/api/generate-poll", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ request_id: r.requestId, type: "image", status_url: r.statusUrl, result_url: r.resultUrl }) });
+    const d = await res.json();
+    if (!res.ok) throw new Error(d?.error || "Image poll failed");
+    if (d.status === "COMPLETED") return d.imageUrl || d.url;
+    if (d.status === "FAILED") throw new Error(d?.error || "Image generation failed");
+    setMessage(`Generating image… ${d.status}`);
+  }
+  throw new Error("Image generation timed out.");
+}
+async function waitVideo(r, setMessage) {
+  const end = Date.now() + 10 * 60 * 1000;
+  const provider = r.providerKey || r.provider;
+  while (Date.now() < end) {
+    await new Promise((x) => setTimeout(x, 3500));
+    const res = await fetch("/api/track-b-video-poll", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ requestId: r.requestId, model: r.model, provider, statusUrl: r.statusUrl, action: "status" }),
+    });
+    const d = await res.json();
+    if (!res.ok) throw new Error(d?.error || "Video poll failed");
+    if (["FAILED", "CANCELLED"].includes(d.status)) throw new Error(d.detail || `Video generation ${String(d.status).toLowerCase()}`);
+    if (d.status === "COMPLETED") {
+      const rr = await fetch("/api/track-b-video-poll", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ requestId: r.requestId, model: r.model, provider, action: "result" }) });
+      const out = await rr.json();
+      if (!rr.ok || !out.videoUrl) throw new Error(out?.error || "Completed video returned no URL");
+      return out.videoUrl;
+    }
+    setMessage(`Generating reel… ${d.status || "working"}`);
+  }
+  throw new Error("Video generation timed out.");
+}
+function download(url, name) {
+  if (!url) return;
+  const a = document.createElement("a"); a.href = url; a.download = name; a.target = "_blank";
+  document.body.appendChild(a); a.click(); a.remove();
+}
+
+export default function AICreatorWorkspaceFlowV2() {
+  const [persona, setPersona] = useState("cara");
+  const [type, setType] = useState("social");
+  const [platform, setPlatform] = useState("Instagram Reels");
+  const [goal, setGoal] = useState("Reach / attention");
+  const [fanvue, setFanvue] = useState("Personal post");
+  const [carousel, setCarousel] = useState("Story / conflict");
+  const [brief, setBrief] = useState("");
+  const [items, setItems] = useState([]);
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState("");
+  const [advanced, setAdvanced] = useState("seedance");
+  const [duration, setDuration] = useState("10");
+  const personName = nameFor(persona);
+  const bible = PUBLIC_BIBLES[persona === "cara_lila" ? "duo" : persona];
+
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase.from("content_queue").select("id,persona_id,persona_name,platform,status,caption,image_url,image_urls,video_url,content_label,hook,cta,notes,created_at,post_type").like("content_label", "%AI Creator%").order("created_at", { ascending: false }).limit(50);
+      if (data) setItems(data.map((x) => ({ ...x, stage: x.video_url ? "video_ready" : x.image_url ? "image_ready" : "review" })));
+    })();
+  }, []);
+
+  const context = [
+    `CONTENT TYPE: ${type}`,
+    type === "social" ? `PLATFORM: ${platform}\nGOAL: ${goal}` : "",
+    type === "fanvue" ? `FANVUE PURPOSE: ${fanvue}\nFANVUE VISUAL RULE: ${FANVUE_PURPOSES[fanvue]}` : "",
+    type === "carousel" ? `CAROUSEL STRUCTURE: ${carousel}. Build 5–7 slides.` : "",
+    brief.trim() ? `OPTIONAL USER DIRECTION: ${brief.trim()}` : "OPTIONAL USER DIRECTION: none. Choose the strongest idea from the persona bible yourself.",
+  ].filter(Boolean).join("\n");
+
+  async function generate() {
+    setBusy(true); setMsg("Writing the idea, then running the Human Quality Gate…");
+    try {
+      const writer = `You are the senior creative director for CornerstoneAIAssets. The selected creator is ${personName}. PERSONA BIBLE:\n${bible}\n\nNEVER MIX BUSINESS TRACKS. Never insert dealership, car-sales, automotive, client-brand or Cornerstone AI Group material into Cara, Lila or Cara + Lila content.\n\nHUMAN RULES:\n- Start from a believable human moment, observation, opinion, tension, useful detail, joke or question.\n- The visual must literally make sense with the hook and caption.\n- Setting, wardrobe, props and action must belong together.\n- Never invent facts, testimonials, results, locations or personal experiences.\n- No generic influencer filler, random pretty scenes or sterile ad staging.\n- If no brief is supplied, choose a coherent idea from the persona's world.\n- Fanvue is private-page creator content: bedrooms, lounges, resorts, pools, sunbeds, terraces, beach, getting-ready, swimwear, loungewear and tasteful boudoir styling are appropriate; keep adult and non-explicit. Never put Fanvue in a dealership or B2B setting.\n- Carousel must be one coherent story/visual thread.\nReturn JSON only.`;
+      const user = `CREATOR: ${personName}\n${context}\nReturn exactly {"hook":"","script":"","caption":"","cta":"","image_prompt":"","video_prompt":"","creative_reason":"","carousel_slides":[{"slide":1,"text":"","image_prompt":""}]}.`;
+      const draft = parse(await waitQwen(await qwen(`AI Creator · ${personName} · draft`, persona, writer, user), setMsg));
+
+      const checker = `You are the Human Quality Gate for CornerstoneAIAssets. Score this draft 0–100 and rewrite it. Reject/rewrite if it is generic AI slop, visually incoherent, mismatched wardrobe/location/action, random props, mixed business tracks, bland/public-looking Fanvue content, or disconnected carousel slides. The creator must plausibly post it. Return {"score":0,"revised":{same fields}} only.`;
+      const audit = parse(await waitQwen(await qwen(`AI Creator · ${personName} · human check`, persona, checker, `BIBLE:\n${bible}\nCONTEXT:\n${context}\nDRAFT:\n${JSON.stringify(draft)}`, "creative_human_check"), setMsg));
+      if (Number(audit.score || 0) < 72) throw new Error("Human Quality Gate rejected the concept. Generate again.");
+      const final = { ...draft, ...(audit.revised || {}) };
+      let caption = final.caption || "";
+      if (type === "fanvue" && !caption.includes(DISCLOSURE)) caption = `${caption}\n\n${DISCLOSURE}`.trim();
+      const row = {
+        id: crypto.randomUUID(), persona_id: idFor(persona), persona_name: personName,
+        platform: type === "fanvue" ? "fv_page" : type === "carousel" ? "TikTok Photo Mode" : platform,
+        status: "review", pillar: type === "fanvue" ? fanvue : type === "carousel" ? carousel : goal,
+        hook: final.hook || "", caption, cta: final.cta || null,
+        photo_direction: final.image_prompt || "", photo_idea: final.image_prompt || "",
+        post_type: type === "carousel" ? "carousel" : "single_photo",
+        content_label: `AI Creator · ${personName} · ${type}`,
+        image_prompt: final.image_prompt || "", image_url: null, image_urls: null, video_url: null,
+        scheduled_date: new Date().toISOString().slice(0,10), scheduled_time: new Date().toTimeString().slice(0,5),
+        notes: JSON.stringify({ script: final.script || "", video_prompt: final.video_prompt || "", creative_reason: final.creative_reason || "", human_audit: audit, carousel_slides: Array.isArray(final.carousel_slides) ? final.carousel_slides : [], fanvuePurpose: type === "fanvue" ? fanvue : null }),
+      };
+      const { error } = await supabase.from("content_queue").upsert(row, { onConflict: "id" }); if (error) throw error;
+      setItems((x) => [{ ...row, stage: "review" }, ...x]); setBrief(""); setMsg("Ready in Review Queue. Caption is already written; no image spend yet.");
+    } catch (e) { setMsg(e.message || String(e)); } finally { setBusy(false); }
+  }
+
+  async function image(item) {
+    setBusy(true); setMsg(`Generating ${item.persona_name}'s image…`);
+    try {
+      const n = jsonNotes(item);
+      const r = await fetch("/api/generate-submit", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ imagePrompt: item.image_prompt || item.photo_direction, photo_idea: item.photo_idea, hook: item.hook, caption: item.caption, photoDirection: n.video_prompt || item.photo_direction, personaId: item.persona_id }) });
+      const q = await r.json(); if (!r.ok) throw new Error(q?.detail || q?.error || "Image generation failed");
+      const url = await waitImage(q, setMsg); const up = { image_url: url, image_urls: [url], status: "draft" };
+      const { error } = await supabase.from("content_queue").update(up).eq("id", item.id); if (error) throw error;
+      setItems((xs) => xs.map((x) => x.id === item.id ? { ...x, ...up, stage: "image_ready" } : x)); setMsg("Image ready. Download it or turn this same image into a Reel.");
+    } catch (e) { setMsg(e.message || String(e)); } finally { setBusy(false); }
+  }
+
+  async function carouselMedia(item) {
+    const n = jsonNotes(item), slides = n.carousel_slides || [];
+    if (!slides.length) return image(item);
+    setBusy(true); setMsg(`Generating ${slides.length} coherent carousel slides…`);
+    try {
+      const urls = [];
+      for (const s of slides) {
+        const r = await fetch("/api/generate-submit", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ imagePrompt: s.image_prompt || item.image_prompt, photo_idea: s.image_prompt || item.photo_idea, hook: s.text || item.hook, caption: item.caption, personaId: item.persona_id }) });
+        const q = await r.json(); if (!r.ok) throw new Error(q?.detail || q?.error || "Carousel image failed"); urls.push(await waitImage(q, setMsg));
+      }
+      const up = { image_url: urls[0], image_urls: urls, status: "draft" }; const { error } = await supabase.from("content_queue").update(up).eq("id", item.id); if (error) throw error;
+      setItems((xs) => xs.map((x) => x.id === item.id ? { ...x, ...up, stage: "image_ready" } : x)); setMsg("Carousel ready. Slides stay attached to the same content record.");
+    } catch (e) { setMsg(e.message || String(e)); } finally { setBusy(false); }
+  }
+
+  async function reel(item, provider="grok", secs=6) {
+    if (!item.image_url) return setMsg("Generate the image first.");
+    setBusy(true); const simple = provider === "grok" && secs <= 6; setMsg(`Generating ${simple ? "Simple Reel" : ADVANCED.find(x=>x[0]===provider)?.[1] || provider}…`);
+    try {
+      const n = jsonNotes(item);
+      const prompt = [n.video_prompt || item.photo_direction || item.photo_idea, "Preserve exact person, face, hair, body proportions, wardrobe and environment. No identity drift. No new people, location or unrelated objects.", simple ? "One continuous 5–6 second social shot with subtle camera drift, natural breathing, blink, tiny posture shift and environmental motion." : "Advanced 5–15 second production shot with deliberate camera behaviour, physical action, continuity, timed beats and a clear payoff."].join(" ");
+      const r = await fetch("/api/track-b-video-submit", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ imageUrl: item.image_url, prompt, provider, duration: Number(secs), resolution: "720p", aspectRatio: "9:16" }) });
+      const q = await r.json(); if (!r.ok) throw new Error(q?.error || "Video submit failed");
+      const url = await waitVideo(q, setMsg);
+      const n2 = { ...n, video_provider: q.providerKey || provider, video_model: q.model, video_duration: secs };
+      const up = { video_url: url, status: "draft", notes: JSON.stringify(n2) }; const { error } = await supabase.from("content_queue").update(up).eq("id", item.id); if (error) throw error;
+      setItems((xs) => xs.map((x) => x.id === item.id ? { ...x, ...up, stage: "video_ready" } : x)); setMsg("Reel ready. It is saved beside the original image.");
+    } catch (e) { setMsg(e.message || String(e)); } finally { setBusy(false); }
+  }
+
+  return <div style={{ minHeight: "100vh", background: "#08090d", color: "#f7f7f8", padding: "34px 36px 80px", fontFamily: "Inter,system-ui,sans-serif" }}>
+    <div style={{ maxWidth: 1180, margin: "0 auto" }}>
+      <div className="cw-head"><div><div className="cw-kicker">CornerstoneAIAssets · Track B</div><h1>AI Creator</h1><p>Cara + Lila creative laboratory. One flow: create → review → image → reel.</p></div></div>
+      <section className="cw-card">
+        <div className="cw-step">1 · Choose the creator</div>
+        <div className="cw-mode-row">{PEOPLE.map(([id,name,note])=><button key={id} className={persona===id?"on":""} onClick={()=>setPersona(id)}>{name}<small style={{display:"block",marginTop:4,fontWeight:500,opacity:.65}}>{note}</small></button>)}</div>
+        <div className="cw-block"><div className="cw-step">2 · Choose the content lane</div><div className="cw-mode-row">{[["social","Social post"],["carousel","Carousel"],["fanvue","Fanvue"]].map(([id,label])=><button key={id} className={type===id?"on":""} onClick={()=>setType(id)}>{label}</button>)}</div></div>
+        {type==="social"&&<div className="cw-grid four" style={{marginTop:16}}><label>Platform<select style={{width:"100%",boxSizing:"border-box",background:"#151822",color:"#fff",border:"1px solid #2a3040",borderRadius:9,padding:10}} value={platform} onChange={e=>setPlatform(e.target.value)}>{PLATFORMS.map(x=><option key={x}>{x}</option>)}</select></label><label>Goal<select style={{width:"100%",boxSizing:"border-box",background:"#151822",color:"#fff",border:"1px solid #2a3040",borderRadius:9,padding:10}} value={goal} onChange={e=>setGoal(e.target.value)}>{["Reach / attention","Engagement","Lifestyle / filler","Product discovery","Conversion","Story / personality","Proof / authority"].map(x=><option key={x}>{x}</option>)}</select></label><div style={{gridColumn:"span 2"}}/></div>}
+        {type==="fanvue"&&<div className="cw-block"><div className="cw-label">Fanvue purpose</div><div className="cw-options">{Object.keys(FANVUE_PURPOSES).map(x=><button key={x} className={fanvue===x?"on":""} onClick={()=>setFanvue(x)}><b>{x}</b><span>{FANVUE_PURPOSES[x]}</span></button>)}</div></div>}
+        {type==="carousel"&&<div className="cw-block"><div className="cw-label">Carousel structure</div><div className="cw-options">{CAROUSEL.map(x=><button key={x} className={carousel===x?"on":""} onClick={()=>setCarousel(x)}><b>{x}</b><span>One connected visual story. Every slide earns the next swipe.</span></button>)}</div></div>}
+        <label className="cw-full">What do you want to create? <span>Optional — leave blank and the character chooses.</span><textarea value={brief} onChange={e=>setBrief(e.target.value)} placeholder="Optional topic, product, situation or idea."/></label>
+        <button className="cw-primary" disabled={busy} onClick={generate}>{busy?"Working…":"Generate Content"}</button>
+      </section>
+      <section className="cw-card">
+        <div className="cw-step">3 · Review Queue</div><div className="cw-test-intro">AI writes the content first. The Human Quality Gate checks it before you spend on an image. The caption is ready here.</div>
+        <div className="cw-list">{items.map(item=>{const n=jsonNotes(item),isCarousel=Array.isArray(n.carousel_slides)&&n.carousel_slides.length>0;return <article key={item.id} className="cw-row"><div><b>{item.persona_name}</b><span>{item.content_label}</span><span>{item.platform}</span></div><div><div className="cw-row-caption"><strong>{item.hook}</strong>{item.caption?`\n\n${item.caption}`:""}</div><div className="cw-actions">{!item.image_url&&<button className="cw-primary" disabled={busy} onClick={()=>isCarousel?carouselMedia(item):image(item)}>{isCarousel?"Generate Carousel":"Generate Image"}</button>}{item.image_url&&<button className="cw-secondary" onClick={()=>download(item.image_url,`${item.persona_name}-image.jpg`)}>Download Image</button>}{item.image_url&&!item.video_url&&<button className="cw-secondary" disabled={busy} onClick={()=>reel(item,"grok",6)}>Simple Reel</button>}{item.image_url&&!item.video_url&&<><select style={{width:180,background:"#151822",color:"#fff",border:"1px solid #2a3040",borderRadius:9,padding:10}} value={advanced} onChange={e=>setAdvanced(e.target.value)}>{ADVANCED.map(([id,label])=><option key={id} value={id}>{label}</option>)}</select><select style={{width:100,background:"#151822",color:"#fff",border:"1px solid #2a3040",borderRadius:9,padding:10}} value={duration} onChange={e=>setDuration(e.target.value)}><option value="5">5 sec</option><option value="6">6 sec</option><option value="8">8 sec</option><option value="10">10 sec</option><option value="15">15 sec</option></select><button className="cw-secondary" disabled={busy} onClick={()=>reel(item,advanced,Number(duration))}>Advanced Reel</button></>}{item.video_url&&<button className="cw-secondary" onClick={()=>download(item.video_url,`${item.persona_name}-reel.mp4`)}>Download Reel</button>}</div>{item.image_url&&<div className="cw-media"><div className="cw-media-main"><img src={item.image_url} alt="Generated creator"/></div>{isCarousel&&Array.isArray(item.image_urls)&&item.image_urls.length>1&&<div className="cw-thumbs">{item.image_urls.map((u,i)=><img key={i} src={u} alt={`Slide ${i+1}`}/>)}</div>}{item.video_url&&<video className="cw-result-video" controls src={item.video_url} style={{marginTop:12}}/></div>}</div></article>})}</div>{!items.length&&<div className="cw-empty">Nothing in Review Queue yet.</div>}
+      </section>
+      {msg&&<div className="cw-status">{msg}</div>}
+    </div>
+  </div>;
+}
