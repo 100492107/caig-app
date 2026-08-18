@@ -114,10 +114,16 @@ func uniqueDestination(_ url: URL) -> URL {
     let dir = url.deletingLastPathComponent()
     var i = 2
     while true {
-        let candidate = dir.appendingPathComponent("\(stem) (\(i)).\(ext)")
+        let filename = ext.isEmpty ? "\(stem) (\(i))" : "\(stem) (\(i)).\(ext)"
+        let candidate = dir.appendingPathComponent(filename)
         if !fm.fileExists(atPath: candidate.path) { return candidate }
         i += 1
     }
+}
+
+func csvEscape(_ value: String) -> String {
+    let escaped = value.replacingOccurrences(of: "\"", with: "\"\"")
+    return "\"\(escaped)\""
 }
 
 let sources = [downloads, documents].filter { fm.fileExists(atPath: $0.path) }
@@ -168,7 +174,7 @@ for url in candidates {
         let folder = assetsRoot.appendingPathComponent("99_UNCERTAIN", isDirectory: true)
         ensure(folder)
         let dest = uniqueDestination(folder.appendingPathComponent(url.lastPathComponent))
-        csv += "\"\(url.path.replacingOccurrences(of: \"\"\", with: \"\"\"\"))\",\"\(dest.path.replacingOccurrences(of: \"\"\", with: \"\"\"\"))\",uncertain,\(confidence),\"\(reason)\"\n"
+        csv += "\(csvEscape(url.path)),\(csvEscape(dest.path)),uncertain,\(String(format: \"%.3f\", confidence)),\(csvEscape(reason))\n"
         if apply { try? fm.moveItem(at: url, to: dest) }
         continue
     }
@@ -177,8 +183,11 @@ for url in candidates {
     let folder = targetFolder(person: person, mode: mode)
     ensure(folder)
     let dest = uniqueDestination(folder.appendingPathComponent(url.lastPathComponent))
-    csv += "\"\(url.path.replacingOccurrences(of: \"\"\", with: \"\"\"\"))\",\"\(dest.path.replacingOccurrences(of: \"\"\", with: \"\"\"\"))\",\(person),\(confidence),\"\(reason)\"\n"
-    if apply { try? fm.moveItem(at: url, to: dest); moves += 1 }
+    csv += "\(csvEscape(url.path)),\(csvEscape(dest.path)),\(person),\(String(format: \"%.3f\", confidence)),\(csvEscape(reason))\n"
+    if apply {
+        try? fm.moveItem(at: url, to: dest)
+        moves += 1
+    }
 }
 
 try? csv.write(to: logURL, atomically: true, encoding: .utf8)
