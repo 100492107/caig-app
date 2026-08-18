@@ -4,20 +4,29 @@ import "./appLanding.css";
 export default function AppLanding() {
   return (
     <main className="app-launcher">
-      <nav className="landing-nav">
-        <a href="/" className="landing-brand"><img src="/logo.png" alt="Cornerstone AI Assets" /></a>
-        <div className="landing-nav-links"><a href="#system">The system</a><a href="#content">What it creates</a><a href="#workflow">How it works</a><a className="landing-nav-cta" href="/creative">Open Creator</a></div>
-      </nav>
-      <section className="landing-hero">
-        <div className="hero-copy"><div className="eyebrow">CORNERSTONE AI ASSETS · CREATOR SYSTEM</div><h1>Build an AI creator.<br /><em>Not just an AI face.</em></h1><p className="hero-lead">Create a consistent digital person you can use again and again — for lifestyle content, carousels, Reels, product scenes and private-page content.</p><div className="hero-actions"><a className="btn-primary" href="/creative">Build with AI Creator <span>↗</span></a><a className="btn-quiet" href="#workflow">See how it works</a></div><div className="hero-proof"><span>Same identity</span><span>Same style</span><span>New content</span><span>One workflow</span></div></div>
-        <div className="hero-system-card"><div className="system-card-top"><span>THE CREATOR LOOP</span><span className="live-dot">LIVE SYSTEM</span></div><div className="system-visual"><div className="system-node node-creator"><b>CHARACTER</b><small>identity · voice · style</small></div><div className="system-arrow">↓</div><div className="system-node"><b>AI CREATOR</b><small>idea · script · visual direction</small></div><div className="system-arrow">↓</div><div className="system-node"><b>HUMAN QUALITY GATE</b><small>reject the AI slop</small></div><div className="system-arrow">↓</div><div className="system-node output-node"><b>CONTENT</b><small>image · carousel · Reel · caption</small></div></div></div>
-      </section>
-      <section id="system" className="landing-section"><div className="section-kicker">THE DIFFERENCE</div><div className="section-grid"><div><h2>Pretty faces are easy.<br /><span>Consistency is the product.</span></h2></div><div className="section-copy"><p>Most AI creator workflows stop when they generate a convincing portrait. That is where the useful part should begin.</p><p>Cornerstone AI Assets is built around a reusable creator system: protect the character&apos;s identity, give her a believable point of view, create coherent scenes, then turn the approved idea into the finished media you actually post.</p></div></div><div className="principle-grid"><article><span>01</span><h3>Character Bible</h3><p>Identity, personality, visual rules, voice and content worlds live in one source of truth.</p></article><article><span>02</span><h3>Creative Director</h3><p>Qwen turns the character into specific, believable ideas instead of generic influencer filler.</p></article><article><span>03</span><h3>Human Quality Gate</h3><p>Bad concepts are rejected before you spend money generating the media.</p></article><article><span>04</span><h3>Production</h3><p>Generate the image, keep it, then turn that same asset into social, carousel or video content.</p></article></div></section>
-      <section id="content" className="landing-section content-section"><div className="section-kicker">ONE CHARACTER · MANY FORMATS</div><div className="content-head"><div><h2>One creator.<br /><span>Hundreds of content possibilities.</span></h2></div><p>Build the person once. Give the system a blank brief and it can decide what she should post — or take a campaign idea when you already know what you want.</p></div><div className="format-grid"><article className="format-card format-featured"><span className="format-index">01</span><h3>Social posts</h3><p>Believable lifestyle moments with a ready-to-use caption, visual direction and CTA.</p><div className="format-tag">IMAGE + CAPTION</div></article><article className="format-card"><span className="format-index">02</span><h3>Carousels</h3><p>5–7 connected slides with on-image hooks and a complete post caption.</p><div className="format-tag">SWIPE-FIRST</div></article><article className="format-card"><span className="format-index">03</span><h3>Simple Reels</h3><p>One approved image turned into a short, natural motion clip. The original stays intact.</p><div className="format-tag">FAST MOTION</div></article><article className="format-card"><span className="format-index">04</span><h3>Advanced Reels</h3><p>Director-style prompts for H3, Kling, Seedance and Grok when the shot needs more.</p><div className="format-tag">PREMIUM MOTION</div></article><article className="format-card"><span className="format-index">05</span><h3>Private creator content</h3><p>Dedicated lifestyle and Fanvue modes built around a private-page content world.</p><div className="format-tag">PRIVATE MODE</div></article><article className="format-card"><span className="format-index">06</span><h3>Brand-ready systems</h3><p>Replace Cara or Lila with a client&apos;s own references and the same workflow becomes their content engine.</p><div className="format-tag">FOR BRANDS</div></article></div></section>
-      <section id="workflow" className="landing-section workflow-section"><div className="section-kicker">FROM IDEA TO POST</div><h2 className="workflow-title">A connected workflow.<br /><span>No prompt soup.</span></h2><div className="workflow-steps"><div className="workflow-step"><span>01</span><b>Choose the creator</b><p>Cara, Lila or both.</p></div><div className="workflow-connector">→</div><div className="workflow-step"><span>02</span><b>Generate content</b><p>Blank brief or your own direction.</p></div><div className="workflow-connector">→</div><div className="workflow-step"><span>03</span><b>Review first</b><p>Caption ready. No image spend yet.</p></div><div className="workflow-connector">→</div><div className="workflow-step"><span>04</span><b>Generate the image</b><p>Keep the original asset.</p></div><div className="workflow-connector">→</div><div className="workflow-step"><span>05</span><b>Make the media</b><p>Download, Simple Reel or Advanced Reel.</p></div></div></section>
-      <section className="landing-proof"><div className="proof-quote">“The goal was never one pretty image.<br />It was a character you could use again and again.”</div><div className="proof-sub">Cara + Lila are the live laboratory for the system.</div></section>
-      <section className="landing-cta"><img src="/logo.png" alt="Cornerstone AI Assets" className="cta-logo" /><div><div className="section-kicker">READY TO BUILD</div><h2>Turn a character into a content engine.</h2><p>Start with Cara or Lila. Build the workflow. Then copy it for a real creator, brand or client.</p></div><a className="btn-primary" href="/creative">Open the AI Creator <span>↗</span></a></section>
-      <footer className="landing-footer"><span>© 2026 Cornerstone AI Assets</span><div><a href="/creative">AI Creator</a><a href="#system">System</a><a href="#workflow">Workflow</a></div></footer>
+      <div className="app-launcher-card">
+        <div className="app-kicker">CORNERSTONE AI GROUP</div>
+        <h1>Where do you want to work?</h1>
+        <p className="app-sub">Choose the workspace you need.</p>
+        <div className="app-choice-grid">
+          <a className="app-choice" href="/creative">
+            <div className="app-choice-number">01</div>
+            <div>
+              <h2>Creative Engine</h2>
+              <p>Develop ideas, test hypotheses, create media, review and publish.</p>
+            </div>
+            <span>Open →</span>
+          </a>
+          <a className="app-choice" href="/main-app">
+            <div className="app-choice-number">02</div>
+            <div>
+              <h2>Main App</h2>
+              <p>Content Engine, UGC Centre, clients, review queue, calendar and operations.</p>
+            </div>
+            <span>Open →</span>
+          </a>
+        </div>
+      </div>
     </main>
   );
 }
