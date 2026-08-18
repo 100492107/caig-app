@@ -11,6 +11,13 @@
     "mpt:worker": "node scripts/mpt-worker.mjs",
     "caption:worker": "node --env-file=.env.qwen.local scripts/caption-worker.mjs",
     "caption:whisper": ".venv-caption/bin/python scripts/mlx-whisper-server.py",
+    "caption:whisper:setup": "bash scripts/setup-local-caption-worker.sh",
+    "caption:whisper:health": "curl -fsS http://127.0.0.1:8787/health",
+    "caption:whisper:check": "bash -lc 'test -x .venv-caption/bin/python && echo READY || echo NOT_INSTALLED'",
+    "caption:whisper:start": "bash scripts/run-local-whisper.sh",
+    "caption:whisper:install": "bash scripts/setup-local-caption-worker.sh",
+    "caption:whisper:status": "bash -lc 'curl -fsS http://127.0.0.1:8787/health || true'",
+    "caption:whisper:server": ".venv-caption/bin/python scripts/mlx-whisper-server.py",
     "qwen:server": "bash scripts/run-local-qwen.sh",
     "qwen:worker": "node --env-file=.env.qwen.local scripts/qwen-worker.mjs"
   },
