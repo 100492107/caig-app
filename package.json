@@ -8,7 +8,9 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "mpt:worker": "node scripts/mpt-worker.mjs"
+    "mpt:worker": "node scripts/mpt-worker.mjs",
+    "caption:worker": "node scripts/caption-worker.mjs",
+    "caption:whisper": ".venv-caption/bin/python scripts/mlx-whisper-server.py"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.104.1",
