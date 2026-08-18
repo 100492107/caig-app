@@ -14,7 +14,7 @@ function normaliseSupabaseUrl(value) {
 const SUPABASE_URL = normaliseSupabaseUrl(process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL);
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const FFMPEG_BIN = process.env.FFMPEG_BIN || 'ffmpeg';
-const WHISPER_URL = (process.env.WHISPER_URL || '').replace(/\/$/, '');
+const WHISPER_URL = (process.env.WHISPER_URL || 'http://127.0.0.1:8787').replace(/\/$/, '');
 const CAPTION_POLL_MS = Number(process.env.CAPTION_POLL_MS || 4000);
 const WORKER_IDLE_MS = Number(process.env.CAPTION_IDLE_MS || 4000);
 
@@ -209,7 +209,7 @@ async function processJob(job) {
   }
 }
 
-console.log(`[CAPTION] worker online. ffmpeg=${FFMPEG_BIN}; whisper=${WHISPER_URL || 'disabled'}; supabase=${SUPABASE_URL}`);
+console.log(`[CAPTION] worker online. ffmpeg=${FFMPEG_BIN}; whisper=${WHISPER_URL}; supabase=${SUPABASE_URL}`);
 for (;;) {
   try {
     const job = await claimJob();
