@@ -6,6 +6,7 @@ import CornerstoneAIAssetsProductionStudio from "./CornerstoneAIAssetsProduction
 import TrackBAssetLibrary from "./TrackBAssetLibraryV2.jsx";
 import FanvueStudio from "./FanvueStudio.jsx";
 import CaptionStudio from "./CaptionStudio.jsx";
+import LocalAIStudio from "./LocalAIStudio.jsx";
 
 const pane = (visible) => ({ display: visible ? "block" : "none" });
 
@@ -17,6 +18,7 @@ export default function CreativeEngineHub() {
     ["formats", "Distribution Lab"],
     ["slideshow", "Carousel Studio"],
     ["captions", "Caption Studio"],
+    ["localai", "Local AI"],
     ["fanvue", "Fanvue Studio"],
     ["production", "CornerstoneAIAssets Production"],
   ];
@@ -33,6 +35,7 @@ export default function CreativeEngineHub() {
     <div style={pane(view === "formats")}><DistributionLab /></div>
     <div style={pane(view === "slideshow")}><TikTokSlideshowStudio /></div>
     <div style={pane(view === "captions")}><CaptionStudio /></div>
+    <div style={pane(view === "localai")}><LocalAIStudio /></div>
     <div style={pane(view === "fanvue")}><FanvueStudio /></div>
     <div style={pane(view === "production")}><CornerstoneAIAssetsProductionStudio /></div>
   </div>;
