@@ -7,7 +7,7 @@ const button = { border: "1px solid #303648", background: "#151924", color: "#ee
 const primary = { ...button, borderColor: "#d4af37", background: "rgba(212,175,55,.14)", color: "#f7d77b" };
 
 const DEFAULT_SYSTEM = `You are the local creative director for CornerstoneAIAssets. Write specific, human, socially native creative output. Prefer concrete details, strong hooks and useful structure. Avoid generic AI phrasing, hustle-bro language, fabricated claims and empty adjectives. When writing for Cara or Lila, preserve the established persona and voice supplied by the user.`;
-const MODEL = "orcarouter/Qwen3.8-27B-Uncensored-MLX";
+const MODEL = "mlx-community/Qwen3-8B-4bit";
 
 export default function LocalAIStudio() {
   const [title, setTitle] = useState("Local Qwen test");
@@ -58,7 +58,7 @@ export default function LocalAIStudio() {
     <div style={{ minHeight: "100vh", background: "#08070d", color: "#eef1f7", padding: "28px 32px 72px", fontFamily: "Inter, system-ui, sans-serif" }}>
       <div style={{ maxWidth: 1180, margin: "0 auto 18px" }}>
         <div style={{ textTransform: "uppercase", letterSpacing: ".16em", fontSize: 10, color: "#d4af37", fontWeight: 800 }}>CornerstoneAIAssets · Local AI</div>
-        <h1 style={{ margin: "8px 0 5px", fontSize: 32, letterSpacing: "-.04em" }}>Qwen3.8 Local Brain</h1>
+        <h1 style={{ margin: "8px 0 5px", fontSize: 32, letterSpacing: "-.04em" }}>Qwen Local Brain</h1>
         <p style={{ margin: 0, color: "#8d95a7", fontSize: 13 }}>Cloud UI + Supabase queue. Your Mac runs the model locally.</p>
       </div>
 
@@ -73,7 +73,7 @@ export default function LocalAIStudio() {
             <div style={{ ...card, background: "#0a0c12" }}>
               <div style={{ fontSize: 10, textTransform: "uppercase", color: "#6f788b" }}>Local model</div>
               <div style={{ fontWeight: 900, marginTop: 6 }}>{MODEL}</div>
-              <div style={{ color: "#7f8798", fontSize: 11, marginTop: 4 }}>Default request: 768 output tokens · temperature 0.8</div>
+              <div style={{ color: "#7f8798", fontSize: 11, marginTop: 4 }}>Public MLX Qwen3 8B · 4-bit · ~4.62 GB model files · starter configuration for your 16 GB M1 Pro</div>
             </div>
             <button style={primary} onClick={queue} disabled={busy}>{busy ? "Queueing…" : "Queue to local Qwen"}</button>
             {message && <div style={{ color: "#b9c0cf", fontSize: 12, lineHeight: 1.5 }}>{message}</div>}
