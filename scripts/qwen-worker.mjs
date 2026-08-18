@@ -1,3 +1,6 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { createClient } from '@supabase/supabase-js';
 
 function normaliseSupabaseUrl(value) {
@@ -6,7 +9,6 @@ function normaliseSupabaseUrl(value) {
 
 function cleanModelOutput(value) {
   let text = String(value ?? '');
-  // Do not expose model reasoning blocks in CAIG results.
   text = text.replace(/<think>[\s\S]*?<\/think>/gi, '');
   text = text.replace(/<analysis>[\s\S]*?<\/analysis>/gi, '');
   text = text.replace(/<reasoning>[\s\S]*?<\/reasoning>/gi, '');
@@ -20,6 +22,7 @@ const QWEN_URL = (process.env.QWEN_URL || 'http://127.0.0.1:8000').replace(/\/$/
 const QWEN_MODEL = process.env.QWEN_MODEL || 'mlx-community/Qwen3-8B-4bit';
 const POLL_MS = Number(process.env.QWEN_POLL_MS || 4000);
 const IDLE_MS = Number(process.env.QWEN_IDLE_MS || 3000);
+const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
   console.error('Missing SUPABASE_URL/VITE_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY.');
@@ -31,6 +34,44 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
 });
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function readOptional(relativePath) {
+  try {
+    return await fs.readFile(path.join(REPO_ROOT, relativePath), 'utf8');
+  } catch {
+    return '';
+  }
+}
+
+async function loadCharacterContext(job) {
+  const persona = String(job.persona_id || '').toLowerCase();
+  const userPrompt = String(job.user_prompt || '').toLowerCase();
+  const isFanvue = /\bfanvue\b/.test(userPrompt);
+  const files = [];
+
+  if (persona === 'cara') {
+    files.push('personas/cara/CHARACTER_BIBLE.md');
+    files.push(isFanvue ? 'personas/cara/persona-fanvue.md' : 'personas/cara/persona.md');
+    files.push(isFanvue ? 'personas/cara/voice-fanvue.md' : 'personas/cara/voice.md');
+  } else if (persona === 'lila') {
+    files.push('personas/lila/persona.md');
+    if (isFanvue) files.push('personas/lila/persona-fanvue.md');
+  } else if (persona === 'duo' || persona === 'cara_lila') {
+    files.push('personas/duo/cara-lila.md');
+    files.push('personas/cara/CHARACTER_BIBLE.md');
+    files.push('personas/lila/persona.md');
+  }
+
+  const loaded = [];
+  for (const file of files) {
+    const content = await readOptional(file);
+    if (content.trim()) loaded.push(`### ${file}\n${content.trim()}`);
+  }
+
+  return loaded.length
+    ? `\n\nCHARACTER SOURCE OF TRUTH\nUse these files as the authoritative creative context. Do not invent a different personality, lifestyle world or relationship dynamic.\n\n${loaded.join('\n\n')}`
+    : '';
+}
 
 async function claimJob() {
   const { data, error } = await supabase
@@ -54,11 +95,15 @@ async function claimJob() {
   return claimed || null;
 }
 
-function buildSystemPrompt(job) {
+async function buildSystemPrompt(job) {
   const base = job.system_prompt || 'You are the local creative director for CornerstoneAIAssets.';
   const wantsPackage = ['video_package', 'content_package', 'repurpose'].includes(job.job_type);
-  if (!wantsPackage) return base;
-  return `${base}\n\nFor production-oriented jobs, return a clean, machine-friendly CONTENT PACKAGE with these headings in order:\nHOOK\nSCRIPT\nSHOT LIST\nVISUAL PROMPTS\nCAPTION PLAN\nB-ROLL\nEDIT NOTES\nCTA\nDo not include chain-of-thought or meta commentary. Write only the usable production output.`;
+  const characterContext = await loadCharacterContext(job);
+  const packageRules = wantsPackage
+    ? '\n\nFor production-oriented jobs, return a clean, machine-friendly CONTENT PACKAGE with these headings in order:\nHOOK\nSCRIPT\nSHOT LIST\nVISUAL PROMPTS\nCAPTION PLAN\nB-ROLL\nEDIT NOTES\nCTA\nDo not include chain-of-thought or meta commentary. Write only the usable production output.'
+    : '';
+
+  return `${base}${characterContext}${packageRules}\n\nGLOBAL CREATIVE QUALITY RULES:\n- The character bible is the source of truth. Do not drift into generic influencer behaviour.\n- Every idea must have a believable reason for the creator to be in the location and doing the main action.\n- Avoid random props, random secondary people, contradictory wardrobe, impossible settings and disconnected captions.\n- Prefer lived moments, specific observations and natural emotional variation over slogans.\n- Do not make every post educational, motivational, polished or aspirational. Real people have ordinary moments, small failures, humour, moods and contradictions.\n- Before returning the final result, perform a private human-quality check: would this person plausibly post this, and does the visual idea actually match the written idea?\n- If the answer is no, rewrite it before returning the result.`;
 }
 
 async function callQwen(job) {
@@ -69,11 +114,11 @@ async function callQwen(job) {
     body: JSON.stringify({
       model: job.model || QWEN_MODEL,
       messages: [
-        { role: 'system', content: buildSystemPrompt(job) },
+        { role: 'system', content: await buildSystemPrompt(job) },
         { role: 'user', content: job.user_prompt },
       ],
-      temperature: Number(options.temperature ?? 0.8),
-      max_tokens: Number(options.max_tokens ?? 768),
+      temperature: Number(options.temperature ?? 0.62),
+      max_tokens: Number(options.max_tokens ?? 3400),
       stream: false,
     }),
   });
