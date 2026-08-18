@@ -7,6 +7,12 @@ const ALLOWED_MODELS = new Set([
   "fal-ai/kling-video/v3/pro/image-to-video",
   "bytedance/seedance-2.0/fast/image-to-video",
 ]);
+const PROVIDER_MODELS = {
+  grok: "xai/grok-imagine-video/image-to-video",
+  h3: "minimax/h3/image-to-video",
+  kling: "fal-ai/kling-video/v3/pro/image-to-video",
+  seedance: "bytedance/seedance-2.0/fast/image-to-video",
+};
 
 async function parseBody(req) {
   const chunks = [];
@@ -25,10 +31,10 @@ export default async function handler(req, res) {
 
   const requestId = body?.requestId;
   const action = body?.action || "status";
-  const model = body?.model;
+  const model = body?.model || PROVIDER_MODELS[body?.provider];
   const suppliedStatusUrl = body?.statusUrl;
   if (!requestId) return res.status(400).json({ error: "requestId is required" });
-  if (!model || !ALLOWED_MODELS.has(model)) return res.status(400).json({ error: "A supported fal video model is required" });
+  if (!model || !ALLOWED_MODELS.has(model)) return res.status(400).json({ error: "A supported fal video model/provider is required" });
 
   const queueUrl = `${FAL_BASE}/${model}`;
   const statusUrl = suppliedStatusUrl || `${queueUrl}/requests/${encodeURIComponent(requestId)}/status`;
@@ -48,9 +54,5 @@ export default async function handler(req, res) {
     });
   }
 
-  return res.status(200).json({
-    status: data?.status || "IN_QUEUE",
-    queuePosition: data?.queue_position ?? data?.queuePosition ?? null,
-    logs: data?.logs || [],
-  });
+  return res.status(200).json({ status: data?.status || "IN_QUEUE", queuePosition: data?.queue_position ?? data?.queuePosition ?? null, logs: data?.logs || [], model });
 }
