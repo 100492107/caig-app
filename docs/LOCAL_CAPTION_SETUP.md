@@ -4,7 +4,7 @@ The caption engine is intentionally split into a cloud UI/job queue and a local 
 
 ## macOS setup
 
-This path is designed for Apple Silicon Macs. MLX Whisper provides word-level timestamps directly, which the caption renderer converts into ASS karaoke timing. citeturn357951search2turn357951search0
+This path is designed for Apple Silicon Macs. MLX Whisper provides word-level timestamps directly, which the caption renderer converts into ASS karaoke timing.
 
 From the CAIG repo:
 
