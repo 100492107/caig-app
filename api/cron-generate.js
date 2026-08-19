@@ -109,13 +109,18 @@ async function consumeBatchStream(response) {
 }
 
 async function submitImage(falKey, post) {
+  // Fanvue cron — always pass fanvueMode + photo_idea so image matches caption
+  // and fal-safe intimate energy is applied (see generate-submit.js).
   const prompt = buildPrompt({
     imagePrompt: post.image_prompt,
     hook: post.hook,
     caption: post.caption,
     wardrobe: post.wardrobe,
-    shotAngle: post.shot_angle,
+    shotAngle: post.shot_angle || post.image_prompt?.shot_angle,
     photoDirection: post.photo_direction,
+    photo_idea: post.photo_idea,
+    personaId: post.persona_id || post.personaId || "cara",
+    fanvueMode: true,
   });
 
   const res = await fetch(FAL_EDIT_QUEUE_URL, {
@@ -126,7 +131,7 @@ async function submitImage(falKey, post) {
     },
     body: JSON.stringify({
       prompt,
-      image_urls: refsForSubmit(getPersonaVisual(post.persona_id || post.personaId || 'cara').refs),
+      image_urls: refsForSubmit(getPersonaVisual(post.persona_id || post.personaId || "cara").refs),
       num_images: 1,
       resolution: GROK_RESOLUTION || "2k",
       output_format: "jpeg",
@@ -240,6 +245,10 @@ export default async function handler(req, res) {
       console.error(`[cron-generate] image failed for post ${i}:`, imgErr.message);
     }
 
+    // on_image_text = exact copy for overlay on the image (Fastlane-style hook text)
+    // caption = the actual post caption under the image
+    const onImageText = post.on_image_text || post.hook || "";
+
     const row = {
       id: post.id || `cron_${Date.now()}_${i}`,
       persona_id: "cara",
@@ -248,6 +257,7 @@ export default async function handler(req, res) {
       pillar: post.pillar || slot.pillar,
       hook: post.hook || "",
       caption: post.caption || "",
+      on_image_text: onImageText,
       hashtags: post.hashtags || "",
       cta: post.cta || null,
       photo_direction: post.photo_direction || null,
@@ -273,6 +283,7 @@ export default async function handler(req, res) {
       post_type: row.post_type,
       time: slot.scheduledTime,
       has_image: !!imageUrl,
+      on_image_text: onImageText,
       saved: !insertError,
       error: insertError?.message || null,
     });
