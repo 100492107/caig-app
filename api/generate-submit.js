@@ -31,18 +31,15 @@ function isSelfieFrame(frame) {
 
 /** Prefer the caption's photo_idea / story over structured shot library. */
 function extractScene({ imagePrompt, caption, hook, photo_idea }) {
-  // 1. Explicit photo_idea from caption generation wins
   const photoIdea = textPromptValue(photo_idea);
   if (photoIdea.length > 30) return photoIdea;
 
-  // 2. Structured subject from imagePrompt if rich
   if (imagePrompt && typeof imagePrompt === "object" && !Array.isArray(imagePrompt)) {
     const fromStruct = imagePrompt.subject || imagePrompt.photo_idea || "";
     const scene = textPromptValue(fromStruct);
     if (scene.length > 30) return scene;
   }
 
-  // 3. Caption itself as last visual clue
   const captionText = textPromptValue(caption);
   if (captionText.length > 25) return captionText;
 
@@ -88,12 +85,6 @@ const FALLBACK_SETTING = {
   general: "believable lived-in environment consistent with the scene and caption",
 };
 
-/**
- * fal-safe sanitization.
- * Blocks words that reliably trip fal's filter while preserving enough signal
- * for Grok Imagine to render intimate / Fanvue energy.
- * Hard safety (nudity, genitals, underage) always stripped.
- */
 function sanitizePromptText(text, { fanvueMode = false } = {}) {
   let t = textPromptValue(text)
     .replace(/\"/g, "'")
@@ -103,7 +94,6 @@ function sanitizePromptText(text, { fanvueMode = false } = {}) {
     .replace(/\b(bare breasts|exposed breasts|exposed chest|full nudity)\b/gi, "open neckline");
 
   if (fanvueMode) {
-    // Softer rewrites that still read as intimate to Grok but pass fal
     t = t
       .replace(/\b(underboob|under-bust|under bust|sideboob)\b/gi, "open neckline and bare midriff")
       .replace(/\b(cleavage)\b/gi, "open neckline")
@@ -113,7 +103,6 @@ function sanitizePromptText(text, { fanvueMode = false } = {}) {
       .replace(/\b(panties|briefs)\b/gi, "matching short bottoms")
       .replace(/\b(hem above the under-bust fold|underside curve of the breasts)\b/gi, "short hem at the ribcage");
   } else {
-    // Public mode stays more conservative
     t = t
       .replace(/\b(underboob|under-bust|under bust|sideboob|cleavage)\b/gi, "midriff")
       .replace(/\b(micro string|string bikini|micro bikini|thong)\b/gi, "two-piece set")
@@ -150,11 +139,16 @@ export function buildPrompt({
   const visual = getPersonaVisual(personaId);
   const rawScene = extractScene({ imagePrompt, caption, hook, photo_idea });
   const scene = sanitizePromptText(rawScene, { fanvueMode });
+  const strongPhotoIdea = textPromptValue(photo_idea).length > 40;
   const context = detectContext([scene, caption, hook, wardrobe, photoDirection].map(textPromptValue).filter(Boolean).join(" "));
 
+  // When caption photo_idea is strong, do NOT let IMG_SHOTS wardrobe override the scene
   let wardrobeText = "";
   const wardrobeTextInput = imagePrompt && typeof imagePrompt === "object" && !Array.isArray(imagePrompt) ? imagePrompt.wardrobe : null;
-  if (textPromptValue(wardrobe).split(/\s+/).filter(Boolean).length > 3) {
+  if (strongPhotoIdea) {
+    wardrobeText =
+      "Wardrobe must match the scene description above and the creator's visual identity. Prefer real clothes she would actually wear in that moment — not a catalogue look.";
+  } else if (textPromptValue(wardrobe).split(/\s+/).filter(Boolean).length > 3) {
     wardrobeText = sanitizePromptText(wardrobe, { fanvueMode });
   } else if (wardrobeTextInput) {
     wardrobeText = sanitizePromptText(wardrobeTextInput, { fanvueMode });
@@ -172,13 +166,12 @@ export function buildPrompt({
   }
 
   let settingText = "";
-  const structuredSetting = imagePrompt && typeof imagePrompt === "object" && !Array.isArray(imagePrompt) ? imagePrompt.setting : null;
-  if (structuredSetting) settingText = sanitizePromptText(structuredSetting, { fanvueMode });
-  else settingText = FALLBACK_SETTING[context] || FALLBACK_SETTING.general;
-
-  // When photo_idea is strong, let it drive setting too
-  if (scene.length > 40 && /bedroom|bed|lounge|hotel|mirror|gym|pool|balcony|kitchen|sofa/.test(scene.toLowerCase())) {
+  if (strongPhotoIdea) {
     settingText = "Match the exact setting implied by the scene description above — lived-in, not staged.";
+  } else {
+    const structuredSetting = imagePrompt && typeof imagePrompt === "object" && !Array.isArray(imagePrompt) ? imagePrompt.setting : null;
+    if (structuredSetting) settingText = sanitizePromptText(structuredSetting, { fanvueMode });
+    else settingText = FALLBACK_SETTING[context] || FALLBACK_SETTING.general;
   }
 
   const frame = pickFrame(scene, photoDirection);
@@ -236,7 +229,7 @@ SKIN HARD RULE: Match reference skin exactly — real human texture with pores a
 
 WARDROBE: ${wardrobeText}
 SETTING: ${settingText}
-${shotAngle ? `SHOT ANGLE: ${sanitizePromptText(shotAngle, { fanvueMode })}` : ""}
+${shotAngle && !strongPhotoIdea ? `SHOT ANGLE: ${sanitizePromptText(shotAngle, { fanvueMode })}` : ""}
 ${textPromptValue(photoDirection) ? `DIRECTION: ${sanitizePromptText(photoDirection, { fanvueMode })}` : ""}
 ${selfieGuidance}
 ${livedInSpark}
