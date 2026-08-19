@@ -3,7 +3,7 @@ import AICreatorWorkspaceTrackB from "./AICreatorWorkspaceTrackB.jsx";
 import TrackBAssetLibrary from "./TrackBAssetLibraryV2.jsx";
 import CaptionStudio from "./CaptionStudio.jsx";
 import LocalAIStudio from "./LocalAIStudio.jsx";
-import AutopilotCreativeEngine from "./AutopilotCreativeEngine.jsx";
+import AutopilotCreativeEngineV2 from "./AutopilotCreativeEngineV2.jsx";
 
 const pane = (visible) => ({ display: visible ? "block" : "none" });
 
@@ -76,7 +76,7 @@ export default function CreativeEngineHub() {
       <span style={{ marginLeft: "auto", fontSize: 11, color: "#777d94" }}>CornerstoneAIAssets · autonomous creative system</span>
     </div>
 
-    <div style={pane(view === "autopilot")}><AutopilotCreativeEngine /></div>
+    <div style={pane(view === "autopilot")}><AutopilotCreativeEngineV2 /></div>
     <div style={pane(view === "assets")}><TrackBAssetLibrary /></div>
     <div style={pane(view === "captions")}><CaptionStudio /></div>
     <div style={pane(view === "localai")}><LocalAIStudio /></div>
