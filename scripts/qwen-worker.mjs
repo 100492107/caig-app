@@ -3,10 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createClient } from '@supabase/supabase-js';
 
-function normaliseSupabaseUrl(value) {
-  return String(value || '').replace(/\/+$/, '').replace(/\/rest\/v1$/i, '');
-}
-
+function normaliseSupabaseUrl(value) { return String(value || '').replace(/\/+$/, '').replace(/\/rest\/v1$/i, ''); }
 function cleanModelOutput(value) {
   let text = String(value ?? '');
   text = text.replace(/<think>[\s\S]*?<\/think>/gi, '');
@@ -29,18 +26,11 @@ if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
   process.exit(1);
 }
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-  auth: { persistSession: false, autoRefreshToken: false },
-});
-
+const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function readOptional(relativePath) {
-  try {
-    return await fs.readFile(path.join(REPO_ROOT, relativePath), 'utf8');
-  } catch {
-    return '';
-  }
+  try { return await fs.readFile(path.join(REPO_ROOT, relativePath), 'utf8'); } catch { return ''; }
 }
 
 async function loadCharacterContext(job) {
@@ -48,79 +38,118 @@ async function loadCharacterContext(job) {
   const userPrompt = String(job.user_prompt || '').toLowerCase();
   const isFanvue = /\bfanvue\b/.test(userPrompt);
   const files = [];
-
   if (persona === 'cara') {
-    files.push('personas/cara/CHARACTER_BIBLE.md');
-    files.push(isFanvue ? 'personas/cara/persona-fanvue.md' : 'personas/cara/persona.md');
-    files.push(isFanvue ? 'personas/cara/voice-fanvue.md' : 'personas/cara/voice.md');
+    files.push('personas/cara/CHARACTER_BIBLE.md', isFanvue ? 'personas/cara/persona-fanvue.md' : 'personas/cara/persona.md', isFanvue ? 'personas/cara/voice-fanvue.md' : 'personas/cara/voice.md');
   } else if (persona === 'lila') {
     files.push('personas/lila/persona.md');
     if (isFanvue) files.push('personas/lila/persona-fanvue.md');
   } else if (persona === 'duo' || persona === 'cara_lila') {
-    files.push('personas/duo/cara-lila.md');
-    files.push('personas/cara/CHARACTER_BIBLE.md');
-    files.push('personas/lila/persona.md');
+    files.push('personas/duo/cara-lila.md', 'personas/cara/CHARACTER_BIBLE.md', 'personas/lila/persona.md');
   }
-
   const loaded = [];
-  for (const file of files) {
-    const content = await readOptional(file);
-    if (content.trim()) loaded.push(`### ${file}\n${content.trim()}`);
+  for (const file of files) { const content = await readOptional(file); if (content.trim()) loaded.push(`### ${file}\n${content.trim()}`); }
+  return loaded.length ? `\n\nCHARACTER SOURCE OF TRUTH\nUse these files as authoritative creative context. Do not invent a different personality or lifestyle world.\n\n${loaded.join('\n\n')}` : '';
+}
+
+function extractTag(xml, tag) {
+  const match = String(xml || '').match(new RegExp(`<${tag}(?:\\s[^>]*)?>([\\s\\S]*?)<\\/${tag}>`, 'i'));
+  return match ? match[1].replace(/<!\[CDATA\[|\]\]>/g, '').trim() : '';
+}
+
+function stripHtml(value) { return String(value || '').replace(/<[^>]+>/g, ' ').replace(/&amp;/g, '&').replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/\s+/g, ' ').trim(); }
+
+async function fetchRss(query) {
+  const url = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=en-GB&gl=GB&ceid=GB:en`;
+  try {
+    const response = await fetch(url, { headers: { 'User-Agent': 'CornerstoneAIAssets-LiveResearch/1.0' } });
+    if (!response.ok) return [];
+    const xml = await response.text();
+    const items = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/gi)].slice(0, 10).map((m) => m[1]).map((item) => ({
+      title: stripHtml(extractTag(item, 'title')),
+      url: extractTag(item, 'link'),
+      published: extractTag(item, 'pubDate'),
+      source: stripHtml(extractTag(item, 'source')),
+      snippet: stripHtml(extractTag(item, 'description')),
+    })).filter((x) => x.title);
+    return items;
+  } catch (error) {
+    console.warn('[QWEN] live research fetch failed:', error?.message || error);
+    return [];
+  }
+}
+
+async function fetchOfficial(url, source, label) {
+  try {
+    const response = await fetch(url, { headers: { 'User-Agent': 'CornerstoneAIAssets-LiveResearch/1.0' } });
+    if (!response.ok) return null;
+    const html = await response.text();
+    return { source, title: label, url, published: '', snippet: stripHtml(html).slice(0, 1800) };
+  } catch { return null; }
+}
+
+async function buildLiveResearchPack(job) {
+  if (job.job_type !== 'social_caption_intelligence') return null;
+  const lower = `${job.user_prompt || ''} ${job.system_prompt || ''}`.toLowerCase();
+  const platformQueries = [];
+  if (lower.includes('instagram')) platformQueries.push('Instagram creator captions engagement 2026', 'Instagram creators content trends 2026');
+  if (lower.includes('facebook')) platformQueries.push('Facebook creator content captions engagement 2026');
+  if (lower.includes('fanvue')) platformQueries.push('Fanvue creator promotion conversion 2026', 'Fanvue social media promotion 2026');
+  const queries = platformQueries.length ? platformQueries : ['Instagram creator trends 2026', 'TikTok creator trends 2026', 'social media creator captions 2026'];
+
+  const feeds = (await Promise.all(queries.map(fetchRss))).flat();
+  const official = [];
+  if (lower.includes('instagram')) official.push(await fetchOfficial('https://ai.meta.com/learn/ai-creativity/ai-for-social-media-captions', 'Meta AI', 'Current caption guidance from Meta AI'));
+  if (lower.includes('fanvue')) {
+    official.push(await fetchOfficial('https://help.fanvue.com/en/articles/11363166-creator-settings-managing-your-tracking-links', 'Fanvue', 'Fanvue tracking links and conversion measurement'));
+    official.push(await fetchOfficial('https://legal.fanvue.com/creator-advertising-promotion', 'Fanvue', 'Fanvue creator promotion policy'));
+    official.push(await fetchOfficial('https://www.fanvue.com/blog/go-viral-with-our-social-media-checklist', 'Fanvue', 'Current Fanvue social promotion checklist'));
   }
 
-  return loaded.length
-    ? `\n\nCHARACTER SOURCE OF TRUTH\nUse these files as the authoritative creative context. Do not invent a different personality, lifestyle world or relationship dynamic.\n\n${loaded.join('\n\n')}`
-    : '';
+  const cutoff = Date.now() - 1000 * 60 * 60 * 24 * 45;
+  const recent = feeds.filter((item) => {
+    const t = Date.parse(item.published || '');
+    return !Number.isNaN(t) ? t >= cutoff : true;
+  }).slice(0, 24);
+
+  const items = [...recent, ...official.filter(Boolean)].map((item) => ({
+    source: item.source,
+    title: item.title,
+    published: item.published,
+    url: item.url,
+    signal: item.snippet || item.title,
+  }));
+
+  return {
+    generatedAt: new Date().toISOString(),
+    freshnessWindowDays: 45,
+    note: 'This is runtime public-web evidence, not CAIG historical performance data. No internal platform analytics are available to the worker.',
+    items,
+  };
 }
 
 async function claimJob() {
-  const { data, error } = await supabase
-    .from('local_ai_jobs')
-    .select('*')
-    .eq('status', 'queued')
-    .order('created_at', { ascending: true })
-    .limit(1)
-    .maybeSingle();
+  const { data, error } = await supabase.from('local_ai_jobs').select('*').eq('status', 'queued').order('created_at', { ascending: true }).limit(1).maybeSingle();
   if (error) throw error;
   if (!data) return null;
-
-  const { data: claimed, error: updateError } = await supabase
-    .from('local_ai_jobs')
-    .update({ status: 'processing', started_at: new Date().toISOString(), error_message: null })
-    .eq('id', data.id)
-    .eq('status', 'queued')
-    .select('*')
-    .maybeSingle();
+  const { data: claimed, error: updateError } = await supabase.from('local_ai_jobs').update({ status: 'processing', started_at: new Date().toISOString(), error_message: null }).eq('id', data.id).eq('status', 'queued').select('*').maybeSingle();
   if (updateError) throw updateError;
   return claimed || null;
 }
 
-async function buildSystemPrompt(job) {
+async function buildSystemPrompt(job, researchPack) {
   const base = job.system_prompt || 'You are the local creative director for CornerstoneAIAssets.';
   const wantsPackage = ['video_package', 'content_package', 'repurpose'].includes(job.job_type);
   const characterContext = await loadCharacterContext(job);
-  const packageRules = wantsPackage
-    ? '\n\nFor production-oriented jobs, return a clean, machine-friendly CONTENT PACKAGE with these headings in order:\nHOOK\nSCRIPT\nSHOT LIST\nVISUAL PROMPTS\nCAPTION PLAN\nB-ROLL\nEDIT NOTES\nCTA\nDo not include chain-of-thought or meta commentary. Write only the usable production output.'
-    : '';
-
-  return `${base}${characterContext}${packageRules}\n\nGLOBAL CREATIVE QUALITY RULES:\n- The character bible is the source of truth. Do not drift into generic influencer behaviour.\n- Every idea must have a believable reason for the creator to be in the location and doing the main action.\n- Avoid random props, random secondary people, contradictory wardrobe, impossible settings and disconnected captions.\n- Prefer lived moments, specific observations and natural emotional variation over slogans.\n- Do not make every post educational, motivational, polished or aspirational. Real people have ordinary moments, small failures, humour, moods and contradictions.\n- Before returning the final result, perform a private human-quality check: would this person plausibly post this, and does the visual idea actually match the written idea?\n- If the answer is no, rewrite it before returning the result.\n\nHARD VISUAL CONSISTENCY PROTOCOL:\n- Treat the written concept, caption, script and scene lock as factual constraints, not suggestions.\n- Build an internal SCENE CONTRACT before finalising: subjects, exact location, time of day, lighting, action, required props, wardrobe, composition, emotional tone and explicit exclusions.\n- The VISUAL PROMPT must be a faithful rendering of that SCENE CONTRACT. Do not substitute a more common, more visually convenient or more generic location or action.\n- Never introduce a vehicle, dealership, showroom, office, gym, restaurant, daylight, extra person, unrelated prop or different time of day unless the written concept explicitly requires it.\n- Never describe a still image as a montage, sequence, split-screen, collage, diptych or multiple simultaneous locations. One still means one coherent physical moment.\n- Preserve continuity of identity, clothing, props, hand/object interaction, camera position and physical space.\n- When the scene specifies night or early morning, prohibit daylight, sunbeams, blue daytime skies and bright exterior light unless the concept explicitly requires them.\n- Required details must survive into the final visual prompt. Do not omit them because they are inconvenient for image generation.\n- Before returning the result, run a final fact-by-fact consistency gate: every scene fact must appear consistently in the visual direction, and every negative constraint must remain enforced. If anything conflicts, rewrite the package.\n- Do not return a production package that leaves sceneLock fields blank when the concept provides enough information to specify them.`;
+  const packageRules = wantsPackage ? '\n\nFor production-oriented jobs, return a clean, machine-friendly CONTENT PACKAGE with HOOK, SCRIPT, SHOT LIST, VISUAL PROMPTS, CAPTION PLAN, B-ROLL, EDIT NOTES and CTA. Do not include chain-of-thought.' : '';
+  const liveResearch = researchPack ? `\n\nLIVE RESEARCH PACK — GENERATED AT RUNTIME\n${JSON.stringify(researchPack)}\n\nUse this pack as the only current-market evidence. Do not claim a source proves performance unless the source actually does. Separate evidence from inference.` : '';
+  return `${base}${characterContext}${packageRules}${liveResearch}\n\nGLOBAL CREATIVE QUALITY RULES:\n- The character bible is the source of truth. Do not drift into generic influencer behaviour.\n- Every idea must have a believable reason for the creator to be in the location and doing the main action.\n- Avoid random props, random secondary people, contradictory wardrobe, impossible settings and disconnected captions.\n- Prefer lived moments, specific observations and natural emotional variation over slogans.\n- Do not make every post educational, motivational, polished or aspirational.\n- Before returning the final result, perform a private human-quality check: would this person plausibly post this, and does the visual idea actually match the written idea?\n- If the answer is no, rewrite it before returning the result.`;
 }
 
-async function callQwen(job) {
+async function callQwen(job, researchPack) {
   const options = job.options || {};
   const response = await fetch(`${QWEN_URL}/v1/chat/completions`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-    body: JSON.stringify({
-      model: job.model || QWEN_MODEL,
-      messages: [
-        { role: 'system', content: await buildSystemPrompt(job) },
-        { role: 'user', content: job.user_prompt },
-      ],
-      temperature: Number(options.temperature ?? 0.62),
-      max_tokens: Number(options.max_tokens ?? 3400),
-      stream: false,
-    }),
+    method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify({ model: job.model || QWEN_MODEL, messages: [{ role: 'system', content: await buildSystemPrompt(job, researchPack) }, { role: 'user', content: job.user_prompt }], temperature: Number(options.temperature ?? 0.62), max_tokens: Number(options.max_tokens ?? 3400), stream: false }),
   });
   const json = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(`Qwen request failed (${response.status}): ${JSON.stringify(json)}`);
@@ -131,15 +160,17 @@ async function callQwen(job) {
 
 async function processJob(job) {
   try {
-    const result = await callQwen(job);
-    const { error } = await supabase.from('local_ai_jobs').update({
-      status: 'completed',
-      result,
-      completed_at: new Date().toISOString(),
-      error_message: null,
-    }).eq('id', job.id);
+    const researchPack = await buildLiveResearchPack(job);
+    const result = await callQwen(job, researchPack);
+    let finalResult = result;
+    try {
+      const parsed = JSON.parse(result);
+      if (parsed && researchPack && job.job_type === 'social_caption_intelligence') parsed.currentSignals = (parsed.currentSignals || []).slice(0, 10);
+      finalResult = JSON.stringify(parsed);
+    } catch {}
+    const { error } = await supabase.from('local_ai_jobs').update({ status: 'completed', result: finalResult, completed_at: new Date().toISOString(), error_message: null, production_status: researchPack ? 'researched' : 'completed' }).eq('id', job.id);
     if (error) throw error;
-    console.log(`[QWEN] completed ${job.id}`);
+    console.log(`[QWEN] completed ${job.id}${researchPack ? ' with live research' : ''}`);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error(`[QWEN] failed ${job.id}:`, error);
@@ -149,12 +180,6 @@ async function processJob(job) {
 
 console.log(`[QWEN] worker online. endpoint=${QWEN_URL}; model=${QWEN_MODEL}; supabase=${SUPABASE_URL}`);
 for (;;) {
-  try {
-    const job = await claimJob();
-    if (job) await processJob(job);
-    else await sleep(IDLE_MS);
-  } catch (error) {
-    console.error('[QWEN] worker loop error:', error);
-    await sleep(POLL_MS);
-  }
+  try { const job = await claimJob(); if (job) await processJob(job); else await sleep(IDLE_MS); }
+  catch (error) { console.error('[QWEN] worker loop error:', error); await sleep(POLL_MS); }
 }
