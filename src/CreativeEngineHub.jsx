@@ -3,6 +3,7 @@ import AICreatorWorkspaceTrackB from "./AICreatorWorkspaceTrackB.jsx";
 import TrackBAssetLibrary from "./TrackBAssetLibraryV2.jsx";
 import CaptionStudio from "./CaptionStudio.jsx";
 import LocalAIStudio from "./LocalAIStudio.jsx";
+import AutopilotCreativeEngine from "./AutopilotCreativeEngine.jsx";
 
 const pane = (visible) => ({ display: visible ? "block" : "none" });
 
@@ -10,13 +11,11 @@ function extractFirstJsonValue(text) {
   const source = String(text || "");
   const start = source.search(/[\[{]/);
   if (start < 0) throw new Error("No JSON value found");
-
   const open = source[start];
   const close = open === "{" ? "}" : "]";
   let depth = 0;
   let inString = false;
   let escaped = false;
-
   for (let i = start; i < source.length; i += 1) {
     const ch = source[i];
     if (inString) {
@@ -25,11 +24,8 @@ function extractFirstJsonValue(text) {
       else if (ch === '"') inString = false;
       continue;
     }
-    if (ch === '"') {
-      inString = true;
-      continue;
-    }
-    if (ch === open) depth += 1;
+    if (ch === '"') inString = true;
+    else if (ch === open) depth += 1;
     else if (ch === close) {
       depth -= 1;
       if (depth === 0) return source.slice(start, i + 1);
@@ -62,26 +58,28 @@ function useSafeQwenJsonParser(enabled) {
 }
 
 export default function CreativeEngineHub() {
-  const [view, setView] = useState("engine");
-  useSafeQwenJsonParser(view === "engine");
+  const [view, setView] = useState("autopilot");
+  useSafeQwenJsonParser(view === "legacy");
 
   const tabs = [
-    ["engine", "AI Creator"],
+    ["autopilot", "Qwen Autopilot"],
     ["assets", "Asset Library"],
     ["captions", "Caption Studio"],
     ["localai", "Local AI"],
+    ["legacy", "Legacy Creator"],
   ];
 
   return <div>
     <div style={{ position: "sticky", top: 0, zIndex: 150, background: "rgba(8,7,13,.96)", backdropFilter: "blur(14px)", borderBottom: "1px solid #262A3C", padding: "10px 16px", display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
       <a href="/" style={{ color: "#fff", textDecoration: "none", fontWeight: 800, fontSize: 12, padding: "9px 13px", border: "1px solid #2d3246", borderRadius: 999 }}>Home</a>
       {tabs.map(([id, label]) => <button key={id} type="button" onClick={() => setView(id)} style={{ padding: "9px 14px", borderRadius: 999, border: `1px solid ${view === id ? "#D4AF37" : "#2d3246"}`, background: view === id ? "rgba(212,175,55,.12)" : "#141525", color: view === id ? "#D4AF37" : "#fff", fontWeight: 800, cursor: "pointer" }}>{label}</button>)}
-      <span style={{ marginLeft: "auto", fontSize: 11, color: "#777d94" }}>CornerstoneAIAssets · Track B</span>
+      <span style={{ marginLeft: "auto", fontSize: 11, color: "#777d94" }}>CornerstoneAIAssets · autonomous creative system</span>
     </div>
 
-    <div style={pane(view === "engine")}><AICreatorWorkspaceTrackB /></div>
+    <div style={pane(view === "autopilot")}><AutopilotCreativeEngine /></div>
     <div style={pane(view === "assets")}><TrackBAssetLibrary /></div>
     <div style={pane(view === "captions")}><CaptionStudio /></div>
     <div style={pane(view === "localai")}><LocalAIStudio /></div>
+    <div style={pane(view === "legacy")}><AICreatorWorkspaceTrackB /></div>
   </div>;
 }
