@@ -12,6 +12,7 @@ const PROVIDER_MODELS = {
   h3: "minimax/h3/image-to-video",
   kling: "fal-ai/kling-video/v3/pro/image-to-video",
   seedance: "bytedance/seedance-2.0/fast/image-to-video",
+  seedance_2_5: "bytedance/seedance-2.0/fast/image-to-video",
 };
 
 async function parseBody(req) {
@@ -31,7 +32,8 @@ export default async function handler(req, res) {
 
   const requestId = body?.requestId;
   const action = body?.action || "status";
-  const model = body?.model || PROVIDER_MODELS[body?.provider];
+  const providerKey = body?.providerKey || body?.provider || "";
+  const model = body?.model || PROVIDER_MODELS[providerKey];
   const suppliedStatusUrl = body?.statusUrl;
   if (!requestId) return res.status(400).json({ error: "requestId is required" });
   if (!model || !ALLOWED_MODELS.has(model)) return res.status(400).json({ error: "A supported fal video model/provider is required" });
@@ -54,5 +56,5 @@ export default async function handler(req, res) {
     });
   }
 
-  return res.status(200).json({ status: data?.status || "IN_QUEUE", queuePosition: data?.queue_position ?? data?.queuePosition ?? null, logs: data?.logs || [], model });
+  return res.status(200).json({ status: data?.status || "IN_QUEUE", queuePosition: data?.queue_position ?? data?.queuePosition ?? null, logs: data?.logs || [], model, providerKey });
 }
