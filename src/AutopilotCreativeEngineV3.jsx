@@ -89,6 +89,37 @@ function scenePrompt(pkg, creator, ratio) {
   ].join("\n");
 }
 
+async function storeGeneratedImage({ url, requestId, postId, slideIndex, personaName, jobId }) {
+  const response = await fetch("/api/store-image", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      falUrl: url,
+      requestId: requestId || `qwen_${Date.now()}`,
+      postId,
+      slideIndex,
+      personaName,
+      metadata: { source_job_id: jobId, source: "qwen_autopilot" },
+    }),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || !data.publicUrl) throw new Error(data?.error || "Generated image could not be saved permanently.");
+  return data.publicUrl;
+}
+
+async function persistJobMedia(job, patch, historyEntry = null) {
+  const current = await supabase.from("local_ai_jobs").select("result").eq("id", job.id).maybeSingle();
+  if (current.error) throw current.error;
+  let parsed = {};
+  try { parsed = parseJson(current.data?.result || "{}"); } catch { parsed = {}; }
+  const media = { ...(parsed.media || {}), ...patch, updatedAt: new Date().toISOString() };
+  if (historyEntry) media.imageHistory = [...(media.imageHistory || []), historyEntry];
+  parsed.media = media;
+  const { error } = await supabase.from("local_ai_jobs").update({ result: JSON.stringify(parsed), production_status: "media_saved" }).eq("id", job.id);
+  if (error) throw error;
+  return media;
+}
+
 export default function AutopilotCreativeEngineV3() {
   const [persona, setPersona] = useState("duo");
   const [platform, setPlatform] = useState("TikTok");
@@ -116,6 +147,32 @@ export default function AutopilotCreativeEngineV3() {
       .order("created_at", { ascending: false }).limit(80);
     const rows = data || [];
     setJobs(rows);
+
+    const restored = {};
+    for (const row of rows) {
+      try {
+        const parsed = parseJson(row.result || "{}");
+        const saved = parsed?.media;
+        if (saved && (saved.imageUrl || Array.isArray(saved.imageUrls))) {
+          restored[row.id] = {
+            ...saved,
+            pct: 100,
+            label: "Saved media",
+            status: "READY",
+            saved: true,
+            transient: false,
+          };
+        }
+      } catch {}
+    }
+    setMedia((existing) => {
+      const next = { ...existing };
+      for (const [id, value] of Object.entries(restored)) {
+        if (!next[id]?.transient) next[id] = { ...(next[id] || {}), ...value };
+      }
+      return next;
+    });
+
     const latestTrend = rows.find((j) => j.job_type === "trend_scan" && j.status === "completed");
     if (latestTrend?.result) { try { const parsed = parseJson(latestTrend.result); if (Array.isArray(parsed.opportunities)) setOpportunities(parsed.opportunities); } catch {} }
   }
@@ -178,7 +235,7 @@ export default function AutopilotCreativeEngineV3() {
       const response = await fetch("/api/generate-poll", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ requestId, type: "image", statusUrl, resultUrl }) });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data?.error || `Image generation failed (${response.status})`);
-      setMediaState(jobId, { pct: Math.min(96, 18 + Math.round((i / 100) * 78)), label, status: data.status || "WORKING" });
+      setMediaState(jobId, { pct: Math.min(96, 18 + Math.round((i / 100) * 78)), label, status: data.status || "WORKING", transient: true, saved: false });
       if (data.status === "COMPLETED") return data.imageUrl || data.url;
       if (data.status === "FAILED") throw new Error(data?.error || "Image generation failed");
     }
@@ -186,7 +243,7 @@ export default function AutopilotCreativeEngineV3() {
   }
 
   async function generateImage(job) {
-    setBusy(true); setMediaState(job.id, { pct: 5, label: "Generating image", status: "STARTING" });
+    setBusy(true); setMediaState(job.id, { pct: 5, label: "Generating image", status: "STARTING", transient: true, saved: false }); setMessage("Generating image…");
     try {
       const pkg = parseJson(job.result).package || parseJson(job.result);
       const prompt = scenePrompt(pkg, creator, "4:5");
@@ -197,32 +254,40 @@ export default function AutopilotCreativeEngineV3() {
       const data = await submit.json().catch(() => ({}));
       if (!submit.ok || !data.requestId) throw new Error(data?.error || `Image submit failed (${submit.status})`);
       const url = await pollImage(data.requestId, data.statusUrl, data.resultUrl, job.id, "Image");
-      setMediaState(job.id, { pct: 100, label: "Image ready", status: "READY", imageUrl: url });
-      setMessage("Image ready. Review it, then generate the carousel or video.");
-    } catch (e) { setMediaState(job.id, { pct: 100, label: "Error", status: "ERROR", error: e.message || String(e) }); setMessage(e.message || String(e)); }
+      const postId = `qwen_${job.id}_${Date.now()}`;
+      const publicUrl = await storeGeneratedImage({ url, requestId: data.requestId, postId, personaName: job.persona_id || creator, jobId: job.id });
+      const savedMedia = await persistJobMedia(job, { imageUrl: publicUrl }, { type: "image", url: publicUrl, createdAt: new Date().toISOString(), postId });
+      setMediaState(job.id, { ...savedMedia, pct: 100, label: "Image saved permanently", status: "READY", saved: true, transient: false });
+      setMessage("Image generated and saved permanently. It will still be here after a reload.");
+    } catch (e) { setMediaState(job.id, { pct: 100, label: "Error", status: "ERROR", error: e.message || String(e), transient: false }); setMessage(e.message || String(e)); }
     finally { setBusy(false); }
   }
 
   async function generateCarousel(job) {
-    setBusy(true); setMediaState(job.id, { pct: 3, label: "Preparing carousel", status: "STARTING" });
+    setBusy(true); setMediaState(job.id, { pct: 3, label: "Preparing carousel", status: "STARTING", transient: true, saved: false }); setMessage("Generating carousel…");
     try {
       const pkg = parseJson(job.result).package || parseJson(job.result);
       const slides = Array.isArray(pkg.carouselSlides) ? pkg.carouselSlides.slice(0, 7) : [];
       if (!slides.length) throw new Error("This production package has no carousel slide plan.");
+      const generationId = `qwen_${job.id}_${Date.now()}`;
       const urls = [];
       for (let i = 0; i < slides.length; i += 1) {
         const slide = slides[i];
-        setMediaState(job.id, { pct: 5 + Math.round((i / slides.length) * 75), label: `Generating carousel · slide ${i + 1}/${slides.length}`, status: "GENERATING" });
+        setMediaState(job.id, { pct: 5 + Math.round((i / slides.length) * 75), label: `Generating carousel · slide ${i + 1}/${slides.length}`, status: "GENERATING", transient: true, saved: false });
         const prompt = `${sceneLockFromPackage(pkg).location}. ${slide.visualPrompt}. CREATOR: ${creator}. One coherent moment, one continuous frame, no split screen, no collage. Keep the exact time-of-day and lighting from the scene lock. Vertical 4:5. Natural human behaviour, realistic hands and props, no text generated in the image.`;
         const submit = await fetch("/api/generate-submit", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ imagePrompt: { subject: prompt, photo_idea: prompt, setting: sceneLockFromPackage(pkg).location, photoDirection: prompt }, photo_idea: prompt, hook: slide.headline, caption: slide.body, personaId: job.persona_id || (persona === "duo" ? "cara_lila" : persona) }) });
         const data = await submit.json().catch(() => ({}));
         if (!submit.ok || !data.requestId) throw new Error(data?.error || `Slide ${i + 1} submit failed (${submit.status})`);
         const url = await pollImage(data.requestId, data.statusUrl, data.resultUrl, job.id, `Carousel · slide ${i + 1}/${slides.length}`);
-        urls.push(url);
+        const publicUrl = await storeGeneratedImage({ url, requestId: data.requestId, postId: generationId, slideIndex: i, personaName: job.persona_id || creator, jobId: job.id });
+        urls.push(publicUrl);
+        const savedMedia = await persistJobMedia(job, { imageUrl: urls[0], imageUrls: [...urls] });
+        setMediaState(job.id, { ...savedMedia, pct: 5 + Math.round(((i + 1) / slides.length) * 90), label: `Carousel saved · slide ${i + 1}/${slides.length}`, status: "SAVED", saved: true, transient: true });
       }
-      setMediaState(job.id, { pct: 100, label: `Carousel ready · ${urls.length} slides`, status: "READY", carouselUrls: urls, carouselSlides: slides });
-      setMessage(`Carousel ready with ${urls.length} slides. Slide copy is shown alongside the images.`);
-    } catch (e) { setMediaState(job.id, { pct: 100, label: "Error", status: "ERROR", error: e.message || String(e) }); setMessage(e.message || String(e)); }
+      const savedMedia = await persistJobMedia(job, { imageUrl: urls[0], imageUrls: urls, carouselSlides: slides }, { type: "carousel", urls, createdAt: new Date().toISOString(), generationId });
+      setMediaState(job.id, { ...savedMedia, pct: 100, label: `Carousel saved · ${urls.length} slides`, status: "READY", carouselUrls: urls, carouselSlides: slides, saved: true, transient: false });
+      setMessage(`Carousel generated and saved permanently — ${urls.length} slides.`);
+    } catch (e) { setMediaState(job.id, { pct: 100, label: "Error", status: "ERROR", error: e.message || String(e), transient: false }); setMessage(e.message || String(e)); }
     finally { setBusy(false); }
   }
 
@@ -250,7 +315,7 @@ export default function AutopilotCreativeEngineV3() {
   }
 
   async function generateVideo(job) {
-    setBusy(true); setMediaState(job.id, { pct: 4, label: "Preparing visual anchor", status: "STARTING" });
+    setBusy(true); setMediaState(job.id, { pct: 4, label: "Preparing visual anchor", status: "STARTING", transient: true, saved: false });
     try {
       const pkg = parseJson(job.result).package || parseJson(job.result);
       const visualPrompt = scenePrompt(pkg, creator, "9:16");
@@ -258,7 +323,7 @@ export default function AutopilotCreativeEngineV3() {
       const imageJob = await submitImage.json().catch(() => ({}));
       if (!submitImage.ok || !imageJob.requestId) throw new Error(imageJob?.error || `Visual anchor failed (${submitImage.status})`);
       const imageUrl = await pollImage(imageJob.requestId, imageJob.statusUrl, imageJob.resultUrl, job.id, "Visual anchor");
-      setMediaState(job.id, { pct: 35, label: "Visual anchor ready · submitting video", status: "VIDEO SUBMIT", imageUrl });
+      setMediaState(job.id, { pct: 35, label: "Visual anchor ready · submitting video", status: "VIDEO SUBMIT", imageUrl, transient: true, saved: false });
       const videoPrompt = [pkg.videoPrompt, `SCENE LOCK: ${JSON.stringify(sceneLockFromPackage(pkg))}`, `TIMELINE: ${pkg.timeline}`, `AUDIO: ${pkg.audio}`, `SCRIPT: ${pkg.script}`, "One continuous world. No split-screen. No montage in a single shot. Keep identity, time of day, wardrobe, props and location coherent.", "Natural human movement and believable object interaction. No duplicated mugs, phones, hands or people. No daylight if the scene is night.", "No subtitles, logos or watermarks in generated footage."].filter(Boolean).join("\n\n");
       const submitVideo = await fetch("/api/track-b-video-submit", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ provider: "seedance", imageUrl, prompt: videoPrompt, resolution: "720p", aspectRatio: "9:16", duration: Number(pkg.duration || 10) }) });
       const videoJob = await submitVideo.json().catch(() => ({}));
@@ -269,20 +334,22 @@ export default function AutopilotCreativeEngineV3() {
         const r = await fetch("/api/track-b-video-poll", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ requestId: videoJob.requestId, provider: videoJob.provider || "fal", providerKey: videoJob.providerKey || "seedance", action: "status" }) });
         const d = await r.json().catch(() => ({}));
         if (!r.ok) throw new Error(d?.error || `Video status failed (${r.status})`);
-        setMediaState(job.id, { pct: Math.min(90, 40 + Math.round((i / 120) * 48)), label: "Generating video", status: d.status || "WORKING", imageUrl });
+        setMediaState(job.id, { pct: Math.min(90, 40 + Math.round((i / 120) * 48)), label: "Generating video", status: d.status || "WORKING", imageUrl, transient: true, saved: false });
         if (d.status === "COMPLETED") { complete = true; break; }
         if (["FAILED", "CANCELLED"].includes(d.status)) throw new Error(d?.error || `Video generation ${String(d.status).toLowerCase()}`);
       }
       if (!complete) throw new Error("Video timed out while polling the provider.");
       const result = await fetch("/api/track-b-video-poll", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ requestId: videoJob.requestId, provider: videoJob.provider || "fal", providerKey: videoJob.providerKey || "seedance", action: "result" }) }).then((r) => r.json());
       if (!result.videoUrl) throw new Error(result?.error || "Video completed without a URL.");
-      setMediaState(job.id, { pct: 94, label: "Video ready · queuing local captions", status: "CAPTION QUEUE", imageUrl, videoUrl: result.videoUrl });
+      const postId = `qwen_video_${job.id}_${Date.now()}`;
+      const persistentAnchor = await storeGeneratedImage({ url: imageUrl, requestId: imageJob.requestId, postId, personaName: job.persona_id || creator, jobId: job.id });
       const cap = await supabase.from("caption_jobs").insert({ title: `${job.title} · captions`, source_url: result.videoUrl, transcript: pkg.script || "", hook: pkg.hook || "", style: job.persona_id === "lila" ? "lila_minimal" : "cara_editorial", aspect_ratio: "9:16", position: "lower_center", options: { auto_transcribe: true, punch_in: true, source_job_id: job.id }, status: "queued" }).select("id").single();
       if (cap.error) throw new Error(`Video ready, caption queue failed: ${cap.error.message}`);
+      const savedMedia = await persistJobMedia(job, { imageUrl: persistentAnchor, videoUrl: result.videoUrl }, { type: "video_anchor", url: persistentAnchor, videoUrl: result.videoUrl, createdAt: new Date().toISOString(), postId });
       await supabase.from("local_ai_jobs").update({ production_status: "caption_queued", video_url: result.videoUrl, caption_job_id: cap.data.id }).eq("id", job.id);
-      setMediaState(job.id, { pct: 100, label: "Video + captions queued", status: "READY", imageUrl, videoUrl: result.videoUrl });
-      setMessage("Video complete. Local captions are queued.");
-    } catch (e) { setMediaState(job.id, { pct: 100, label: "Error", status: "ERROR", error: e.message || String(e) }); setMessage(e.message || String(e)); }
+      setMediaState(job.id, { ...savedMedia, pct: 100, label: "Video + captions queued", status: "READY", saved: true, transient: false });
+      setMessage("Video complete. The visual anchor is saved permanently and local captions are queued.");
+    } catch (e) { setMediaState(job.id, { pct: 100, label: "Error", status: "ERROR", error: e.message || String(e), transient: false }); setMessage(e.message || String(e)); }
     finally { setBusy(false); }
   }
 
@@ -302,7 +369,7 @@ export default function AutopilotCreativeEngineV3() {
 
       {view === "concepts" && <Card><div><b style={{ color: "#d4af37", fontSize: 10, letterSpacing: ".16em" }}>QWEN REMIXES</b><h2 style={{ margin: "6px 0" }}>Original concepts built from the mechanism.</h2></div><div style={{ display: "grid", gap: 12, marginTop: 12 }}>{conceptJobs.map((job) => { const p = jobProgress(job); let c = null; try { c = parseJson(job.result || "").concept; } catch {} return <div key={job.id} style={{ border: "1px solid #252b3b", borderRadius: 14, padding: 14 }}><div style={{ display: "flex", justifyContent: "space-between" }}><h3 style={{ margin: 0 }}>{job.title}</h3><span style={{ fontSize: 11, color: p.pct === 100 ? "#78dab6" : "#9aa2b4" }}>{p.label} · {p.pct}%</span></div><Progress value={p.pct} label={p.label} />{c && <><div style={{ marginTop: 12, fontWeight: 900 }}>{c.title}</div><div style={{ color: "#dbe0ea", marginTop: 6 }}>{c.hook}</div><div style={{ color: "#7f889b", fontSize: 11, marginTop: 6 }}>{c.format} · {c.duration || 10}s</div><button disabled={busy} onClick={() => promote(job)} style={{ ...primary, marginTop: 10 }}>Build production package →</button></>}</div>})}</div></Card>}
 
-      {view === "production" && <Card><div><b style={{ color: "#d4af37", fontSize: 10, letterSpacing: ".16em" }}>PRODUCTION BAY</b><h2 style={{ margin: "6px 0" }}>One concept. Three outputs. Zero mystery.</h2></div><div style={{ display: "grid", gap: 14, marginTop: 12 }}>{productionJobs.map((job) => { let pkg = null; try { pkg = parseJson(job.result || "").package; } catch {} const m = media[job.id] || { pct: job.status === "completed" ? 100 : 0, label: job.status === "completed" ? "Choose an output" : job.status, status: job.status }; const slides = Array.isArray(pkg?.carouselSlides) ? pkg.carouselSlides : []; const copyJob = parseAux("carousel_copy", job.title); const captionJob = parseAux("caption_package", job.title); let copy = copyJob?.result ? (() => { try { return parseJson(copyJob.result).carouselSlides || []; } catch { return []; } })() : []; let captions = captionJob?.result ? (() => { try { return parseJson(captionJob.result); } catch { return null; } })() : null; return <div key={job.id} style={{ border: "1px solid #252b3b", borderRadius: 16, padding: 16 }}><div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}><div><div style={{ color: "#d4af37", fontSize: 10, letterSpacing: ".16em" }}>CONTENT PACKAGE</div><h3 style={{ margin: "6px 0" }}>{job.title}</h3></div><span style={{ color: m.status === "ERROR" ? "#ff9696" : "#78dab6", fontSize: 11 }}>{m.label || m.status} {m.pct ? `· ${m.pct}%` : ""}</span></div><Progress value={m.pct} label={m.label || "Production"} />{pkg && <><div style={{ marginTop: 10, color: "#cdd3de", fontSize: 12 }}>{pkg.hook}</div><div style={{ marginTop: 8, display: "grid", gridTemplateColumns: "repeat(5,minmax(0,1fr))", gap: 7, fontSize: 10, color: "#858ea2" }}><div><b>Location</b><br />{sceneLockFromPackage(pkg).location}</div><div><b>Time</b><br />{sceneLockFromPackage(pkg).timeOfDay}</div><div><b>Light</b><br />{sceneLockFromPackage(pkg).lighting}</div><div><b>Action</b><br />{sceneLockFromPackage(pkg).action}</div><div><b>Output</b><br />{pkg.recommendedOutput || "—"}</div></div><div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}><button disabled={busy} onClick={() => generateVideo(job)} style={primary}>Generate video</button><button disabled={busy} onClick={() => generateImage(job)} style={secondary}>Generate image</button><button disabled={busy} onClick={() => generateCarousel(job)} style={secondary}>Generate carousel</button><button disabled={busy} onClick={() => queueCopy(job)} style={secondary}>Generate slide copy</button><button disabled={busy} onClick={() => queueCaptions(job)} style={secondary}>Generate captions</button></div>{(m.imageUrl || m.videoUrl || (m.carouselUrls || []).length > 0) && <div style={{ marginTop: 14 }}><div style={{ fontSize: 11, color: "#d4af37", fontWeight: 900 }}>OUTPUTS</div>{m.imageUrl && <img src={m.imageUrl} alt="Generated" style={{ width: "100%", maxWidth: 520, borderRadius: 12, marginTop: 8, display: "block" }} />}{m.videoUrl && <video src={m.videoUrl} controls style={{ width: "100%", maxWidth: 720, borderRadius: 12, marginTop: 8 }} />}{(m.carouselUrls || []).length > 0 && <div style={{ display: "grid", gridTemplateColumns: "repeat(5,minmax(0,1fr))", gap: 8, marginTop: 8 }}>{m.carouselUrls.map((url, i) => <div key={url} style={{ border: "1px solid #252b3b", borderRadius: 10, overflow: "hidden" }}><img src={url} alt={`Slide ${i + 1}`} style={{ width: "100%", display: "block" }} /><div style={{ padding: 8, fontSize: 10, color: "#d6dce7" }}><b>{(copy.length ? copy[i]?.headline : slides[i]?.headline) || `Slide ${i + 1}`}</b><div style={{ marginTop: 4, color: "#838da1" }}>{(copy.length ? copy[i]?.body : slides[i]?.body) || ""}</div></div></div>)}</div>}</div>}{copy.length > 0 && <div style={{ marginTop: 12, padding: 12, background: "#0b0e15", borderRadius: 10 }}><b style={{ color: "#d4af37", fontSize: 10 }}>SLIDE COPY</b>{copy.map((s, i) => <div key={i} style={{ marginTop: 8 }}><b>Slide {i + 1}: {s.headline}</b><div style={{ color: "#9099ab", fontSize: 12 }}>{s.body}</div></div>)}</div>}{captions && <div style={{ marginTop: 12, padding: 12, background: "#0b0e15", borderRadius: 10 }}><b style={{ color: "#d4af37", fontSize: 10 }}>CAPTION OPTIONS</b>{(captions.captions || []).map((c, i) => <div key={i} style={{ marginTop: 8 }}><b>{c.style}</b><div style={{ color: "#9099ab", fontSize: 12 }}>{c.text}</div></div>)}</div>}{m.error && <div style={{ marginTop: 10, color: "#ff9696" }}>{m.error}</div>}</>}</div>; })}{!productionJobs.length && <div style={{ color: "#6f788c" }}>No production packages yet. Build one from a Qwen remix.</div>}</div></Card>}
+      {view === "production" && <Card><div><b style={{ color: "#d4af37", fontSize: 10, letterSpacing: ".16em" }}>PRODUCTION BAY</b><h2 style={{ margin: "6px 0" }}>One concept. Three outputs. Zero mystery.</h2></div><div style={{ display: "grid", gap: 14, marginTop: 12 }}>{productionJobs.map((job) => { let pkg = null; try { pkg = parseJson(job.result || "").package; } catch {} const m = media[job.id] || { pct: job.status === "completed" ? 100 : 0, label: job.status === "completed" ? "Choose an output" : job.status, status: job.status }; const slides = Array.isArray(pkg?.carouselSlides) ? pkg.carouselSlides : []; const copyJob = parseAux("carousel_copy", job.title); const captionJob = parseAux("caption_package", job.title); let copy = copyJob?.result ? (() => { try { return parseJson(copyJob.result).carouselSlides || []; } catch { return []; } })() : []; let captions = captionJob?.result ? (() => { try { return parseJson(captionJob.result); } catch { return null; } })() : null; return <div key={job.id} style={{ border: "1px solid #252b3b", borderRadius: 16, padding: 16 }}><div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}><div><div style={{ color: "#d4af37", fontSize: 10, letterSpacing: ".16em" }}>CONTENT PACKAGE</div><h3 style={{ margin: "6px 0" }}>{job.title}</h3></div><span style={{ color: m.status === "ERROR" ? "#ff9696" : "#78dab6", fontSize: 11 }}>{m.label || m.status} {m.pct ? `· ${m.pct}%` : ""}</span></div><Progress value={m.pct} label={m.label || "Production"} />{pkg && <><div style={{ marginTop: 10, color: "#cdd3de", fontSize: 12 }}>{pkg.hook}</div><div style={{ marginTop: 8, display: "grid", gridTemplateColumns: "repeat(5,minmax(0,1fr))", gap: 7, fontSize: 10, color: "#858ea2" }}><div><b>Location</b><br />{sceneLockFromPackage(pkg).location}</div><div><b>Time</b><br />{sceneLockFromPackage(pkg).timeOfDay}</div><div><b>Light</b><br />{sceneLockFromPackage(pkg).lighting}</div><div><b>Action</b><br />{sceneLockFromPackage(pkg).action}</div><div><b>Output</b><br />{pkg.recommendedOutput || "—"}</div></div><div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}><button disabled={busy} onClick={() => generateVideo(job)} style={primary}>Generate video</button><button disabled={busy} onClick={() => generateImage(job)} style={secondary}>Generate image</button><button disabled={busy} onClick={() => generateCarousel(job)} style={secondary}>Generate carousel</button><button disabled={busy} onClick={() => queueCopy(job)} style={secondary}>Generate slide copy</button><button disabled={busy} onClick={() => queueCaptions(job)} style={secondary}>Generate captions</button></div>{(m.imageUrl || m.videoUrl || (m.carouselUrls || m.imageUrls || []).length > 0) && <div style={{ marginTop: 14 }}><div style={{ fontSize: 11, color: "#d4af37", fontWeight: 900 }}>OUTPUTS</div>{m.imageUrl && <img src={m.imageUrl} alt="Generated" style={{ width: "100%", maxWidth: 520, borderRadius: 12, marginTop: 8, display: "block" }} />}{m.videoUrl && <video src={m.videoUrl} controls style={{ width: "100%", maxWidth: 720, borderRadius: 12, marginTop: 8 }} />}{(m.carouselUrls || m.imageUrls || []).length > 0 && <div style={{ display: "grid", gridTemplateColumns: "repeat(5,minmax(0,1fr))", gap: 8, marginTop: 8 }}>{(m.carouselUrls || m.imageUrls || []).map((url, i) => <div key={url} style={{ border: "1px solid #252b3b", borderRadius: 10, overflow: "hidden" }}><img src={url} alt={`Slide ${i + 1}`} style={{ width: "100%", display: "block" }} /><div style={{ padding: 8, fontSize: 10, color: "#d6dce7" }}><b>{(copy.length ? copy[i]?.headline : slides[i]?.headline) || `Slide ${i + 1}`}</b><div style={{ marginTop: 4, color: "#838da1" }}>{(copy.length ? copy[i]?.body : slides[i]?.body) || ""}</div></div></div>)}</div>}{Array.isArray(m.imageHistory) && m.imageHistory.length > 1 && <div style={{ marginTop: 12 }}><div style={{ fontSize: 10, color: "#7f889b", letterSpacing: ".08em" }}>PREVIOUS GENERATIONS</div><div style={{ display: "grid", gridTemplateColumns: "repeat(6,minmax(0,1fr))", gap: 7, marginTop: 7 }}>{m.imageHistory.slice().reverse().map((item, i) => <img key={`${item.url}_${i}`} src={item.url} alt={`Previous generation ${i + 1}`} style={{ width: "100%", aspectRatio: "4/5", objectFit: "cover", borderRadius: 8, border: i === 0 ? "1px solid #d4af37" : "1px solid #252b3b" }} />)}</div></div>}{copy.length > 0 && <div style={{ marginTop: 12, padding: 12, background: "#0b0e15", borderRadius: 10 }}><b style={{ color: "#d4af37", fontSize: 10 }}>SLIDE COPY</b>{copy.map((s, i) => <div key={i} style={{ marginTop: 8 }}><b>Slide {i + 1}: {s.headline}</b><div style={{ color: "#9099ab", fontSize: 12 }}>{s.body}</div></div>)}</div>}{captions && <div style={{ marginTop: 12, padding: 12, background: "#0b0e15", borderRadius: 10 }}><b style={{ color: "#d4af37", fontSize: 10 }}>CAPTION OPTIONS</b>{(captions.captions || []).map((c, i) => <div key={i} style={{ marginTop: 8 }}><b>{c.style}</b><div style={{ color: "#9099ab", fontSize: 12 }}>{c.text}</div></div>)}</div>}{m.error && <div style={{ marginTop: 10, color: "#ff9696" }}>{m.error}</div>}</>}</div>; })}{!productionJobs.length && <div style={{ color: "#6f788c" }}>No production packages yet. Build one from a Qwen remix.</div>}</div></Card>}
     </div>
   </div>;
 }
