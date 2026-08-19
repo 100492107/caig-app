@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import AICreatorWorkspaceTrackB from "./AICreatorWorkspaceTrackB.jsx";
 import TrackBAssetLibrary from "./TrackBAssetLibraryV2.jsx";
 import CaptionStudio from "./CaptionStudio.jsx";
+import CaptionIntelligence from "./CaptionIntelligence.jsx";
 import LocalAIStudio from "./LocalAIStudio.jsx";
 import AutopilotCreativeEngineV3 from "./AutopilotCreativeEngineV3.jsx";
 
@@ -56,7 +57,14 @@ function useSafeQwenJsonParser(enabled) {
 export default function CreativeEngineHub() {
   const [view, setView] = useState("autopilot");
   useSafeQwenJsonParser(view === "legacy");
-  const tabs = [["autopilot", "Qwen Autopilot"], ["assets", "Asset Library"], ["captions", "Caption Studio"], ["localai", "Local AI"], ["legacy", "Legacy Creator"]];
+  const tabs = [
+    ["autopilot", "Qwen Autopilot"],
+    ["captionsintel", "Caption Intelligence"],
+    ["assets", "Asset Library"],
+    ["captions", "Caption Studio"],
+    ["localai", "Local AI"],
+    ["legacy", "Legacy Creator"],
+  ];
   return <div>
     <div style={{ position: "sticky", top: 0, zIndex: 150, background: "rgba(8,7,13,.96)", backdropFilter: "blur(14px)", borderBottom: "1px solid #262A3C", padding: "10px 16px", display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
       <a href="/" style={{ color: "#fff", textDecoration: "none", fontWeight: 800, fontSize: 12, padding: "9px 13px", border: "1px solid #2d3246", borderRadius: 999 }}>Home</a>
@@ -64,6 +72,7 @@ export default function CreativeEngineHub() {
       <span style={{ marginLeft: "auto", fontSize: 11, color: "#777d94" }}>CornerstoneAIAssets · autonomous creative system</span>
     </div>
     <div style={pane(view === "autopilot")}><AutopilotCreativeEngineV3 /></div>
+    <div style={pane(view === "captionsintel")}><CaptionIntelligence /></div>
     <div style={pane(view === "assets")}><TrackBAssetLibrary /></div>
     <div style={pane(view === "captions")}><CaptionStudio /></div>
     <div style={pane(view === "localai")}><LocalAIStudio /></div>
