@@ -51,12 +51,17 @@ async function resolveWorkspace() {
 
 function characterNames(personaName) {
   const value = String(personaName || "").toLowerCase();
-  if (value.includes("cara + lila") || value.includes("cara and lila") || value.includes("cara_lila")) {
-    return ["Cara", "Lila"];
-  }
+  if (value.includes("cara + lila") || value.includes("cara and lila") || value.includes("cara_lila")) return ["Cara", "Lila"];
   if (value.includes("lila")) return ["Lila"];
   if (value.includes("cara")) return ["Cara"];
   return [];
+}
+
+function creatorSlug(personaName) {
+  const value = String(personaName || "").toLowerCase();
+  if (value.includes("cara + lila") || value.includes("cara and lila") || value.includes("cara_lila")) return "cara-lila";
+  if (value.includes("lila")) return "lila";
+  return "cara";
 }
 
 async function registerAsset({ publicUrl, storagePath, requestId, postId, slideIndex, personaName, metadata }) {
@@ -127,7 +132,7 @@ export default async function handler(req, res) {
     const blob = await imgRes.arrayBuffer();
 
     const suffix = typeof slideIndex === "number" ? `_${slideIndex}` : "";
-    const path = `cara/${postId || requestId}${suffix}.jpg`;
+    const path = `qwen/${creatorSlug(personaName)}/${postId || requestId}${suffix}.jpg`;
 
     const upRes = await fetch(`${SUPABASE_URL}/storage/v1/object/${BUCKET}/${path}`, {
       method: "POST",
