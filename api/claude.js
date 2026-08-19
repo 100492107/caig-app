@@ -1,35 +1,33 @@
-// Vercel serverless function — proxies LLM API calls so the API key stays server-side.
-// Uses Google Gemini 2.5 Pro. Key is read from GEMINI_API_KEY environment variable.
+// Vercel serverless function — proxies Gemini text + image understanding so API keys stay server-side.
+// POST { system, user, images?: [{ dataUrl, mimeType }], maxTokens }
 
 const MAX_RETRIES = 3;
 
 async function callGemini(url, body) {
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-    const res = await fetch(url, {
+    const response = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
 
-    const data = await res.json();
-
-    if (res.status === 429 && attempt < MAX_RETRIES) {
+    const data = await response.json();
+    if (response.status === 429 && attempt < MAX_RETRIES) {
       const waitSec = Math.pow(2, attempt + 1);
-      await new Promise((r) => setTimeout(r, waitSec * 1000));
+      await new Promise((resolve) => setTimeout(resolve, waitSec * 1000));
       continue;
     }
-
-    return { res, data };
+    return { response, data };
   }
 }
 
 function readBody(req) {
   return new Promise((resolve, reject) => {
-    let data = "";
-    req.on("data", (chunk) => { data += chunk; });
+    let raw = "";
+    req.on("data", (chunk) => { raw += chunk; });
     req.on("end", () => {
-      try { resolve(JSON.parse(data)); }
-      catch (e) { reject(new Error("Invalid JSON body")); }
+      try { resolve(JSON.parse(raw)); }
+      catch { reject(new Error("Invalid JSON body")); }
     });
     req.on("error", reject);
   });
@@ -43,9 +41,7 @@ function normalizeCreativeResponse(text) {
         ...h,
         slop_risks: Array.isArray(h?.slop_risks)
           ? h.slop_risks.filter(Boolean)
-          : h?.slop_risks
-            ? [String(h.slop_risks)]
-            : [],
+          : h?.slop_risks ? [String(h.slop_risks)] : [],
       }));
       return JSON.stringify(parsed);
     }
@@ -53,6 +49,18 @@ function normalizeCreativeResponse(text) {
     // Keep non-JSON responses untouched; the client has its own parser/error handling.
   }
   return text;
+}
+
+function imagePart(image) {
+  const dataUrl = String(image?.dataUrl || "");
+  const match = dataUrl.match(/^data:([^;]+);base64,(.+)$/s);
+  if (!match) throw new Error("Invalid image data URL.");
+  return {
+    inlineData: {
+      mimeType: image.mimeType || match[1],
+      data: match[2],
+    },
+  };
 }
 
 export default async function handler(req, res) {
@@ -67,35 +75,35 @@ export default async function handler(req, res) {
   if (!apiKey) return res.status(500).json({ error: "GEMINI_API_KEY not configured on the server" });
 
   try {
-    const { system, user, maxTokens = 8000 } = await readBody(req);
+    const { system, user, images = [], maxTokens = 8000 } = await readBody(req);
+    if (!system || !user) return res.status(400).json({ error: "Missing required fields: system, user" });
+    if (!Array.isArray(images) || images.length > 4) return res.status(400).json({ error: "Maximum 4 images per vision request." });
 
-    if (!system || !user) {
-      return res.status(400).json({ error: "Missing required fields: system, user" });
-    }
+    const parts = [{ text: user }];
+    for (const image of images) parts.push(imagePart(image));
 
     const geminiBody = {
-      contents: [{ role: "user", parts: [{ text: user }] }],
+      contents: [{ role: "user", parts }],
       systemInstruction: { parts: [{ text: system }] },
-      generationConfig: { maxOutputTokens: maxTokens, temperature: 1.0 },
+      generationConfig: { maxOutputTokens: maxTokens, temperature: 0.8 },
     };
 
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${apiKey}`;
-    const { res: geminiRes, data } = await callGemini(url, geminiBody);
+    const { response: geminiResponse, data } = await callGemini(url, geminiBody);
 
-    if (!geminiRes.ok) {
-      const errMsg = data?.error?.message || `Gemini API error ${geminiRes.status}`;
-      return res.status(geminiRes.status).json({ error: errMsg });
+    if (!geminiResponse.ok) {
+      const errMsg = data?.error?.message || `Gemini API error ${geminiResponse.status}`;
+      return res.status(geminiResponse.status).json({ error: errMsg });
     }
 
     const text = (data.candidates || [])
-      .map((c) => (c.content?.parts || []).map((p) => p.text || "").join(""))
+      .map((candidate) => (candidate.content?.parts || []).map((part) => part.text || "").join(""))
       .join("")
       .trim();
 
     if (!text) return res.status(502).json({ error: "Empty response from Gemini" });
-
     return res.status(200).json({ text: normalizeCreativeResponse(text) });
-  } catch (err) {
-    return res.status(500).json({ error: err.message || "Internal server error" });
+  } catch (error) {
+    return res.status(500).json({ error: error.message || "Internal server error" });
   }
 }
