@@ -53,9 +53,11 @@ export default async function handler(req, res) {
   try { body = await parseBody(req); }
   catch { return res.status(400).json({ error: "Invalid JSON request body" }); }
 
-  const provider = body?.provider || "grok";
+  // Backwards-compatible alias for older UI builds that used seedance_2_5.
+  const requestedProvider = body?.provider || "grok";
+  const provider = requestedProvider === "seedance_2_5" ? "seedance" : requestedProvider;
   const model = MODELS[provider];
-  if (!model) return res.status(400).json({ error: `Unknown video provider: ${provider}` });
+  if (!model) return res.status(400).json({ error: `Unknown video provider: ${requestedProvider}` });
 
   const imageUrl = body?.imageUrl;
   const prompt = String(body?.prompt || "").trim();
