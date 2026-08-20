@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import AICreatorWorkspaceTrackB from "./AICreatorWorkspaceTrackB.jsx";
+import CommerceTestWorkspace from "./CommerceTestWorkspace.jsx";
 import TrackBAssetLibrary from "./TrackBAssetLibraryV2.jsx";
 import CaptionStudio from "./CaptionStudio.jsx";
 import CaptionWriter from "./CaptionWriter.jsx";
@@ -56,9 +57,10 @@ function useSafeQwenJsonParser(enabled) {
 
 export default function CreativeEngineHub() {
   const [view, setView] = useState("autopilot");
-  useSafeQwenJsonParser(view === "legacy");
+  useSafeQwenJsonParser(view === "legacy" || view === "commerce");
   const tabs = [
     ["autopilot", "Qwen Autopilot"],
+    ["commerce", "Commerce Test"],
     ["captionwriter", "Caption Writer"],
     ["assets", "Asset Library"],
     ["captions", "Caption Studio"],
@@ -72,6 +74,7 @@ export default function CreativeEngineHub() {
       <span style={{ marginLeft: "auto", fontSize: 11, color: "#777d94" }}>CornerstoneAIAssets · autonomous creative system</span>
     </div>
     <div style={pane(view === "autopilot")}><AutopilotCreativeEngineV3 /></div>
+    <div style={pane(view === "commerce")}><CommerceTestWorkspace /></div>
     <div style={pane(view === "captionwriter")}><CaptionWriter /></div>
     <div style={pane(view === "assets")}><TrackBAssetLibrary /></div>
     <div style={pane(view === "captions")}><CaptionStudio /></div>
