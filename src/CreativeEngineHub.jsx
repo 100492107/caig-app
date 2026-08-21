@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import AICreatorWorkspaceTrackB from "./AICreatorWorkspaceTrackB.jsx";
 import CommerceTestWorkspace from "./CommerceTestWorkspace.jsx";
 import GrowthModeWorkspace from "./GrowthModeWorkspace.jsx";
-import TrackASocialWorkspace from "./TrackASocialWorkspace.jsx";
+import TrackASocialWorkspaceV2 from "./TrackASocialWorkspaceV2.jsx";
 import TrackBAssetLibrary from "./TrackBAssetLibraryV2.jsx";
 import CaptionStudio from "./CaptionStudio.jsx";
 import CaptionWriter from "./CaptionWriter.jsx";
@@ -55,7 +55,7 @@ export default function CreativeEngineHub(){
     </header>
     <div style={{maxWidth:1500,margin:"0 auto",padding:"12px 22px 0"}}><div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:16,padding:"8px 2px 12px"}}><div><div style={{fontSize:10,color:"#626c7e",textTransform:"uppercase",fontWeight:900,letterSpacing:".1em"}}>Current workspace</div><div style={{fontSize:14,fontWeight:900,marginTop:3}}>{TABS.find(x=>x[0]===view)?.[1] || "Creative Engine"}</div></div><div style={{color:"#657085",fontSize:11,textAlign:"right"}}>{DESCRIPTIONS[view]}</div></div></div>
     <div style={pane(view==="autopilot")}><AutopilotCreativeEngineV3/></div>
-    <div style={pane(view==="trackasocial")}><TrackASocialWorkspace/></div>
+    <div style={pane(view==="trackasocial")}><TrackASocialWorkspaceV2/></div>
     <div style={pane(view==="growth")}><GrowthModeWorkspace/></div>
     <div style={pane(view==="commerce")}><CommerceTestWorkspace/></div>
     <div style={pane(view==="youtube")}><YouTubeGrowthNicheWorkspace/></div>
