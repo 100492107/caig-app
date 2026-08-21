@@ -1,169 +1,72 @@
 import React, { useMemo, useState } from "react";
 import { supabase } from "./supabase";
 
+const MODEL = "mlx-community/Qwen3-8B-4bit";
 const PEOPLE=[
-  {id:"cara",name:"Cara",description:"Direct, dry, disciplined, British."},
-  {id:"lila",name:"Lila",description:"Warm, measured, observant, understated."},
-  {id:"cara_lila",name:"Cara + Lila",description:"Two distinct voices, chemistry and contrast."},
+  {id:"cara",name:"Cara",desc:"Direct, dry, disciplined, British."},
+  {id:"lila",name:"Lila",desc:"Warm, measured, observant, understated."},
+  {id:"cara_lila",name:"Cara + Lila",desc:"Two distinct voices, chemistry and contrast."},
 ];
 const OBJECTIVES=["Sell","Discover","Test Hook","Build Demand"];
 const FORMATS=[
-  ["problem_solution","Problem / Solution","Pain → discovery → demonstration → payoff → CTA"],
-  ["talking_ugc","Talking UGC","Creator speaks directly to camera with the product woven into the story"],
-  ["reaction","Reaction","Creator reacts to the problem, product or discovery"],
-  ["slideshow","Slideshow","TikTok Photo Mode: swipeable story with on-image copy"],
-  ["before_after","Before / After","Observable contrast without fabricated results"],
-  ["grwm","GRWM","Product appears naturally inside getting-ready content"],
-  ["story","Story","Specific micro-story with curiosity and payoff"],
-  ["comparison","Comparison","Simple A/B or old-way-vs-new-way contrast"],
+  ["problem_solution","Problem / Solution","Pain → discovery → demonstration → payoff"],
+  ["talking_ugc","Talking UGC","Mid-thought creator speech with the product woven in"],
+  ["reaction","Reaction","A real reaction with a reason to care"],
+  ["slideshow","Slideshow","5–7 swipeable frames, each earning the next"],
+  ["before_after","Before / After","Observable contrast without fabricated claims"],
+  ["grwm","GRWM","Product naturally enters a real routine"],
+  ["story","Story","Specific problem → discovery → payoff"],
+  ["comparison","Comparison","Useful A/B or old-way vs new-way contrast"],
+];
+const ADAPTATIONS=[
+  "copy the emotional mechanism, not another creator's wording or identity",
+  "flip a proven framing when the opposite angle creates tension",
+  "borrow comparison/ranking structures from unrelated categories",
+  "borrow confession/storytime structures when the product fits the emotional trigger",
+  "use participation mechanics only when the audience has the same emotional stake",
+  "test creator-first hooks before product-first hooks",
 ];
 const BIBLES={
-  cara:`Cara is an adult fictional creator. Direct, dry, disciplined and British. Practical, confident and slightly self-aware. She speaks plainly, never like a corporate brand. Strong worlds: routines, style, training, work, confidence and useful discoveries.`,
-  lila:`Lila is an adult fictional creator. Warm, measured, observant and understated. Calm rather than loud. Strong worlds: beauty, skincare, haircare, lifestyle, travel, routines and small discoveries.`,
-  cara_lila:`Cara and Lila are two separate adult fictional creators. Cara is direct, dry and disciplined. Lila is warm, measured and observant. Never merge identities; use contrast, chemistry or shared situations.`,
+  cara:`Cara is an adult fictional British creator. Direct, dry, disciplined and practical. Public Cara is never a salesperson. Products should appear because she is doing something, solving something or reacting to something. Her humour is understated and her language is concrete.`,
+  lila:`Lila is an adult fictional creator. Warm, measured, observant and understated. She is beauty/lifestyle oriented but dislikes hype, forced praise and obvious selling. Products belong inside realistic routines, discoveries and small observations.`,
+  cara_lila:`Cara and Lila are separate adult fictional creators. Cara reacts faster and challenges things. Lila observes first and is more precise. Commerce content should use chemistry and contrast rather than merged voices or duplicated reactions.`,
 };
-const FORMAT_RULES={
-  problem_solution:"Make the problem concrete immediately. Frustration first, product second. End with a natural shopping cue.",
-  talking_ugc:"Start mid-thought. Use one believable observation, one product detail and one reason to care. Avoid sales-script cadence.",
-  reaction:"Open with a genuine reaction or curiosity gap. The reaction must matter to the viewer. Product enters naturally.",
-  slideshow:"Create 5–7 coherent slides. Each earns the next swipe. Every slide gets short on-image text plus a detailed JSON image prompt.",
-  before_after:"Define the exact visual difference. No fabricated numbers, testimonials or medical/beauty claims.",
-  grwm:"The product belongs inside the routine. Use real situations: work, date night, going out, travel, skincare, hair or getting dressed.",
-  story:"Use setup, tension, discovery and payoff. Be specific enough to feel lived rather than generic.",
-  comparison:"Use a useful, simple contrast. Never invent prices, specs or superiority claims.",
-};
-function parseJson(text){
-  const clean=String(text||"").replace(/```json|```/g,"").trim();
-  try{return JSON.parse(clean);}catch{}
-  const start=clean.search(/[\[{]/); if(start<0) throw new Error("Qwen returned invalid JSON");
-  const opener=clean[start], closer=opener==="{"?"}":"]"; let depth=0,quote=false,escaped=false;
-  for(let i=start;i<clean.length;i++){
-    const c=clean[i];
-    if(quote){if(escaped) escaped=false; else if(c==="\\") escaped=true; else if(c==='"') quote=false;}
-    else if(c==='"') quote=true; else if(c===opener) depth++; else if(c===closer){depth--; if(depth===0)return JSON.parse(clean.slice(start,i+1));}
-  }
-  throw new Error("Qwen returned incomplete JSON");
-}
-async function queueQwen({title,persona,systemPrompt,userPrompt}){
-  const {data,error}=await supabase.from("local_ai_jobs").insert({
-    title,job_type:"commerce_test",model:"mlx-community/Qwen3-8B-4bit",persona_id:persona,system_prompt:systemPrompt,user_prompt:userPrompt,
-    options:{max_tokens:7000,temperature:0.62},status:"queued",production_status:"not_started"
-  }).select("id").single();
-  if(error)throw error; return data.id;
-}
-async function waitQwen(jobId,setMessage){
-  const deadline=Date.now()+10*60*1000;
-  while(Date.now()<deadline){
-    await new Promise(r=>setTimeout(r,3500));
-    const {data,error}=await supabase.from("local_ai_jobs").select("id,status,result,error_message").eq("id",jobId).maybeSingle();
-    if(error)throw error; if(!data)throw new Error("Qwen job disappeared from the queue.");
-    if(data.status==="completed")return data.result||"";
-    if(data.status==="error")throw new Error(data.error_message||"Qwen failed.");
-    setMessage(`Qwen is thinking like a TikTok UGC strategist… ${data.status}`);
-  }
-  throw new Error("Qwen timed out. Make sure the local Qwen worker is running.");
-}
+function parseJson(text){const clean=String(text||"").replace(/```json|```/gi,"").trim();try{return JSON.parse(clean);}catch{}const start=clean.search(/[\[{]/);if(start<0)throw new Error("Qwen returned no JSON result.");const opener=clean[start],closer=opener==="{"?"}":"]";let depth=0,quote=false,escaped=false;for(let i=start;i<clean.length;i++){const c=clean[i];if(quote){if(escaped)escaped=false;else if(c==="\\")escaped=true;else if(c==='"')quote=false;}else if(c==='"')quote=true;else if(c===opener)depth++;else if(c===closer){depth--;if(depth===0)return JSON.parse(clean.slice(start,i+1));}}throw new Error("Qwen returned incomplete JSON.");}
+async function queueQwen({title,persona,systemPrompt,userPrompt}){const {data,error}=await supabase.from("local_ai_jobs").insert({title,job_type:"commerce_test",model:MODEL,persona_id:persona,system_prompt:systemPrompt,user_prompt:userPrompt,options:{max_tokens:11000,temperature:0.58,top_p:0.9},status:"queued",production_status:"not_started"}).select("id").single();if(error)throw error;return data.id;}
+async function waitQwen(jobId,setMessage){const deadline=Date.now()+10*60*1000;while(Date.now()<deadline){await new Promise(r=>setTimeout(r,3000));const {data,error}=await supabase.from("local_ai_jobs").select("id,status,result,error_message").eq("id",jobId).maybeSingle();if(error)throw error;if(!data)throw new Error("Qwen job disappeared from the queue.");if(data.status==="completed")return data.result||"";if(data.status==="error")throw new Error(data.error_message||"Qwen failed.");setMessage(`Qwen is thinking → ${data.status}`);}throw new Error("Qwen timed out. Make sure the local Qwen worker is running.");}
+function copy(text,setMessage){navigator.clipboard?.writeText(String(text||""));setMessage("Copied.");}
 function loadProducts(){try{return JSON.parse(localStorage.getItem("caig_commerce_products")||"[]")}catch{return[]}}
-function Info({label,value}){return <div style={info}><div style={section}>{label}</div><div style={{fontSize:12,lineHeight:1.5,color:"#d7dde8"}}>{value||"—"}</div></div>}
-function Box({title,value,copy}){return <div><div style={section}>{title}{copy&&<button onClick={copy} style={{...button,marginLeft:8,padding:"4px 8px",fontSize:10}}>Copy</button>}</div><div style={output}>{value||"—"}</div></div>}
-
+const panel={background:"linear-gradient(180deg,#121620 0%,#0d1017 100%)",border:"1px solid #252b3a",borderRadius:22,boxShadow:"0 18px 60px rgba(0,0,0,.24)"};
+const input={width:"100%",boxSizing:"border-box",background:"#0b0e14",color:"#f2f4f8",border:"1px solid #2b3242",borderRadius:12,padding:"11px 12px",outline:"none"};
+const button={background:"#151a24",color:"#eef2f7",border:"1px solid #2b3242",borderRadius:12,padding:"9px 12px",fontWeight:800,cursor:"pointer"};
+const primary={background:"linear-gradient(135deg,#e7c75a,#c69b27)",color:"#08090b",border:"none",borderRadius:14,padding:"13px 18px",fontWeight:950,cursor:"pointer"};
+const label={display:"grid",gap:7,fontSize:10,fontWeight:900,color:"#aab3c4",letterSpacing:".08em",textTransform:"uppercase"};
 export default function CommerceTestWorkspace(){
-  const [persona,setPersona]=useState("cara");
-  const [productId,setProductId]=useState("");
-  const [productName,setProductName]=useState("");
-  const [productUrl,setProductUrl]=useState("");
-  const [productPrice,setProductPrice]=useState("");
-  const [commission,setCommission]=useState("");
-  const [problem,setProblem]=useState("");
-  const [proof,setProof]=useState("");
-  const [objective,setObjective]=useState("Sell");
-  const [format,setFormat]=useState("problem_solution");
-  const [count,setCount]=useState("5");
-  const [direction,setDirection]=useState("");
-  const [products,setProducts]=useState(()=>loadProducts());
-  const [tests,setTests]=useState([]);
-  const [busy,setBusy]=useState(false);
-  const [message,setMessage]=useState("");
+  const [persona,setPersona]=useState("cara"),[productId,setProductId]=useState(""),[productName,setProductName]=useState(""),[productUrl,setProductUrl]=useState(""),[productPrice,setProductPrice]=useState(""),[commission,setCommission]=useState(""),[problem,setProblem]=useState(""),[proof,setProof]=useState(""),[objective,setObjective]=useState("Sell"),[format,setFormat]=useState("problem_solution"),[count,setCount]=useState("5"),[direction,setDirection]=useState(""),[products,setProducts]=useState(loadProducts),[tests,setTests]=useState([]),[busy,setBusy]=useState(false),[message,setMessage]=useState("");
   const selectedProduct=useMemo(()=>products.find(p=>p.id===productId)||null,[products,productId]);
-
-  function loadProduct(id){
-    setProductId(id);
-    const p=products.find(x=>x.id===id); if(!p)return;
-    setProductName(p.name||""); setProductUrl(p.url||""); setProductPrice(p.price||""); setCommission(p.commission||""); setProblem(p.problem||""); setProof(p.proof||"");
-  }
-  function saveProduct(){
-    if(!productName.trim()){setMessage("Add a product name first.");return;}
-    const p={id:productId||crypto.randomUUID(),name:productName.trim(),url:productUrl.trim(),price:productPrice.trim(),commission:commission.trim(),problem:problem.trim(),proof:proof.trim()};
-    const next=[p,...products.filter(x=>x.id!==p.id)]; localStorage.setItem("caig_commerce_products",JSON.stringify(next)); setProducts(next); setProductId(p.id); setMessage("Product saved.");
-  }
-  function copy(text){navigator.clipboard?.writeText(String(text||""));setMessage("Copied.")}
-
-  async function generateTests(){
-    if(!productName.trim()){setMessage("Add a product before generating.");return;}
-    setBusy(true);setTests([]);setMessage(`Building ${count} commerce tests…`);
-    try{
-      const person=PEOPLE.find(p=>p.id===persona); const fmt=FORMATS.find(x=>x[0]===format);
-      const systemPrompt=`You are the senior TikTok Shop creative strategist, UGC director, retention editor and follower-growth analyst inside CornerstoneAIAssets. You are an expert, not a generic copywriter. You understand TikTok-native hooks, retention, comments, saves, shares, follower conversion, product discovery, UGC, creator voice and commerce.\n\nCREATOR:\n${BIBLES[persona]}\n\nJOB: Design content that can grow the creator AND sell the product. A post must be worth consuming even if the viewer never buys. The creator is the reason people follow; the product is the reason they may click.\n\nNON-NEGOTIABLES:\n1. Never invent product facts, prices, reviews, testimonials, specs, results or personal experiences.\n2. Never use fake urgency unless supplied as verified.\n3. Avoid unsupported medical, therapeutic or beauty claims. Prefer observable demonstration or personal framing.\n4. Do not sound like an advert. Avoid generic influencer filler.\n5. Hook for a stranger, not an existing fan.\n6. The first 1–2 seconds or first slide must be understandable without context.\n7. Build a reason to keep watching/swiping, comment, save or share before asking for the click.\n8. Product appears at the correct narrative moment.\n9. Captions sound like the creator, not a brand manager.\n10. Every image prompt must be production-ready JSON direction containing identity, environment, wardrobe, action, framing, camera, lighting, product placement, realism constraints and negative constraints.\n11. Carousels: every slide gets exact on-image text AND its own JSON production prompt, with visual continuity.\n12. UGC actions must be physically plausible and easy to demonstrate.\n13. Prefer specific everyday pain points and social situations over abstract benefits.\n14. Objective emphasis: Sell=conversion after value; Discover=curiosity; Test Hook=isolate hook quality; Build Demand=problem awareness plus saves/shares.\n15. Produce materially different angles, not rewrites.\n\nFORMAT: ${fmt?.[1]}\nFORMAT RULES: ${FORMAT_RULES[format]}\n\nQUALITY BAR: Think like someone who has reviewed thousands of short-form posts. Reject anything that could belong to any random influencer. Every test needs a clear stop reason, retention mechanism, follower reason, natural product role and production-ready execution.\n\nReturn JSON only. No markdown.`;
-      const userPrompt=`CREATOR: ${person?.name}\nPRODUCT: ${productName.trim()}\nPRODUCT URL: ${productUrl.trim()||"not supplied"}\nPRICE: ${productPrice.trim()||"not supplied"}\nCOMMISSION: ${commission.trim()||"not supplied"}\nCORE PROBLEM: ${problem.trim()||"not supplied"}\nVERIFIED FACTS/PROOF: ${proof.trim()||"none supplied"}\nOBJECTIVE: ${objective}\nFORMAT: ${fmt?.[1]}\nEXTRA DIRECTION: ${direction.trim()||"none"}\n\nGenerate exactly ${count} tests. Return exactly {"tests":[{"id":"T1","angle":"","hook":"","retention_mechanism":"","follower_reason":"","creator_role":"","product_role":"","script":"","post_caption":"","cta":"","comment_prompt":"","image_generation_prompts":[{"shot":1,"purpose":"","on_image_caption":"","json_prompt":""}],"video_json_prompt":"","why_this_should_work":""}]}\n\nFor non-carousel formats use only as many image prompts as genuinely useful, usually 1–4. For slideshow use 5–7. post_caption is the TikTok post caption. on_image_caption is the exact text to place on the visual. json_prompt is production-ready JSON-stringified direction, not vague prose. Make every test usable by the production engine without another creative pass.`;
-      const jobId=await queueQwen({title:`Commerce Test · ${person?.name} · ${productName.trim()}`,persona,systemPrompt,userPrompt});
-      const parsed=parseJson(await waitQwen(jobId,setMessage)); const generated=Array.isArray(parsed.tests)?parsed.tests:[];
-      if(!generated.length)throw new Error("Qwen returned no commerce tests.");
-      setTests(generated); setMessage(`${generated.length} tests ready — captions, on-image copy and JSON prompts included.`);
-    }catch(e){setMessage(e.message||String(e))}finally{setBusy(false)}
-  }
-
-  return <div style={page}><div style={shell}>
-    <div style={{marginBottom:20}}><div style={eyebrow}>Track B · Commerce Test</div><h1 style={h1}>Product → Hook → UGC → Test → Winner</h1><p style={muted}>This is the switched-on commerce brain for Cara and Lila. Qwen is instructed to think like a senior TikTok Shop UGC strategist and return the whole production package, not just an idea.</p></div>
-
-    <section style={card}><div style={title}>1. Select creator</div><div style={grid3}>{PEOPLE.map(p=><button key={p.id} onClick={()=>setPersona(p.id)} style={persona===p.id?activeCard:cardButton}><div style={{fontWeight:900}}>{p.name}</div><div style={mutedSmall}>{p.description}</div></button>)}</div></section>
-
-    <section style={card}><div style={title}>2. Select product</div><div style={{display:"grid",gridTemplateColumns:"minmax(0,1fr) 220px",gap:12}}><div>
-      <label style={label}>Saved product<select value={productId} onChange={e=>loadProduct(e.target.value)} style={input}><option value="">New product</option>{products.map(p=><option key={p.id} value={p.id}>{p.name}{p.commission?` · ${p.commission}`:""}</option>)}</select></label>
-      <div style={{display:"grid",gridTemplateColumns:"2fr 1fr 1fr",gap:10,marginTop:10}}><input value={productName} onChange={e=>setProductName(e.target.value)} placeholder="Product name" style={input}/><input value={productPrice} onChange={e=>setProductPrice(e.target.value)} placeholder="Price" style={input}/><input value={commission} onChange={e=>setCommission(e.target.value)} placeholder="Commission" style={input}/></div>
-      <input value={productUrl} onChange={e=>setProductUrl(e.target.value)} placeholder="TikTok Shop/product URL" style={{...input,marginTop:10}}/>
-      </div><div><button onClick={saveProduct} style={{...primary,width:"100%"}}>Save Product</button>{selectedProduct&&<div style={savedBox}>Saved: <b>{selectedProduct.name}</b><br/>Commission: {selectedProduct.commission||"—"}</div>}</div></div>
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginTop:10}}><textarea value={problem} onChange={e=>setProblem(e.target.value)} placeholder="Problem it solves — use the customer's actual language where possible" rows={4} style={textarea}/><textarea value={proof} onChange={e=>setProof(e.target.value)} placeholder="Verified facts, demo observations or real proof. Leave blank rather than invent." rows={4} style={textarea}/></div>
-    </section>
-
-    <section style={card}><div style={title}>3. Choose objective + format</div><div style={grid3}><label style={label}>Objective<select value={objective} onChange={e=>setObjective(e.target.value)} style={input}>{OBJECTIVES.map(x=><option key={x}>{x}</option>)}</select></label><label style={label}>Format<select value={format} onChange={e=>setFormat(e.target.value)} style={input}>{FORMATS.map(([id,label])=><option key={id} value={id}>{label}</option>)}</select></label><label style={label}>Variations<select value={count} onChange={e=>setCount(e.target.value)} style={input}><option value="1">1</option><option value="5">5</option><option value="10">10</option></select></label></div><div style={hint}>{FORMATS.find(x=>x[0]===format)?.[2]}</div><textarea value={direction} onChange={e=>setDirection(e.target.value)} placeholder="Optional: hook, situation, trend, product angle or test you want Qwen to explore" rows={3} style={{...textarea,marginTop:10}}/><button disabled={busy} onClick={generateTests} style={{...primary,marginTop:12,padding:"12px 18px"}}>{busy?"Qwen is working…":`Generate ${count} Commerce Test${count==="1"?"":"s"}`}</button></section>
-
-    <section style={card}><div style={title}>4. Test board</div>{!tests.length&&<div style={empty}>Your generated tests will appear here.</div>}<div style={{display:"grid",gap:16}}>{tests.map((test,index)=><article key={test.id||index} style={testCard}>
-      <div style={{display:"flex",justifyContent:"space-between",gap:12,alignItems:"flex-start"}}><div><div style={section}>TEST {index+1} · {test.angle||"Angle"}</div><h2 style={h2}>{test.hook||"Hook"}</h2></div><button onClick={()=>copy(JSON.stringify(test,null,2))} style={button}>Copy JSON</button></div>
-      <div style={statGrid}><Info label="Retention mechanism" value={test.retention_mechanism}/><Info label="Follower reason" value={test.follower_reason}/><Info label="Creator role" value={test.creator_role}/><Info label="Product role" value={test.product_role}/></div>
-      <div style={twoCol}><Box title="Script" value={test.script}/><Box title="TikTok caption" value={test.post_caption} copy={()=>copy(test.post_caption)}/><Box title="CTA" value={test.cta}/><Box title="Comment prompt" value={test.comment_prompt}/></div>
-      <div style={{marginTop:12}}><div style={section}>Image / carousel production prompts</div><div style={{display:"grid",gap:10}}>{(test.image_generation_prompts||[]).map((shot,i)=><div key={shot.shot||i} style={promptCard}><div style={{display:"flex",justifyContent:"space-between",gap:10}}><b>Shot {shot.shot||i+1}</b><button onClick={()=>copy(shot.json_prompt)} style={button}>Copy prompt</button></div><div style={{marginTop:7,fontSize:11,color:"#d7dde8"}}>On-image caption: <b>{shot.on_image_caption||"—"}</b></div><pre style={pre}>{shot.json_prompt||"—"}</pre></div>)}</div></div>
-      {test.video_json_prompt&&<div style={{marginTop:12}}><Box title="Video JSON prompt" value={test.video_json_prompt} copy={()=>copy(test.video_json_prompt)}/></div>}
-      <div style={{marginTop:12}}><Box title="Why this should work" value={test.why_this_should_work}/></div>
-    </article>)}</div></section>
-  </div>{message&&<div style={toast}>{message}</div>}</div>
+  function loadProduct(id){setProductId(id);const p=products.find(x=>x.id===id);if(!p)return;setProductName(p.name||"");setProductUrl(p.url||"");setProductPrice(p.price||"");setCommission(p.commission||"");setProblem(p.problem||"");setProof(p.proof||"");}
+  function saveProduct(){if(!productName.trim()){setMessage("Add a product name first.");return;}const p={id:productId||crypto.randomUUID(),name:productName.trim(),url:productUrl.trim(),price:productPrice.trim(),commission:commission.trim(),problem:problem.trim(),proof:proof.trim()};const next=[p,...products.filter(x=>x.id!==p.id)];localStorage.setItem("caig_commerce_products",JSON.stringify(next));setProducts(next);setProductId(p.id);setMessage("Product saved.");}
+  async function generate(){if(!productName.trim()){setMessage("Add a product before generating.");return;}setBusy(true);setTests([]);setMessage("Qwen is building commerce concepts…");try{
+    const person=PEOPLE.find(p=>p.id===persona),fmt=FORMATS.find(x=>x[0]===format);
+    const systemPrompt=`You are CornerstoneAIAssets' senior commerce creative director. Combine TikTok-native UGC strategy, audience psychology, creator direction, retention editing, product positioning and conversion judgement. You are not a generic affiliate copywriter.\n\nCREATOR SOURCE:\n${BIBLES[persona]}\n\nJOB:\nThe creator is the reason to follow. The product is the reason to click. A winning post must be enjoyable even if the viewer never buys.\n\nCREATIVE ORDER:\n1) identify the customer's real emotional problem → 2) choose the strongest creator angle → 3) choose/adapt a proven format → 4) hook → 5) retention → 6) believable demonstration → 7) product payoff → 8) natural CTA.\n\nFORMAT ADAPTATION:\n${ADAPTATIONS.join(" | ")}. Never copy another creator's wording, identity, exact script or distinctive execution.\n\nFACTUALITY:\nNever invent product facts, prices, specs, testimonials, reviews, orders, discounts, health/medical claims, personal experiences or measurable outcomes. If proof is not supplied, say so and design an observable demonstration instead.\n\nUGC REALISM:\nStart mid-thought where useful. Use ordinary phone framing, plausible body language, realistic environments and one main action. No glossy commercial cadence unless the format truly requires it.\n\nANTI-SLOP:\nReject generic influencer language, fake enthusiasm, random luxury scenes, unexplained props, perfect poses, plastic skin, meaningless cut changes, unsupported claims and captions written like an ad agency.\n\nCONVERSION:\nThe product should enter at the moment it solves the problem, not in the first sentence unless discovery is the hook. The CTA should be earned by the content.\n\nBATCH INTELLIGENCE:\nAcross ${count} tests, vary emotional angle, hook, scene, creator behaviour and format execution. Do not create five rewrites of one ad.\n\nReturn JSON only.`;
+    const userPrompt=`CREATOR: ${person.name}\nPRODUCT: ${productName.trim()}\nPRODUCT URL: ${productUrl.trim()||"not supplied"}\nPRICE: ${productPrice.trim()||"not supplied"}\nCOMMISSION: ${commission.trim()||"not supplied"}\nCUSTOMER PROBLEM: ${problem.trim()||"not supplied"}\nVERIFIED PROOF/FACTS: ${proof.trim()||"none supplied"}\nOBJECTIVE: ${objective}\nFORMAT: ${fmt?.[1]} — ${fmt?.[2]}\nVARIATIONS: ${count}\nEXTRA DIRECTION: ${direction.trim()||"none"}\n\nInternally score candidates on stop power, problem clarity, creator fit, retention, product integration, trust, conversion potential and visual believability. Discard weak concepts before returning survivors.\n\nReturn exactly {"tests":[{"id":"T1","angle":"","audience_emotion":"","hook":"","retention_mechanism":"","problem":"","creator_role":"","product_role":"","script":"","post_caption":"","on_image_caption":"","cta":"","comment_prompt":"","image_generation_prompts":[{"shot":1,"purpose":"","on_image_caption":"","json_prompt":""}],"video_json_prompt":"","why_this_should_work":"","quality_gate":"PASS"}]}\n\nFor slideshow use 5–7 coherent slides. For other formats provide only genuinely necessary visual prompts. Every json_prompt must be production-ready JSON-stringified direction with identity, environment, wardrobe, action, camera, framing, lighting, product placement, continuity, realism constraints and negative constraints. Never put text inside the image prompt unless the visual genuinely needs it; return exact on-image copy separately.`;
+    const jobId=await queueQwen({title:`Commerce Studio · ${person.name} · ${productName.trim()}`,persona,systemPrompt,userPrompt});const parsed=parseJson(await waitQwen(jobId,setMessage));const generated=Array.isArray(parsed.tests)?parsed.tests:[];if(!generated.length)throw new Error("Qwen returned no commerce tests.");setTests(generated);setMessage(`${generated.length} curated commerce concepts ready.`);
+  }catch(e){setMessage(e.message||String(e));}finally{setBusy(false);}}
+  return <div style={{minHeight:"100vh",background:"radial-gradient(circle at 90% 0%,rgba(212,175,55,.07),transparent 28%),#090b10",color:"#fff"}}><div style={{maxWidth:1400,margin:"0 auto",padding:"28px 28px 80px"}}>
+    <header style={{marginBottom:22}}><div style={{color:"#d4af37",fontSize:11,fontWeight:950,letterSpacing:".14em",textTransform:"uppercase"}}>Track B / Commerce Studio</div><h1 style={{fontSize:"clamp(32px,4vw,52px)",lineHeight:1,margin:"10px 0",letterSpacing:"-.04em"}}>Turn creator attention into purchases.</h1><p style={{maxWidth:760,color:"#9ba5b7",fontSize:14,lineHeight:1.65,margin:0}}>Qwen treats creator identity, audience psychology, product truth and conversion as one system. The output remains model-ready JSON, so Cornerstone can render it with whichever production stack you choose.</p></header>
+    <div style={{display:"grid",gridTemplateColumns:"minmax(320px,400px) minmax(0,1fr)",gap:20,alignItems:"start"}}><aside style={{...panel,padding:20,position:"sticky",top:18}}>
+      <div style={{color:"#7f899c",fontSize:10,textTransform:"uppercase",letterSpacing:".12em",fontWeight:900}}>Commerce brief</div><div style={{display:"grid",gap:15,marginTop:16}}>
+        <div><div style={{fontSize:12,color:"#788397",marginBottom:8}}>Creator</div><div style={{display:"grid",gap:8}}>{PEOPLE.map(p=><button key={p.id} onClick={()=>setPersona(p.id)} style={{...button,textAlign:"left",background:persona===p.id?"linear-gradient(135deg,rgba(212,175,55,.18),rgba(212,175,55,.05))":"#10141d",borderColor:persona===p.id?"#9c7b2c":"#2b3242"}}><b>{p.name}</b><div style={{color:"#818b9d",fontSize:11,marginTop:4}}>{p.desc}</div></button>)}</div></div>
+        <label style={label}>Saved product<select value={productId} onChange={e=>loadProduct(e.target.value)} style={input}><option value="">New product</option>{products.map(p=><option key={p.id} value={p.id}>{p.name}{p.commission?` · ${p.commission}`:""}</option>)}</select></label>
+        <div style={{display:"grid",gridTemplateColumns:"2fr 1fr 1fr",gap:8}}><input value={productName} onChange={e=>setProductName(e.target.value)} placeholder="Product" style={input}/><input value={productPrice} onChange={e=>setProductPrice(e.target.value)} placeholder="Price" style={input}/><input value={commission} onChange={e=>setCommission(e.target.value)} placeholder="Comm." style={input}/></div>
+        <input value={productUrl} onChange={e=>setProductUrl(e.target.value)} placeholder="TikTok Shop / product URL" style={input}/><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}><textarea value={problem} onChange={e=>setProblem(e.target.value)} placeholder="Customer's real problem / language" rows={4} style={{...input,resize:"vertical"}}/><textarea value={proof} onChange={e=>setProof(e.target.value)} placeholder="Verified product facts / proof only" rows={4} style={{...input,resize:"vertical"}}/></div>
+        <button onClick={saveProduct} style={{...button,width:"100%"}}>Save product to Commerce Library</button>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}><label style={label}>Objective<select value={objective} onChange={e=>setObjective(e.target.value)} style={input}>{OBJECTIVES.map(o=><option key={o}>{o}</option>)}</select></label><label style={label}>Format<select value={format} onChange={e=>setFormat(e.target.value)} style={input}>{FORMATS.map(([id,l])=><option key={id} value={id}>{l}</option>)}</select></label></div>
+        <label style={label}>Batch size<select value={count} onChange={e=>setCount(e.target.value)} style={input}><option value="1">1 concept</option><option value="5">5 concepts</option><option value="10">10 concepts</option></select></label>
+        <textarea value={direction} onChange={e=>setDirection(e.target.value)} rows={4} placeholder="Optional angle, customer language, trend or reference" style={{...input,resize:"vertical"}}/>
+        <button disabled={busy} onClick={generate} style={{...primary,width:"100%",opacity:busy?.65:1}}>{busy?"Qwen is thinking…":"Generate commerce batch"}</button>
+        {selectedProduct&&<div style={{fontSize:11,color:"#778297"}}>Saved product loaded: <b style={{color:"#cdd3de"}}>{selectedProduct.name}</b></div>}
+      </div></aside>
+      <main><div style={{...panel,padding:18,marginBottom:14}}><div style={{display:"flex",justifyContent:"space-between",gap:12,flexWrap:"wrap"}}><div><div style={{color:"#d4af37",fontSize:10,textTransform:"uppercase",letterSpacing:".12em",fontWeight:950}}>Qwen commerce intelligence</div><div style={{fontWeight:900,marginTop:4}}>Creator → emotion → product truth → proof → conversion</div></div><div style={{color:"#7f899c",fontSize:11}}>Affiliate-first · renderer agnostic</div></div></div>
+      {!tests.length?<div style={{...panel,padding:46,textAlign:"center",minHeight:360,display:"grid",placeItems:"center"}}><div><div style={{fontSize:42,marginBottom:12}}>◈</div><h2 style={{margin:0,fontSize:22}}>No commerce concepts yet.</h2><p style={{maxWidth:510,margin:"10px auto 0",color:"#798498",lineHeight:1.6}}>Add one real product and the customer's actual problem. Qwen will do the creative strategy and hand back the full production package.</p></div></div>:<div style={{display:"grid",gap:14}}>{tests.map((test,index)=><article key={test.id||index} style={{...panel,padding:18}}><div style={{display:"flex",justifyContent:"space-between",gap:12,alignItems:"flex-start"}}><div><div style={{color:"#788397",fontSize:10,fontWeight:900,letterSpacing:".1em",textTransform:"uppercase"}}>Concept {index+1} · {test.angle||"Commerce test"}</div><h2 style={{fontSize:24,lineHeight:1.12,margin:"6px 0 0",letterSpacing:"-.025em"}}>{test.hook}</h2></div><button onClick={()=>copy(JSON.stringify(test,null,2),setMessage)} style={button}>Copy JSON</button></div><div style={{display:"grid",gridTemplateColumns:"repeat(4,minmax(0,1fr))",gap:8,marginTop:14}}>{[["Emotion",test.audience_emotion],["Retention",test.retention_mechanism],["Creator role",test.creator_role],["Product role",test.product_role]].map(([k,v])=><div key={k} style={{background:"#0b0f16",border:"1px solid #202737",borderRadius:12,padding:11}}><div style={{color:"#677186",fontSize:9,textTransform:"uppercase",fontWeight:900,letterSpacing:".08em"}}>{k}</div><div style={{marginTop:6,fontSize:11,color:"#cbd2de",lineHeight:1.5}}>{v||"—"}</div></div>)}</div><div style={{display:"grid",gridTemplateColumns:"1.2fr .8fr",gap:12,marginTop:12}}><div style={{background:"#0b0f16",border:"1px solid #202737",borderRadius:14,padding:13}}><div style={{color:"#d4af37",fontSize:9,textTransform:"uppercase",fontWeight:950}}>Script</div><div style={{color:"#d4d9e2",fontSize:12,lineHeight:1.65,whiteSpace:"pre-wrap",marginTop:7}}>{test.script}</div></div><div style={{display:"grid",gap:12}}><div style={{background:"#0b0f16",border:"1px solid #202737",borderRadius:14,padding:13}}><div style={{color:"#d4af37",fontSize:9,textTransform:"uppercase",fontWeight:950}}>TikTok caption</div><div style={{color:"#d4d9e2",fontSize:12,lineHeight:1.55,marginTop:7}}>{test.post_caption||"—"}</div></div><div style={{background:"#0b0f16",border:"1px solid #202737",borderRadius:14,padding:13}}><div style={{color:"#d4af37",fontSize:9,textTransform:"uppercase",fontWeight:950}}>Quality gate</div><div style={{color:"#78d2ae",fontSize:12,fontWeight:900,marginTop:7}}>{test.quality_gate||"PASS"}</div><div style={{color:"#7f899c",fontSize:11,lineHeight:1.5,marginTop:5}}>{test.why_this_should_work||"—"}</div></div></div></div><details style={{marginTop:12}}><summary style={{cursor:"pointer",color:"#9ea7b7",fontSize:11,fontWeight:800}}>Production package</summary><div style={{display:"grid",gap:10,marginTop:10}}><div style={{background:"#090c11",border:"1px solid #1f2634",borderRadius:12,padding:12}}><div style={{color:"#788397",fontSize:9,fontWeight:900,textTransform:"uppercase"}}>On-image copy</div><div style={{marginTop:6,color:"#d7dbe3",fontSize:12}}>{test.on_image_caption||"—"}</div></div>{(test.image_generation_prompts||[]).map((shot,shotIndex)=><div key={shot.shot||shotIndex} style={{background:"#090c11",border:"1px solid #1f2634",borderRadius:12,padding:12}}><div style={{display:"flex",justifyContent:"space-between",gap:10}}><b style={{fontSize:11}}>Shot {shot.shot||shotIndex+1}</b><button onClick={()=>copy(shot.json_prompt,setMessage)} style={{...button,padding:"6px 9px",fontSize:10}}>Copy prompt</button></div><pre style={{whiteSpace:"pre-wrap",color:"#aeb7c6",fontSize:10,lineHeight:1.6,margin:"8px 0 0",fontFamily:"ui-monospace,SFMono-Regular,Menlo,monospace"}}>{shot.json_prompt||"—"}</pre></div>))}{test.video_json_prompt&&<div style={{background:"#090c11",border:"1px solid #1f2634",borderRadius:12,padding:12}}><div style={{display:"flex",justifyContent:"space-between",gap:10}}><b style={{fontSize:11}}>Video prompt</b><button onClick={()=>copy(test.video_json_prompt,setMessage)} style={{...button,padding:"6px 9px",fontSize:10}}>Copy prompt</button></div><pre style={{whiteSpace:"pre-wrap",color:"#aeb7c6",fontSize:10,lineHeight:1.6,margin:"8px 0 0",fontFamily:"ui-monospace,SFMono-Regular,Menlo,monospace"}}>{test.video_json_prompt}</pre></div>}</div></details></article>)}</div>}</main></div>{message&&<div style={{position:"fixed",right:22,bottom:22,background:"#141923",color:"#fff",border:"1px solid #30384a",borderRadius:12,padding:"11px 14px",boxShadow:"0 20px 40px rgba(0,0,0,.3)",fontSize:12}}>{message}</div>}</div>;
 }
-
-const page={minHeight:"100vh",background:"#08070d",color:"#eef1f7",padding:26,fontFamily:"Inter,system-ui,sans-serif"};
-const shell={maxWidth:1280,margin:"0 auto"};
-const card={background:"#0e1017",border:"1px solid #252a39",borderRadius:16,padding:18,marginBottom:16};
-const title={fontSize:14,fontWeight:900,marginBottom:12};
-const eyebrow={fontSize:10,letterSpacing:".18em",textTransform:"uppercase",color:"#d9a43c",fontWeight:900};
-const h1={margin:"7px 0 5px",fontSize:34,letterSpacing:"-.05em"};
-const h2={margin:"6px 0",fontSize:20};
-const label={display:"flex",flexDirection:"column",gap:7,fontSize:10,textTransform:"uppercase",letterSpacing:".08em",fontWeight:800,color:"#7f8798"};
-const input={width:"100%",boxSizing:"border-box",background:"#151822",color:"#fff",border:"1px solid #2a3040",borderRadius:10,padding:"10px 12px"};
-const textarea={...input,resize:"vertical",fontFamily:"inherit",lineHeight:1.45};
-const button={border:"1px solid #303648",background:"#151924",color:"#eef1f7",borderRadius:10,padding:"8px 11px",fontWeight:800,cursor:"pointer"};
-const primary={...button,borderColor:"#d4af37",background:"rgba(212,175,55,.14)",color:"#f7d77b"};
-const cardButton={...button,textAlign:"left",minHeight:68};
-const activeCard={...cardButton,borderColor:"#d4af37",background:"rgba(212,175,55,.12)"};
-const muted={color:"#838ca0",fontSize:12,lineHeight:1.6,maxWidth:900};
-const mutedSmall={color:"#838ca0",fontSize:11,lineHeight:1.45,marginTop:4};
-const grid3={display:"grid",gridTemplateColumns:"repeat(3,minmax(0,1fr))",gap:10};
-const twoCol={display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginTop:12};
-const statGrid={display:"grid",gridTemplateColumns:"repeat(4,minmax(0,1fr))",gap:10,marginTop:12};
-const section={fontSize:10,textTransform:"uppercase",letterSpacing:".08em",fontWeight:900,color:"#7f8798",marginBottom:6};
-const output={background:"#151822",border:"1px solid #2a3040",borderRadius:10,padding:11,color:"#dce2ec",fontSize:12,lineHeight:1.55,whiteSpace:"pre-wrap",minHeight:46};
-const info={border:"1px solid #252a39",borderRadius:10,padding:10};
-const testCard={border:"1px solid #2a3040",borderRadius:14,padding:16,background:"#10131a"};
-const promptCard={border:"1px solid #252a39",borderRadius:10,padding:12,background:"#0c0f15"};
-const pre={margin:"10px 0 0",whiteSpace:"pre-wrap",overflowWrap:"anywhere",background:"#0a0d12",border:"1px solid #202635",borderRadius:8,padding:10,color:"#bfc8d8",fontSize:10.5,lineHeight:1.45};
-const hint={marginTop:10,padding:12,borderRadius:10,background:"#121521",border:"1px solid #262c3c",color:"#aeb6c6",fontSize:12,lineHeight:1.55};
-const savedBox={marginTop:8,padding:10,border:"1px solid #252a39",borderRadius:10,color:"#9fa8ba",fontSize:11,lineHeight:1.5};
-const empty={padding:24,textAlign:"center",border:"1px dashed #2a3040",borderRadius:12,color:"#626b7e"};
-const toast={position:"fixed",left:"50%",bottom:18,transform:"translateX(-50%)",background:"#151a24",border:"1px solid #2e3646",color:"#e8edf5",borderRadius:999,padding:"10px 15px",fontSize:11.5,fontWeight:700,zIndex:200,maxWidth:"90vw",textAlign:"center"};
