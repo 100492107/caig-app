@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import AICreatorWorkspaceTrackB from "./AICreatorWorkspaceTrackB.jsx";
 import CommerceTestWorkspace from "./CommerceTestWorkspace.jsx";
 import GrowthModeWorkspace from "./GrowthModeWorkspace.jsx";
+import TrackASocialWorkspace from "./TrackASocialWorkspace.jsx";
 import TrackBAssetLibrary from "./TrackBAssetLibraryV2.jsx";
 import CaptionStudio from "./CaptionStudio.jsx";
 import CaptionWriter from "./CaptionWriter.jsx";
@@ -11,10 +12,11 @@ import YouTubeGrowthNicheWorkspace from "./YouTubeGrowthNicheWorkspace.jsx";
 
 const pane=(visible)=>({display:visible?"block":"none"});
 function extractFirstJsonValue(text){const source=String(text||"");const start=source.search(/[\[{]/);if(start<0)throw new Error("No JSON value found");const open=source[start],close=open==="{"?"}":"]";let depth=0,inString=false,escaped=false;for(let i=start;i<source.length;i+=1){const ch=source[i];if(inString){if(escaped)escaped=false;else if(ch==="\\")escaped=true;else if(ch==='"')inString=false;continue;}if(ch==='"')inString=true;else if(ch===open)depth+=1;else if(ch===close){depth-=1;if(depth===0)return source.slice(start,i+1);}}throw new Error("Incomplete JSON value");}
-function useSafeQwenJsonParser(enabled){useEffect(()=>{if(!enabled||typeof JSON==="undefined"||typeof JSON.parse!=="function")return undefined;const originalParse=JSON.parse;const patchedParse=function safeParse(value,reviver){try{return originalParse.call(JSON,value,reviver)}catch(error){const message=String(error?.message||"");if(typeof value==="string"&&message.includes("non-whitespace character after JSON"))return originalParse.call(JSON,extractFirstJsonValue(value),reviver);throw error;}};JSON.parse=patchedParse;return()=>{if(JSON.parse===patchedParse)JSON.parse=originalParse}},[enabled])}
+function useSafeQwenJsonParser(enabled){useEffect(()=>{if(!enabled||typeof JSON==="undefined"||typeof JSON.parse!=="function")return undefined;const originalParse=JSON.parse;const patchedParse=function safeParse(value,reviver){try{return originalParse.call(JSON,value,reviver)}catch(error){const message=String(error?.message||"");if(typeof value==="string"&&message.includes("non-whitespace character after JSON"))return originalParse.call(JSON,extractFirstJsonValue(value),reviver);throw error;}};JSON.parse=patchedParse;return()=>{if(JSON.parse===patchedParse)JSON.parse=originalParse}},[enabled]);}
 
 const TABS=[
   ["autopilot","Autopilot","Radar + creative director"],
+  ["trackasocial","Track A Social","Dealer market growth engine"],
   ["growth","Creator Growth","Cara / Lila audience engine"],
   ["commerce","Commerce","TikTok Shop testing"],
   ["youtube","YouTube","Animated long-form studio"],
@@ -27,6 +29,7 @@ const TABS=[
 
 const DESCRIPTIONS={
   autopilot:"Signal radar, concept selection and production orchestration.",
+  trackasocial:"Build Cornerstone AI Group authority and dealer demand across social platforms.",
   growth:"Build recognisable creators before monetisation.",
   commerce:"Turn creator attention into validated product sales.",
   youtube:"Adult animated business stories built for long-form retention.",
@@ -39,7 +42,7 @@ const DESCRIPTIONS={
 
 export default function CreativeEngineHub(){
   const [view,setView]=useState("autopilot");
-  useSafeQwenJsonParser(view==="legacy"||view==="commerce"||view==="growth"||view==="youtube");
+  useSafeQwenJsonParser(view==="legacy"||view==="commerce"||view==="growth"||view==="youtube"||view==="trackasocial");
   return <div style={{minHeight:"100vh",background:"#080a0f",color:"#fff"}}>
     <header style={{position:"sticky",top:0,zIndex:300,background:"rgba(8,10,15,.88)",backdropFilter:"blur(18px)",borderBottom:"1px solid #1f2532"}}>
       <div style={{maxWidth:1500,margin:"0 auto",padding:"14px 22px 0"}}>
@@ -52,6 +55,7 @@ export default function CreativeEngineHub(){
     </header>
     <div style={{maxWidth:1500,margin:"0 auto",padding:"12px 22px 0"}}><div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:16,padding:"8px 2px 12px"}}><div><div style={{fontSize:10,color:"#626c7e",textTransform:"uppercase",fontWeight:900,letterSpacing:".1em"}}>Current workspace</div><div style={{fontSize:14,fontWeight:900,marginTop:3}}>{TABS.find(x=>x[0]===view)?.[1] || "Creative Engine"}</div></div><div style={{color:"#657085",fontSize:11,textAlign:"right"}}>{DESCRIPTIONS[view]}</div></div></div>
     <div style={pane(view==="autopilot")}><AutopilotCreativeEngineV3/></div>
+    <div style={pane(view==="trackasocial")}><TrackASocialWorkspace/></div>
     <div style={pane(view==="growth")}><GrowthModeWorkspace/></div>
     <div style={pane(view==="commerce")}><CommerceTestWorkspace/></div>
     <div style={pane(view==="youtube")}><YouTubeGrowthNicheWorkspace/></div>
