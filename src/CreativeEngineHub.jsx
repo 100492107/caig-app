@@ -3,6 +3,7 @@ import AICreatorWorkspaceTrackB from "./AICreatorWorkspaceTrackB.jsx";
 import CommerceTestWorkspace from "./CommerceTestWorkspace.jsx";
 import GrowthModeWorkspace from "./GrowthModeWorkspace.jsx";
 import YouTubeGrowthWorkspace from "./YouTubeGrowthWorkspace.jsx";
+import YouTubeGrowthNicheWorkspace from "./YouTubeGrowthNicheWorkspace.jsx";
 import TrackBAssetLibrary from "./TrackBAssetLibraryV2.jsx";
 import CaptionStudio from "./CaptionStudio.jsx";
 import CaptionWriter from "./CaptionWriter.jsx";
@@ -80,7 +81,7 @@ export default function CreativeEngineHub() {
     <div style={pane(view === "autopilot")}><AutopilotCreativeEngineV3 /></div>
     <div style={pane(view === "growth")}><GrowthModeWorkspace /></div>
     <div style={pane(view === "commerce")}><CommerceTestWorkspace /></div>
-    <div style={pane(view === "youtube")}><YouTubeGrowthWorkspace /></div>
+    <div style={pane(view === "youtube")}><YouTubeGrowthNicheWorkspace /></div>
     <div style={pane(view === "captionwriter")}><CaptionWriter /></div>
     <div style={pane(view === "assets")}><TrackBAssetLibrary /></div>
     <div style={pane(view === "captions")}><CaptionStudio /></div>
