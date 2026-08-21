@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import AICreatorWorkspaceTrackB from "./AICreatorWorkspaceTrackB.jsx";
-import CommerceTestWorkspace from "./CommerceTestWorkspace.jsx";
+import CommerceTestWorkspace from "./CommerceTestWorkspaceV2.jsx";
 import TrackBAssetLibrary from "./TrackBAssetLibraryV2.jsx";
 import CaptionStudio from "./CaptionStudio.jsx";
 import CaptionWriter from "./CaptionWriter.jsx";
