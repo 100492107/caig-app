@@ -19,7 +19,7 @@
     "caption:whisper:status": "bash -lc 'curl -fsS http://127.0.0.1:8787/health || true'",
     "caption:whisper:server": ".venv-caption/bin/python scripts/mlx-whisper-server.py",
     "qwen:server": "bash scripts/run-local-qwen.sh",
-    "qwen:worker": "node --env-file=.env.qwen.local scripts/qwen-worker.mjs"
+    "qwen:worker": "node --env-file=.env.qwen.local --import ./scripts/qwen-format-archaeology.mjs scripts/qwen-worker.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.104.1",
