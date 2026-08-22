@@ -38,7 +38,6 @@ function parseResult(value) {
 }
 
 const safe = (v) => String(v ?? '').trim();
-const encodeDealer = (dealer) => encodeURIComponent(JSON.stringify(dealer));
 
 export default function TrackAOutreachWorkspace() {
   const [dealer] = useState(readContext);
@@ -46,7 +45,7 @@ export default function TrackAOutreachWorkspace() {
   const [jobId, setJobId] = useState('');
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
-  const [sentReady, setSentReady] = useState(false);
+  const [mailOpened, setMailOpened] = useState(false);
   const [copied, setCopied] = useState('');
 
   const displayName = useMemo(() => safe(dealer.ownerName) || 'there', [dealer.ownerName]);
@@ -105,15 +104,23 @@ export default function TrackAOutreachWorkspace() {
     const subject = result.recommended_subject || result.subject_options?.[0] || '';
     const body = result.email || '';
     window.location.href = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    setSentReady(true);
+    setMailOpened(true);
   }
 
   function markSent() {
     if (!dealer.id) return;
-    window.location.href = `https://app.cornerstoneaigroup.com/../crm2.html?markSent=${encodeURIComponent(dealer.id)}`;
+    const target = window.opener;
+    if (target && !target.closed) {
+      try {
+        target.location.href = `${target.location.pathname.split('?')[0]}?markSent=${encodeURIComponent(dealer.id)}`;
+        target.focus?.();
+        window.close();
+        return;
+      } catch {}
+    }
+    setError('Return to the CRM tab and use the updated Email 1 action to mark the message as sent.');
   }
 
-  const crmUrl = `https://app.cornerstoneaigroup.com/../crm2.html`;
   const canSend = Boolean(email && result?.email);
 
   return (
@@ -165,7 +172,7 @@ export default function TrackAOutreachWorkspace() {
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center' }}><div style={{ color: '#d4af37', fontSize: 10, textTransform: 'uppercase', letterSpacing: '.12em', fontWeight: 900 }}>Email 1</div><button onClick={() => copy(result.email, 'body')} style={{ background: '#0d1118', color: '#cfd5df', border: '1px solid #2a3340', borderRadius: 10, padding: '7px 10px', cursor: 'pointer' }}>{copied === 'body' ? 'Copied' : 'Copy email'}</button></div>
               <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'inherit', color: '#eef1f5', lineHeight: 1.72, fontSize: 15, margin: '14px 0 0' }}>{result.email}</pre>
               <div style={{ marginTop: 18, display: 'flex', gap: 9, flexWrap: 'wrap' }}>
-                <button onClick={openMail} disabled={!canSend} style={{ border: 0, background: canSend ? '#d4af37' : '#3a3f48', color: '#17120a', borderRadius: 11, padding: '11px 15px', fontWeight: 900, cursor: canSend ? 'pointer' : 'not-allowed' }}>{sentReady ? 'Mail app opened' : 'Open in Mail'}</button>
+                <button onClick={openMail} disabled={!canSend} style={{ border: 0, background: canSend ? '#d4af37' : '#3a3f48', color: '#17120a', borderRadius: 11, padding: '11px 15px', fontWeight: 900, cursor: canSend ? 'pointer' : 'not-allowed' }}>{mailOpened ? 'Mail app opened' : 'Open in Mail'}</button>
                 <button onClick={() => copy(result.email, 'body2')} style={{ background: '#0d1118', color: '#e8ebf0', border: '1px solid #303948', borderRadius: 11, padding: '11px 15px', fontWeight: 800, cursor: 'pointer' }}>Copy & Paste</button>
               </div>
             </section>
