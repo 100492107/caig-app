@@ -22,7 +22,7 @@ For any candidate format, extract:
 - why the format is repeatable
 - whether it can produce 10+ strong episodes
 
-3) NICHE LOCK — NEVER CROSS-CONTAMINATE BLINDLY
+3) NICHE LOCK — NEVER CROSS-CONTAMINATE
 A borrowed format is valid only when the underlying audience emotion, problem, aspiration, identity or viewing behaviour maps credibly to the target niche.
 Do NOT copy a format simply because it has high views.
 Classify each candidate as USE, ADAPT or IGNORE.
@@ -47,36 +47,51 @@ Score every adapted format on niche fit, repeatability, evidence strength, emoti
 
 8) OUTPUT DISCIPLINE
 Where the surrounding workflow supports it, report the source niche, mechanism, USE/ADAPT/IGNORE decision, niche-fit reason, invariant structure, variable layer and franchise potential alongside the creative concept.
+
+9) RESEARCH FIREWALL
+A research pack belongs to exactly one workspace/domain. Never reuse, cache, merge, summarise or transfer research evidence between Track A, Track B or YouTube. A source discovered for one domain may not be treated as evidence for another domain merely because the format appears transferable. Transfer only the abstract mechanism, never the source evidence, audience facts or niche assumptions.
 `;
 
 const TRACK_A = `
 
 TRACK A NICHE LOCK
+Research domain: TRACK_A_AUTOMOTIVE_B2B.
 Target niche: US independent automotive dealerships and dealership decision-makers.
-Formats must map to dealership reality: stock, listings, photos, admin, time-to-live, enquiries, merchandising, sales workflow, customer perception and operational friction.
-Do not import creator, beauty, fitness, wellness, finance-bro or consumer-app behaviour just because it is viral. Adapt only the underlying mechanism when the dealer audience has a credible emotional match.
+Research may cover dealership owners, dealer principals, sales managers, automotive retail, stock merchandising, listings, vehicle photography, enquiries, admin, time-to-live, sales workflow, customer perception, operational friction and B2B outreach.
+Track A research must NEVER use Track B creator/beauty/fitness/Fanvue evidence or YouTube business-storytelling evidence as source evidence.
+Only abstract a mechanism from outside automotive when the mechanism genuinely fits dealership psychology. Never import creator audience behaviour, beauty/lifestyle assumptions, subscriber psychology, consumer-app signals or long-form YouTube audience facts into dealership research.
 `;
 
 const TRACK_B = `
 
 TRACK B NICHE LOCK
-Target niche: the specific creator's established audience and lifestyle world.
+Research domain: TRACK_B_CREATOR_GROWTH.
+Target niche: the selected creator's exact established audience, lifestyle world and platform context.
 Cara must remain fitness/lifestyle/discipline/confidence/ordinary-life grounded. Lila must remain beauty/lifestyle/understated visual discovery grounded. The duo must remain relationship/contrast/chemistry grounded.
-A borrowed format is useful only when it can be expressed naturally inside that creator's existing world and recurring series. Do not let a viral external niche overwrite the creator's identity.
+Track B research must NEVER use Track A dealership/automotive evidence or YouTube business/economics evidence as source evidence.
+A borrowed format is useful only when expressed naturally inside the creator's existing world, audience emotion and recurring series. External evidence may inspire an abstract mechanism, but the evidence itself does not become creator-specific audience evidence.
 `;
 
 const YOUTUBE = `
 
 YOUTUBE NICHE LOCK
+Research domain: YOUTUBE_LONGFORM_BUSINESS_MONEY.
 Target niche: adult animated business mysteries and money stories.
-Every borrowed format must ultimately serve adult business/economics/money storytelling and long-form narrative. TikTok/social structures can inform the hook, reveal, list, reversal or pacing, but do not turn the channel into a short-form listicle feed. Preserve the channel's original 2D nostalgic visual identity and long-form causal storytelling.
+Research may cover long-form YouTube storytelling, business/economics/money narratives, documentary structure, retention, titles, thumbnails, chapter pacing, narrative reveals and animation-friendly visual storytelling.
+YouTube research must NEVER use Track A dealership evidence or Track B creator/Fanvue/lifestyle evidence as source evidence.
+Short-form formats may inform the hook, reveal, list, reversal or pacing mechanism, but the research conclusion must remain native to long-form YouTube storytelling and the channel's nostalgic 2D animated identity.
 `;
 
 function identifyLayer(messages) {
-  const all = messages.map((m) => String(m?.content || '')).join('\n').toLowerCase();
-  if (all.includes('cornerstoneaigroup') || all.includes('cornerstone ai group') || all.includes('track a')) return TRACK_A;
-  if (all.includes('animated business mysteries') || all.includes('youtube') && all.includes('long-form')) return YOUTUBE;
-  if (all.includes('cornerstoneaiassets') || all.includes('cara') || all.includes('lila')) return TRACK_B;
+  const text = messages.map((m) => String(m?.content || '')).join('\n').toLowerCase();
+  // Explicit workspace/domain markers always win. We do not infer a domain from a random word such as "track a" inside a long prompt.
+  if (text.includes('research domain: track_a_automotive_b2b') || text.includes('workspace: track_a') || text.includes('workspace_id: track_a')) return TRACK_A;
+  if (text.includes('research domain: track_b_creator_growth') || text.includes('workspace: track_b') || text.includes('workspace_id: track_b')) return TRACK_B;
+  if (text.includes('research domain: youtube_longform_business_money') || text.includes('workspace: youtube') || text.includes('workspace_id: youtube')) return YOUTUBE;
+  // Backwards-compatible fallbacks for older queued jobs.
+  if (text.includes('animated business mysteries') || (text.includes('youtube') && text.includes('long-form'))) return YOUTUBE;
+  if (text.includes('cornerstoneaigroup') || text.includes('cornerstone ai group') || text.includes('us independent automotive')) return TRACK_A;
+  if (text.includes('cornerstoneaiassets') || text.includes('cara') || text.includes('lila')) return TRACK_B;
   return '';
 }
 
@@ -103,4 +118,4 @@ globalThis.fetch = async function patchedFetch(input, init = {}) {
   }
 };
 
-console.log('[QWEN] format archaeology + niche lock loaded');
+console.log('[QWEN] format archaeology + research firewall + niche locks loaded');
