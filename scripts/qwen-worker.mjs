@@ -152,11 +152,11 @@ async function fetchRedditTop(subreddit) {
   }).filter((item) => Date.parse(item.published || '') >= RESEARCH_CUTOFF());
 }
 
-async function fetchTikTokCreativeCenter() {
+async function fetchTikTokCreativeCenter(topic = 'creator') {
+  const safeTopic = String(topic || 'creator').trim().toLowerCase().replace(/\s+/g, '%20');
   const urls = [
-    'https://ads.tiktok.com/business/creativecenter/hashtag/all/pc/en?period=7&countryCode=US',
+    `https://ads.tiktok.com/business/creativecenter/hashtag/${encodeURIComponent(safeTopic)}/pc/en?period=7&countryCode=US`,
     'https://ads.tiktok.com/business/creativecenter/inspiration/popular/pc/en?region=US',
-    'https://ads.tiktok.com/business/creativecenter/hashtag/clothing/pc/en?period=7&countryCode=US',
   ];
   const results = [];
   for (const url of urls) {
@@ -168,23 +168,23 @@ async function fetchTikTokCreativeCenter() {
       platform: 'TikTok',
       sourceType: 'official-creative-center',
       source: 'TikTok Creative Center',
-      title: 'Current TikTok Creative Center trend/video page',
+      title: `Current TikTok Creative Center signal page · ${topic}`,
       published: new Date().toISOString(),
       url,
       signal: text,
       hashtags,
-      evidence: 'Current public Creative Center page. Use as trend-discovery evidence, not as proof that any single hashtag converts.'
+      evidence: `Current public Creative Center page scoped to ${topic}. Use as trend-discovery evidence, not proof of private account performance.`,
     });
   }
   return results;
 }
 
-async function fetchInstagramSignals() {
+async function fetchInstagramSignals(topic = 'creator') {
   const queries = [
-    'site:instagram.com/reel viral creator August 2026',
-    'site:instagram.com/p carousel Instagram creator August 2026',
-    'Instagram carousel hook trend August 2026',
-    'Instagram reels hook trend August 2026',
+    `site:instagram.com/reel ${topic} viral creator August 2026`,
+    `site:instagram.com/p ${topic} carousel August 2026`,
+    `Instagram ${topic} carousel hook trend August 2026`,
+    `Instagram ${topic} reels trend August 2026`,
   ];
   const rss = (await Promise.all(queries.map(fetchRss))).flat();
   const direct = [];
@@ -194,7 +194,7 @@ async function fetchInstagramSignals() {
       platform: 'Instagram',
       sourceType: 'direct-public-check',
       source: 'Instagram public web',
-      title: 'Instagram public discovery availability',
+      title: `Instagram public discovery availability · ${topic}`,
       published: new Date().toISOString(),
       url,
       signal: response.ok ? stripHtml(response.text).slice(0, 2500) : `Direct public fetch unavailable (${response.status || 'network error'}).`,
@@ -216,95 +216,140 @@ async function fetchInstagramSignals() {
         published: item.published,
         url: item.url,
         signal: item.snippet || item.title,
-        evidence: 'Indexed public reference; not a direct Instagram performance feed.',
+        evidence: `Indexed public reference scoped to ${topic}; not a direct Instagram performance feed.`,
       })),
     ...direct,
   ];
 }
 
-async function buildLiveResearchPack(job) {
-  if (!['social_caption_intelligence', 'trend_scan'].includes(job.job_type)) return null;
+function extractPromptValue(prompt, label) {
+  const match = String(prompt || '').match(new RegExp(`${label}:\\s*([^\\n]+)`, 'i'));
+  return match ? match[1].trim() : '';
+}
 
-  const prompt = `${job.user_prompt || ''} ${job.system_prompt || ''}`.toLowerCase();
-  const requestedPlatforms = [];
-  if (prompt.includes('instagram')) requestedPlatforms.push('Instagram');
-  if (prompt.includes('tiktok') || prompt.includes('tick tock')) requestedPlatforms.push('TikTok');
-  if (prompt.includes('facebook')) requestedPlatforms.push('Facebook');
-  if (prompt.includes('reddit')) requestedPlatforms.push('Reddit');
-  if (prompt.includes('fanvue')) requestedPlatforms.push('Fanvue');
-  if (!requestedPlatforms.length) requestedPlatforms.push('Instagram', 'TikTok', 'Reddit');
+function researchDomainForJob(job) {
+  const explicit = String(job?.options?.research_domain || '').trim().toUpperCase();
+  if (explicit) return explicit;
+  const persona = String(job?.persona_id || '').toLowerCase();
+  const prompt = `${job?.system_prompt || ''}\n${job?.user_prompt || ''}`.toLowerCase();
+  if (persona.includes('cornerstone_track_a') || prompt.includes('track_a_automotive_b2b') || prompt.includes('us independent automotive')) return 'TRACK_A_AUTOMOTIVE_B2B';
+  if (prompt.includes('youtube_longform_business_money') || (prompt.includes('youtube') && prompt.includes('long-form'))) return 'YOUTUBE_LONGFORM_BUSINESS_MONEY';
+  if (persona.includes('cara') || persona.includes('lila') || persona.includes('cornerstoneaiassets')) return 'TRACK_B_CREATOR_GROWTH';
+  return '';
+}
+
+function researchSpecForJob(job) {
+  const domain = researchDomainForJob(job);
+  const prompt = `${job?.user_prompt || ''}\n${job?.system_prompt || ''}`;
+
+  if (domain === 'TRACK_A_AUTOMOTIVE_B2B') {
+    return {
+      domain,
+      platforms: ['Google News', 'Reddit'],
+      topic: 'US independent automotive dealership B2B outreach',
+      queries: [
+        'US independent automotive dealership sales marketing outreach 2026',
+        'dealer principal sales manager dealership listing merchandising photos 2026',
+        'automotive retail B2B sales outreach dealership owner 2026',
+        'used car dealership inventory merchandising enquiry response workflow 2026',
+        'automotive dealer marketing lead response stock turn 2026',
+      ],
+      reddit: ['askcarsales', 'askCarDealers'],
+      firewall: 'Only automotive dealership/B2B sources are evidence. Never use creator, beauty, fitness, Fanvue or YouTube sources as evidence.',
+    };
+  }
+
+  if (domain === 'YOUTUBE_LONGFORM_BUSINESS_MONEY') {
+    return {
+      domain,
+      platforms: ['Google News', 'Reddit'],
+      topic: 'adult long-form business economics money storytelling on YouTube',
+      queries: [
+        'YouTube business documentary storytelling retention titles thumbnails August 2026',
+        'YouTube finance business story documentary channels August 2026',
+        'long form YouTube retention narrative documentary business August 2026',
+        'business economics mystery storytelling YouTube August 2026',
+      ],
+      reddit: ['NewTubers', 'PartneredYoutube'],
+      firewall: 'Only YouTube long-form/business/economics storytelling sources are evidence. Never use dealership or creator/Fanvue sources as evidence.',
+    };
+  }
+
+  // Track B is scoped to the creator's current audience/niche. The query is built from the job, never from Track A or YouTube.
+  const niche = extractPromptValue(prompt, 'NICHE') || 'creator lifestyle';
+  const creator = extractPromptValue(prompt, 'CREATOR') || 'Cara and Lila';
+  return {
+    domain: 'TRACK_B_CREATOR_GROWTH',
+    platforms: ['TikTok', 'Instagram', 'Reddit', 'Google News'],
+    topic: `${creator} · ${niche}`,
+    queries: [
+      `TikTok ${niche} viral format creator August 2026`,
+      `Instagram ${niche} viral reel carousel August 2026`,
+      `${niche} creator content trend August 2026`,
+      `${niche} audience content formats comments saves shares August 2026`,
+    ],
+    reddit: ['InstagramMarketing', 'TikTokMarketing', 'ContentCreators'],
+    firewall: 'Only creator-growth, social-platform and the selected niche sources are evidence. Never use dealership or YouTube business-storytelling sources as evidence.',
+  };
+}
+
+async function buildLiveResearchPack(job) {
+  const eligible = ['social_caption_intelligence', 'trend_scan'].includes(job.job_type) || job?.options?.research === true;
+  if (!eligible) return null;
+
+  const spec = researchSpecForJob(job);
+  if (!spec.domain) return null;
 
   const research = [];
   const limitations = [];
 
-  if (requestedPlatforms.includes('TikTok')) {
-    const tiktok = await fetchTikTokCreativeCenter();
-    research.push(...tiktok);
-    if (!tiktok.length) limitations.push('TikTok Creative Center was not reachable during this research pass.');
-  }
-
-  if (requestedPlatforms.includes('Instagram')) {
-    const instagram = await fetchInstagramSignals();
-    research.push(...instagram);
-    if (!instagram.some((item) => item.sourceType === 'indexed-public')) limitations.push('Instagram direct/public post access was limited; current indexed references were used where available.');
-    if (!instagram.some((item) => item.visualAccess)) limitations.push('Instagram carousel image text was not directly readable in this pass; the system must not invent slide text evidence.');
-  }
-
-  if (requestedPlatforms.includes('Reddit')) {
-    const subs = ['InstagramMarketing', 'TikTokhelp', 'TikTokMarketing', 'ContentCreators'];
-    const reddit = (await Promise.all(subs.map(fetchRedditTop))).flat();
-    research.push(...reddit);
-    if (!reddit.length) limitations.push('Reddit weekly community data was not reachable during this research pass.');
-  }
-
-  const queries = [
-    'TikTok viral creator format August 2026',
-    'Instagram viral reel format August 2026',
-    'Instagram carousel text hook August 2026',
-    'creator content trends August 2026',
-  ];
-  if (requestedPlatforms.includes('Fanvue')) queries.push('Fanvue creator promotion conversion August 2026');
-  const articles = (await Promise.all(queries.map(fetchRss))).flat()
-    .filter((item) => {
-      const t = Date.parse(item.published || '');
-      return !Number.isNaN(t) && t >= RESEARCH_CUTOFF();
-    })
-    .map((item) => ({
-      platform: /tiktok/i.test(item.title + item.snippet) ? 'TikTok' : /instagram/i.test(item.title + item.snippet) ? 'Instagram' : 'Cross-platform',
+  for (const query of spec.queries) {
+    const items = await fetchRss(query);
+    research.push(...items.map((item) => ({
+      platform: 'Google News',
       sourceType: 'editorial-indexed',
       source: item.source || 'Indexed web',
       title: item.title,
       published: item.published,
       url: item.url,
       signal: item.snippet || item.title,
-    }));
-  research.push(...articles);
+      query,
+      domain: spec.domain,
+    })));
+  }
 
-  if (requestedPlatforms.includes('Fanvue')) {
-    for (const [url, label] of [
-      ['https://help.fanvue.com/en/articles/11363166-creator-settings-managing-your-tracking-links', 'Fanvue tracking links'],
-      ['https://legal.fanvue.com/creator-advertising-promotion', 'Fanvue promotion policy'],
-      ['https://www.fanvue.com/blog/go-viral-with-our-social-media-checklist', 'Fanvue social promotion guidance'],
-    ]) {
-      const source = await fetchOfficial(url, 'Fanvue', label);
-      if (source) research.push({ platform: 'Fanvue', sourceType: 'official', ...source, signal: source.snippet });
-    }
+  if (spec.domain === 'TRACK_B_CREATOR_GROWTH') {
+    const tiktok = await fetchTikTokCreativeCenter(spec.topic);
+    research.push(...tiktok.map((x) => ({ ...x, domain: spec.domain })));
+    if (!tiktok.length) limitations.push('TikTok Creative Center was not reachable during this research pass.');
+
+    const instagram = await fetchInstagramSignals(spec.topic);
+    research.push(...instagram.map((x) => ({ ...x, domain: spec.domain })));
+    if (!instagram.some((item) => item.sourceType === 'indexed-public')) limitations.push('Instagram direct/public post access was limited; indexed references were used where available.');
+    if (!instagram.some((item) => item.visualAccess)) limitations.push('Instagram carousel image text was not directly readable in this pass; the system must not invent slide text evidence.');
+  }
+
+  for (const subreddit of spec.reddit) {
+    const reddit = await fetchRedditTop(subreddit);
+    research.push(...reddit.map((x) => ({ ...x, domain: spec.domain })));
   }
 
   const evidence = research
-    .filter((item) => !item.published || Date.parse(item.published) >= RESEARCH_CUTOFF() || item.sourceType === 'official' || item.sourceType === 'direct-public-check')
-    .slice(0, 80);
+    .filter((item) => item.domain === spec.domain)
+    .filter((item) => !item.published || Date.parse(item.published) >= RESEARCH_CUTOFF() || ['official', 'official-creative-center', 'direct-public-check'].includes(item.sourceType))
+    .slice(0, 100);
 
-  const distinctPlatforms = new Set(evidence.map((item) => item.platform).filter(Boolean)).size;
-  const directCurrent = evidence.filter((item) => ['official', 'official-creative-center', 'community'].includes(item.sourceType)).length;
-  const confidence = distinctPlatforms >= 3 && directCurrent >= 5 ? 'high' : distinctPlatforms >= 2 && evidence.length >= 5 ? 'medium' : 'low';
+  const confidence = evidence.length >= 12 ? 'high' : evidence.length >= 6 ? 'medium' : 'low';
 
   return {
     generatedAt: new Date().toISOString(),
     windowDays: RESEARCH_DAYS,
+    researchDomain: spec.domain,
+    targetTopic: spec.topic,
     confidence,
-    requestedPlatforms,
-    methodology: 'Fresh public-web research executed at job runtime. Sources are weighted by recency and evidence type. This is not internal account analytics and does not claim private platform performance data.',
+    requestedPlatforms: spec.platforms,
+    methodology: 'Fresh public-web research executed independently for this job domain. No research results from another workspace are read, merged, cached or reused.',
+    firewall: spec.firewall,
     limitations,
     evidence,
   };
@@ -329,11 +374,11 @@ async function buildSystemPrompt(job, researchPack) {
   const base = job.system_prompt || 'You are the local creative director for CornerstoneAIAssets.';
   const characterContext = await loadCharacterContext(job);
   const researchContext = researchPack
-    ? `\n\nLIVE RESEARCH — FRESH ${researchPack.windowDays}-DAY WINDOW\n${JSON.stringify(researchPack)}\n\nRESEARCH DECISION RULES:\n- Treat this evidence as current-market signal, not as proof of private account performance.\n- Identify repeated mechanisms: opening hook, first-frame treatment, visual pattern, story structure, text-overlay pattern, caption style, CTA, comment trigger, and format.\n- For every major mechanism, decide USE, ADAPT or IGNORE for this creator/photo.\n- Choose ADAPT when the underlying mechanism fits but the exact trend is wrong for the creator, platform, image or brand.\n- Choose IGNORE when forcing it would create generic, dishonest or mismatched content.\n- Never copy wording, creator identity, brand language, or a distinctive piece of content. Abstract the mechanism.\n- For carousel text, only report exact on-image text when it was actually accessible. Otherwise say it was not observed. Never invent slide text evidence.\n- If evidence is weak, return low confidence and say what could not be verified. Do not manufacture certainty.`
+    ? `\n\nLIVE RESEARCH — DOMAIN LOCKED\nResearch domain: ${researchPack.researchDomain}\nTarget topic: ${researchPack.targetTopic}\nFresh window: ${researchPack.windowDays} days\nConfidence: ${researchPack.confidence}\nFIREWALL: ${researchPack.firewall}\nEvidence:\n${JSON.stringify(researchPack.evidence)}\n\nRESEARCH DECISION RULES:\n- This evidence is valid ONLY for the researchDomain named above.\n- Do not merge it with evidence from another workspace/domain.\n- Identify repeated mechanisms: opening hook, first-frame treatment, visual pattern, story structure, text-overlay pattern, caption style, CTA, comment trigger and format.\n- For every major mechanism, decide USE, ADAPT or IGNORE for this job's own audience.\n- Transfer only abstract mechanisms. Never transfer another domain's audience facts, claims, examples, metrics, personas or assumptions.\n- For carousel text, only report exact on-image text when it was actually accessible. Otherwise say it was not observed.\n- If evidence is weak, return low confidence and say what could not be verified. Do not manufacture certainty.`
     : '';
   const hardVisual = `\n\nHARD VISUAL CONSISTENCY PROTOCOL:\n- Treat concept, caption, script and scene details as factual constraints.\n- Build an internal scene contract: subject(s), location, time, lighting, action, props, wardrobe, composition, emotion, exclusions.\n- The visual prompt must faithfully render that contract.\n- Never add a dealership, showroom, vehicle, office, gym, restaurant, daylight, extra person, unrelated prop, split-screen, collage or different time of day unless explicitly required.\n- A still image is one coherent physical moment, not a montage.\n- Preserve identity, clothing, props and hand/object interactions.\n- Night or early-morning scenes must not contain daylight unless explicitly required.\n- Before returning the result, run a fact-by-fact consistency gate and rewrite any conflict.`;
 
-  return `${base}${characterContext}${researchContext}${hardVisual}\n\nGLOBAL CREATIVE QUALITY RULES:\n- The character bible is the source of truth.\n- Do not drift into generic influencer behaviour.\n- Every idea must have a believable reason for the creator to be in the location and doing the main action.\n- Avoid random props, random secondary people, contradictory wardrobe, impossible settings and disconnected captions.\n- Prefer lived moments, specific observations and natural emotional variation over slogans.\n- Do not make every post educational, motivational, polished or aspirational.\n- Never fabricate claims, social proof, earnings, conversion rates or audience reactions.\n- Do not include chain-of-thought or hidden reasoning in the final answer.`;
+  return `${base}${characterContext}${researchContext}${hardVisual}\n\nGLOBAL CREATIVE QUALITY RULES:\n- The character bible is the source of truth.\n- Do not drift into generic influencer behaviour.\n- Every idea must have a believable reason for the creator to be in the location and doing the main action.\n- Avoid random props, random secondary people, contradictory wardrobe, impossible settings and disconnected captions.\n- Prefer lived moments, specific observations and natural emotional variation over slogans.\n- Do not make every post educational, motivational, polished or aspirational.\n- Never fabricate claims, social proof, earnings, conversion rates or audience reactions.\n- Research is workspace-scoped. Never let Track A, Track B or YouTube evidence leak into another workspace.\n- Do not include chain-of-thought or hidden reasoning in the final answer.`;
 }
 
 async function callQwen(job, researchPack) {
@@ -367,7 +412,7 @@ async function processJob(job) {
 
     try {
       const parsed = JSON.parse(result);
-      if (researchPack && ['social_caption_intelligence', 'trend_scan'].includes(job.job_type)) {
+      if (researchPack) {
         finalResult = JSON.stringify({ ...parsed, research: researchPack });
       } else {
         finalResult = JSON.stringify(parsed);
@@ -384,7 +429,7 @@ async function processJob(job) {
       production_status: researchPack ? 'researched' : 'completed',
     }).eq('id', job.id);
     if (error) throw error;
-    console.log(`[QWEN] completed ${job.id}${researchPack ? ` with ${researchPack.evidence.length} research records` : ''}`);
+    console.log(`[QWEN] completed ${job.id} domain=${researchPack?.researchDomain || 'none'}${researchPack ? ` evidence=${researchPack.evidence.length}` : ''}`);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error(`[QWEN] failed ${job.id}:`, error);
@@ -392,7 +437,7 @@ async function processJob(job) {
   }
 }
 
-console.log(`[QWEN] worker online. endpoint=${QWEN_URL}; model=${QWEN_MODEL}; supabase=${SUPABASE_URL}`);
+console.log(`[QWEN] worker online. endpoint=${QWEN_URL}; model=${QWEN_MODEL}; supabase=${SUPABASE_URL}; research firewall=enabled`);
 for (;;) {
   try {
     const job = await claimJob();
