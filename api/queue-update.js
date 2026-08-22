@@ -45,8 +45,14 @@ function sanitiseJob(job) {
 function buildOutreachPrompt(dealer) {
   return `You are the senior outbound sales strategist for Cornerstone AI Group. You are preparing Email ${dealer.emailStage + 1} for a real dealership prospect.
 
+WORKSPACE / RESEARCH DOMAIN — HARD LOCK:
+TRACK_A_AUTOMOTIVE_B2B only.
+This job belongs to Cornerstone AI Group / Track A. Its research universe is US independent automotive dealerships and dealership decision-makers.
+Do not use, cite, imitate, or treat as evidence anything discovered for Track B creator accounts, Cara, Lila, Fanvue, influencer/lifestyle content, beauty, fitness, consumer apps, or the YouTube long-form channel.
+If any non-Track-A evidence appears in the research context, IGNORE it completely. It is not valid evidence for this email.
+
 TRACK A RESEARCH LAYER — USE CURRENT MARKET SIGNALS WHEN AVAILABLE:
-This is US independent automotive dealership outreach. Research and borrow mechanisms from strong current B2B sales, founder-led outreach, SaaS, automotive retail and dealership-marketing content. The target audience is dealership owners, dealer principals, sales managers and decision-makers. Never import creator/beauty/fitness behaviour merely because it is viral. Transfer only mechanisms that genuinely fit dealership psychology.
+Research and borrow mechanisms from strong current B2B sales, founder-led outreach, SaaS, automotive retail and dealership-marketing content. The target audience is dealership owners, dealer principals, sales managers and decision-makers. Never import creator/beauty/fitness behaviour merely because it is viral. Transfer only mechanisms that genuinely fit dealership psychology.
 
 DEALER DATA — USE ONLY WHAT IS PROVIDED. NEVER INVENT A DEALER FACT, VEHICLE FACT, PERSON DETAIL, RESULT, TESTIMONIAL OR OBSERVATION.
 ${JSON.stringify(dealer, null, 2)}
@@ -73,6 +79,7 @@ EMAIL FUNDAMENTALS — OPEN RATE + REPLY RATE ARE THE KPI:
 10. NO UNSUPPORTED CLAIMS: If a dealership problem was not actually observed, frame it as a common workflow possibility rather than pretending we audited it.
 11. FORMAT ARCHAEOLOGY: Borrow proven outreach psychology from strong B2B, sales, SaaS, automotive and founder-led formats. Identify the mechanism — curiosity gap, status-quo cost, pattern interrupt, micro-audit, contrarian observation or sample-led intrigue — then rebuild it for this dealer. Never copy wording.
 12. CURRENT EVIDENCE: When the research layer provides current signals, explicitly prefer repeated mechanisms over isolated viral outliers and label evidence strength. If current evidence is weak, remain conservative.
+13. RESEARCH FIREWALL: Do not blend this research with any other workspace. Track A can transfer an abstract mechanism from elsewhere only after independently establishing that it fits dealership psychology; it must never transfer the other workspace's audience facts, source examples, metrics or assumptions.
 
 FOLLOW-UP LOGIC:
 Use any prior email record supplied in the dealer data. Never repeat the same angle. Day 2 should add a new reason to reply. Day 3 should introduce proof/sample. Day 4 should diagnose commercial implications. Day 5 should close the loop politely.
@@ -89,7 +96,7 @@ RETURN JSON ONLY IN THIS SHAPE:
   "sample_image_brief": "",
   "cta": "",
   "followup_plan": {"day_2_angle":"","day_3_angle":"","day_4_angle":"","day_5_angle":""},
-  "quality_gate": {"pattern_interrupt":"PASS","curiosity":"PASS","replyability":"PASS","specificity":"PASS","human_voice":"PASS","no_unsupported_claims":"PASS","no_spammy_language":"PASS"}
+  "quality_gate": {"pattern_interrupt":"PASS","curiosity":"PASS","replyability":"PASS","specificity":"PASS","human_voice":"PASS","no_unsupported_claims":"PASS","no_spammy_language":"PASS","research_domain":"TRACK_A_AUTOMOTIVE_B2B"}
 }
 
 Return JSON only.`;
@@ -158,14 +165,7 @@ export default async function handler(req, res) {
         const requestedLimit = req.query?.limit == null ? 1000 : req.query.limit;
         const requestedOffset = req.query?.offset == null ? 0 : req.query.offset;
         const page = await listGenerations(SERVICE_KEY, { limit: requestedLimit, offset: requestedOffset });
-        return res.status(200).json({
-          jobs: page.rows,
-          total: page.total,
-          offset: page.offset,
-          limit: page.limit,
-          nextOffset: page.nextOffset,
-          hasMore: page.hasMore,
-        });
+        return res.status(200).json({ jobs: page.rows, total: page.total, offset: page.offset, limit: page.limit, nextOffset: page.nextOffset, hasMore: page.hasMore });
       }
       return res.status(400).json({ error: 'Unsupported GET action' });
     } catch (error) {
@@ -203,13 +203,21 @@ export default async function handler(req, res) {
     try {
       const row = {
         title: `Track A Outreach · ${dealer.name} · Email ${dealer.emailStage + 1}`,
-        // Use the existing research-aware worker path. The prompt remains Track A-specific.
         job_type: 'trend_scan',
         model: OUTREACH_MODEL,
         persona_id: 'cornerstone_track_a_outreach',
-        system_prompt: 'You are Cornerstone AI Group\'s elite founder-led B2B automotive outreach strategist. Optimise for open rate and reply rate while protecting factual accuracy. The dealer is a real prospect, not a fictional example. This is a Track A outreach job; use the fresh research pack as evidence and adapt only mechanisms that fit dealership decision-makers.',
+        system_prompt: 'You are Cornerstone AI Group\'s elite founder-led B2B automotive outreach strategist. Optimise for open rate and reply rate while protecting factual accuracy. The dealer is a real prospect, not a fictional example. This is a Track A outreach job; use only the TRACK_A_AUTOMOTIVE_B2B research domain.',
         user_prompt: buildOutreachPrompt(dealer),
-        options: { max_tokens: 6500, temperature: 0.52, research: true, outreach: true, crm_dealer_id: dealer.id, research_niche: 'US independent automotive dealership B2B outreach' },
+        options: {
+          max_tokens: 6500,
+          temperature: 0.52,
+          research: true,
+          outreach: true,
+          crm_dealer_id: dealer.id,
+          research_domain: 'TRACK_A_AUTOMOTIVE_B2B',
+          workspace_id: 'track_a',
+          research_firewall: true,
+        },
         status: 'queued',
         production_status: 'not_started',
       };
