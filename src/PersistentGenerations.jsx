@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 const FILTERS = [
   ['all', 'Everything'],
@@ -26,7 +26,16 @@ function toText(value) {
 
 function prettyResult(value) {
   if (!value) return '';
-  try { return JSON.stringify(typeof value === 'string' ? JSON.parse(value) : value, null, 2); } catch { return String(value); }
+  try {
+    return JSON.stringify(typeof value === 'string' ? JSON.parse(value) : value, null, 2);
+  } catch {
+    return String(value)
+      .replace(/<think>[\s\S]*?<\/think>/gi, '')
+      .replace(/<analysis>[\s\S]*?<\/analysis>/gi, '')
+      .replace(/<reasoning>[\s\S]*?<\/reasoning>/gi, '')
+      .replace(/^\s*(<\|im_end\|>|<\|endoftext\|>)\s*$/gim, '')
+      .trim();
+  }
 }
 
 function friendlyType(job) {
@@ -37,6 +46,8 @@ function friendlyType(job) {
   return job?.job_type || 'Generation';
 }
 
+const PAGE_SIZE = 50;
+
 export default function PersistentGenerations() {
   const [open, setOpen] = useState(false);
   const [jobs, setJobs] = useState([]);
@@ -45,43 +56,74 @@ export default function PersistentGenerations() {
   const [selected, setSelected] = useState(null);
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [total, setTotal] = useState(null);
   const [error, setError] = useState('');
   const [loadedAt, setLoadedAt] = useState(null);
+  const listRef = useRef(null);
 
-  async function load() {
-    setLoading(true);
+  async function loadPage({ reset = false, offsetOverride = null } = {}) {
+    const offset = reset ? 0 : (offsetOverride ?? jobs.length);
+    if (reset) setLoading(true); else setLoadingMore(true);
     setError('');
     try {
-      const response = await fetch('/api/queue-update?action=generations', { cache: 'no-store' });
+      const response = await fetch(`/api/queue-update?action=generations&limit=${PAGE_SIZE}&offset=${offset}`, { cache: 'no-store' });
       const text = await response.text();
       let payload = {};
       try { payload = text ? JSON.parse(text) : {}; } catch { throw new Error(`Saved generations returned invalid data (${response.status})`); }
       if (!response.ok) throw new Error(payload.error || `Saved generations failed (${response.status})`);
-      const next = Array.isArray(payload.jobs) ? payload.jobs : [];
-      setJobs(next);
+
+      const page = Array.isArray(payload.jobs) ? payload.jobs : [];
+      setTotal(Number.isFinite(Number(payload.total)) ? Number(payload.total) : null);
+      setHasMore(Boolean(payload.hasMore));
+      setJobs((current) => {
+        if (reset) return page;
+        const seen = new Set(current.map((item) => item.id));
+        return [...current, ...page.filter((item) => !seen.has(item.id))];
+      });
       setLoadedAt(new Date());
-      if (selected) setSelected(next.find((job) => job.id === selected.id) || null);
+      if (selected) {
+        const updatedSelected = page.find((job) => job.id === selected.id);
+        if (updatedSelected) setSelected(updatedSelected);
+      }
     } catch (e) {
       setError(e.message || String(e));
     } finally {
-      setLoading(false);
+      if (reset) setLoading(false); else setLoadingMore(false);
     }
   }
 
-  useEffect(() => { load(); }, []);
+  async function refresh() {
+    setJobs([]);
+    setHasMore(true);
+    setTotal(null);
+    setSelected(null);
+    await loadPage({ reset: true });
+  }
+
+  useEffect(() => { loadPage({ reset: true }); }, []);
+
   useEffect(() => {
     if (!open) return undefined;
-    const timer = setInterval(() => { load(); }, 8000);
+    const timer = setInterval(() => { refresh(); }, 15000);
     return () => clearInterval(timer);
-  }, [open, selected?.id]);
+  }, [open]);
+
+  function onListScroll(event) {
+    const el = event.currentTarget;
+    if (loadingMore || loading || !hasMore) return;
+    const remaining = el.scrollHeight - el.scrollTop - el.clientHeight;
+    if (remaining < 420) loadPage();
+  }
 
   const counts = useMemo(() => ({
-    all: jobs.length,
+    all: total ?? jobs.length,
     track_a: jobs.filter((job) => classify(job) === 'track_a').length,
     creators: jobs.filter((job) => classify(job) === 'creators').length,
     youtube: jobs.filter((job) => classify(job) === 'youtube').length,
     other: jobs.filter((job) => classify(job) === 'other').length,
-  }), [jobs]);
+  }), [jobs, total]);
 
   const visible = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -110,6 +152,7 @@ export default function PersistentGenerations() {
       if (!response.ok) throw new Error(payload.error || `Delete failed (${response.status})`);
       setJobs((current) => current.filter((item) => item.id !== job.id));
       setSelected((current) => current?.id === job.id ? null : current);
+      if (total != null) setTotal((value) => Math.max(0, value - 1));
     } catch (e) {
       setError(e.message || String(e));
     } finally {
@@ -124,7 +167,7 @@ export default function PersistentGenerations() {
 
   return (
     <>
-      <button type="button" onClick={() => { setOpen(true); load(); }} style={{ position: 'fixed', right: 20, bottom: 20, zIndex: 1200, border: '1px solid rgba(212,175,55,.45)', background: 'linear-gradient(135deg,#171a22,#0b0e14)', color: '#f5d97f', borderRadius: 999, padding: '11px 15px', fontWeight: 900, boxShadow: '0 18px 50px rgba(0,0,0,.38)', cursor: 'pointer' }}>
+      <button type="button" onClick={() => { setOpen(true); if (!jobs.length) loadPage({ reset: true }); }} style={{ position: 'fixed', right: 20, bottom: 20, zIndex: 1200, border: '1px solid rgba(212,175,55,.45)', background: 'linear-gradient(135deg,#171a22,#0b0e14)', color: '#f5d97f', borderRadius: 999, padding: '11px 15px', fontWeight: 900, boxShadow: '0 18px 50px rgba(0,0,0,.38)', cursor: 'pointer' }}>
         Saved generations <span style={{ opacity: .7, marginLeft: 6 }}>{counts.all}</span>
       </button>
 
@@ -135,15 +178,20 @@ export default function PersistentGenerations() {
               <div style={{ padding: 18, borderBottom: '1px solid #202633', flexShrink: 0 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center' }}>
                   <div><div style={{ color: '#d4af37', fontSize: 10, fontWeight: 950, letterSpacing: '.14em', textTransform: 'uppercase' }}>Library</div><h2 style={{ margin: '6px 0 0', fontSize: 24, letterSpacing: '-.03em' }}>Saved generations</h2></div>
-                  <div style={{ display: 'flex', gap: 6 }}><button type="button" onClick={() => load()} disabled={loading} style={{ border: '1px solid #2a3140', background: '#121720', color: '#d8deea', borderRadius: 10, padding: '7px 10px', cursor: loading ? 'wait' : 'pointer' }}>{loading ? 'Refreshing…' : 'Refresh'}</button><button type="button" onClick={() => setOpen(false)} style={{ border: '1px solid #2a3140', background: '#121720', color: '#d8deea', borderRadius: 10, padding: '7px 10px', cursor: 'pointer' }}>Close</button></div>
+                  <div style={{ display: 'flex', gap: 6 }}><button type="button" onClick={() => refresh()} disabled={loading} style={{ border: '1px solid #2a3140', background: '#121720', color: '#d8deea', borderRadius: 10, padding: '7px 10px', cursor: loading ? 'wait' : 'pointer' }}>{loading ? 'Refreshing…' : 'Refresh'}</button><button type="button" onClick={() => setOpen(false)} style={{ border: '1px solid #2a3140', background: '#121720', color: '#d8deea', borderRadius: 10, padding: '7px 10px', cursor: 'pointer' }}>Close</button></div>
                 </div>
-                <p style={{ margin: '10px 0 0', color: '#8791a3', fontSize: 12, lineHeight: 1.55 }}>Your generated work stays here until you delete it manually.</p>
+                <p style={{ margin: '10px 0 0', color: '#8791a3', fontSize: 12, lineHeight: 1.55 }}>Your generated work stays here until you delete it manually. Scroll the list to load older generations automatically.</p>
                 <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search titles, creator, prompt, output…" style={{ width: '100%', boxSizing: 'border-box', marginTop: 12, background: '#0e1219', color: '#fff', border: '1px solid #283041', borderRadius: 10, padding: '10px 11px' }} />
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 9 }}>{FILTERS.map(([id, label]) => <button type="button" key={id} onClick={() => setFilter(id)} style={{ border: `1px solid ${filter === id ? '#d4af37' : '#2a3140'}`, background: filter === id ? 'rgba(212,175,55,.12)' : '#10151d', color: filter === id ? '#f5d97f' : '#a3acbc', borderRadius: 999, padding: '6px 9px', fontSize: 10, fontWeight: 850, cursor: 'pointer' }}>{label} <span style={{ opacity: .55 }}>· {counts[id]}</span></button>)}</div>
-                <div style={{ marginTop: 8, color: '#5f6a7c', fontSize: 10 }}>{loadedAt ? `Updated ${loadedAt.toLocaleTimeString()}` : 'Loading library…'}</div>
+                <div style={{ marginTop: 8, color: '#5f6a7c', fontSize: 10 }}>{loadedAt ? `Updated ${loadedAt.toLocaleTimeString()}` : 'Loading library…'}{total != null ? ` · ${total.toLocaleString()} saved` : ''}</div>
                 {error && <div style={{ marginTop: 10, color: '#ff9a9a', fontSize: 11, lineHeight: 1.5 }}>{error}</div>}
               </div>
-              <div style={{ overflowY: 'auto', overflowX: 'hidden', minHeight: 0, flex: 1, padding: 10, overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' }}>{visible.length === 0 ? <div style={{ padding: 18, color: '#687386', fontSize: 12 }}>{loading ? 'Loading saved work…' : 'No saved generations match this view.'}</div> : visible.map((job) => <button type="button" key={job.id} onClick={() => setSelected(job)} style={{ width: '100%', textAlign: 'left', border: `1px solid ${selected?.id === job.id ? '#d4af37' : '#202633'}`, background: selected?.id === job.id ? 'rgba(212,175,55,.07)' : '#0d1117', color: '#edf0f6', borderRadius: 12, padding: 12, marginBottom: 8, cursor: 'pointer' }}><div style={{ display: 'flex', justifyContent: 'space-between', gap: 10 }}><span style={{ color: '#d4af37', fontSize: 9, fontWeight: 900, letterSpacing: '.08em', textTransform: 'uppercase' }}>{friendlyType(job)}</span><span style={{ color: job.status === 'completed' ? '#8fd4b4' : job.status === 'error' ? '#ff8e8e' : '#9aa5b5', fontSize: 9, fontWeight: 900 }}>{job.status}</span></div><div style={{ marginTop: 6, fontWeight: 850, fontSize: 12, lineHeight: 1.35 }}>{job.title || 'Untitled generation'}</div><div style={{ marginTop: 6, color: '#697486', fontSize: 10 }}>{job.created_at ? new Date(job.created_at).toLocaleString() : 'Unknown date'}</div></button>)}</div>
+              <div ref={listRef} onScroll={onListScroll} style={{ overflowY: 'auto', overflowX: 'hidden', minHeight: 0, flex: 1, padding: 10, overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' }}>
+                {visible.length === 0 ? <div style={{ padding: 18, color: '#687386', fontSize: 12 }}>{loading ? 'Loading saved work…' : 'No saved generations match this view.'}</div> : visible.map((job) => <button type="button" key={job.id} onClick={() => setSelected(job)} style={{ width: '100%', textAlign: 'left', border: `1px solid ${selected?.id === job.id ? '#d4af37' : '#202633'}`, background: selected?.id === job.id ? 'rgba(212,175,55,.07)' : '#0d1117', color: '#edf0f6', borderRadius: 12, padding: 12, marginBottom: 8, cursor: 'pointer' }}><div style={{ display: 'flex', justifyContent: 'space-between', gap: 10 }}><span style={{ color: '#d4af37', fontSize: 9, fontWeight: 900, letterSpacing: '.08em', textTransform: 'uppercase' }}>{friendlyType(job)}</span><span style={{ color: job.status === 'completed' ? '#8fd4b4' : job.status === 'error' ? '#ff8e8e' : '#9aa5b5', fontSize: 9, fontWeight: 900 }}>{job.status}</span></div><div style={{ marginTop: 6, fontWeight: 850, fontSize: 12, lineHeight: 1.35 }}>{job.title || 'Untitled generation'}</div><div style={{ marginTop: 6, color: '#697486', fontSize: 10 }}>{job.created_at ? new Date(job.created_at).toLocaleString() : 'Unknown date'}</div></button>)}
+                {loadingMore && <div style={{ padding: 12, textAlign: 'center', color: '#7c8799', fontSize: 10 }}>Loading older generations…</div>}
+                {!loadingMore && hasMore && visible.length > 0 && <div style={{ padding: 12, textAlign: 'center', color: '#566174', fontSize: 10 }}>Keep scrolling for older generations</div>}
+                {!hasMore && jobs.length > 0 && <div style={{ padding: 12, textAlign: 'center', color: '#566174', fontSize: 10 }}>End of saved history</div>}
+              </div>
             </aside>
             <main style={{ minWidth: 0, minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
               {!selected ? <div style={{ flex: 1, minHeight: 0, display: 'grid', placeItems: 'center', padding: 40, textAlign: 'center' }}><div><div style={{ fontSize: 46, color: '#d4af37' }}>✦</div><h2 style={{ margin: '10px 0 6px', fontSize: 24 }}>Your work stays here.</h2><p style={{ maxWidth: 500, color: '#7f899b', fontSize: 13, lineHeight: 1.65, margin: 0 }}>Choose a generation to inspect the exact output, input prompt, production package and any generated video links. Leaving the app will not erase it.</p></div></div> : <div style={{ flex: 1, minHeight: 0, height: '100%', overflowY: 'auto', overflowX: 'hidden', WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain', padding: 22 }}>
