@@ -1,7 +1,7 @@
 // api/queue-update.js
-// Existing queue updater plus the Track A outreach bridge.
-// Reusing this serverless function keeps the Vercel Hobby deployment within
-// its serverless-function limit.
+// Shared serverless bridge for content queue, Track A outreach, and the
+// persistent generation library. Keeping these actions in one function avoids
+// adding another Vercel Hobby function.
 
 const SUPABASE_URL = 'https://zvyioxhwdyocaanzcgqf.supabase.co';
 const OUTREACH_MODEL = process.env.QWEN_MODEL || 'orcarouter/Qwen3.8-27B-Uncensored-MLX';
@@ -75,19 +75,37 @@ Return JSON only.`;
 }
 
 async function readJob(serviceKey, id) {
-  const response = await fetch(`${SUPABASE_URL}/rest/v1/local_ai_jobs?id=eq.${encodeURIComponent(id)}&select=id,status,result,error_message,created_at,completed_at,job_type,persona_id`, {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/local_ai_jobs?id=eq.${encodeURIComponent(id)}&select=id,title,job_type,model,persona_id,status,result,error_message,system_prompt,user_prompt,options,production_status,created_at,completed_at,video_url,captioned_video_url`, {
     headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
   });
   const text = await response.text();
   if (!response.ok) throw new Error(`Supabase read failed: ${text}`);
   const rows = JSON.parse(text);
-  if (!rows[0]) return null;
-  return rows[0];
+  return rows[0] || null;
+}
+
+async function listGenerations(serviceKey) {
+  const select = 'id,title,job_type,model,persona_id,status,result,error_message,system_prompt,user_prompt,options,production_status,created_at,completed_at,video_url,captioned_video_url';
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/local_ai_jobs?select=${encodeURIComponent(select)}&order=created_at.desc&limit=1000`, {
+    headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
+  });
+  const text = await response.text();
+  if (!response.ok) throw new Error(`Supabase list failed: ${text}`);
+  return JSON.parse(text);
+}
+
+async function deleteGeneration(serviceKey, id) {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/local_ai_jobs?id=eq.${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+    headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
+  });
+  const text = await response.text();
+  if (!response.ok) throw new Error(`Supabase delete failed: ${text}`);
 }
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(204).end();
 
@@ -97,13 +115,20 @@ export default async function handler(req, res) {
   if (req.method === 'GET') {
     const action = String(req.query?.action || '');
     const id = String(req.query?.id || '').trim();
-    if (action !== 'outreach_status') return res.status(400).json({ error: 'Unsupported GET action' });
-    if (!id || !/^[0-9a-f-]{36}$/i.test(id)) return res.status(400).json({ error: 'Valid job id required' });
     try {
-      const job = await readJob(SERVICE_KEY, id);
-      if (!job) return res.status(404).json({ error: 'Job not found' });
-      return res.status(200).json(job);
+      if (action === 'outreach_status') {
+        if (!id || !/^[0-9a-f-]{36}$/i.test(id)) return res.status(400).json({ error: 'Valid job id required' });
+        const job = await readJob(SERVICE_KEY, id);
+        if (!job) return res.status(404).json({ error: 'Job not found' });
+        return res.status(200).json(job);
+      }
+      if (action === 'generations') {
+        const jobs = await listGenerations(SERVICE_KEY);
+        return res.status(200).json({ jobs });
+      }
+      return res.status(400).json({ error: 'Unsupported GET action' });
     } catch (error) {
+      console.error('queue-update GET error', error);
       return res.status(500).json({ error: error?.message || String(error) });
     }
   }
@@ -119,7 +144,18 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Invalid JSON body' });
   }
 
-  // New Track A outreach bridge.
+  if (body.action === 'delete_generation') {
+    const id = String(body.id || '').trim();
+    if (!id || !/^[0-9a-f-]{36}$/i.test(id)) return res.status(400).json({ error: 'Valid generation id required' });
+    try {
+      await deleteGeneration(SERVICE_KEY, id);
+      return res.status(200).json({ success: true });
+    } catch (error) {
+      console.error('delete_generation error', error);
+      return res.status(500).json({ error: error?.message || String(error) });
+    }
+  }
+
   if (body.action === 'queue_outreach') {
     const dealer = normaliseDealer(body.dealer);
     if (!dealer.name) return res.status(400).json({ error: 'dealer.name required' });
@@ -145,15 +181,13 @@ export default async function handler(req, res) {
       const created = JSON.parse(text)[0];
       return res.status(200).json({ jobId: created.id, dealer });
     } catch (error) {
+      console.error('queue_outreach error', error);
       return res.status(500).json({ error: error?.message || String(error) });
     }
   }
 
-  // Existing content_queue updater.
   const { id, update } = body;
-  if (!id || !update || typeof update !== 'object') {
-    return res.status(400).json({ error: 'id and update object required' });
-  }
+  if (!id || !update || typeof update !== 'object') return res.status(400).json({ error: 'id and update object required' });
 
   const patchRes = await fetch(`${SUPABASE_URL}/rest/v1/content_queue?id=eq.${encodeURIComponent(id)}`, {
     method: 'PATCH',
