@@ -38,6 +38,18 @@ const MODELS = {
   },
 };
 
+const PROVIDER_ALIASES = new Map([
+  ["seedance_2_5", "seedance"],
+  ["seedance-2-5", "seedance"],
+  ["seedance2_5", "seedance"],
+  ["seedance-2.5", "seedance"],
+  ["seedance_2.5", "seedance"],
+  ["seedance25", "seedance"],
+  ["seedance_2_0", "seedance"],
+  ["seedance-2-0", "seedance"],
+  ["seedance2", "seedance"],
+]);
+
 async function parseBody(req) {
   const chunks = [];
   for await (const chunk of req) chunks.push(chunk);
@@ -53,9 +65,8 @@ export default async function handler(req, res) {
   try { body = await parseBody(req); }
   catch { return res.status(400).json({ error: "Invalid JSON request body" }); }
 
-  // Backwards-compatible alias for older UI builds that used seedance_2_5.
-  const requestedProvider = body?.provider || "grok";
-  const provider = requestedProvider === "seedance_2_5" ? "seedance" : requestedProvider;
+  const requestedProvider = String(body?.provider || "grok").trim().toLowerCase();
+  const provider = PROVIDER_ALIASES.get(requestedProvider) || requestedProvider;
   const model = MODELS[provider];
   if (!model) return res.status(400).json({ error: `Unknown video provider: ${requestedProvider}` });
 
