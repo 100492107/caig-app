@@ -5,10 +5,11 @@ import './CreativeStudioTheme.css'
 import AppLanding from './AppLanding.jsx'
 import MainAppShell from './MainAppShell.jsx'
 import CreativeEngineHub from './CreativeEngineHub.jsx'
+import PersistentGenerations from './PersistentGenerations.jsx'
 
 const path = window.location.pathname.replace(/\/+$/, '') || '/'
 const component = path === '/creative'
-  ? <div className="creative-studio-surface"><CreativeEngineHub /></div>
+  ? <div className="creative-studio-surface"><CreativeEngineHub /><PersistentGenerations /></div>
   : path === '/main-app'
     ? <MainAppShell />
     : <AppLanding />
