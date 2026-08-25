@@ -1,4 +1,24 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
 const ORIGINAL_FETCH = globalThis.fetch;
+const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const AGENTS_PATH = path.join(REPO_ROOT, 'AGENTS.md');
+
+function loadProjectRules() {
+  try {
+    const rules = fs.readFileSync(AGENTS_PATH, 'utf8').trim();
+    return rules
+      ? `\n\nPROJECT OPERATING CONSTITUTION — AGENTS.md\nThe following project rules are mandatory for this Qwen job. Treat them as higher-priority operating constraints than a vague creative preference.\n\n${rules}`
+      : '';
+  } catch (error) {
+    console.warn('[QWEN] AGENTS.md could not be loaded:', error?.message || error);
+    return '';
+  }
+}
+
+const PROJECT_RULES = loadProjectRules();
 
 const BASE_LAYER = `
 
@@ -50,6 +70,15 @@ Where the surrounding workflow supports it, report the source niche, mechanism, 
 
 9) RESEARCH FIREWALL
 A research pack belongs to exactly one workspace/domain. Never reuse, cache, merge, summarise or transfer research evidence between Track A, Track B or YouTube. A source discovered for one domain may not be treated as evidence for another domain merely because the format appears transferable. Transfer only the abstract mechanism, never the source evidence, audience facts or niche assumptions.
+
+10) AGENTIC EXECUTION LOOP
+Do not jump from request to answer when the task requires investigation. Follow this internal operating sequence:
+- PLAN: identify the requested outcome, constraints, evidence requirements and success test.
+- ACT: inspect the available source material and perform the allowed research or generation work.
+- OBSERVE: compare the result against the brief, evidence, niche lock and quality gates.
+- REPEAT: revise when a test fails, evidence is weak, or the result violates a constraint.
+- COMPLETE: return the deliverable only when the success condition is satisfied, otherwise report exactly what is blocked.
+Never declare success merely because generation finished.
 `;
 
 const TRACK_A = `
@@ -108,7 +137,7 @@ globalThis.fetch = async function patchedFetch(input, init = {}) {
 
     const nicheLayer = identifyLayer(body.messages);
     const existing = String(body.messages[systemIndex].content || '');
-    const merged = `${existing}${BASE_LAYER}${nicheLayer}`;
+    const merged = `${existing}${PROJECT_RULES}${BASE_LAYER}${nicheLayer}`;
 
     body.messages[systemIndex] = { ...body.messages[systemIndex], content: merged };
     return ORIGINAL_FETCH(input, { ...init, body: JSON.stringify(body) });
@@ -118,4 +147,4 @@ globalThis.fetch = async function patchedFetch(input, init = {}) {
   }
 };
 
-console.log('[QWEN] format archaeology + research firewall + niche locks loaded');
+console.log(`[QWEN] format archaeology + research firewall + niche locks + agent rules loaded${PROJECT_RULES ? '' : ' (AGENTS.md unavailable)'}`);
