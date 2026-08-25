@@ -48,6 +48,31 @@ function friendlyType(job) {
 
 const PAGE_SIZE = 50;
 
+const styles = {
+  launcher: {
+    position: 'fixed',
+    top: 72,
+    right: 20,
+    zIndex: 900,
+    border: '1px solid rgba(212,175,55,.45)',
+    background: 'linear-gradient(135deg,#171a22,#0b0e14)',
+    color: '#f5d97f',
+    borderRadius: 999,
+    padding: '10px 14px',
+    fontWeight: 900,
+    boxShadow: '0 14px 36px rgba(0,0,0,.34)',
+    cursor: 'pointer',
+  },
+  overlay: {
+    position: 'fixed',
+    inset: 0,
+    zIndex: 1100,
+    background: 'rgba(4,6,10,.72)',
+    backdropFilter: 'blur(14px)',
+    padding: 22,
+  },
+};
+
 export default function PersistentGenerations() {
   const [open, setOpen] = useState(false);
   const [jobs, setJobs] = useState([]);
@@ -63,8 +88,8 @@ export default function PersistentGenerations() {
   const [loadedAt, setLoadedAt] = useState(null);
   const listRef = useRef(null);
 
-  async function loadPage({ reset = false, offsetOverride = null } = {}) {
-    const offset = reset ? 0 : (offsetOverride ?? jobs.length);
+  async function loadPage({ reset = false } = {}) {
+    const offset = reset ? 0 : jobs.length;
     if (reset) setLoading(true); else setLoadingMore(true);
     setError('');
     try {
@@ -73,7 +98,6 @@ export default function PersistentGenerations() {
       let payload = {};
       try { payload = text ? JSON.parse(text) : {}; } catch { throw new Error(`Saved generations returned invalid data (${response.status})`); }
       if (!response.ok) throw new Error(payload.error || `Saved generations failed (${response.status})`);
-
       const page = Array.isArray(payload.jobs) ? payload.jobs : [];
       setTotal(Number.isFinite(Number(payload.total)) ? Number(payload.total) : null);
       setHasMore(Boolean(payload.hasMore));
@@ -84,8 +108,8 @@ export default function PersistentGenerations() {
       });
       setLoadedAt(new Date());
       if (selected) {
-        const updatedSelected = page.find((job) => job.id === selected.id);
-        if (updatedSelected) setSelected(updatedSelected);
+        const refreshed = page.find((job) => job.id === selected.id);
+        if (refreshed) setSelected(refreshed);
       }
     } catch (e) {
       setError(e.message || String(e));
@@ -106,15 +130,14 @@ export default function PersistentGenerations() {
 
   useEffect(() => {
     if (!open) return undefined;
-    const timer = setInterval(() => { refresh(); }, 15000);
+    const timer = setInterval(() => refresh(), 15000);
     return () => clearInterval(timer);
   }, [open]);
 
   function onListScroll(event) {
     const el = event.currentTarget;
     if (loadingMore || loading || !hasMore) return;
-    const remaining = el.scrollHeight - el.scrollTop - el.clientHeight;
-    if (remaining < 420) loadPage();
+    if (el.scrollHeight - el.scrollTop - el.clientHeight < 420) loadPage();
   }
 
   const counts = useMemo(() => ({
@@ -136,8 +159,7 @@ export default function PersistentGenerations() {
   }, [jobs, filter, search]);
 
   async function remove(job) {
-    const confirmed = window.confirm(`Delete this saved generation?\n\n${job.title}\n\nThis cannot be undone.`);
-    if (!confirmed) return;
+    if (!window.confirm(`Delete this saved generation?\n\n${job.title}\n\nThis cannot be undone.`)) return;
     setBusy(true);
     setError('');
     try {
@@ -167,12 +189,20 @@ export default function PersistentGenerations() {
 
   return (
     <>
-      <button type="button" onClick={() => { setOpen(true); if (!jobs.length) loadPage({ reset: true }); }} style={{ position: 'fixed', right: 20, bottom: 20, zIndex: 1200, border: '1px solid rgba(212,175,55,.45)', background: 'linear-gradient(135deg,#171a22,#0b0e14)', color: '#f5d97f', borderRadius: 999, padding: '11px 15px', fontWeight: 900, boxShadow: '0 18px 50px rgba(0,0,0,.38)', cursor: 'pointer' }}>
+      <button
+        type="button"
+        onClick={() => { setOpen(true); if (!jobs.length) loadPage({ reset: true }); }}
+        style={styles.launcher}
+        aria-label="Open saved generations"
+      >
         Saved generations <span style={{ opacity: .7, marginLeft: 6 }}>{counts.all}</span>
       </button>
 
       {!open ? null : (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 1100, background: 'rgba(4,6,10,.72)', backdropFilter: 'blur(14px)', padding: 22 }} onMouseDown={(e) => { if (e.target === e.currentTarget) setOpen(false); }}>
+        <div
+          style={styles.overlay}
+          onMouseDown={(e) => { if (e.target === e.currentTarget) setOpen(false); }}
+        >
           <div style={{ maxWidth: 1380, height: 'calc(100vh - 44px)', margin: '0 auto', display: 'grid', gridTemplateColumns: '430px 1fr', gap: 14, background: '#0a0d12', border: '1px solid #252b38', borderRadius: 24, overflow: 'hidden', boxShadow: '0 30px 100px rgba(0,0,0,.5)', minHeight: 0 }}>
             <aside style={{ borderRight: '1px solid #202633', display: 'flex', flexDirection: 'column', minWidth: 0, minHeight: 0, overflow: 'hidden' }}>
               <div style={{ padding: 18, borderBottom: '1px solid #202633', flexShrink: 0 }}>
@@ -194,7 +224,7 @@ export default function PersistentGenerations() {
               </div>
             </aside>
             <main style={{ minWidth: 0, minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-              {!selected ? <div style={{ flex: 1, minHeight: 0, display: 'grid', placeItems: 'center', padding: 40, textAlign: 'center' }}><div><div style={{ fontSize: 46, color: '#d4af37' }}>✦</div><h2 style={{ margin: '10px 0 6px', fontSize: 24 }}>Your work stays here.</h2><p style={{ maxWidth: 500, color: '#7f899b', fontSize: 13, lineHeight: 1.65, margin: 0 }}>Choose a generation to inspect the exact output, input prompt, production package and any generated video links. Leaving the app will not erase it.</p></div></div> : <div style={{ flex: 1, minHeight: 0, height: '100%', overflowY: 'auto', overflowX: 'hidden', WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain', padding: 22 }}>
+              {!selected ? <div style={{ flex: 1, minHeight: 0, display: 'grid', placeItems: 'center', padding: 40, textAlign: 'center' }}><div><div style={{ fontSize: 46, color: '#d4af37' }}>✦</div><h2 style={{ margin: '10px 0 6px', fontSize: 24 }}>Your work stays here.</h2><p style={{ maxWidth: 500, color: '#7f899b', fontSize: 13, lineHeight: 1.65, margin: 0 }}>Choose a generation to inspect the exact output, input prompt and production links. Leaving the app will not erase it.</p></div></div> : <div style={{ flex: 1, minHeight: 0, height: '100%', overflowY: 'auto', overflowX: 'hidden', WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain', padding: 22 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 18, alignItems: 'flex-start' }}><div><div style={{ color: '#d4af37', fontSize: 10, fontWeight: 950, letterSpacing: '.12em', textTransform: 'uppercase' }}>{friendlyType(selected)}</div><h2 style={{ margin: '7px 0 8px', fontSize: 28, lineHeight: 1.08, letterSpacing: '-.035em' }}>{selected.title || 'Untitled generation'}</h2><div style={{ color: '#717c8e', fontSize: 11 }}>{selected.created_at ? new Date(selected.created_at).toLocaleString() : ''} · {selected.model || 'Qwen'}</div></div><div style={{ display: 'flex', gap: 8 }}><button type="button" onClick={() => copy(prettyResult(selected.result || selected.error_message || ''))} style={{ border: '1px solid #303648', background: '#141922', color: '#e6ebf4', borderRadius: 10, padding: '8px 11px', fontWeight: 850, cursor: 'pointer' }}>Copy output</button><button type="button" disabled={busy} onClick={() => remove(selected)} style={{ border: '1px solid rgba(255,105,105,.35)', background: 'rgba(255,105,105,.08)', color: '#ff9f9f', borderRadius: 10, padding: '8px 11px', fontWeight: 850, cursor: 'pointer' }}>Delete</button></div></div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 16 }}>{[['Workspace', friendlyType(selected)], ['Persona', selected.persona_id || '—'], ['Status', selected.status || '—'], ['Production', selected.production_status || 'not_started']].map(([k, v]) => <span key={k} style={{ border: '1px solid #262d3a', background: '#0e1219', color: '#9ca7b8', borderRadius: 999, padding: '7px 9px', fontSize: 10 }}><b style={{ color: '#d8deea' }}>{k}:</b> {v}</span>)}</div>
                 {selected.status === 'error' && <div style={{ marginTop: 18, border: '1px solid rgba(255,105,105,.3)', background: 'rgba(255,105,105,.06)', borderRadius: 12, padding: 14, color: '#ffb2b2', fontSize: 12 }}>{selected.error_message || 'Generation failed.'}</div>}
