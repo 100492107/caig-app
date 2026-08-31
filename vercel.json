@@ -1,6 +1,5 @@
 {
   "functions": {
-    "api/claude.js":              { "maxDuration": 60  },
     "api/generate-batch.js":      { "maxDuration": 300 },
     "api/generate-submit.js":     { "maxDuration": 15  },
     "api/generate-poll.js":       { "maxDuration": 60  },
