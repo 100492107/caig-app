@@ -84,3 +84,44 @@ comment on column public.content_queue.publish_attempts is 'Number of automated 
 comment on column public.content_queue.publishing_started_at is 'Timestamp at which the current publish attempt was claimed.';
 comment on column public.content_queue.last_publish_error is 'Latest structured publication failure message.';
 comment on column public.content_queue.last_publish_attempt_at is 'Timestamp of latest publication attempt.';
+
+-- 5. Atomic, concurrent-safe queue claiming for the publisher. The previous implementation
+-- selected rows and then updated them in application code, which allowed competing invocations
+-- to see the same due row. SKIP LOCKED makes each queue tick claim distinct work.
+create or replace function public.claim_due_content_queue(p_limit integer default 3, p_stale_minutes integer default 20)
+returns setof public.content_queue
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  update public.content_queue
+  set status = 'scheduled', publishing_started_at = null
+  where status = 'publishing'
+    and publishing_started_at is not null
+    and publishing_started_at < now() - make_interval(mins => greatest(p_stale_minutes, 1));
+
+  return query
+  with picked as (
+    select id
+    from public.content_queue
+    where status = 'scheduled'
+      and scheduled_date <= current_date
+      and (scheduled_date < current_date or scheduled_time is null or scheduled_time <= localtime)
+    order by scheduled_date asc, scheduled_time asc nulls first, created_at asc
+    for update skip locked
+    limit greatest(p_limit, 1)
+  )
+  update public.content_queue q
+  set status = 'publishing',
+      publishing_started_at = now(),
+      last_publish_attempt_at = now(),
+      publish_attempts = coalesce(q.publish_attempts, 0) + 1,
+      last_publish_error = null
+  from picked
+  where q.id = picked.id
+  returning q.*;
+end;
+$$;
+
+grant execute on function public.claim_due_content_queue(integer, integer) to service_role;
