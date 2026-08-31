@@ -1,25 +1,30 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, {
-  auth: { persistSession: false, autoRefreshToken: false },
-});
-
 const MAKE_WEBHOOK = process.env.MAKE_SCHEDULED_POST_WEBHOOK;
 const MAX_JOBS = 3;
 const FETCH_TIMEOUT_MS = 15_000;
 
-async function claimDuePosts() {
+function buildSupabase() {
+  const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !serviceKey) return null;
+  return createClient(url, serviceKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+}
+
+async function claimDuePosts(supabase) {
   const { data, error } = await supabase.rpc('claim_due_content_queue', { p_limit: MAX_JOBS, p_stale_minutes: 20 });
   if (error) throw error;
   return data || [];
 }
 
-async function updatePublishingState(id, patch) {
+async function updatePublishingState(supabase, id, patch) {
   const { error } = await supabase.from('content_queue').update(patch).eq('id', id).eq('status', 'publishing');
   if (error) throw error;
 }
 
-async function publishOne(post) {
+async function publishOne(supabase, post) {
   const format = post.video_url ? 'reel' : (post.post_format || 'photo');
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
@@ -40,7 +45,7 @@ async function publishOne(post) {
     });
     const text = await response.text();
     if (!response.ok) throw new Error(`Make webhook failed (${response.status}): ${text.slice(0, 300)}`);
-    await updatePublishingState(post.id, {
+    await updatePublishingState(supabase, post.id, {
       status: 'posted',
       publishing_started_at: null,
       last_publish_attempt_at: new Date().toISOString(),
@@ -52,7 +57,7 @@ async function publishOne(post) {
     const transient = error?.name === 'AbortError' || /\b(429|5\d\d)\b/.test(String(error?.message || ''));
     const retry = transient && attempts < 5;
     const nextTime = new Date(Date.now() + Math.min(60, attempts * 10) * 60_000);
-    await updatePublishingState(post.id, {
+    await updatePublishingState(supabase, post.id, {
       status: retry ? 'scheduled' : 'error',
       publishing_started_at: null,
       last_publish_attempt_at: new Date().toISOString(),
@@ -70,10 +75,13 @@ export default async function handler(req, res) {
   if (req.headers.authorization !== `Bearer ${process.env.CRON_SECRET}`) return res.status(401).json({ error: 'Unauthorized' });
   if (!MAKE_WEBHOOK) return res.status(500).json({ error: 'MAKE_SCHEDULED_POST_WEBHOOK is not configured' });
 
+  const supabase = buildSupabase();
+  if (!supabase) return res.status(500).json({ error: 'Supabase service configuration is incomplete' });
+
   try {
-    const posts = await claimDuePosts();
+    const posts = await claimDuePosts(supabase);
     if (!posts.length) return res.status(200).json({ published: 0, processed: 0, message: 'No posts due' });
-    const results = await Promise.all(posts.map(publishOne));
+    const results = await Promise.all(posts.map((post) => publishOne(supabase, post)));
     return res.status(200).json({
       published: results.filter((item) => item.status === 'posted').length,
       processed: results.length,
