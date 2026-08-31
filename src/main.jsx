@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import './CreativeStudioTheme.css'
+import EnterpriseHome from './EnterpriseHome.jsx'
 import CEOHome from './CEOHome.jsx'
 import AuthGate from './AuthGate.jsx'
 import MainAppShell from './MainAppShell.jsx'
@@ -25,7 +26,7 @@ const component = path === '/creative'
           ? <TrackATerritoryBlock />
           : path === '/ceo'
             ? <CEOHome />
-            : <OperatorWorkbench defaultMode={hour >= 8 && hour < 13 ? 'revenue' : hour >= 13 && hour < 19 ? 'production' : 'revenue'} />
+            : <EnterpriseHome defaultMode={hour >= 8 && hour < 13 ? 'revenue' : hour >= 13 && hour < 19 ? 'production' : 'revenue'} />
 
 createRoot(document.getElementById('root')).render(
   <StrictMode><AuthGate>{component}</AuthGate></StrictMode>,
