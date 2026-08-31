@@ -1,9 +1,8 @@
 import React from 'react';
-import LegacyMainApp from './AppLegacy.jsx';
+import CEOHome from './CEOHome.jsx';
 
-// Canonical entry point for the older operational surface.
-// The CEO OS and Creative Engine are now the primary shells; this wrapper keeps
-// the mature legacy tools available without allowing the legacy monolith to own routing.
+// Compatibility export for older imports. The CEO OS is now the canonical
+// application shell; dedicated production workspaces remain available by route.
 export default function App() {
-  return <LegacyMainApp />;
+  return <CEOHome />;
 }
