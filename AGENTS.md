@@ -1,12 +1,29 @@
 # Qwen Agent Rules — Cornerstone AI Assets
 
-This repository is an operating system, not a blank canvas. Read these rules before executing any Qwen job.
+This repository is an operating system, not a blank canvas. Read these rules before executing any Qwen job or making product changes.
 
 ## Mission
 
 Qwen should produce reliable, evidence-grounded creative work for the correct workspace without drifting across audiences, research domains or product contexts.
 
 The current Qwen worker is a job-driven local worker invoked with `npm run qwen:worker`. It uses the local Qwen server, Supabase job queue, persona source files, live research where requested, and the format-archaeology / niche-lock prompt layer.
+
+## Canonical application architecture
+
+The production application is organised around four canonical runtime surfaces:
+
+- `/` → `CEOHome.jsx` — the operator control room and next-best-action surface.
+- `/creative` → `CreativeEngineHub.jsx` + `PersistentGenerations.jsx` — the canonical Track B production surface.
+- `/outreach` → `TrackAOutreachWorkspace.jsx` — the canonical Track A cash-engine surface.
+- `/main-app` → `MainAppShell.jsx` — retained legacy operational tooling during consolidation.
+
+Shared production data follows:
+
+`objective → research → decision → brief → quality gate → production job → source asset → derivative → caption → publication → performance → Creative DNA`
+
+### Architecture guardrail
+
+Do **not** create another `V2`, `V3`, `Unified`, `Final`, `New`, `Test`, or parallel workspace component for an existing capability. Extend the canonical surface or extract a named shared module with one clear responsibility. Legacy versions may remain temporarily for migration, but they are not valid runtime authorities.
 
 ## Always
 
@@ -20,6 +37,8 @@ The current Qwen worker is a job-driven local worker invoked with `npm run qwen:
 - Make success testable. Before considering a job complete, verify that the requested output satisfies the job's explicit constraints and the relevant quality gates in this file.
 - Keep outputs grounded, specific and internally consistent.
 - Report meaningful limitations rather than filling missing evidence with guesses.
+- Prefer the cheaper valid production path before premium inference and record the selected cost tier.
+- Record meaningful production/publishing state changes as durable events where the relevant event table exists.
 
 ## Creative job success condition
 
@@ -31,7 +50,9 @@ A creative job is complete only when:
 4. The output follows the requested format and production constraints.
 5. Character, setting, action, wardrobe, props and timing do not contradict the brief.
 6. No unsupported claims, fabricated metrics, fake social proof or invented source evidence are introduced.
-7. The final response contains the requested deliverable, not hidden reasoning or internal chain-of-thought.
+7. The Human Quality Gate is passed before premium generation spend.
+8. The resulting source/derived assets can be traced back to the originating job.
+9. The final response contains the requested deliverable, not hidden reasoning or internal chain-of-thought.
 
 If a condition cannot be satisfied, say what is blocked and why.
 
@@ -72,6 +93,7 @@ Before returning a job result, perform a final consistency pass:
 - Does the creative concept make sense for the named person/account/workspace?
 - Are all scene details physically and temporally coherent?
 - Has anything unrelated been introduced simply because it is common in generic AI-generated content?
+- Has the result been routed through the canonical runtime surface rather than a legacy duplicate?
 
 ## Never
 
@@ -82,6 +104,8 @@ Before returning a job result, perform a final consistency pass:
 - Never treat a failed fetch as evidence that something does not exist.
 - Never claim visual details were observed when the source was not visually accessible.
 - Never loosen a niche lock to rescue a weak idea; downgrade confidence or return IGNORE instead.
+- Never add a parallel V2/V3 workspace when a canonical component already exists.
+- Never put service credentials, provider secrets or webhook secrets in browser code.
 
 ## Operational safety
 
