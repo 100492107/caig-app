@@ -1,7 +1,6 @@
 -- Cornerstone hardening migration.
 -- Run after the existing Track B / Local AI migrations.
 
--- 1. Tie operator-created data to the authenticated user when possible.
 alter table if exists public.track_b_workspaces add column if not exists owner_id uuid references auth.users(id) on delete set null;
 alter table if exists public.track_b_assets add column if not exists owner_id uuid references auth.users(id) on delete set null;
 alter table if exists public.track_b_characters add column if not exists owner_id uuid references auth.users(id) on delete set null;
@@ -19,8 +18,6 @@ create index if not exists track_b_jobs_owner_idx on public.track_b_production_j
 create index if not exists track_b_derivatives_owner_idx on public.track_b_derivatives(owner_id, created_at desc);
 create index if not exists local_ai_jobs_owner_idx on public.local_ai_jobs(owner_id, created_at desc);
 
--- New writes default to the signed-in operator. Existing unowned internal rows remain
--- visible to authenticated operators so the hardening migration does not orphan current data.
 alter table public.track_b_workspaces alter column owner_id set default auth.uid();
 alter table public.track_b_assets alter column owner_id set default auth.uid();
 alter table public.track_b_characters alter column owner_id set default auth.uid();
@@ -31,7 +28,6 @@ alter table public.track_b_production_jobs alter column owner_id set default aut
 alter table public.track_b_derivatives alter column owner_id set default auth.uid();
 alter table public.local_ai_jobs alter column owner_id set default auth.uid();
 
--- 2. Replace anonymous Track B policies with authenticated-only operator policies.
 do $$
 declare
   t text;
@@ -60,8 +56,6 @@ begin
 end;
 $$;
 
--- 3. Local AI jobs were already authenticated-only; make ownership explicit while preserving
--- unowned existing internal history for signed-in operators.
 drop policy if exists "local ai jobs authenticated read" on public.local_ai_jobs;
 drop policy if exists "local ai jobs authenticated insert" on public.local_ai_jobs;
 drop policy if exists "local ai jobs authenticated update" on public.local_ai_jobs;
@@ -72,7 +66,6 @@ create policy "local ai jobs authenticated insert" on public.local_ai_jobs
 create policy "local ai jobs authenticated update" on public.local_ai_jobs
   for update to authenticated using (owner_id is null or owner_id = auth.uid()) with check (owner_id = auth.uid());
 
--- 4. Durable publication state. This keeps retries/idempotency out of free-form notes.
 alter table if exists public.content_queue add column if not exists publish_attempts integer not null default 0;
 alter table if exists public.content_queue add column if not exists publishing_started_at timestamptz;
 alter table if exists public.content_queue add column if not exists last_publish_error text;
@@ -85,9 +78,6 @@ comment on column public.content_queue.publishing_started_at is 'Timestamp at wh
 comment on column public.content_queue.last_publish_error is 'Latest structured publication failure message.';
 comment on column public.content_queue.last_publish_attempt_at is 'Timestamp of latest publication attempt.';
 
--- 5. Atomic, concurrent-safe queue claiming for the publisher. The previous implementation
--- selected rows and then updated them in application code, which allowed competing invocations
--- to see the same due row. SKIP LOCKED makes each queue tick claim distinct work.
 create or replace function public.claim_due_content_queue(p_limit integer default 3, p_stale_minutes integer default 20)
 returns setof public.content_queue
 language plpgsql
@@ -106,9 +96,13 @@ begin
     select id
     from public.content_queue
     where status = 'scheduled'
-      and scheduled_date <= current_date
-      and (scheduled_date < current_date or scheduled_time is null or scheduled_time <= localtime)
-    order by scheduled_date asc, scheduled_time asc nulls first, created_at asc
+      and scheduled_date::date <= current_date
+      and (
+        scheduled_date::date < current_date
+        or scheduled_time is null
+        or scheduled_time::time <= localtime
+      )
+    order by scheduled_date::date asc, scheduled_time::time asc nulls first, created_at asc
     for update skip locked
     limit greatest(p_limit, 1)
   )
