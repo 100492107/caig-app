@@ -2,12 +2,12 @@ import React, { useEffect, useState } from "react";
 import AICreatorWorkspaceTrackB from "./AICreatorWorkspaceTrackB.jsx";
 import CommerceTestWorkspace from "./CommerceTestWorkspace.jsx";
 import GrowthModeWorkspace from "./GrowthModeWorkspace.jsx";
-import TrackASocialWorkspaceV2 from "./TrackASocialWorkspaceV2.jsx";
-import TrackBAssetLibrary from "./TrackBAssetLibraryV2.jsx";
+import TrackASocialWorkspace from "./TrackASocialWorkspace.jsx";
+import TrackBAssetLibrary from "./TrackBAssetLibrary.jsx";
 import CaptionStudio from "./CaptionStudio.jsx";
 import CaptionWriter from "./CaptionWriter.jsx";
 import LocalAIStudio from "./LocalAIStudio.jsx";
-import AutopilotCreativeEngineV3 from "./AutopilotCreativeEngineV3.jsx";
+import AutopilotCreativeEngine from "./AutopilotCreativeEngine.jsx";
 import YouTubeGrowthNicheWorkspace from "./YouTubeGrowthNicheWorkspace.jsx";
 
 const pane = (visible) => ({ display: visible ? "block" : "none" });
@@ -126,8 +126,8 @@ export default function CreativeEngineHub() {
 
   const content = (
     <>
-      <div style={pane(view === "autopilot")}><AutopilotCreativeEngineV3 /></div>
-      <div style={pane(view === "trackasocial")}><TrackASocialWorkspaceV2 /></div>
+      <div style={pane(view === "autopilot")}><AutopilotCreativeEngine /></div>
+      <div style={pane(view === "trackasocial")}><TrackASocialWorkspace /></div>
       <div style={pane(view === "growth")}><GrowthModeWorkspace /></div>
       <div style={pane(view === "commerce")}><CommerceTestWorkspace /></div>
       <div style={pane(view === "youtube")}><YouTubeGrowthNicheWorkspace /></div>
