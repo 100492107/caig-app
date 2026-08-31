@@ -9,6 +9,7 @@ import CreativeEngineHub from './CreativeEngineHub.jsx'
 import PersistentGenerations from './PersistentGenerations.jsx'
 import TrackAOutreachWorkspace from './TrackAOutreachWorkspace.jsx'
 import OperatorWorkbench from './OperatorWorkbench.jsx'
+import TrackATerritoryBlock from './TrackATerritoryBlock.jsx'
 
 const path = window.location.pathname.replace(/\/+$/, '') || '/'
 const hour = new Date().getHours()
@@ -20,9 +21,11 @@ const component = path === '/creative'
       ? <MainAppShell />
       : path === '/workbench'
         ? <OperatorWorkbench />
-        : path === '/ceo'
-          ? <CEOHome />
-          : <OperatorWorkbench defaultMode={hour >= 8 && hour < 13 ? 'revenue' : hour >= 13 && hour < 19 ? 'production' : 'revenue'} />
+        : path === '/territory'
+          ? <TrackATerritoryBlock />
+          : path === '/ceo'
+            ? <CEOHome />
+            : <OperatorWorkbench defaultMode={hour >= 8 && hour < 13 ? 'revenue' : hour >= 13 && hour < 19 ? 'production' : 'revenue'} />
 
 createRoot(document.getElementById('root')).render(
   <StrictMode><AuthGate>{component}</AuthGate></StrictMode>,
