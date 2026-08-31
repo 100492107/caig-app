@@ -1,9 +1,11 @@
 import { createClient } from '@supabase/supabase-js';
 
+const FALLBACK_SUPABASE_URL = 'https://zvyioxhwdyocaanzcgqf.supabase.co';
+const FALLBACK_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp2eWlveGh3ZHlvY2FhbnpjZ3FmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyOTM2NTUsImV4cCI6MjA5Mjg2OTY1NX0.px_s68TxIdBCDkA-OlTFZahqjZ2V8ndFi-XzYN7UIYk';
+
 function buildClients(req) {
-  const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-  const anonKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
-  if (!url || !anonKey) return null;
+  const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || FALLBACK_SUPABASE_URL;
+  const anonKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || FALLBACK_SUPABASE_ANON_KEY;
 
   const authHeader = String(req.headers.authorization || '');
   const publicClient = createClient(url, anonKey, {
@@ -65,8 +67,6 @@ export default async function handler(req, res) {
 
   try {
     const clients = buildClients(req);
-    if (!clients) return res.status(500).json({ error: 'Supabase server configuration is incomplete' });
-
     const user = await requireUser(clients.publicClient, req);
     if (!user) return res.status(401).json({ error: 'Unauthorized' });
 
@@ -88,11 +88,7 @@ export default async function handler(req, res) {
       creative_queue: creative ?? 0,
     };
 
-    return res.status(200).json({
-      generated_at: new Date().toISOString(),
-      metrics,
-      next_action: nextAction(metrics),
-    });
+    return res.status(200).json({ generated_at: new Date().toISOString(), metrics, next_action: nextAction(metrics) });
   } catch (error) {
     return res.status(500).json({ error: error?.message || String(error) });
   }
