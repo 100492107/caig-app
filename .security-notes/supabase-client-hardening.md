@@ -1,0 +1,1 @@
+The browser client must use a Supabase publishable key only. Service-role and third-party secrets remain server-side. The production project should set VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY for the Vite build.
