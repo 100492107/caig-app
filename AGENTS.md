@@ -12,10 +12,12 @@ The current Qwen worker is a job-driven local worker invoked with `npm run qwen:
 
 The production application is organised around four canonical runtime surfaces:
 
-- `/` → `CEOHome.jsx` — the operator control room and next-best-action surface.
-- `/creative` → `CreativeEngineHub.jsx` + `PersistentGenerations.jsx` — the canonical Track B production surface.
-- `/outreach` → `TrackAOutreachWorkspace.jsx` — the canonical Track A cash-engine surface.
+- `/` → `OperatorWorkbench.jsx` — adaptive operator home with Revenue Block / Production Sprint modes.
+- `/creative` → `CreativeEngineHub.jsx` + `PersistentGenerations.jsx` — canonical Track B production surface.
+- `/outreach` → `TrackAOutreachWorkspace.jsx` — canonical Track A cash-engine surface.
+- `/territory` → `TrackATerritoryBlock.jsx` — systematic ZIP territory control and unreplied-positive queue.
 - `/main-app` → `MainAppShell.jsx` — retained legacy operational tooling during consolidation.
+- `/ceo` → `CEOHome.jsx` — read-focused CEO control room.
 
 Shared production data follows:
 
@@ -25,7 +27,7 @@ Shared production data follows:
 
 Do **not** create another `V2`, `V3`, `Unified`, `Final`, `New`, `Test`, or parallel workspace component for an existing capability. Extend the canonical surface or extract a named shared module with one clear responsibility.
 
-Legacy versioned components that are no longer on the runtime path have been moved to `src/legacy/`. Do not import from `src/legacy/` for new work. A small number of transitional V* surfaces may still be referenced by `CreativeEngineHub` during consolidation; treat those as temporary bridges only and collapse them into the canonical surface as soon as practical.
+Historical versioned workspace components that are no longer on the runtime path live in `src/legacy/`. Do not import from `src/legacy/` for new work. The three former transitional V* surfaces have now been collapsed into their canonical implementations and must not be recreated.
 
 ## Always
 
