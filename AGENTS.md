@@ -23,7 +23,9 @@ Shared production data follows:
 
 ### Architecture guardrail
 
-Do **not** create another `V2`, `V3`, `Unified`, `Final`, `New`, `Test`, or parallel workspace component for an existing capability. Extend the canonical surface or extract a named shared module with one clear responsibility. Legacy versions may remain temporarily for migration, but they are not valid runtime authorities.
+Do **not** create another `V2`, `V3`, `Unified`, `Final`, `New`, `Test`, or parallel workspace component for an existing capability. Extend the canonical surface or extract a named shared module with one clear responsibility.
+
+Legacy versioned components that are no longer on the runtime path have been moved to `src/legacy/`. Do not import from `src/legacy/` for new work. A small number of transitional V* surfaces may still be referenced by `CreativeEngineHub` during consolidation; treat those as temporary bridges only and collapse them into the canonical surface as soon as practical.
 
 ## Always
 

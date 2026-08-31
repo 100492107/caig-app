@@ -47,6 +47,10 @@ The operator gets a keyboard-first A/R/K review queue, a cost pre-flight with ch
 6. The operator home should make the next commercially useful action obvious.
 7. Winners earn reuse only from measured evidence; the system replicates mechanisms, not protected executions.
 
+## Legacy components
+
+Unused versioned workspace files (`*V2`–`*V7`, Unified, Flow variants) have been moved to `src/legacy/`. Do not import them for new work. A few transitional V* surfaces remain temporarily referenced by CreativeEngineHub and will be collapsed into the canonical surfaces.
+
 ## Deployment
 
 The project is a Vite/React application deployed on Vercel. The five-minute publisher is intentionally scheduled outside Vercel Cron so it remains compatible with the Hobby plan; GitHub Actions calls `/api/cron-publish` with `CRON_SECRET`.
