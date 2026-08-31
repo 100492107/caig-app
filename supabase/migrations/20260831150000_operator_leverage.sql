@@ -1,6 +1,26 @@
 -- Operator leverage layer: Track A revenue, Track B outcomes/learning, captions,
 -- scene contracts and asset provenance. All rows are single-operator owned today.
 
+create table if not exists public.track_b_creative_dna (
+  id uuid primary key default gen_random_uuid(),
+  owner_id uuid not null default auth.uid() references auth.users(id) on delete cascade,
+  workspace_id uuid,
+  creator_id text not null,
+  format text,
+  hook_pattern text,
+  setting_pattern text,
+  action_pattern text,
+  emotion text,
+  caption_treatment text,
+  visual_treatment text,
+  audience_response jsonb not null default '{}'::jsonb,
+  business_result jsonb not null default '{}'::jsonb,
+  evidence_asset_id uuid,
+  status text not null default 'candidate' check (status in ('candidate','validated','retired')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 create table if not exists public.track_a_revenue_events (
   id uuid primary key default gen_random_uuid(),
   owner_id uuid not null default auth.uid() references auth.users(id) on delete cascade,
@@ -24,7 +44,7 @@ create table if not exists public.track_b_performance_evidence (
   platform text not null,
   content_external_id text,
   title text,
-  asset_id uuid references public.track_b_assets(id) on delete set null,
+  asset_id uuid,
   published_at timestamptz,
   reach numeric,
   views numeric,
@@ -76,7 +96,7 @@ create table if not exists public.track_b_caption_backlog (
   creator_id text not null,
   platform text not null,
   local_file_name text,
-  asset_id uuid references public.track_b_assets(id) on delete set null,
+  asset_id uuid,
   local_path text,
   caption_job_id uuid references public.local_ai_jobs(id) on delete set null,
   status text not null default 'waiting' check (status in ('waiting','processing','ready','queued','published','archived')),
@@ -89,7 +109,7 @@ create table if not exists public.track_b_caption_backlog (
 create table if not exists public.track_b_scene_contracts (
   id uuid primary key default gen_random_uuid(),
   owner_id uuid not null default auth.uid() references auth.users(id) on delete cascade,
-  production_job_id uuid references public.track_b_production_jobs(id) on delete cascade,
+  production_job_id uuid,
   creator_id text not null,
   location text,
   time_of_day text,
@@ -108,10 +128,10 @@ create table if not exists public.track_b_scene_contracts (
 create table if not exists public.track_b_asset_provenance (
   id uuid primary key default gen_random_uuid(),
   owner_id uuid not null default auth.uid() references auth.users(id) on delete cascade,
-  asset_id uuid not null references public.track_b_assets(id) on delete cascade,
-  parent_asset_id uuid references public.track_b_assets(id) on delete set null,
+  asset_id uuid not null,
+  parent_asset_id uuid,
   source_type text not null check (source_type in ('source','derived')),
-  production_job_id uuid references public.track_b_production_jobs(id) on delete set null,
+  production_job_id uuid,
   scene_contract_id uuid references public.track_b_scene_contracts(id) on delete set null,
   model text,
   provider text,
@@ -144,31 +164,85 @@ alter table public.track_b_caption_backlog enable row level security;
 alter table public.track_b_scene_contracts enable row level security;
 alter table public.track_b_asset_provenance enable row level security;
 
-create policy track_a_revenue_events_select on public.track_a_revenue_events for select to authenticated using (owner_id = auth.uid());
-create policy track_a_revenue_events_insert on public.track_a_revenue_events for insert to authenticated with check (owner_id = auth.uid());
-create policy track_a_revenue_events_update on public.track_a_revenue_events for update to authenticated using (owner_id = auth.uid()) with check (owner_id = auth.uid());
+DO $$
+BEGIN
+  create policy track_a_revenue_events_select on public.track_a_revenue_events for select to authenticated using (owner_id = auth.uid());
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$
+BEGIN
+  create policy track_a_revenue_events_insert on public.track_a_revenue_events for insert to authenticated with check (owner_id = auth.uid());
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$
+BEGIN
+  create policy track_a_revenue_events_update on public.track_a_revenue_events for update to authenticated using (owner_id = auth.uid()) with check (owner_id = auth.uid());
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-create policy track_b_performance_evidence_select on public.track_b_performance_evidence for select to authenticated using (owner_id = auth.uid());
-create policy track_b_performance_evidence_insert on public.track_b_performance_evidence for insert to authenticated with check (owner_id = auth.uid());
-create policy track_b_performance_evidence_update on public.track_b_performance_evidence for update to authenticated using (owner_id = auth.uid()) with check (owner_id = auth.uid());
+DO $$
+BEGIN
+  create policy track_b_performance_evidence_select on public.track_b_performance_evidence for select to authenticated using (owner_id = auth.uid());
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$
+BEGIN
+  create policy track_b_performance_evidence_insert on public.track_b_performance_evidence for insert to authenticated with check (owner_id = auth.uid());
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$
+BEGIN
+  create policy track_b_performance_evidence_update on public.track_b_performance_evidence for update to authenticated using (owner_id = auth.uid()) with check (owner_id = auth.uid());
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-create policy track_b_learning_recommendations_select on public.track_b_learning_recommendations for select to authenticated using (owner_id = auth.uid());
-create policy track_b_learning_recommendations_insert on public.track_b_learning_recommendations for insert to authenticated with check (owner_id = auth.uid());
-create policy track_b_learning_recommendations_update on public.track_b_learning_recommendations for update to authenticated using (owner_id = auth.uid()) with check (owner_id = auth.uid());
+DO $$
+BEGIN
+  create policy track_b_learning_recommendations_select on public.track_b_learning_recommendations for select to authenticated using (owner_id = auth.uid());
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$
+BEGIN
+  create policy track_b_learning_recommendations_insert on public.track_b_learning_recommendations for insert to authenticated with check (owner_id = auth.uid());
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$
+BEGIN
+  create policy track_b_learning_recommendations_update on public.track_b_learning_recommendations for update to authenticated using (owner_id = auth.uid()) with check (owner_id = auth.uid());
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-create policy track_b_caption_backlog_select on public.track_b_caption_backlog for select to authenticated using (owner_id = auth.uid());
-create policy track_b_caption_backlog_insert on public.track_b_caption_backlog for insert to authenticated with check (owner_id = auth.uid());
-create policy track_b_caption_backlog_update on public.track_b_caption_backlog for update to authenticated using (owner_id = auth.uid()) with check (owner_id = auth.uid());
+DO $$
+BEGIN
+  create policy track_b_caption_backlog_select on public.track_b_caption_backlog for select to authenticated using (owner_id = auth.uid());
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$
+BEGIN
+  create policy track_b_caption_backlog_insert on public.track_b_caption_backlog for insert to authenticated with check (owner_id = auth.uid());
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$
+BEGIN
+  create policy track_b_caption_backlog_update on public.track_b_caption_backlog for update to authenticated using (owner_id = auth.uid()) with check (owner_id = auth.uid());
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-create policy track_b_scene_contracts_select on public.track_b_scene_contracts for select to authenticated using (owner_id = auth.uid());
-create policy track_b_scene_contracts_insert on public.track_b_scene_contracts for insert to authenticated with check (owner_id = auth.uid());
-create policy track_b_scene_contracts_update on public.track_b_scene_contracts for update to authenticated using (owner_id = auth.uid()) with check (owner_id = auth.uid());
+DO $$
+BEGIN
+  create policy track_b_scene_contracts_select on public.track_b_scene_contracts for select to authenticated using (owner_id = auth.uid());
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$
+BEGIN
+  create policy track_b_scene_contracts_insert on public.track_b_scene_contracts for insert to authenticated with check (owner_id = auth.uid());
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$
+BEGIN
+  create policy track_b_scene_contracts_update on public.track_b_scene_contracts for update to authenticated using (owner_id = auth.uid()) with check (owner_id = auth.uid());
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-create policy track_b_asset_provenance_select on public.track_b_asset_provenance for select to authenticated using (owner_id = auth.uid());
-create policy track_b_asset_provenance_insert on public.track_b_asset_provenance for insert to authenticated with check (owner_id = auth.uid());
-create policy track_b_asset_provenance_update on public.track_b_asset_provenance for update to authenticated using (owner_id = auth.uid()) with check (owner_id = auth.uid());
+DO $$
+BEGIN
+  create policy track_b_asset_provenance_select on public.track_b_asset_provenance for select to authenticated using (owner_id = auth.uid());
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$
+BEGIN
+  create policy track_b_asset_provenance_insert on public.track_b_asset_provenance for insert to authenticated with check (owner_id = auth.uid());
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$
+BEGIN
+  create policy track_b_asset_provenance_update on public.track_b_asset_provenance for update to authenticated using (owner_id = auth.uid()) with check (owner_id = auth.uid());
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 comment on table public.track_b_performance_evidence is 'Post-publish evidence used to decide winners and learn what to replicate.';
 comment on table public.track_b_learning_recommendations is 'Reusable learning context fed into future creative runs.';
 comment on table public.track_b_scene_contracts is 'Machine-readable creative contract for pre-publish visual verification.';
-comment on table public.track_b_asset_provenance is 'Full source-to-derived asset lineage with model, prompt and cost provenance.'
+comment on table public.track_b_asset_provenance is 'Full source-to-derived asset lineage with model, prompt and cost provenance.';
