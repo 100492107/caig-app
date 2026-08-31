@@ -47,7 +47,8 @@ The operator gets a keyboard-first A/R/K review queue, a cost pre-flight with ch
 5. Creative DNA is stored as evidence-backed patterns, not as generic prompt inspiration.
 6. The operator home should make the next commercially useful action obvious.
 7. Winners earn reuse only from measured evidence; the system replicates mechanisms, not protected executions.
-8. Automated scene verification is fail-closed for content explicitly linked to a scene contract.
+8. Automated scene verification is fail-closed for Track B content with final media: FAL renders the media, local Qwen Vision inspects it, Supabase stores the verdict, and publishing is blocked unless the verdict passes.
+9. No external model provider is part of the intelligence or QA layer. Qwen runs locally on Apple Silicon. FAL is a media-generation provider only.
 
 ## Architecture
 
@@ -59,7 +60,7 @@ The project is a Vite/React application deployed on Vercel. The five-minute publ
 
 ## Required production configuration
 
-Vercel/server-side runtime requires the appropriate Supabase service credentials, `ANTHROPIC_API_KEY` for automated scene verification, and the scheduled-publisher webhook. GitHub Actions requires a repository secret named `CRON_SECRET`.
+Vercel/server-side runtime requires the appropriate Supabase service credentials and the scheduled-publisher webhook. GitHub Actions requires a repository secret named `CRON_SECRET`.
 
 The browser may use a Supabase publishable/anonymous client key for authenticated client operations; database RLS, not key secrecy, is the security boundary. Privileged service-role and third-party provider keys must remain server-side.
 
@@ -71,4 +72,21 @@ The operator leverage and scene-verification migrations add revenue events, evid
 
 ## Local services
 
-The Qwen and caption/Whisper workers are separate processes. Start only the worker required for the current production block and verify its health before assuming the service is available.
+Normal production uses the local Qwen text server and worker. Track B final-media QA additionally requires a local Qwen Vision server and scene worker:
+
+```bash
+npm run qwen:server
+npm run qwen:worker
+npm run qwen:vision:server
+npm run qwen:scene:worker
+```
+
+The vision server listens on `127.0.0.1:8001` by default and uses `QWEN_VISION_MODEL` from `.env.qwen.local` when supplied. The scene worker polls `local_ai_jobs` for `scene_verify` jobs, verifies images directly and extracts multiple frames from videos with local `ffmpeg` before asking local Qwen Vision for a strict pass/fail verdict.
+
+Before first use of the vision server, the local Qwen environment needs `mlx-vlm` installed:
+
+```bash
+.venv-qwen/bin/pip install mlx-vlm
+```
+
+Qwen is the intelligence layer. FAL.ai is the renderer. Supabase is the durable state and evidence layer. Vercel is orchestration and secure API execution.
