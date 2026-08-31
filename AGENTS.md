@@ -98,6 +98,7 @@ Before returning a job result, perform a final consistency pass:
 - Are all scene details physically and temporally coherent?
 - Has anything unrelated been introduced simply because it is common in generic AI-generated content?
 - Has the result been routed through the canonical runtime surface rather than a legacy duplicate?
+- For final Track B media, has local Qwen Vision inspected the rendered image/video frames against the stored scene contract?
 
 ## Never
 
@@ -110,6 +111,7 @@ Before returning a job result, perform a final consistency pass:
 - Never loosen a niche lock to rescue a weak idea; downgrade confidence or return IGNORE instead.
 - Never add a parallel V2/V3 workspace when a canonical component already exists.
 - Never put service credentials, provider secrets or webhook secrets in browser code.
+- Never use Anthropic, OpenAI, Gemini or another external model as the Cornerstone intelligence or scene-QA layer. Local Qwen is the required intelligence/vision layer; FAL is a media renderer only.
 
 ## Operational safety
 
@@ -124,8 +126,16 @@ Primary Qwen worker:
 
 `npm run qwen:worker`
 
-Qwen server:
+Qwen text server:
 
 `npm run qwen:server`
+
+Qwen Vision server for final-media QA:
+
+`npm run qwen:vision:server`
+
+Local scene verification worker:
+
+`npm run qwen:scene:worker`
 
 Caption worker and Whisper services are separate workflows. Do not assume a caption/Whisper service is running unless the task explicitly requires it and its health check succeeds.
