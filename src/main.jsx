@@ -2,7 +2,8 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import './CreativeStudioTheme.css'
-import AppLanding from './AppLanding.jsx'
+import CEOHome from './CEOHome.jsx'
+import AuthGate from './AuthGate.jsx'
 import MainAppShell from './MainAppShell.jsx'
 import CreativeEngineHub from './CreativeEngineHub.jsx'
 import PersistentGenerations from './PersistentGenerations.jsx'
@@ -15,8 +16,8 @@ const component = path === '/creative'
     ? <TrackAOutreachWorkspace />
     : path === '/main-app'
       ? <MainAppShell />
-      : <AppLanding />
+      : <CEOHome />
 
 createRoot(document.getElementById('root')).render(
-  <StrictMode>{component}</StrictMode>,
+  <StrictMode><AuthGate>{component}</AuthGate></StrictMode>,
 )

@@ -1,155 +1,86 @@
-// api/cron-publish.js
-// Vercel cron job — runs every 5 minutes, finds due posts in content_queue, publishes them
-// Configured in vercel.json: { "crons": [{ "path": "/api/cron-publish", "schedule": "*/5 * * * *" }] }
+import { createClient } from '@supabase/supabase-js';
 
-import { createClient } from "@supabase/supabase-js";
-import { uploadImageToFanvue } from "./fanvue-upload.js";
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, {
+  auth: { persistSession: false, autoRefreshToken: false },
+});
 
-async function sendTokenExpiredAlert(personaId) {
-  const resendKey = process.env.RESEND_API_KEY;
-  if (!resendKey) return;
-  await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${resendKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from: "CAIG Alerts <hello@cornerstoneaigroup.com>",
-      to: ["harrisjoseph1999@gmail.com"],
-      subject: `⚠️ Fanvue token expired — ${personaId}`,
-      html: `
-        <p>The Fanvue session token for <strong>${personaId}</strong> has expired and posts are failing.</p>
-        <p><strong>Action required:</strong></p>
-        <ol>
-          <li>Log into Fanvue as ${personaId}</li>
-          <li>Open DevTools → Application → Cookies → fanvue.com</li>
-          <li>Copy the value of <code>fv-auth.session-token</code></li>
-          <li>Paste it into Supabase → platform_tokens → token column for ${personaId}</li>
-        </ol>
-        <p>Once updated, reset any <code>error</code> status posts in content_queue back to <code>scheduled</code> and the cron will pick them up automatically.</p>
-      `,
-    }),
-  });
+const MAKE_WEBHOOK = process.env.MAKE_SCHEDULED_POST_WEBHOOK;
+const MAX_JOBS = 3;
+const FETCH_TIMEOUT_MS = 15_000;
+
+async function claimDuePosts() {
+  const { data, error } = await supabase.rpc('claim_due_content_queue', { p_limit: MAX_JOBS, p_stale_minutes: 20 });
+  if (error) throw error;
+  return data || [];
 }
 
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+async function updatePublishingState(id, patch) {
+  const { error } = await supabase.from('content_queue').update(patch).eq('id', id).eq('status', 'publishing');
+  if (error) throw error;
+}
+
+async function publishOne(post) {
+  const format = post.video_url ? 'reel' : (post.post_format || 'photo');
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  try {
+    const response = await fetch(MAKE_WEBHOOK, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        caption: [post.hook, post.caption, post.cta, post.hashtags].filter(Boolean).join('\n\n'),
+        imageUrl: post.image_url || null,
+        videoUrl: post.video_url || null,
+        imageUrls: post.image_urls || null,
+        postId: post.id,
+        platform: 'all',
+        format,
+      }),
+      signal: controller.signal,
+    });
+    const text = await response.text();
+    if (!response.ok) throw new Error(`Make webhook failed (${response.status}): ${text.slice(0, 300)}`);
+    await updatePublishingState(post.id, {
+      status: 'posted',
+      publishing_started_at: null,
+      last_publish_attempt_at: new Date().toISOString(),
+      last_publish_error: null,
+    });
+    return { id: post.id, status: 'posted', format };
+  } catch (error) {
+    const attempts = Number(post.publish_attempts || 1);
+    const transient = error?.name === 'AbortError' || /\b(429|5\d\d)\b/.test(String(error?.message || ''));
+    const retry = transient && attempts < 5;
+    const nextTime = new Date(Date.now() + Math.min(60, attempts * 10) * 60_000);
+    await updatePublishingState(post.id, {
+      status: retry ? 'scheduled' : 'error',
+      publishing_started_at: null,
+      last_publish_attempt_at: new Date().toISOString(),
+      last_publish_error: String(error?.message || error).slice(0, 1000),
+      ...(retry ? { scheduled_date: nextTime.toISOString().slice(0, 10), scheduled_time: nextTime.toISOString().slice(11, 16) } : {}),
+    });
+    return { id: post.id, status: retry ? 'retry' : 'error', format, error: String(error?.message || error) };
+  } finally {
+    clearTimeout(timer);
+  }
+}
 
 export default async function handler(req, res) {
-  // Vercel cron jobs send GET requests with Authorization header
-  if (req.headers.authorization !== `Bearer ${process.env.CRON_SECRET}`) {
-    return res.status(401).json({ error: "Unauthorized" });
+  if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
+  if (req.headers.authorization !== `Bearer ${process.env.CRON_SECRET}`) return res.status(401).json({ error: 'Unauthorized' });
+  if (!MAKE_WEBHOOK) return res.status(500).json({ error: 'MAKE_SCHEDULED_POST_WEBHOOK is not configured' });
+
+  try {
+    const posts = await claimDuePosts();
+    if (!posts.length) return res.status(200).json({ published: 0, processed: 0, message: 'No posts due' });
+    const results = await Promise.all(posts.map(publishOne));
+    return res.status(200).json({
+      published: results.filter((item) => item.status === 'posted').length,
+      processed: results.length,
+      results,
+    });
+  } catch (error) {
+    console.error('[PUBLISH] cron failed:', error);
+    return res.status(500).json({ error: error?.message || String(error) });
   }
-
-  const now = new Date();
-  const todayDate = now.toISOString().split("T")[0]; // YYYY-MM-DD
-  const currentTime = now.toTimeString().slice(0, 5);  // HH:MM
-
-  // Find all posts that are due now or overdue, status = 'scheduled', platform = fanvue
-  const { data: duePosts, error } = await supabase
-    .from("content_queue")
-    .select("*")
-    .eq("status", "scheduled")
-    .in("platform", ["fanvue", "fv_page"])
-    .lte("scheduled_date", todayDate)
-    .lte("scheduled_time", currentTime)
-    .limit(10); // process max 10 at a time per cron tick
-
-  if (error) {
-    console.error("content_queue fetch error:", error.message);
-    return res.status(500).json({ error: error.message });
-  }
-
-  if (!duePosts || duePosts.length === 0) {
-    return res.status(200).json({ published: 0, message: "No posts due" });
-  }
-
-  const results = [];
-  const tokenAlertSent = new Set(); // track which personas have had alert sent this run
-
-  for (const post of duePosts) {
-    try {
-      // Mark as 'publishing' immediately to prevent double-publish on next tick
-      await supabase
-        .from("content_queue")
-        .update({ status: "publishing" })
-        .eq("id", post.id);
-
-      // Get the platform token for this persona
-      const { data: tokenRow } = await supabase
-        .from("platform_tokens")
-        .select("token")
-        .eq("persona_id", post.persona_id)
-        .eq("platform", "fanvue")
-        .single();
-
-      if (!tokenRow?.token) {
-        await supabase.from("content_queue").update({ status: "error", notes: "No Fanvue token found for persona" }).eq("id", post.id);
-        results.push({ id: post.id, status: "error", reason: "no_token" });
-        continue;
-      }
-
-      // Upload images if the post has an image_url stored
-      let mediaUuids = [];
-      if (post.image_url) {
-        try {
-          const mediaUuid = await uploadImageToFanvue(
-            post.image_url,
-            tokenRow.token,
-            `caig_${post.id}`
-          );
-          mediaUuids = [mediaUuid];
-        } catch (uploadErr) {
-          console.error(`Image upload failed for post ${post.id}:`, uploadErr.message);
-          // Don't block the post — publish text-only if upload fails
-        }
-      }
-
-      // Call the Fanvue post API
-      // VERCEL_URL does not include protocol; use https:// prefix
-      const baseUrl = process.env.PRODUCTION_URL
-        || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
-
-      const publishRes = await fetch(`${baseUrl}/api/fanvue-post`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          postId: post.id,
-          caption: [post.hook, post.caption, post.cta, post.hashtags].filter(Boolean).join("\n\n"),
-          sessionToken: tokenRow.token,
-          mediaUuids,
-          imagePrompt: post.image_prompt,
-        }),
-      });
-
-      const publishData = await publishRes.json();
-
-      if (publishRes.ok) {
-        await supabase
-          .from("content_queue")
-          .update({ status: "posted", fanvue_post_id: publishData.fanvue_post_id })
-          .eq("id", post.id);
-        results.push({ id: post.id, status: "posted" });
-      } else {
-        // Detect expired/invalid session — send alert email once per cron run per persona
-        if (publishRes.status === 401 && !tokenAlertSent.has(post.persona_id)) {
-          tokenAlertSent.add(post.persona_id);
-          await sendTokenExpiredAlert(post.persona_id);
-        }
-        await supabase
-          .from("content_queue")
-          .update({ status: "error", notes: publishData.error })
-          .eq("id", post.id);
-        results.push({ id: post.id, status: "error", reason: publishData.error });
-      }
-    } catch (e) {
-      await supabase.from("content_queue").update({ status: "error", notes: e.message }).eq("id", post.id);
-      results.push({ id: post.id, status: "error", reason: e.message });
-    }
-  }
-
-  return res.status(200).json({ published: results.filter(r => r.status === "posted").length, results });
 }
