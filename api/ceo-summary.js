@@ -1,28 +1,51 @@
 import { createClient } from '@supabase/supabase-js';
 
-const service = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
-const publicClient = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY);
+function buildClients(req) {
+  const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+  const anonKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+  if (!url || !anonKey) return null;
 
-async function requireUser(req) {
+  const authHeader = String(req.headers.authorization || '');
+  const publicClient = createClient(url, anonKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+    global: authHeader ? { headers: { Authorization: authHeader } } : undefined,
+  });
+
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const service = serviceKey
+    ? createClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } })
+    : null;
+
+  return { publicClient, service };
+}
+
+async function requireUser(publicClient, req) {
   const header = String(req.headers.authorization || '');
   const token = header.startsWith('Bearer ') ? header.slice(7) : '';
   if (!token) return null;
-  const { data } = await publicClient.auth.getUser(token);
+  const { data, error } = await publicClient.auth.getUser(token);
+  if (error) return null;
   return data?.user || null;
 }
 
-async function safeCount(table, configure) {
+function queryClient(service, publicClient) {
+  return service || publicClient;
+}
+
+async function safeCount(client, table, configure) {
   try {
-    let query = service.from(table).select('*', { count: 'exact', head: true });
+    let query = client.from(table).select('*', { count: 'exact', head: true });
     if (configure) query = configure(query);
     const { count, error } = await query;
     return error ? null : (count || 0);
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 
-async function firstCount(candidates, configure) {
+async function firstCount(client, candidates, configure) {
   for (const table of candidates) {
-    const value = await safeCount(table, configure);
+    const value = await safeCount(client, table, configure);
     if (value !== null) return value;
   }
   return null;
@@ -39,21 +62,37 @@ function nextAction(data) {
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
-  const anonKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
-  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY || !anonKey) return res.status(500).json({ error: 'Supabase server configuration is incomplete' });
-  if (!(await requireUser(req))) return res.status(401).json({ error: 'Unauthorized' });
 
   try {
+    const clients = buildClients(req);
+    if (!clients) return res.status(500).json({ error: 'Supabase server configuration is incomplete' });
+
+    const user = await requireUser(clients.publicClient, req);
+    if (!user) return res.status(401).json({ error: 'Unauthorized' });
+
+    const client = queryClient(clients.service, clients.publicClient);
     const today = new Date().toISOString().slice(0, 10);
     const [content, replies, calls, pilots, creative] = await Promise.all([
-      safeCount('content_queue', (q) => q.in('status', ['review', 'approved', 'scheduled']).lte('scheduled_date', today)),
-      firstCount(['dealers', 'dealer_prospects', 'crm_prospects', 'leads'], (q) => q.in('status', ['replied', 'interested', 'warm', 'sample_requested'])),
-      firstCount(['dealers', 'dealer_prospects', 'crm_prospects', 'leads'], (q) => q.in('status', ['call_booked', 'diagnostic_booked'])),
-      firstCount(['dealers', 'dealer_prospects', 'crm_prospects', 'leads'], (q) => q.in('status', ['pilot', 'pilot_proposed', 'proposal_sent'])),
-      safeCount('local_ai_jobs', (q) => q.in('status', ['queued', 'processing'])),
+      safeCount(client, 'content_queue', (q) => q.in('status', ['review', 'approved', 'scheduled']).lte('scheduled_date', today)),
+      firstCount(client, ['dealers', 'dealer_prospects', 'crm_prospects', 'leads'], (q) => q.in('status', ['replied', 'interested', 'warm', 'sample_requested'])),
+      firstCount(client, ['dealers', 'dealer_prospects', 'crm_prospects', 'leads'], (q) => q.in('status', ['call_booked', 'diagnostic_booked'])),
+      firstCount(client, ['dealers', 'dealer_prospects', 'crm_prospects', 'leads'], (q) => q.in('status', ['pilot', 'pilot_proposed', 'proposal_sent'])),
+      safeCount(client, 'local_ai_jobs', (q) => q.in('status', ['queued', 'processing'])),
     ]);
-    const metrics = { content_due: content ?? 0, warm_replies: replies ?? 0, calls_due: calls ?? 0, pilots_open: pilots ?? 0, creative_queue: creative ?? 0 };
-    return res.status(200).json({ generated_at: new Date().toISOString(), metrics, next_action: nextAction(metrics) });
+
+    const metrics = {
+      content_due: content ?? 0,
+      warm_replies: replies ?? 0,
+      calls_due: calls ?? 0,
+      pilots_open: pilots ?? 0,
+      creative_queue: creative ?? 0,
+    };
+
+    return res.status(200).json({
+      generated_at: new Date().toISOString(),
+      metrics,
+      next_action: nextAction(metrics),
+    });
   } catch (error) {
     return res.status(500).json({ error: error?.message || String(error) });
   }
