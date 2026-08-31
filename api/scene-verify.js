@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 
-const MODEL = process.env.SCENE_QA_MODEL || 'claude-sonnet-4-20250514';
+const MODEL = process.env.SCENE_QA_MODEL || 'claude-sonnet-5';
 const MAX_MEDIA_BYTES = 8 * 1024 * 1024;
 
 function clients(req) {
