@@ -20,34 +20,27 @@ const eyebrowStyle = {
   color: '#d4af37',
 };
 
-function ExternalOrInternalCard({ href, title, description, label, external }) {
-  const disabled = !href;
-  const props = disabled
-    ? { 'aria-disabled': true, onClick: (event) => event.preventDefault() }
-    : { href, target: external ? '_blank' : undefined, rel: external ? 'noreferrer' : undefined };
+function DestinationCard({ href, title, description, label, external }) {
+  const props = { href, target: external ? '_blank' : undefined, rel: external ? 'noreferrer' : undefined };
 
   return (
     <a
       {...props}
-      style={{
-        ...cardStyle,
-        opacity: disabled ? 0.58 : 1,
-        cursor: disabled ? 'default' : 'pointer',
-      }}
+      style={{ ...cardStyle, cursor: 'pointer' }}
     >
       <div style={eyebrowStyle}>{label}</div>
       <h2 style={{ margin: '9px 0 9px', fontSize: 28, letterSpacing: '-.04em' }}>{title}</h2>
       <p style={{ margin: 0, color: '#9ca6b9', lineHeight: 1.55, maxWidth: 460 }}>{description}</p>
-      <div style={{ marginTop: 22, fontSize: 12, fontWeight: 800, color: disabled ? '#70798d' : '#eef1f7' }}>
-        {disabled ? 'Link not configured yet' : external ? 'Open ↗' : 'Enter →'}
+      <div style={{ marginTop: 22, fontSize: 12, fontWeight: 800, color: '#eef1f7' }}>
+        {external ? 'Open ↗' : 'Enter →'}
       </div>
     </a>
   );
 }
 
 export default function EnterpriseHome() {
-  const trackAUrl = String(import.meta.env.VITE_TRACK_A_URL || '').trim();
-  const newLifeUrl = String(import.meta.env.VITE_NEW_LIFE_URL || '').trim();
+  const trackAUrl = 'https://cornerstonegroupdatabase-bfc2v3f4m-100492107s-projects.vercel.app/';
+  const newLifeUrl = 'https://new-life-game-alpha.vercel.app/start-v2.html';
 
   return (
     <div style={{ minHeight: '100vh', background: '#06080d', color: '#eef1f7', padding: '34px 28px 60px' }}>
@@ -63,23 +56,23 @@ export default function EnterpriseHome() {
         </header>
 
         <main style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 16 }}>
-          <ExternalOrInternalCard
-            href={trackAUrl || undefined}
+          <DestinationCard
+            href={trackAUrl}
             title="Track A"
             label="CASH ENGINE"
             description="Open the existing Track A system for territory, outreach, samples, diagnostics and pilots. Cornerstone does not duplicate it here."
             external
           />
 
-          <ExternalOrInternalCard
+          <DestinationCard
             href="/creative"
             title="Track B"
             label="CREATIVE STATION"
             description="Return to the familiar Creative Station for research, ideas, production, captions, assets and publishing. The new intelligence and QA capabilities sit underneath this workflow."
           />
 
-          <ExternalOrInternalCard
-            href={newLifeUrl || undefined}
+          <DestinationCard
+            href={newLifeUrl}
             title="New Life"
             label="LIFE GAME"
             description="Open the New Life game as a separate experience. It stays intentionally outside the Cornerstone operating system."
