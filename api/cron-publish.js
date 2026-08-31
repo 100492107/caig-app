@@ -24,11 +24,34 @@ async function updatePublishingState(supabase, id, patch) {
   if (error) throw error;
 }
 
-async function publishOne(supabase, post) {
+async function verifyRequiredScene(supabase, post, host) {
+  if (!post.scene_contract_id) return { required: false, pass: true };
+  if (post.scene_verification_status === 'passed') return { required: true, pass: true, cached: true };
+
+  const { data: contract, error } = await supabase.from('track_b_scene_contracts').select('*').eq('id', post.scene_contract_id).maybeSingle();
+  if (error) throw error;
+  if (!contract) throw new Error('SCENE_QA_BLOCKED: scene contract not found.');
+
+  const mediaUrl = post.image_url || (Array.isArray(post.image_urls) ? post.image_urls[0] : null);
+  if (!mediaUrl) throw new Error('SCENE_QA_BLOCKED: no image/poster available for verification.');
+
+  const response = await fetch(`https://${host}/api/scene-verify`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${process.env.CRON_SECRET}` },
+    body: JSON.stringify({ contract, mediaUrl, contentQueueId: post.id, sceneContractId: post.scene_contract_id }),
+  });
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(body?.error || `SCENE_QA_BLOCKED: verification failed (${response.status})`);
+  if (!body.pass) throw new Error(`SCENE_QA_BLOCKED: media failed scene verification (${body?.verification?.score ?? 0}/100).`);
+  return { required: true, pass: true, verification: body.verification };
+}
+
+async function publishOne(supabase, post, host) {
   const format = post.video_url ? 'reel' : (post.post_format || 'photo');
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
   try {
+    await verifyRequiredScene(supabase, post, host);
     const response = await fetch(MAKE_WEBHOOK, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -81,7 +104,8 @@ export default async function handler(req, res) {
   try {
     const posts = await claimDuePosts(supabase);
     if (!posts.length) return res.status(200).json({ published: 0, processed: 0, message: 'No posts due' });
-    const results = await Promise.all(posts.map((post) => publishOne(supabase, post)));
+    const host = req.headers.host;
+    const results = await Promise.all(posts.map((post) => publishOne(supabase, post, host)));
     return res.status(200).json({
       published: results.filter((item) => item.status === 'posted').length,
       processed: results.length,
