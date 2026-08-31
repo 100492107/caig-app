@@ -1,0 +1,27 @@
+name: Publish scheduled content
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger publisher
+        env:
+          PUBLISH_URL: https://app.cornerstoneaigroup.com/api/cron-publish
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          set -euo pipefail
+          if [ -n "${CRON_SECRET:-}" ]; then
+            curl --fail-with-body --retry 3 --retry-delay 5 \
+              -H "Authorization: Bearer ${CRON_SECRET}" \
+              -H "X-Cron-Source: github-actions" \
+              "$PUBLISH_URL"
+          else
+            curl --fail-with-body --retry 3 --retry-delay 5 \
+              -H "X-Cron-Source: github-actions" \
+              "$PUBLISH_URL"
+          fi
