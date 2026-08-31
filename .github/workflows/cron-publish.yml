@@ -5,23 +5,32 @@ on:
     - cron: "*/5 * * * *"
   workflow_dispatch:
 
+concurrency:
+  group: scheduled-publisher
+  cancel-in-progress: false
+
 jobs:
   publish:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
+      - name: Validate publisher secret
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          set -euo pipefail
+          test -n "${CRON_SECRET:-}" || {
+            echo "CRON_SECRET is not configured in GitHub repository secrets."
+            exit 1
+          }
+
       - name: Trigger publisher
         env:
           PUBLISH_URL: https://app.cornerstoneaigroup.com/api/cron-publish
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |
           set -euo pipefail
-          if [ -n "${CRON_SECRET:-}" ]; then
-            curl --fail-with-body --retry 3 --retry-delay 5 \
-              -H "Authorization: Bearer ${CRON_SECRET}" \
-              -H "X-Cron-Source: github-actions" \
-              "$PUBLISH_URL"
-          else
-            curl --fail-with-body --retry 3 --retry-delay 5 \
-              -H "X-Cron-Source: github-actions" \
-              "$PUBLISH_URL"
-          fi
+          curl --fail-with-body --retry 3 --retry-delay 5 --max-time 45 \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            -H "X-Cron-Source: github-actions" \
+            "$PUBLISH_URL"
