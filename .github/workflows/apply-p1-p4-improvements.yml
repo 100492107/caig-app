@@ -1,0 +1,28 @@
+name: Apply P1-P4 improvements
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.event.head_commit.message == 'Apply P1-P4 improvements patch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Apply uploaded patch
+        env:
+          PATCH_B64: |
+            RnJvbSAzZjc1ZjFiZjcxNTU1OTk3ZWU2OGEzMWNlNjkwN2VlZDYwYzYzMCBNb24gU2VwIDE3IDEwOjAwOjAwIDIwMDEK
+      
+      - name: Fail safely if patch is incomplete
+        run: |
+          echo 'This workflow is a controlled patch applicator. It will be removed after the patch commit.'
+          exit 1
