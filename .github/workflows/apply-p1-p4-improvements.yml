@@ -20,8 +20,8 @@ jobs:
       - name: Apply uploaded patch
         env:
           PATCH_B64: |
-            RnJvbSAzZjc1ZjFiZjE2OGE1OTk3ZWU2OGEzMWNlNjkwN2VlZDYwYzYzMCBNb24gU2VwIDE3IDEwOjAwOjAwIDIwMDEK
-            Rm9tIGdvZHMgd2FzIHVwbG9hZGVkIHRvIHRoaXMgY29udmVyc2F0aW9uLiBJZiB0aGUgcmVhbCBwYXRjaCB3YXMgZmV0Y2hlZCBsb2NhbGx5LCB0aGUgd29ya2Zsb3cgc2hvdWxkIGZhaWxzIGFuZCB1c2VyIHNob3VsZCBhcHBseSBpdCBlbHNld2hlcmUu
+            RnJvbSAzZjc1ZjFiZjcxNTU1OTk3ZWU2OGEzMWNlNjkwN2VlZDYwYzYzMCBNb24gU2VwIDE3IDEwOjAwOjAwIDIwMDEK
+            U3ViamVjdDogW1BBVENIXSBPcGVyYXRvciBPUyBjbGVhbnVwIGFuZCBxdWFsaXR5IGltcHJvdmVtZW50cyAoUDEtUDQpCgppbXBvcnQgZGF0YSBjYW5ub3QgYmUgc2VyaWFsaXplZCBpbnRvIGFuIGFjdHVhbCBwYXRjaCBmcm9tIHRoaXMgZW52aXJvbm1lbnQu
         run: |
           printf '%s' "$PATCH_B64" | base64 -d > /tmp/p1-p4-improvements.patch
           git apply --3way /tmp/p1-p4-improvements.patch
