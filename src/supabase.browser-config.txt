@@ -1,0 +1,1 @@
+The browser Supabase client must use VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY. Never place a service-role key or third-party secret in browser code.
