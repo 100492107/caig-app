@@ -11,7 +11,7 @@ if [[ -f .env.qwen.local ]]; then
   set +a
 fi
 
-NEW_LIFE_ROOT="${NEW_LIFE_ROOT:-$HOME/Business/Archive/new-life-game}"
+NEW_LIFE_ROOT="${NEW_LIFE_ROOT:-$HOME/new-life-game}"
 STATE_DIR="$ROOT/.local-ai-runtime"
 LOG_DIR="$STATE_DIR/logs"
 mkdir -p "$LOG_DIR"
@@ -50,8 +50,6 @@ else
   start_bg "qwen" "mlx_lm.server.*${QWEN_PORT}" "qwen.log" bash "$ROOT/scripts/run-local-qwen.sh"
 fi
 
-# The heartbeat is bundled with the Qwen launcher, but keep a direct safety net
-# for systems where Qwen was started by another process.
 if ! is_running "scripts/qwen-heartbeat.mjs"; then
   if [[ -n "${SUPABASE_SERVICE_ROLE_KEY:-}" && -n "${VITE_SUPABASE_URL:-${SUPABASE_URL:-}}" ]]; then
     start_bg "qwen-heartbeat" "scripts/qwen-heartbeat.mjs" "qwen-heartbeat.log" env QWEN_MODEL="$QWEN_MODEL" QWEN_URL="http://${QWEN_HOST}:${QWEN_PORT}" node "$ROOT/scripts/qwen-heartbeat.mjs"
