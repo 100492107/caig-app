@@ -31,6 +31,22 @@ if [[ -z "${SUPABASE_SERVICE_ROLE_KEY:-}" || -z "${VITE_SUPABASE_URL:-${SUPABASE
   exit 1
 fi
 
+qwen_endpoint_ready() {
+  curl -fsS --max-time 2 --retry 1 --retry-delay 1 "http://${QWEN_HOST}:${QWEN_PORT}/v1/models" >/dev/null 2>&1
+}
+
+# Give an existing local Qwen server time to answer before ever attempting
+# to bind the port ourselves. This avoids a startup race with an already
+# running MLX server.
+for attempt in {1..8}; do
+  if qwen_endpoint_ready; then
+    echo "Qwen local server already running on ${QWEN_HOST}:${QWEN_PORT} · attaching heartbeat"
+    node scripts/qwen-heartbeat.mjs
+    exit $?
+  fi
+  sleep 1
+done
+
 HB_PID=""
 cleanup() {
   if [[ -n "$HB_PID" ]]; then
@@ -42,10 +58,5 @@ trap cleanup EXIT INT TERM
 node scripts/qwen-heartbeat.mjs &
 HB_PID=$!
 
-if curl -fsS --max-time 2 "http://${QWEN_HOST}:${QWEN_PORT}/v1/models" >/dev/null 2>&1; then
-  echo "Qwen local server already running on ${QWEN_HOST}:${QWEN_PORT} · heartbeat attached"
-  wait "$HB_PID"
-else
-  echo "Qwen local server starting on ${QWEN_HOST}:${QWEN_PORT} · heartbeat enabled"
-  .venv-qwen/bin/mlx_lm.server --model "$QWEN_MODEL" --host "$QWEN_HOST" --port "$QWEN_PORT"
-fi
+echo "Qwen local server starting on ${QWEN_HOST}:${QWEN_PORT} · heartbeat enabled"
+.venv-qwen/bin/mlx_lm.server --model "$QWEN_MODEL" --host "$QWEN_HOST" --port "$QWEN_PORT"
