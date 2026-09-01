@@ -59,18 +59,25 @@ function StageNav({ item, active, onChange }) {
   );
 }
 
-function stageMessage(item, stage) {
-  const messages = {
-    autopilot: ["Read the live signal before making a creative decision.", "Compare concepts before committing production effort.", "Build only after the concept earns its place."],
-    creators: ["Choose the creator and the job to be done.", "Use the latest evidence to shape the package.", "Produce the approved package with identity locked."],
-    shop: ["Define the commercial offer and customer action.", "Build the creative around the offer, not the model.", "Run the test and record the outcome."],
-    youtube: ["Set the brief and audience promise.", "Choose the strongest opportunity with evidence.", "Lock the title, thumbnail, hook and story package.", "Turn the approved package into production media."],
-    media: ["Find the right asset first.", "Inspect the source and its provenance.", "Work from the approved derived asset."],
-    "caption-writer": ["Choose the source photo and voice.", "Give Qwen the real context and evidence.", "Review, choose and copy the strongest line."],
-    "caption-studio": ["Clear the backlog.", "Edit for platform and identity.", "Mark the caption ready."],
-    "local-ai": ["Confirm local Qwen is online.", "See active jobs and bottlenecks.", "Inspect recent completed work."],
-  };
-  return (messages[item.id] || ["Work the current stage."])[stage] || "Work the current stage.";
+function triggerWorkspaceStage(item, index) {
+  const stage = item.stages?.[index];
+  if (!stage) return;
+  const root = document.querySelector(".tb-workspace-body");
+  if (!root) return;
+
+  const exactButtons = Array.from(root.querySelectorAll("button")).filter((button) => {
+    const text = String(button.textContent || "").trim().toLowerCase();
+    return text === stage.toLowerCase() || text.includes(stage.toLowerCase());
+  });
+  const target = exactButtons.find((button) => !button.closest(".tb-stage-nav"));
+  if (target) {
+    target.click();
+    return;
+  }
+
+  const headings = Array.from(root.querySelectorAll("h2,h3,h4,summary,label"));
+  const node = headings.find((element) => String(element.textContent || "").toLowerCase().includes(stage.toLowerCase()));
+  node?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 export default function TrackBApplication() {
@@ -106,7 +113,12 @@ export default function TrackBApplication() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  const setStageSafe = (next) => setStage(Math.max(0, Math.min(next, Math.max(0, (current.stages?.length || 1) - 1))));
+  const changeStage = (index) => {
+    setStage(index);
+    window.setTimeout(() => triggerWorkspaceStage(current, index), 0);
+  };
+  const nextStage = () => changeStage(Math.min(stage + 1, current.stages.length - 1));
+  const previousStage = () => changeStage(Math.max(stage - 1, 0));
 
   return (
     <div className={`tb-app${collapsed ? " is-collapsed" : ""}`}>
@@ -138,25 +150,19 @@ export default function TrackBApplication() {
           <div className="tb-topbar-inner">
             <button type="button" className="tb-mobile-menu" onClick={() => setMobileOpen(true)} aria-label="Open navigation">☰</button>
             <div className="tb-context"><div className="tb-context-kicker">Track B</div><div className="tb-context-title">{current.label}</div></div>
-            <div className="tb-stagebar"><StageNav item={current} active={stage} onChange={setStageSafe} /></div>
+            <div className="tb-stagebar"><StageNav item={current} active={stage} onChange={changeStage} /></div>
           </div>
         </header>
 
         <div className="tb-content">
-          <section className="tb-taskbar">
-            <div>
-              <div className="tb-small-label">{current.stages?.length ? `Stage ${String(stage + 1).padStart(2, "0")}` : "Workspace"}</div>
-              <h1>{current.stages?.[stage] || current.label}</h1>
-              <p>{stageMessage(current, stage)}</p>
-            </div>
-            {current.stages?.length > 1 && (
-              <div className="tb-step-controls">
-                <button type="button" className="tb-secondary" onClick={() => setStageSafe(stage - 1)} disabled={stage === 0}>Back</button>
-                <button type="button" className="tb-primary" onClick={() => setStageSafe(stage + 1)} disabled={stage >= current.stages.length - 1}>Next</button>
-              </div>
-            )}
-          </section>
           <div className="tb-workspace-body"><Workspace id={view} /></div>
+          {current.stages?.length > 1 && (
+            <div className="tb-mobile-stage-controls" aria-label="Stage controls">
+              <button type="button" className="tb-secondary" disabled={stage === 0} onClick={previousStage}>Back</button>
+              <span>{current.stages[stage]}</span>
+              <button type="button" className="tb-primary" disabled={stage === current.stages.length - 1} onClick={nextStage}>Next</button>
+            </div>
+          )}
           <div className="tb-bottom-safe" />
         </div>
       </main>
