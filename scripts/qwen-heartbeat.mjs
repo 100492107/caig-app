@@ -18,6 +18,7 @@ const supabase = createClient(supabaseUrl, serviceKey, {
 });
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+let lastLoggedStatus = null;
 
 async function qwenReachable() {
   const controller = new AbortController();
@@ -65,7 +66,11 @@ async function writeHeartbeat() {
   }, { onConflict: 'id' });
 
   if (error) throw error;
-  console.log(`[QWEN HEARTBEAT] ${status} · endpoint=${qwenUrl}${currentJob ? ` · ${currentJob.job_type}` : ''}`);
+
+  if (status !== lastLoggedStatus) {
+    console.log(`[QWEN] ${status === 'online' ? 'Online' : status === 'busy' ? 'Busy' : 'Offline'}${currentJob ? ` · ${currentJob.job_type}` : ''}`);
+    lastLoggedStatus = status;
+  }
 }
 
 process.on('SIGINT', async () => {
@@ -77,7 +82,7 @@ process.on('SIGTERM', async () => {
   process.exit(0);
 });
 
-console.log(`[QWEN HEARTBEAT] online-check started. endpoint=${qwenUrl}`);
+console.log(`[QWEN HEARTBEAT] monitor started · ${qwenUrl} · checking every ${intervalMs}ms`);
 for (;;) {
   try {
     await writeHeartbeat();
