@@ -14,15 +14,15 @@ Track A and Track B are deliberately isolated:
 - **Track B — owned media/creator engine:** Cara, Lila and duo production, research, identity-locked generation, captions, publishing and learning.
 - **YouTube — long-form lane:** adult animated business/money storytelling, kept separate from both Tracks A and B.
 
-## Operator Workbench
+## Application surfaces
 
-- `/` — adaptive operator home. Morning defaults to the Revenue Block; afternoon defaults to Production Sprint.
-- `/workbench` — Operator Workbench with Revenue Block, Learning Loop and Production Sprint tabs.
+- `/` — Cornerstone AI Enterprise launcher. It is the top-level destination chooser for Track A, Track B and New Life.
+- `/creative` — Creative Station / Track B production surface + persistent generation library.
 - `/territory` — Track A ZIP territory control and unreplied-positive queue.
-- `/creative` — Creative Engine Hub + persistent generation library.
 - `/outreach` — Track A acquisition and dealer workflow.
-- `/main-app` — legacy operational surface retained during controlled consolidation.
+- `/workbench` — supporting Revenue Block, Learning Loop and Production Sprint operator workspace.
 - `/ceo` — CEO Control Room view.
+- `/main-app` — retained legacy operational surface during controlled consolidation.
 
 ### Revenue Block
 
@@ -36,7 +36,7 @@ Public-social proof and Fanvue monetisation proof are stored separately.
 
 ### Production Sprint
 
-The operator gets a keyboard-first A/R/K review queue, a cost pre-flight with cheaper-path suggestion, persistent caption-backlog visibility and a structured scene-contract pre-flight. Generated media can be verified visually against the contract before publish when QA is required.
+The operator gets a keyboard-first A/R/K review queue, a cost pre-flight with cheaper-path suggestion, persistent caption-backlog visibility and a structured scene-contract pre-flight. Generated media can be verified visually against the contract before publish when QA is required, with local Qwen Vision providing the verdict.
 
 ## Production rules
 
@@ -52,7 +52,7 @@ The operator gets a keyboard-first A/R/K review queue, a cost pre-flight with ch
 
 ## Architecture
 
-There is one canonical implementation per active capability. Do not create new `V2`, `V3`, `Unified`, `Final`, `New`, `Test` or parallel workspace components for an existing feature. Historical implementations are not runtime authorities.
+There is one canonical implementation per active capability. Do not create new `V2`, `V3`, `Unified`, `Final`, `New`, `Test` or parallel workspace components for an existing feature. Historical implementations are not runtime authorities and live under `src/legacy/` when retained for reference.
 
 ## Deployment
 
@@ -62,7 +62,7 @@ The project is a Vite/React application deployed on Vercel. The five-minute publ
 
 Vercel/server-side runtime requires the appropriate Supabase service credentials and the scheduled-publisher webhook. GitHub Actions requires a repository secret named `CRON_SECRET`.
 
-The browser may use a Supabase publishable/anonymous client key for authenticated client operations; database RLS, not key secrecy, is the security boundary. Privileged service-role and third-party provider keys must remain server-side.
+The browser may use a Supabase publishable/anonymous client key for authenticated client operations; database RLS, not key secrecy, is the security boundary. Privileged service-role and third-party provider keys must remain server-side. Where Vite environment variables are provisioned, use `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` rather than duplicating client configuration in source.
 
 ## Supabase migrations
 
