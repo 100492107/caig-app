@@ -42,5 +42,10 @@ trap cleanup EXIT INT TERM
 node scripts/qwen-heartbeat.mjs &
 HB_PID=$!
 
-echo "Qwen local server starting on ${QWEN_HOST}:${QWEN_PORT} · heartbeat enabled"
-.venv-qwen/bin/mlx_lm.server --model "$QWEN_MODEL" --host "$QWEN_HOST" --port "$QWEN_PORT"
+if curl -fsS --max-time 2 "http://${QWEN_HOST}:${QWEN_PORT}/v1/models" >/dev/null 2>&1; then
+  echo "Qwen local server already running on ${QWEN_HOST}:${QWEN_PORT} · heartbeat attached"
+  wait "$HB_PID"
+else
+  echo "Qwen local server starting on ${QWEN_HOST}:${QWEN_PORT} · heartbeat enabled"
+  .venv-qwen/bin/mlx_lm.server --model "$QWEN_MODEL" --host "$QWEN_HOST" --port "$QWEN_PORT"
+fi
