@@ -1,0 +1,11 @@
+/* Track B navigation: the collapse control must remain reachable after the rail collapses. */
+.tb-sidebar{overflow:visible}
+.tb-collapse{position:relative;z-index:3}
+.tb-app.is-collapsed .tb-sidebar{overflow:visible}
+.tb-app.is-collapsed .tb-brand{overflow:visible}
+.tb-app.is-collapsed .tb-brand-link{justify-content:center}
+.tb-app.is-collapsed .tb-collapse{display:grid;place-items:center;position:absolute;right:-14px;top:21px;margin:0;width:28px;height:28px;border-radius:999px;background:var(--tb-sidebar);border:1px solid var(--tb-line);box-shadow:0 6px 18px rgba(0,0,0,.28);color:var(--tb-text);z-index:5}
+@media(max-width:900px){
+  .tb-app.is-collapsed .tb-sidebar{transform:translateX(-102%)}
+  .tb-app.is-collapsed .tb-collapse{display:none}
+}
