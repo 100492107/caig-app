@@ -1,237 +1,360 @@
 :root {
-  --cs-bg: #0b0c0e;
-  --cs-surface: #16181c;
-  --cs-surface-2: #1c1f24;
-  --cs-surface-soft: rgba(255,255,255,.035);
+  --cs-bg: #111318;
+  --cs-surface: #17191e;
+  --cs-surface-2: #1d2026;
+  --cs-surface-soft: #14161b;
   --cs-border: rgba(255,255,255,.075);
-  --cs-border-strong: rgba(255,255,255,.11);
-  --cs-text: #f2f2f0;
-  --cs-muted: #8b909a;
-  --cs-muted-2: #646a74;
-  --cs-accent: #c9a227;
-  --cs-accent-dim: rgba(201,162,39,.12);
-  --cs-track-a: #7a8ba3;
-  --cs-track-b: #c9a227;
-  --cs-success: #6f9b7a;
-  --cs-danger: #c45c5c;
-  --cs-radius: 14px;
-  --cs-radius-lg: 20px;
-  --cs-shadow: 0 18px 60px rgba(0,0,0,.22);
+  --cs-border-strong: rgba(255,255,255,.12);
+  --cs-text: #f1f1ee;
+  --cs-muted: #90959e;
+  --cs-muted-2: #676d77;
+  --cs-accent: #a8945f;
+  --cs-accent-dim: rgba(168,148,95,.12);
+  --cs-track-a: #7b8798;
+  --cs-track-b: #a8945f;
+  --cs-success: #75927c;
+  --cs-danger: #b86666;
+  --cs-radius: 12px;
+  --cs-radius-lg: 16px;
+  --cs-shadow: none;
   --cs-font: -apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display",Inter,ui-sans-serif,system-ui,sans-serif;
 }
 
-.creative-studio-surface{
-  --bg:var(--cs-bg);
-  --panel:var(--cs-surface);
-  --panel2:var(--cs-surface-2);
-  --line:var(--cs-border);
-  --muted:var(--cs-muted);
-  --gold:var(--cs-accent);
-  --gold2:#9d7b1e;
-  width:100%;
-  min-height:100dvh;
-  color:var(--cs-text);
-  background:var(--cs-bg);
-  font-family:var(--cs-font);
-  color-scheme:dark;
-  -webkit-font-smoothing:antialiased;
-  text-rendering:optimizeLegibility;
+.creative-studio-surface {
+  --bg: var(--cs-bg);
+  --panel: var(--cs-surface);
+  --panel2: var(--cs-surface-2);
+  --line: var(--cs-border);
+  --muted: var(--cs-muted);
+  --gold: var(--cs-accent);
+  --gold2: #8f7a4c;
+  width: 100%;
+  min-height: 100dvh;
+  color: var(--cs-text);
+  background: var(--cs-bg);
+  font-family: var(--cs-font);
+  color-scheme: dark;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: clip;
 }
 
 .creative-studio-surface *,
 .creative-studio-surface *::before,
-.creative-studio-surface *::after{box-sizing:border-box}
+.creative-studio-surface *::after { box-sizing: border-box; }
 
-.creative-studio-surface label{
-  font-family:inherit!important;
-  letter-spacing:.01em!important;
-  text-transform:none!important;
-  color:#d5d8dd!important;
-  font-size:12px!important;
-  font-weight:700!important;
-  gap:8px!important;
+/* One Track B visual grammar. */
+.creative-studio-surface h1,
+.creative-studio-surface h2,
+.creative-studio-surface h3,
+.creative-studio-surface h4 {
+  font-family: var(--cs-font) !important;
+  color: var(--cs-text) !important;
+  letter-spacing: -.035em !important;
+  text-wrap: balance;
+}
+
+.creative-studio-surface h1 { font-size: clamp(30px, 3.6vw, 48px) !important; line-height: .98 !important; font-weight: 780 !important; }
+.creative-studio-surface h2 { font-size: clamp(24px, 2.6vw, 34px) !important; line-height: 1.02 !important; font-weight: 760 !important; }
+.creative-studio-surface h3 { font-size: clamp(19px, 2vw, 26px) !important; line-height: 1.08 !important; font-weight: 730 !important; }
+.creative-studio-surface p { color: var(--cs-muted) !important; }
+
+.creative-studio-surface label {
+  font-family: inherit !important;
+  letter-spacing: .01em !important;
+  text-transform: none !important;
+  color: #c9cdd3 !important;
+  font-size: 11px !important;
+  line-height: 1.25 !important;
+  font-weight: 680 !important;
+  gap: 8px !important;
 }
 
 .creative-studio-surface select,
 .creative-studio-surface input,
-.creative-studio-surface textarea{
-  font-family:inherit!important;
-  background:var(--cs-surface-soft)!important;
-  color:var(--cs-text)!important;
-  border:1px solid var(--cs-border-strong)!important;
-  border-radius:var(--cs-radius)!important;
-  min-height:46px!important;
-  padding:12px 14px!important;
-  outline:none!important;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.025)!important;
-  transition:border-color .16s ease,box-shadow .16s ease,background .16s ease!important;
+.creative-studio-surface textarea {
+  font-family: inherit !important;
+  background: #15181d !important;
+  color: var(--cs-text) !important;
+  border: 1px solid var(--cs-border-strong) !important;
+  border-radius: var(--cs-radius) !important;
+  min-height: 44px !important;
+  padding: 11px 13px !important;
+  outline: none !important;
+  box-shadow: none !important;
+  transition: border-color .16s ease, background .16s ease !important;
 }
 
-.creative-studio-surface textarea{min-height:116px!important;resize:vertical!important;line-height:1.55!important}
+.creative-studio-surface textarea {
+  min-height: 112px !important;
+  resize: vertical !important;
+  line-height: 1.55 !important;
+}
 
 .creative-studio-surface select:focus,
 .creative-studio-surface input:focus,
-.creative-studio-surface textarea:focus{
-  border-color:rgba(201,162,39,.62)!important;
-  box-shadow:0 0 0 3px var(--cs-accent-dim)!important;
-  background:rgba(255,255,255,.045)!important;
+.creative-studio-surface textarea:focus {
+  border-color: rgba(168,148,95,.72) !important;
+  box-shadow: 0 0 0 3px var(--cs-accent-dim) !important;
+  background: #181b20 !important;
 }
 
-.creative-studio-surface button{font-family:inherit!important;letter-spacing:-.01em!important}
-.creative-studio-surface button:not([disabled]):hover{transform:translateY(-1px)!important}
-.creative-studio-surface button:focus-visible{outline:2px solid rgba(201,162,39,.7)!important;outline-offset:2px!important}
-
-.creative-studio-surface h1,
-.creative-studio-surface h2,
-.creative-studio-surface h3,
-.creative-studio-surface h4{
-  font-family:var(--cs-font)!important;
-  color:var(--cs-text)!important;
-  letter-spacing:-.035em!important;
+.creative-studio-surface button {
+  font-family: inherit !important;
+  letter-spacing: -.01em !important;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.creative-studio-surface p{color:var(--cs-muted)}
-
-.creative-studio-surface .studio-kicker{
-  font-size:10px!important;
-  text-transform:uppercase!important;
-  letter-spacing:.15em!important;
-  color:var(--cs-muted-2)!important;
-  font-weight:800!important;
+.creative-studio-surface button:not([disabled]):hover { transform: none !important; }
+.creative-studio-surface button:focus-visible,
+.creative-studio-surface a:focus-visible,
+.creative-studio-surface select:focus-visible,
+.creative-studio-surface input:focus-visible,
+.creative-studio-surface textarea:focus-visible {
+  outline: 2px solid rgba(168,148,95,.72) !important;
+  outline-offset: 2px !important;
 }
 
-.creative-studio-surface .studio-chip{
-  display:inline-flex!important;
-  align-items:center!important;
-  gap:7px!important;
-  min-height:34px!important;
-  padding:7px 10px!important;
-  border:1px solid var(--cs-border)!important;
-  border-radius:999px!important;
-  background:var(--cs-surface-soft)!important;
-  color:#cfd2d7!important;
-  font-size:11px!important;
-  font-weight:750!important;
+.creative-studio-surface .studio-kicker {
+  font-size: 10px !important;
+  text-transform: uppercase !important;
+  letter-spacing: .11em !important;
+  color: var(--cs-muted-2) !important;
+  font-weight: 760 !important;
 }
 
-.creative-studio-surface .studio-chip.gold{
-  border-color:rgba(201,162,39,.28)!important;
-  background:var(--cs-accent-dim)!important;
-  color:#e0bf57!important;
+.creative-studio-surface .studio-chip {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 7px !important;
+  min-height: 32px !important;
+  padding: 6px 9px !important;
+  border: 1px solid var(--cs-border) !important;
+  border-radius: 999px !important;
+  background: #15181d !important;
+  color: #c7cbd1 !important;
+  font-size: 11px !important;
+  font-weight: 720 !important;
 }
 
-.creative-studio-surface .studio-action{
-  background:var(--cs-accent)!important;
-  color:#17130a!important;
-  border:1px solid var(--cs-accent)!important;
-  border-radius:12px!important;
-  box-shadow:0 8px 24px rgba(201,162,39,.16)!important;
+.creative-studio-surface .studio-chip.gold {
+  border-color: rgba(168,148,95,.3) !important;
+  background: var(--cs-accent-dim) !important;
+  color: #c6b37d !important;
 }
 
-.creative-studio-surface .studio-soft-card{
-  background:var(--cs-surface)!important;
-  border:1px solid var(--cs-border)!important;
-  border-radius:var(--cs-radius-lg)!important;
-  box-shadow:var(--cs-shadow)!important;
+.creative-studio-surface .studio-action {
+  background: var(--cs-accent) !important;
+  color: #15130e !important;
+  border: 1px solid var(--cs-accent) !important;
+  border-radius: 10px !important;
+  box-shadow: none !important;
 }
 
-/* Make legacy inline workspace surfaces inherit the same visual language. */
+.creative-studio-surface .studio-soft-card {
+  background: var(--cs-surface) !important;
+  border: 1px solid var(--cs-border) !important;
+  border-radius: var(--cs-radius-lg) !important;
+  box-shadow: none !important;
+}
+
+/* Normalize legacy inline palette values used across the individual workspaces. */
+.creative-studio-surface [style*="#07080c"],
+.creative-studio-surface [style*="#07090d"],
+.creative-studio-surface [style*="#08070d"],
+.creative-studio-surface [style*="#080a0f"],
+.creative-studio-surface [style*="#080b10"],
+.creative-studio-surface [style*="#08070D"],
+.creative-studio-surface [style*="#0b0d11"],
+.creative-studio-surface [style*="#0b0f15"],
+.creative-studio-surface [style*="#0d1118"],
+.creative-studio-surface [style*="#0e1017"],
+.creative-studio-surface [style*="#0e1118"],
+.creative-studio-surface [style*="#0e1219"],
+.creative-studio-surface [style*="#11151d"],
+.creative-studio-surface [style*="#11151e"],
+.creative-studio-surface [style*="#131721"] {
+  background: var(--cs-bg) !important;
+  color: inherit !important;
+}
+
 .creative-studio-surface [style*="background: #0e1118"],
 .creative-studio-surface [style*="background:#0e1118"],
 .creative-studio-surface [style*="background: #0e1219"],
 .creative-studio-surface [style*="background:#0e1219"],
 .creative-studio-surface [style*="background: #0d1118"],
-.creative-studio-surface [style*="background:#0d1118"]{
-  background:var(--cs-surface)!important;
-  border-color:var(--cs-border)!important;
+.creative-studio-surface [style*="background:#0d1118"],
+.creative-studio-surface [style*="background: #11151d"],
+.creative-studio-surface [style*="background:#11151d"],
+.creative-studio-surface [style*="background: #11151e"],
+.creative-studio-surface [style*="background:#11151e"] {
+  background: var(--cs-surface) !important;
+  color: inherit !important;
+}
+
+/* Remove old “premium AI” gradients from UI surfaces; keep gradients only for media itself. */
+.creative-studio-surface [style*="linear-gradient(135deg,#e4c25a"],
+.creative-studio-surface [style*="linear-gradient(135deg, #e4c25a"],
+.creative-studio-surface [style*="linear-gradient(160deg,#131721"],
+.creative-studio-surface [style*="linear-gradient(160deg, #131721"],
+.creative-studio-surface [style*="linear-gradient(150deg,#171913"],
+.creative-studio-surface [style*="radial-gradient(circle at 85% 20%"],
+.creative-studio-surface [style*="background: linear-gradient"] {
+  background-image: none !important;
+  background-color: var(--cs-surface) !important;
+}
+
+/* Normalize old gold everywhere except intentional primary actions. */
+.creative-studio-surface [style*="color: #d4af37"],
+.creative-studio-surface [style*="color:#d4af37"],
+.creative-studio-surface [style*="color: #d8b449"],
+.creative-studio-surface [style*="color:#d8b449"],
+.creative-studio-surface [style*="color: #e4c25a"],
+.creative-studio-surface [style*="color:#e4c25a"] {
+  color: var(--cs-accent) !important;
+}
+
+.creative-studio-surface [style*="border: 1px solid #d4af37"],
+.creative-studio-surface [style*="border:1px solid #d4af37"],
+.creative-studio-surface [style*="border: 1px solid rgba(212,175,55"],
+.creative-studio-surface [style*="border:1px solid rgba(212,175,55"] {
+  border-color: rgba(168,148,95,.34) !important;
+}
+
+.creative-studio-surface [style*="background: #d4af37"],
+.creative-studio-surface [style*="background:#d4af37"],
+.creative-studio-surface [style*="background: #e4c25a"],
+.creative-studio-surface [style*="background:#e4c25a"] {
+  background: var(--cs-accent) !important;
+  border-color: var(--cs-accent) !important;
+  color: #15130e !important;
+}
+
+/* Normalize old cards, borders and shadow theatre. */
+.creative-studio-surface [style*="border-radius: 28px"],
+.creative-studio-surface [style*="border-radius:28px"],
+.creative-studio-surface [style*="border-radius: 24px"],
+.creative-studio-surface [style*="border-radius:24px"],
+.creative-studio-surface [style*="border-radius: 22px"],
+.creative-studio-surface [style*="border-radius:22px"],
+.creative-studio-surface [style*="border-radius: 20px"],
+.creative-studio-surface [style*="border-radius:20px"] {
+  border-radius: var(--cs-radius-lg) !important;
+}
+
+.creative-studio-surface [style*="box-shadow:"] {
+  box-shadow: none !important;
 }
 
 .creative-studio-surface [style*="border: 1px solid #252d3a"],
 .creative-studio-surface [style*="border:1px solid #252d3a"],
-.creative-studio-surface [style*="border: 1px solid #252b3b"],
-.creative-studio-surface [style*="border:1px solid #252b3b"]{
-  border-color:var(--cs-border)!important;
+.creative-studio-surface [style*="border: 1px solid #252d3b"],
+.creative-studio-surface [style*="border:1px solid #252d3b"],
+.creative-studio-surface [style*="border: 1px solid #262b3b"],
+.creative-studio-surface [style*="border:1px solid #262b3b"],
+.creative-studio-surface [style*="border: 1px solid #2a3140"],
+.creative-studio-surface [style*="border:1px solid #2a3140"] {
+  border-color: var(--cs-border) !important;
 }
 
-.creative-studio-surface [style*="background: #d4af37"],
-.creative-studio-surface [style*="background:#d4af37"]{
-  background:var(--cs-accent)!important;
-  border-color:var(--cs-accent)!important;
-  color:#17130a!important;
+/* Track context signals. */
+.creative-studio-surface [data-track="a"],
+.creative-studio-surface .track-a { --local-accent: var(--cs-track-a); }
+.creative-studio-surface [data-track="b"],
+.creative-studio-surface .track-b { --local-accent: var(--cs-track-b); }
+
+/* Better content rhythm without changing the underlying workflows. */
+.creative-studio-surface .cs-content-inner > div,
+.creative-studio-surface .cs-workspace > div {
+  min-width: 0;
+  max-width: 100%;
 }
 
-.creative-studio-surface [style*="color: #d4af37"],
-.creative-studio-surface [style*="color:#d4af37"],
-.creative-studio-surface [style*="color: #d8b449"],
-.creative-studio-surface [style*="color:#d8b449"]{color:var(--cs-accent)!important}
-
-/* Desktop workspace: let the shell breathe. */
-@media(min-width:901px){
-  .creative-studio-surface > *{min-width:0}
-  .creative-studio-surface main,
-  .creative-studio-surface section,
-  .creative-studio-surface article{min-width:0}
+.creative-studio-surface article,
+.creative-studio-surface section {
+  min-width: 0;
 }
 
-/* Phone: Treat Track B as a native mobile workspace, not a shrunk desktop. */
-@media(max-width:900px){
-  html,body,#root{width:100%;min-width:0;overflow-x:hidden}
-  .creative-studio-surface{width:100%;min-width:0;overflow-x:hidden}
+/* Phone: true mobile application rules. */
+@media (max-width: 900px) {
+  html, body, #root { width: 100%; min-width: 0; max-width: 100%; overflow-x: hidden; }
+  .creative-studio-surface { width: 100%; min-width: 0; overflow-x: clip; }
 
-  .creative-studio-surface .cs-sidebar{width:min(88vw,320px)!important;flex-basis:min(88vw,320px)!important}
-  .creative-studio-surface .cs-sidebar.open{box-shadow:30px 0 90px rgba(0,0,0,.55)!important}
-  .creative-studio-surface .cs-main{width:100%;min-width:0;overflow-x:hidden}
-  .creative-studio-surface .cs-content{width:100%!important;max-width:none!important;padding:18px 14px 52px!important}
-  .creative-studio-surface .cs-topbar{height:60px!important;flex-basis:60px!important}
-  .creative-studio-surface .cs-topbar-inner{padding:0 14px!important}
-  .creative-studio-surface .cs-content > *{min-width:0!important;max-width:100%!important}
-
-  /* Neutralise cramped multi-column inline layouts. */
-  .creative-studio-surface [style*="grid-template-columns"]{
-    grid-template-columns:1fr!important;
+  .creative-studio-surface .cs-sidebar {
+    width: min(86vw, 320px) !important;
+    flex-basis: min(86vw, 320px) !important;
   }
+
+  .creative-studio-surface .cs-content {
+    padding: 18px 14px 48px !important;
+  }
+
+  .creative-studio-surface [style*="grid-template-columns"] {
+    grid-template-columns: minmax(0,1fr) !important;
+  }
+
   .creative-studio-surface [style*="display: grid"],
-  .creative-studio-surface [style*="display:grid"]{
-    width:100%!important;
-    min-width:0!important;
-  }
-  .creative-studio-surface [style*="display: flex"],
-  .creative-studio-surface [style*="display:flex"]{
-    min-width:0!important;
-    max-width:100%!important;
+  .creative-studio-surface [style*="display:grid"] {
+    width: 100% !important;
+    min-width: 0 !important;
   }
 
-  /* Prevent long controls and generated media from creating horizontal scroll. */
+  .creative-studio-surface [style*="display: flex"],
+  .creative-studio-surface [style*="display:flex"] {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    flex-wrap: wrap !important;
+    align-items: stretch !important;
+  }
+
+  .creative-studio-surface [style*="display: flex"] > *,
+  .creative-studio-surface [style*="display:flex"] > * {
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
   .creative-studio-surface input,
   .creative-studio-surface select,
   .creative-studio-surface textarea,
-  .creative-studio-surface button{max-width:100%!important}
+  .creative-studio-surface button {
+    max-width: 100% !important;
+    min-height: 44px !important;
+  }
+
   .creative-studio-surface img,
   .creative-studio-surface video,
-  .creative-studio-surface canvas{max-width:100%!important;height:auto}
+  .creative-studio-surface canvas,
+  .creative-studio-surface iframe {
+    max-width: 100% !important;
+  }
 
-  /* Touch-first targets. */
-  .creative-studio-surface button,
-  .creative-studio-surface a[role="button"],
-  .creative-studio-surface select,
-  .creative-studio-surface input{min-height:44px!important}
+  .creative-studio-surface .studio-soft-card {
+    border-radius: 14px !important;
+    box-shadow: none !important;
+  }
 
-  .creative-studio-surface h1{font-size:clamp(30px,8vw,40px)!important}
-  .creative-studio-surface h2{font-size:clamp(24px,6vw,30px)!important}
-  .creative-studio-surface h3{font-size:clamp(20px,5vw,25px)!important}
-
-  .creative-studio-surface .studio-soft-card{border-radius:16px!important;box-shadow:none!important}
-  .creative-studio-surface details{border-radius:14px!important;padding:2px 12px!important}
+  .creative-studio-surface .studio-chip { max-width: 100%; }
+  .creative-studio-surface .studio-kicker { letter-spacing: .09em !important; }
 }
 
-@media(max-width:560px){
-  .creative-studio-surface .cs-content{padding:14px 12px 44px!important}
-  .creative-studio-surface .cs-brand{height:64px!important;flex-basis:64px!important}
-  .creative-studio-surface .cs-nav{padding:12px 9px 18px!important}
-  .creative-studio-surface .cs-group{margin-bottom:16px!important}
-  .creative-studio-surface .cs-nav-item{height:44px!important;border-radius:10px!important}
-  .creative-studio-surface .cs-topbar-inner{gap:8px!important}
-  .creative-studio-surface .cs-mobile-brand{font-size:12px!important}
-  .creative-studio-surface .cs-menu{width:40px!important;height:40px!important}
-  .creative-studio-surface .cs-collapse{width:36px!important;height:36px!important}
+@media (max-width: 600px) {
+  .creative-studio-surface .cs-content { padding: 14px 12px 42px !important; }
+  .creative-studio-surface .cs-topbar { height: 58px !important; flex-basis: 58px !important; }
+  .creative-studio-surface .cs-topbar-inner { padding: 0 12px !important; }
+  .creative-studio-surface .cs-menu { width: 40px !important; height: 40px !important; }
+  .creative-studio-surface .cs-nav-item { height: 44px !important; }
+  .creative-studio-surface h1 { font-size: 30px !important; }
+  .creative-studio-surface h2 { font-size: 24px !important; }
+  .creative-studio-surface h3 { font-size: 20px !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .creative-studio-surface *,
+  .creative-studio-surface *::before,
+  .creative-studio-surface *::after {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+  }
 }
