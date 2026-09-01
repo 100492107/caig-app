@@ -13,10 +13,10 @@ The current Qwen worker is a job-driven local worker invoked with `npm run qwen:
 The production application is organised around these canonical runtime surfaces:
 
 - `/` → `EnterpriseHome.jsx` — top-level Cornerstone AI Enterprise launcher for Track A, Track B and New Life.
-- `/creative` → `CreativeEngineHub.jsx` + `PersistentGenerations.jsx` — canonical Track B production surface.
+- `/creative` → `TrackBApplication.jsx` + `PersistentGenerations.jsx` — canonical Track B application shell and persistent generation library.
 - `/outreach` → `TrackAOutreachWorkspace.jsx` — canonical Track A cash-engine surface.
 - `/territory` → `TrackATerritoryBlock.jsx` — systematic ZIP territory control and unreplied-positive queue.
-- `/main-app` → `MainAppShell.jsx` — retained legacy operational tooling during consolidation.
+- `/main-app` → `MainAppShell.jsx` — retained explicit legacy operational tooling during consolidation.
 - `/ceo` → `CEOHome.jsx` — read-focused CEO control room.
 - `/workbench` → `OperatorWorkbench.jsx` — supporting adaptive operator workbench for revenue, learning and production workflows; it is not the top-level enterprise home.
 
