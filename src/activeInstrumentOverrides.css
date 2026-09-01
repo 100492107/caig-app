@@ -1,0 +1,52 @@
+:root{
+  --cs-active-action:#aaa18d;
+  --cs-active-action-ink:#181714;
+}
+
+/* Active non-legacy operator surfaces: remove the remaining old premium-AI gold treatment. */
+[data-route="/creative"] [style*="#d4af37"],
+[data-route="/creative"] [style*="#D4AF37"],
+[data-route="/creative"] [style*="#d8b449"],
+[data-route="/creative"] [style*="#D8B449"],
+[data-route="/creative"] [style*="#ead072"],
+[data-route="/creative"] [style*="#EAD072"],
+[data-route="/workbench"] [style*="#d4af37"],
+[data-route="/workbench"] [style*="#D4AF37"],
+[data-route="/workbench"] [style*="#d8b449"],
+[data-route="/workbench"] [style*="#D8B449"],
+[data-route="/workbench"] [style*="#ead072"],
+[data-route="/workbench"] [style*="#EAD072"]{
+  color:var(--cs-active-action)!important;
+  border-color:var(--cs-active-action)!important;
+  background-color:transparent!important;
+  background-image:none!important;
+}
+
+[data-route="/creative"] button[style*="#d4af37"],
+[data-route="/creative"] button[style*="#D4AF37"],
+[data-route="/workbench"] button[style*="#d4af37"],
+[data-route="/workbench"] button[style*="#D4AF37"]{
+  color:var(--cs-active-action-ink)!important;
+  background:var(--cs-active-action)!important;
+  border-color:var(--cs-active-action)!important;
+}
+
+[data-route="/creative"] [style*="linear-gradient(90deg,#d4af37"],
+[data-route="/creative"] [style*="linear-gradient(90deg, #d4af37"],
+[data-route="/workbench"] [style*="linear-gradient(90deg,#d4af37"],
+[data-route="/workbench"] [style*="linear-gradient(90deg, #d4af37"]{
+  background:var(--cs-active-action)!important;
+}
+
+/* Keep cards quiet and usable on small screens. */
+[data-route="/creative"] .autopilot-production-surface,
+[data-route="/creative"] .tb-workspace-body{
+  width:100%;
+}
+@media (max-width:700px){
+  [data-route="/creative"] .tb-topbar-inner{gap:8px!important}
+  [data-route="/creative"] .tb-stage-nav{max-width:100%;overflow-x:auto;scrollbar-width:none}
+  [data-route="/creative"] .tb-stage-nav::-webkit-scrollbar{display:none}
+  [data-route="/creative"] .tb-content{padding-bottom:92px!important}
+  [data-route="/creative"] .tb-mobile-stage-controls{position:fixed!important;left:0!important;right:0!important;bottom:env(safe-area-inset-bottom)!important;z-index:50!important}
+}
