@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import "./trackBApplication.css";
-import AutopilotCreativeEngine from "./AutopilotCreativeEngine.jsx";
+import AutopilotStagedBridge from "./AutopilotStagedBridge.jsx";
 import YouTubeGrowthNicheWorkspace from "./YouTubeGrowthNicheWorkspace.jsx";
 import CaptionWriterStaged from "./CaptionWriterStaged.jsx";
 import PersistentGenerations from "./PersistentGenerations.jsx";
@@ -27,7 +27,7 @@ const ITEMS = GROUPS.flatMap((g) => g.items);
 
 function Workspace({ id, stage }) {
   switch (id) {
-    case "autopilot": return <AutopilotCreativeEngine controlledStage={stage} />;
+    case "autopilot": return <AutopilotStagedBridge stage={stage} />;
     case "creators": return <CreatorsStaged stage={stage} />;
     case "shop": return <ShopStaged stage={stage} />;
     case "youtube": return <YouTubeGrowthNicheWorkspace />;
@@ -35,7 +35,7 @@ function Workspace({ id, stage }) {
     case "caption-writer": return <CaptionWriterStaged stage={stage} />;
     case "caption-studio": return <CaptionStudioStaged stage={stage} />;
     case "local-ai": return <LocalAIStaged stage={stage} />;
-    default: return <AutopilotCreativeEngine controlledStage={stage} />;
+    default: return <AutopilotStagedBridge stage={stage} />;
   }
 }
 
@@ -46,12 +46,10 @@ export default function TrackBApplication() {
   const [stage, setStage] = useState(0);
   const current = useMemo(() => ITEMS.find((item) => item.id === view) || ITEMS[0], [view]);
   const stages = current.stages || [];
-
   useEffect(() => { try { sessionStorage.setItem("caig_track_b_view", view); } catch {} setStage(0); setMobileOpen(false); }, [view]);
   useEffect(() => { try { localStorage.setItem("caig_tb_sidebar", collapsed ? "1" : "0"); } catch {} }, [collapsed]);
   useEffect(() => { const onKey = (e) => { if ((e.metaKey || e.ctrlKey) && e.key === "\\") { e.preventDefault(); setCollapsed((v) => !v); } if (e.key === "Escape") setMobileOpen(false); }; window.addEventListener("keydown", onKey); return () => window.removeEventListener("keydown", onKey); }, []);
   const changeStage = (next) => setStage(Math.max(0, Math.min(next, Math.max(0, stages.length - 1))));
-
   return <div className={`tb-app${collapsed ? " is-collapsed" : ""}`}>
     <aside className={`tb-sidebar${mobileOpen ? " is-open" : ""}`}>
       <div className="tb-brand"><a href="/" className="tb-brand-link" aria-label="Back to Cornerstone Enterprise"><span className="tb-mark">C</span><span className="tb-brand-copy"><strong>Creative Station</strong><span>Track B</span></span></a><button className="tb-collapse" type="button" onClick={() => setCollapsed((v) => !v)} aria-label="Toggle navigation">{collapsed ? "›" : "‹"}</button></div>
