@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { supabase } from "./supabase";
+import "./localAIStatus.css";
 
 const STALE_AFTER_MS = 15000;
 
