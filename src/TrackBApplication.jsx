@@ -55,7 +55,12 @@ export default function TrackBApplication() {
 
   return <div className={`tb-app${collapsed ? " is-collapsed" : ""}`}>
     <aside className={`tb-sidebar${mobileOpen ? " is-open" : ""}`}>
-      <div className="tb-brand"><a href="/" className="tb-brand-link" aria-label="Back to Cornerstone Enterprise"><span className="tb-mark">C</span><span className="tb-brand-copy"><strong>Creative Station</strong><span>Track B</span></span></a><button className="tb-collapse" type="button" onClick={() => setCollapsed((v) => !v)} aria-label="Toggle navigation">{collapsed ? "›" : "‹"}</button></div>
+      <div className="tb-brand">
+        <a href="/" className="tb-brand-link" aria-label="Back to Cornerstone Enterprise">
+          <span className="tb-mark">C</span><span className="tb-brand-copy"><strong>Creative Station</strong><span>Track B</span></span>
+        </a>
+        <button className="tb-collapse" type="button" onClick={() => setCollapsed((v) => !v)} aria-label={collapsed ? "Expand navigation" : "Collapse navigation"}>{collapsed ? "›" : "‹"}</button>
+      </div>
       <nav className="tb-nav" aria-label="Track B navigation">{GROUPS.map((group) => <section className="tb-group" key={group.label}><div className="tb-group-label">{group.label}</div>{group.items.map((item) => <button key={item.id} className={`tb-item${view === item.id ? " is-active" : ""}`} type="button" onClick={() => item.special ? document.querySelector('[aria-label="Open saved generations"]')?.click() : setView(item.id)} title={collapsed ? item.label : undefined}><span className="tb-icon">{item.icon}</span><span className="tb-label">{item.label}</span></button>)}</section>)}</nav>
       <div className="tb-sidebar-footer"><LocalAIStatus compact /><a href="/" className="tb-enterprise"><span>←</span><span>Enterprise</span></a></div>
     </aside>
