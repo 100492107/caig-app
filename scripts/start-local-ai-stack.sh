@@ -90,8 +90,9 @@ if [[ -f "$NEW_LIFE_ROOT/.env.new-life-coach" && -f "$NEW_LIFE_ROOT/new-life-coa
   if is_running "new-life-coach-worker.mjs"; then
     echo "[LOCAL AI] New Life coach already running"
   else
-    echo "[LOCAL AI] starting New Life coach"
-    (cd "$NEW_LIFE_ROOT" && set -a && source .env.new-life-coach && set +a && export QWEN_URL="${QWEN_URL:-http://127.0.0.1:8000}" QWEN_MODEL="${QWEN_MODEL:-mlx-community/Qwen3-8B-4bit}" && nohup node new-life-coach-worker.mjs >>"$LOG_DIR/new-life-coach.log" 2>&1 < /dev/null & echo $! >"$STATE_DIR/new-life-coach.pid")
+    echo "[LOCAL AI] starting New Life coach with shared Qwen model"
+    NEW_LIFE_ROOT="$NEW_LIFE_ROOT" nohup bash "$ROOT/scripts/start-new-life-coach-shared.sh" >>"$LOG_DIR/new-life-coach.log" 2>&1 < /dev/null &
+    echo $! >"$STATE_DIR/new-life-coach.pid"
   fi
 else
   echo "[LOCAL AI] New Life coach skipped: set NEW_LIFE_ROOT and create .env.new-life-coach"
