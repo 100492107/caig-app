@@ -1,9 +1,59 @@
-import React from 'react';
+import React from "react";
 
 const destinations = [
-  { title: 'Track A', href: 'https://cornerstonegroupdatabase-bfc2v3f4m-100492107s-projects.vercel.app/', external: true, icon: '↗', accent: '#6f8cff' },
-  { title: 'Track B', href: '/creative', external: false, icon: '✦', accent: '#d4af37' },
-  { title: 'New Life', href: 'https://new-life-game-alpha.vercel.app/start-v2.html', external: true, icon: '◒', accent: '#bb8cff' },
+  { title: "Track A", href: "https://cornerstonegroupdatabase-bfc2v3f4m-100492107s-projects.vercel.app/", icon: "↗", accent: "#6f8cff", external: true },
+  { title: "Track B", href: "/creative", icon: "✦", accent: "#d4af37", external: false },
+  { title: "New Life", href: "https://new-life-game-alpha.vercel.app/start-v2.html", icon: "◒", accent: "#bb8cff", external: true },
 ];
-function Card({ item }) { return <a href={item.href} target={item.external ? '_blank' : undefined} rel={item.external ? 'noreferrer' : undefined} style={{ display:'flex', minHeight:270, padding:28, borderRadius:28, color:'#f4f5f7', textDecoration:'none', background:'linear-gradient(145deg,rgba(255,255,255,.055),rgba(255,255,255,.018))', border:'1px solid rgba(255,255,255,.08)', boxShadow:'0 20px 60px rgba(0,0,0,.22)', position:'relative', overflow:'hidden', transition:'transform .18s ease,border-color .18s ease,box-shadow .18s ease' }} onMouseEnter={e=>{e.currentTarget.style.transform='translateY(-5px)';e.currentTarget.style.borderColor=item.accent+'66';e.currentTarget.style.boxShadow='0 28px 80px rgba(0,0,0,.32)'}} onMouseLeave={e=>{e.currentTarget.style.transform='translateY(0)';e.currentTarget.style.borderColor='rgba(255,255,255,.08)';e.currentTarget.style.boxShadow='0 20px 60px rgba(0,0,0,.22)'}}><div style={{position:'absolute',right:'-12%',bottom:'-42%',width:260,height:260,borderRadius:'50%',background:item.accent,opacity:.10,filter:'blur(20px)'}}/><div style={{display:'flex',flexDirection:'column',width:'100%',justifyContent:'space-between',position:'relative',zIndex:1}}><div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}><div style={{width:54,height:54,borderRadius:17,display:'grid',placeItems:'center',background:item.accent+'18',border:'1px solid '+item.accent+'44',color:item.accent,fontSize:24,fontWeight:900}}>{item.icon}</div><div style={{width:34,height:34,borderRadius:12,display:'grid',placeItems:'center',background:'rgba(255,255,255,.04)',color:'#7d8695',fontSize:16}}>{item.external?'↗':'→'}</div></div><div><h2 style={{margin:0,fontSize:34,letterSpacing:'-.045em',fontWeight:850}}>{item.title}</h2><div style={{marginTop:14,fontSize:12,color:'#6f7888'}}>{item.external?'Open':'Enter'}</div></div></div></a> }
-export default function EnterpriseHome(){return <div style={{minHeight:'100vh',background:'#07090d',color:'#f4f5f7',padding:'56px 34px 72px'}}><div style={{maxWidth:1280,margin:'0 auto'}}><header style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:56}}><div style={{display:'flex',alignItems:'center',gap:14}}><div style={{width:44,height:44,borderRadius:14,display:'grid',placeItems:'center',background:'linear-gradient(135deg,#e8c45b,#a97c25)',color:'#161109',fontSize:20,fontWeight:950}}>C</div><div style={{fontSize:18,fontWeight:850,letterSpacing:'-.025em'}}>Cornerstone AI Enterprise</div></div><div style={{width:8,height:8,borderRadius:50,background:'#72cda7',boxShadow:'0 0 18px rgba(114,205,167,.5)'}}/></header><main><h1 style={{margin:'0 0 34px',fontSize:'clamp(42px,6vw,72px)',lineHeight:.95,letterSpacing:'-.06em',fontWeight:850,maxWidth:760}}>Cornerstone AI Enterprise</h1><div style={{display:'grid',gridTemplateColumns:'repeat(3,minmax(0,1fr))',gap:18}}>{destinations.map(item=><Card key={item.title} item={item}/>)}</div></main></div></div>}
+
+function Card({ item }) {
+  return (
+    <a
+      href={item.href}
+      target={item.external ? "_blank" : undefined}
+      rel={item.external ? "noreferrer" : undefined}
+      className="enterprise-card"
+      style={{ "--accent": item.accent }}
+    >
+      <span className="enterprise-glow" />
+      <span className="enterprise-icon">{item.icon}</span>
+      <span className="enterprise-arrow">{item.external ? "↗" : "→"}</span>
+      <span className="enterprise-card-title">{item.title}</span>
+    </a>
+  );
+}
+
+export default function EnterpriseHome() {
+  return (
+    <div className="enterprise-shell">
+      <style>{`
+        .enterprise-shell{min-height:100vh;background:#07090d;color:#f5f6f8;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",Inter,system-ui,sans-serif;padding:clamp(28px,6vw,76px) clamp(20px,5vw,64px)}
+        .enterprise-wrap{max-width:1240px;margin:0 auto}
+        .enterprise-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:clamp(54px,10vw,110px)}
+        .enterprise-brand{display:flex;align-items:center;gap:13px}
+        .enterprise-mark{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;background:linear-gradient(135deg,#e8c762,#9f7628);color:#151109;font-weight:950;font-size:20px;box-shadow:0 8px 28px rgba(212,175,55,.13)}
+        .enterprise-name{font-size:18px;font-weight:850;letter-spacing:-.025em}
+        .enterprise-status{width:7px;height:7px;border-radius:50%;background:#6fcaa5;box-shadow:0 0 18px rgba(111,202,165,.55)}
+        .enterprise-title{margin:0 0 38px;font-size:clamp(42px,7vw,82px);line-height:.94;letter-spacing:-.065em;font-weight:860;max-width:820px}
+        .enterprise-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+        .enterprise-card{position:relative;min-height:300px;padding:26px;border-radius:28px;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;color:#f5f6f8;text-decoration:none;background:linear-gradient(145deg,rgba(255,255,255,.055),rgba(255,255,255,.018));border:1px solid rgba(255,255,255,.08);box-shadow:0 24px 70px rgba(0,0,0,.22);transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease}
+        .enterprise-card:hover{transform:translateY(-5px);border-color:color-mix(in srgb,var(--accent) 45%,white 5%);box-shadow:0 30px 90px rgba(0,0,0,.32)}
+        .enterprise-glow{position:absolute;right:-18%;bottom:-38%;width:280px;height:280px;border-radius:50%;background:var(--accent);opacity:.10;filter:blur(22px);pointer-events:none}
+        .enterprise-icon{position:relative;width:54px;height:54px;border-radius:17px;display:grid;place-items:center;background:color-mix(in srgb,var(--accent) 10%,transparent);border:1px solid color-mix(in srgb,var(--accent) 28%,transparent);color:var(--accent);font-size:24px;font-weight:900}
+        .enterprise-arrow{position:absolute;right:25px;top:25px;width:36px;height:36px;border-radius:12px;display:grid;place-items:center;background:rgba(255,255,255,.045);color:#7f8897;font-size:16px}
+        .enterprise-card-title{position:relative;font-size:35px;letter-spacing:-.045em;font-weight:850}
+        @media(max-width:850px){.enterprise-grid{grid-template-columns:1fr}.enterprise-card{min-height:220px}.enterprise-header{margin-bottom:58px}.enterprise-title{font-size:clamp(40px,12vw,66px);margin-bottom:28px}}
+      `}</style>
+      <div className="enterprise-wrap">
+        <header className="enterprise-header">
+          <div className="enterprise-brand"><span className="enterprise-mark">C</span><span className="enterprise-name">Cornerstone AI Enterprise</span></div>
+          <span className="enterprise-status" aria-label="Online" />
+        </header>
+        <main>
+          <h1 className="enterprise-title">Cornerstone AI Enterprise</h1>
+          <div className="enterprise-grid">{destinations.map((item) => <Card key={item.title} item={item} />)}</div>
+        </main>
+      </div>
+    </div>
+  );
+}
