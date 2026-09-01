@@ -10,14 +10,15 @@ The current Qwen worker is a job-driven local worker invoked with `npm run qwen:
 
 ## Canonical application architecture
 
-The production application is organised around four canonical runtime surfaces:
+The production application is organised around these canonical runtime surfaces:
 
-- `/` → `OperatorWorkbench.jsx` — adaptive operator home with Revenue Block / Production Sprint modes.
+- `/` → `EnterpriseHome.jsx` — top-level Cornerstone AI Enterprise launcher for Track A, Track B and New Life.
 - `/creative` → `CreativeEngineHub.jsx` + `PersistentGenerations.jsx` — canonical Track B production surface.
 - `/outreach` → `TrackAOutreachWorkspace.jsx` — canonical Track A cash-engine surface.
 - `/territory` → `TrackATerritoryBlock.jsx` — systematic ZIP territory control and unreplied-positive queue.
 - `/main-app` → `MainAppShell.jsx` — retained legacy operational tooling during consolidation.
 - `/ceo` → `CEOHome.jsx` — read-focused CEO control room.
+- `/workbench` → `OperatorWorkbench.jsx` — supporting adaptive operator workbench for revenue, learning and production workflows; it is not the top-level enterprise home.
 
 Shared production data follows:
 
