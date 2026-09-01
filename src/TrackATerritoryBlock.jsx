@@ -45,6 +45,8 @@ export default function TrackATerritoryBlock() {
 
   const warm = useMemo(() => deriveWarm(events), [events]);
   const active = useMemo(() => territories.filter((x) => x.status === 'active'), [territories]);
+  const exhausted = useMemo(() => territories.filter((x) => x.status === 'exhausted'), [territories]);
+  const nextWarm = warm[0] || null;
 
   async function addTerritory() {
     if (!form.zip_code.trim()) return setMessage('ZIP code is required.');
@@ -59,31 +61,55 @@ export default function TrackATerritoryBlock() {
     if (error) setMessage(error.message); else await load();
   }
 
-  return <div style={{ minHeight: '100vh', background: '#07090d', color: '#eef1f6', padding: '30px 24px 80px', fontFamily: 'Inter,system-ui,sans-serif' }}>
-    <div style={{ maxWidth: 1350, margin: '0 auto' }}>
-      <div style={{ color: '#d4af37', fontSize: 10, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>Track A · Territory Control</div>
-      <h1 style={{ margin: '8px 0 6px', fontSize: 40, letterSpacing: '-.05em' }}>Work the territory. Work the warm lead.</h1>
-      <p style={{ margin: 0, color: '#8791a1', maxWidth: 850, lineHeight: 1.6 }}>Keep one active ZIP focus, exhaust it systematically, and surface positive dealers until each one moves to a sample or diagnostic call.</p>
+  function dealerLink(row) {
+    return `/outreach?dealer=${encodeURIComponent(JSON.stringify({ id: row?.dealer_id || '', name: row?.dealer_name || '', zip_code: row?.zip_code || '' }))}`;
+  }
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginTop: 18 }}>
-        <div style={card}><div style={{ color: '#7f8999', fontSize: 9, textTransform: 'uppercase' }}>Active ZIPs</div><div style={{ fontSize: 30, fontWeight: 950, marginTop: 6 }}>{active.length}</div></div>
-        <div style={card}><div style={{ color: '#7f8999', fontSize: 9, textTransform: 'uppercase' }}>Unreplied positives</div><div style={{ fontSize: 30, fontWeight: 950, marginTop: 6 }}>{warm.length}</div></div>
-        <div style={card}><div style={{ color: '#7f8999', fontSize: 9, textTransform: 'uppercase' }}>Territories exhausted</div><div style={{ fontSize: 30, fontWeight: 950, marginTop: 6 }}>{territories.filter((x) => x.status === 'exhausted').length}</div></div>
+  return <div style={{ minHeight: '100vh', background: '#07090d', color: '#eef1f6', padding: '30px 24px 80px', fontFamily: 'Inter,system-ui,sans-serif' }}>
+    <div style={{ maxWidth: 1450, margin: '0 auto' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 20, flexWrap: 'wrap' }}>
+        <div>
+          <div style={{ color: '#d4af37', fontSize: 10, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 900 }}>Track A · Territory Control</div>
+          <h1 style={{ margin: '8px 0 6px', fontSize: 40, letterSpacing: '-.05em' }}>Work the territory. Work the warm lead.</h1>
+          <p style={{ margin: 0, color: '#8791a1', maxWidth: 860, lineHeight: 1.6 }}>Keep one active ZIP focus, exhaust it systematically, and move positive dealers to a sample or diagnostic call.</p>
+        </div>
+        {nextWarm && <a href={dealerLink(nextWarm)} style={{ ...primary, textDecoration: 'none', padding: '12px 16px', display: 'inline-flex', alignItems: 'center', gap: 8 }}>Next warm lead <span>→</span></a>}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginTop: 16 }}>
+      {nextWarm && <section style={{ ...card, marginTop: 18, background: 'linear-gradient(135deg,#12100a,#0d1219)', borderColor: 'rgba(212,175,55,.28)' }}>
+        <div style={{ color: '#d4af37', fontSize: 9, textTransform: 'uppercase', letterSpacing: '.14em', fontWeight: 900 }}>Next action</div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, flexWrap: 'wrap', marginTop: 7 }}>
+          <div><div style={{ fontWeight: 950, fontSize: 20 }}>{nextWarm.dealer_name}</div><div style={{ color: '#8993a3', fontSize: 11, marginTop: 3 }}>{nextWarm.zip_code || 'ZIP not recorded'} · positive reply · no sample/diagnostic/pilot yet</div></div>
+          <a href={dealerLink(nextWarm)} style={{ ...primary, textDecoration: 'none' }}>Open dealer workflow →</a>
+        </div>
+      </section>}
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,minmax(0,1fr))', gap: 10, marginTop: 18 }}>
+        <div style={card}><div style={{ color: '#7f8999', fontSize: 9, textTransform: 'uppercase' }}>Active ZIPs</div><div style={{ fontSize: 30, fontWeight: 950, marginTop: 6 }}>{active.length}</div></div>
+        <div style={card}><div style={{ color: '#7f8999', fontSize: 9, textTransform: 'uppercase' }}>Unreplied positives</div><div style={{ fontSize: 30, fontWeight: 950, marginTop: 6 }}>{warm.length}</div></div>
+        <div style={card}><div style={{ color: '#7f8999', fontSize: 9, textTransform: 'uppercase' }}>Territories exhausted</div><div style={{ fontSize: 30, fontWeight: 950, marginTop: 6 }}>{exhausted.length}</div></div>
+        <div style={card}><div style={{ color: '#7f8999', fontSize: 9, textTransform: 'uppercase' }}>Dealers in focus</div><div style={{ fontSize: 30, fontWeight: 950, marginTop: 6 }}>{territories.reduce((sum, row) => sum + Number(row.discovered_dealers || row.target_dealers || 0), 0)}</div></div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1.15fr .85fr', gap: 16, marginTop: 16 }}>
         <section style={card}>
           <div style={{ color: '#d4af37', fontSize: 9, textTransform: 'uppercase', letterSpacing: '.12em', fontWeight: 900 }}>ZIP control</div>
           <h2 style={{ margin: '7px 0 4px', fontSize: 23 }}>Current territories</h2>
           <div style={{ display: 'grid', gap: 9, marginTop: 12 }}>
             {territories.map((row) => {
-              const coverage = Math.max(Number(row.discovered_dealers || 0), 0);
+              const discovered = Math.max(Number(row.discovered_dealers || 0), 0);
               const contacted = Math.max(Number(row.contacted_dealers || 0), 0);
-              const pct = coverage ? Math.min(100, Math.round((contacted / coverage) * 100)) : 0;
-              return <div key={row.id} style={{ padding: 12, borderRadius: 12, border: '1px solid #252e3a', background: '#0b0f15' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10 }}><div><div style={{ fontWeight: 900 }}>{row.zip_code}{row.territory_name ? ` · ${row.territory_name}` : ''}</div><div style={{ color: '#6f7889', fontSize: 10, marginTop: 3 }}>{row.status} · {contacted}/{coverage || Number(row.target_dealers || 0) || 0} contacted</div></div><div style={{ color: '#d4af37', fontWeight: 900 }}>{pct}%</div></div>
-                <div style={{ height: 6, marginTop: 9, background: '#1b2230', borderRadius: 99, overflow: 'hidden' }}><div style={{ width: `${pct}%`, height: '100%', background: '#d4af37' }} /></div>
-                <div style={{ display: 'flex', gap: 7, marginTop: 9 }}>{row.status === 'active' ? <><button style={button} onClick={() => setStatus(row.id, 'paused')}>Pause</button><button style={primary} onClick={() => setStatus(row.id, 'exhausted')}>Mark exhausted</button></> : row.status === 'paused' ? <button style={button} onClick={() => setStatus(row.id, 'active')}>Reactivate</button> : <button style={button} onClick={() => setStatus(row.id, 'active')}>Reopen</button>}</div>
+              const target = Math.max(Number(row.target_dealers || 0), discovered);
+              const base = Math.max(discovered || target, 1);
+              const pct = Math.min(100, Math.round((contacted / base) * 100));
+              const remaining = Math.max(target - contacted, 0);
+              return <div key={row.id} style={{ padding: 14, borderRadius: 14, border: '1px solid #252e3a', background: '#0b0f15' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start' }}>
+                  <div><div style={{ fontWeight: 900 }}>{row.zip_code}{row.territory_name ? ` · ${row.territory_name}` : ''}</div><div style={{ color: '#6f7889', fontSize: 10, marginTop: 3 }}>{row.status} · {contacted}/{target} contacted · {discovered || '—'} discovered</div></div>
+                  <div style={{ textAlign: 'right' }}><div style={{ color: '#d4af37', fontWeight: 950, fontSize: 18 }}>{pct}%</div><div style={{ color: '#667083', fontSize: 9 }}>{remaining} remaining</div></div>
+                </div>
+                <div style={{ height: 7, marginTop: 11, background: '#1b2230', borderRadius: 99, overflow: 'hidden' }}><div style={{ width: `${pct}%`, height: '100%', background: 'linear-gradient(90deg,#d4af37,#74d3b0)' }} /></div>
+                <div style={{ display: 'flex', gap: 7, marginTop: 10 }}>{row.status === 'active' ? <><button style={button} onClick={() => setStatus(row.id, 'paused')}>Pause</button><button style={primary} onClick={() => setStatus(row.id, 'exhausted')}>Mark exhausted</button></> : row.status === 'paused' ? <button style={button} onClick={() => setStatus(row.id, 'active')}>Reactivate</button> : <button style={button} onClick={() => setStatus(row.id, 'active')}>Reopen</button>}</div>
               </div>;
             })}
             {!territories.length && <div style={{ color: '#667083', padding: 14, border: '1px dashed #2a3340', borderRadius: 12 }}>No ZIP territories yet.</div>}
@@ -98,9 +124,11 @@ export default function TrackATerritoryBlock() {
         <section style={card}>
           <div style={{ color: '#d4af37', fontSize: 9, textTransform: 'uppercase', letterSpacing: '.12em', fontWeight: 900 }}>Warm queue</div>
           <h2 style={{ margin: '7px 0 4px', fontSize: 23 }}>Positive dealers that have not moved</h2>
-          <p style={{ color: '#7f8999', fontSize: 11, lineHeight: 1.5 }}>These have a positive event recorded but no sample, diagnostic, pilot or recurring event yet.</p>
+          <p style={{ color: '#7f8999', fontSize: 11, lineHeight: 1.5 }}>Positive event recorded, but no sample, diagnostic, pilot or recurring event yet.</p>
           <div style={{ display: 'grid', gap: 9, marginTop: 12 }}>
-            {warm.map((row) => <div key={row.dealer_id || row.dealer_name} style={{ padding: 12, borderRadius: 12, border: '1px solid #252e3a', background: '#0b0f15' }}><div style={{ display: 'flex', justifyContent: 'space-between', gap: 10 }}><div><div style={{ fontWeight: 900 }}>{row.dealer_name}</div><div style={{ color: '#6f7889', fontSize: 10, marginTop: 3 }}>{row.zip_code || 'ZIP not recorded'} · positive</div></div><a href={`/outreach?dealer=${encodeURIComponent(JSON.stringify({ id: row.dealer_id || '', name: row.dealer_name || '' }))}`} style={{ ...button, textDecoration: 'none' }}>Work lead →</a></div></div>)}
+            {warm.map((row, index) => <div key={row.dealer_id || row.dealer_name} style={{ padding: 12, borderRadius: 12, border: index === 0 ? '1px solid rgba(212,175,55,.32)' : '1px solid #252e3a', background: index === 0 ? '#111009' : '#0b0f15' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center' }}><div><div style={{ fontWeight: 900 }}>{row.dealer_name}</div><div style={{ color: '#6f7889', fontSize: 10, marginTop: 3 }}>{row.zip_code || 'ZIP not recorded'} · positive{index === 0 ? ' · next' : ''}</div></div><a href={dealerLink(row)} style={{ ...button, textDecoration: 'none' }}>{index === 0 ? 'Open →' : 'Work lead →'}</a></div>
+            </div>)}
             {!warm.length && <div style={{ color: '#667083', padding: 14, border: '1px dashed #2a3340', borderRadius: 12 }}>No unreplied positives right now.</div>}
           </div>
         </section>
