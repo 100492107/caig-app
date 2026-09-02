@@ -1,0 +1,35 @@
+/* Cornerstone UX baseline: calm, tactile, keyboard-first and touch-safe. */
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;scroll-behavior:smooth}
+body{overscroll-behavior-x:none;-webkit-tap-highlight-color:transparent}
+button,a,input,select,textarea{font:inherit}
+button,a{touch-action:manipulation}
+button{user-select:none}
+:focus{outline:none}
+:focus-visible{outline:2px solid color-mix(in srgb,var(--accent,#c4b49a) 76%,white 24%);outline-offset:3px}
+::selection{background:rgba(196,180,154,.20);color:var(--text-h,#f7f6f1)}
+
+/* Make controls feel consistent without flattening each product's visual language. */
+button:not(:disabled),a{cursor:pointer}
+button{transition:background-color .16s ease,border-color .16s ease,color .16s ease,transform .16s ease,opacity .16s ease,box-shadow .16s ease}
+button:not(:disabled):active{transform:translateY(1px)}
+button:disabled{cursor:default}
+
+input,select,textarea{color-scheme:dark}
+input::placeholder,textarea::placeholder{color:color-mix(in srgb,currentColor 42%,transparent)}
+
+/* Prevent accidental horizontal page drift while retaining intentional inner scrollers. */
+img,video,canvas{display:block;max-width:100%}
+
+/* Track B mobile navigation should never inherit desktop-collapse state. */
+@media(max-width:900px){
+  .tb-app.is-collapsed .tb-sidebar{width:min(86vw,320px);transform:translateX(-102%)}
+  .tb-app.is-collapsed .tb-sidebar.is-open{transform:translateX(0)!important}
+  .tb-mobile-menu{flex:0 0 40px}
+  .tb-stage-nav{scroll-snap-type:x proximity}
+  .tb-stage-nav button{scroll-snap-align:start;min-width:max-content}
+}
+
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{scroll-behavior:auto!important;transition-duration:.001ms!important;animation-duration:.001ms!important;animation-iteration-count:1!important}
+}
