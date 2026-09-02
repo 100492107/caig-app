@@ -1,4 +1,4 @@
-/* Track B navigation: the collapse control must remain visible after the rail collapses. */
+/* Track B navigation: the desktop rail stays present after collapse. */
 .tb-sidebar{overflow:visible}
 .tb-brand{position:relative;overflow:visible}
 .tb-collapse{position:relative;z-index:5}
@@ -6,8 +6,10 @@
 .tb-app.is-collapsed .tb-brand{position:relative;justify-content:center;padding:12px;overflow:visible}
 .tb-app.is-collapsed .tb-brand-link{justify-content:center;min-width:0}
 .tb-app.is-collapsed .tb-brand-copy{display:none!important}
-.tb-app.is-collapsed .tb-collapse{display:grid!important;place-items:center;position:absolute;right:4px;top:21px;margin:0;width:24px;height:24px;border-radius:8px;background:var(--tb-sidebar);border:1px solid var(--tb-line);box-shadow:0 4px 12px rgba(0,0,0,.25);color:var(--tb-text);z-index:10;padding:0;line-height:1;}
+.tb-app.is-collapsed .tb-collapse{display:grid!important;place-items:center;position:absolute;right:4px;top:21px;margin:0;width:24px;height:24px;border-radius:8px;background:var(--tb-sidebar);border:1px solid var(--tb-line);box-shadow:0 4px 12px rgba(0,0,0,.25);color:var(--tb-text);z-index:10;padding:0;line-height:1}
 @media(max-width:900px){
-  .tb-app.is-collapsed .tb-sidebar{transform:translateX(-102%)}
+  /* Collapse is a desktop preference; the mobile drawer is controlled only by is-open. */
+  .tb-app.is-collapsed .tb-sidebar{width:min(86vw,320px);transform:translateX(-102%)}
+  .tb-app.is-collapsed .tb-sidebar.is-open{transform:translateX(0)!important}
   .tb-app.is-collapsed .tb-collapse{display:none!important}
 }
