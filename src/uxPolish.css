@@ -8,26 +8,32 @@ button{user-select:none}
 :focus{outline:none}
 :focus-visible{outline:2px solid color-mix(in srgb,var(--accent,#c4b49a) 76%,white 24%);outline-offset:3px}
 ::selection{background:rgba(196,180,154,.20);color:var(--text-h,#f7f6f1)}
-
-/* Make controls feel consistent without flattening each product's visual language. */
 button:not(:disabled),a{cursor:pointer}
 button{transition:background-color .16s ease,border-color .16s ease,color .16s ease,transform .16s ease,opacity .16s ease,box-shadow .16s ease}
 button:not(:disabled):active{transform:translateY(1px)}
 button:disabled{cursor:default}
-
 input,select,textarea{color-scheme:dark}
 input::placeholder,textarea::placeholder{color:color-mix(in srgb,currentColor 42%,transparent)}
-
-/* Prevent accidental horizontal page drift while retaining intentional inner scrollers. */
 img,video,canvas{display:block;max-width:100%}
 
-/* Track B mobile navigation should never inherit desktop-collapse state. */
+/* Enterprise: keep primary destinations visible where users expect navigation — the header. */
+.enterprise-primary-nav{scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.enterprise-primary-nav::-webkit-scrollbar{display:none}
+.enterprise-nav-link{white-space:nowrap}
+.enterprise-nav-link:active{transform:translateY(1px)}
+
+/* Track B: mobile is a drawer, not a hidden desktop sidebar. */
+.tb-mobile-backdrop{display:none}
+.tb-mobile-close{display:none}
 @media(max-width:900px){
   .tb-app.is-collapsed .tb-sidebar{width:min(86vw,320px);transform:translateX(-102%)}
   .tb-app.is-collapsed .tb-sidebar.is-open{transform:translateX(0)!important}
   .tb-mobile-menu{flex:0 0 40px}
   .tb-stage-nav{scroll-snap-type:x proximity}
   .tb-stage-nav button{scroll-snap-align:start;min-width:max-content}
+  .tb-mobile-backdrop{display:block;position:fixed;inset:0;z-index:90;border:0;padding:0;background:rgba(0,0,0,.52);backdrop-filter:blur(2px)}
+  .tb-mobile-close{display:grid;place-items:center;width:40px;height:40px;margin-left:auto;border:1px solid var(--tb-line);border-radius:10px;background:#11151a;color:#eceae4;font-size:22px;line-height:1;cursor:pointer}
+  .tb-sidebar .tb-collapse{display:none}
 }
 
 @media(prefers-reduced-motion:reduce){
