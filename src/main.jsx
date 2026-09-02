@@ -7,7 +7,7 @@ import './activeInstrumentOverrides.css'
 import './trackBNavigationFix.css'
 import './uxPolish.css'
 import './enterpriseInteractionFix.css'
-import EnterpriseHome from './EnterpriseHome.jsx'
+import EnterpriseCommandHome from './EnterpriseCommandHome.jsx'
 import CEOHome from './CEOHome.jsx'
 import AuthGate from './AuthGate.jsx'
 import MainAppShell from './MainAppShell.jsx'
@@ -18,9 +18,8 @@ import OperatorWorkbench from './OperatorWorkbench.jsx'
 import TrackATerritoryBlock from './TrackATerritoryBlock.jsx'
 
 const path = window.location.pathname.replace(/\/+$/, '') || '/'
-const hour = new Date().getHours()
 
-document.documentElement.dataset.route = path
+ document.documentElement.dataset.route = path
 document.body.dataset.route = path
 
 const component = path === '/creative'
@@ -35,7 +34,7 @@ const component = path === '/creative'
           ? <TrackATerritoryBlock />
           : path === '/ceo'
             ? <CEOHome />
-            : <EnterpriseHome defaultMode={hour >= 8 && hour < 13 ? 'revenue' : hour >= 13 && hour < 19 ? 'production' : 'revenue'} />
+            : <EnterpriseCommandHome />
 
 createRoot(document.getElementById('root')).render(
   <StrictMode><AuthGate>{component}</AuthGate></StrictMode>,
