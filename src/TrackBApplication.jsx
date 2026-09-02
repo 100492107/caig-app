@@ -61,6 +61,7 @@ export default function TrackBApplication() {
   const changeStage = (next) => setStage(Math.max(0, Math.min(next, Math.max(0, stages.length - 1))));
 
   return <div className={`tb-app${collapsed ? " is-collapsed" : ""}`}>
+    <style>{`.creative-studio-surface > button[aria-label="Open saved generations"]{display:none!important}`}</style>
     {mobileOpen && <button className="tb-mobile-backdrop" type="button" aria-label="Close navigation" onClick={() => setMobileOpen(false)} />}
     <aside className={`tb-sidebar${mobileOpen ? " is-open" : ""}`}>
       <div className="tb-brand">
