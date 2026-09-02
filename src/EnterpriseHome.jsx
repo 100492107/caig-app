@@ -1,0 +1,32 @@
+import React, { useMemo } from "react";
+import OperatorCommandStrip from "./OperatorCommandStrip.jsx";
+
+const destinations = [
+  { title: "Track A", meta: "Revenue", href: "https://cornerstonegroupdatabase-bfc2v3f4m-100492107s-projects.vercel.app/", icon: "↗", accent: "var(--track-a)", external: true },
+  { title: "Track B", meta: "Creative Station", href: "/creative", icon: "✦", accent: "var(--track-b)", external: false },
+  { title: "New Life", meta: "Game", href: "https://new-life-game-alpha.vercel.app/start-v2.html", icon: "◒", accent: "#9b8bb8", external: true },
+];
+
+function Card({ item, index }) {
+  return <a href={item.href} target={item.external ? "_blank" : undefined} rel={item.external ? "noreferrer" : undefined} className="enterprise-card" style={{ "--accent": item.accent }}>
+    <span className="enterprise-card-top"><span className="enterprise-card-index">0{index + 1}</span><span className="enterprise-card-arrow">{item.external ? "↗" : "→"}</span></span>
+    <span className="enterprise-card-middle"><span className="enterprise-icon-wrap"><span className="enterprise-icon">{item.icon}</span></span></span>
+    <span className="enterprise-card-bottom"><span><span className="enterprise-card-meta">{item.meta}</span><span className="enterprise-card-title">{item.title}</span></span><span className="enterprise-card-open">Open <span aria-hidden="true">{item.external ? "↗" : "→"}</span></span></span>
+  </a>;
+}
+
+export default function EnterpriseHome() {
+  const hour = useMemo(() => new Date().getHours(), []);
+  const doctrine = hour >= 8 && hour < 13 ? "Clear the cash queue" : hour < 19 ? "Ship one package" : "Log what moved pipeline today";
+  return <div className="enterprise-shell">
+    <style>{`
+      .enterprise-shell{min-height:100svh;width:100%;background:var(--bg);color:var(--text);font-family:var(--sans);padding:24px clamp(18px,3.8vw,64px) 46px;box-sizing:border-box}.enterprise-wrap{width:100%;max-width:1540px;min-height:calc(100svh - 70px);margin:0 auto;display:flex;flex-direction:column}.enterprise-header{display:flex;align-items:center;justify-content:space-between;min-height:52px}.enterprise-brand{display:flex;align-items:center;gap:14px}.enterprise-mark{width:46px;height:46px;border-radius:13px;display:grid;place-items:center;background:#d9d6ca;color:#111315;font-weight:900;font-size:21px}.enterprise-name{font-size:18px;font-weight:720;letter-spacing:-.025em;color:#ecece8}.enterprise-status{width:7px;height:7px;border-radius:50%;background:var(--success);box-shadow:0 0 16px rgba(111,155,122,.5)}.enterprise-main{display:flex;flex-direction:column;flex:1;padding-top:24px}.enterprise-hero{display:flex;align-items:flex-end;justify-content:space-between;gap:30px;margin:18px 0 20px}.enterprise-kicker{margin-bottom:10px;color:var(--text-subtle);font-size:9px;letter-spacing:.24em;text-transform:uppercase;font-weight:700}.enterprise-title{margin:0;font-size:clamp(44px,5vw,78px);line-height:.94;letter-spacing:-.07em;font-weight:820}.enterprise-doctrine{font-size:12px;color:var(--text-muted);font-weight:700;letter-spacing:.03em;white-space:nowrap;padding-bottom:6px}.enterprise-grid{width:100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.enterprise-card{position:relative;min-height:225px;padding:20px;border-radius:20px;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;color:var(--text);text-decoration:none;background:var(--surface);border:1px solid var(--border);box-shadow:var(--shadow);transition:transform .2s ease,border-color .2s ease,background .2s ease}.enterprise-card:hover{transform:translateY(-3px);background:var(--surface-2);border-color:rgba(255,255,255,.12)}.enterprise-card:focus-visible{outline:2px solid color-mix(in srgb,var(--accent) 72%,white 28%);outline-offset:4px}.enterprise-card:before{content:"";position:absolute;inset:auto -8% -45% auto;width:250px;height:250px;border-radius:50%;background:var(--accent);opacity:.045;filter:blur(24px);pointer-events:none}.enterprise-card-top,.enterprise-card-bottom{position:relative;display:flex;align-items:flex-start;justify-content:space-between;gap:18px}.enterprise-card-index{color:var(--text-subtle);font-size:9px;font-weight:700;letter-spacing:.18em}.enterprise-card-arrow{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:rgba(255,255,255,.03);border:1px solid var(--border);color:#8b929c;font-size:14px}.enterprise-card-middle{position:relative;display:flex;justify-content:flex-start;align-items:center;flex:1}.enterprise-icon-wrap{width:62px;height:62px;border-radius:18px;display:grid;place-items:center;border:1px solid color-mix(in srgb,var(--accent) 26%,var(--border));background:color-mix(in srgb,var(--accent) 5%,var(--surface))}.enterprise-icon{color:var(--accent);font-size:26px;font-weight:850;line-height:1}.enterprise-card-meta{display:block;margin-bottom:5px;color:var(--text-subtle);font-size:9px;font-weight:750;letter-spacing:.14em;text-transform:uppercase}.enterprise-card-title{display:block;font-size:30px;letter-spacing:-.05em;font-weight:820}.enterprise-card-open{padding-top:17px;color:var(--text-muted);font-size:10px;font-weight:700;white-space:nowrap}.enterprise-card-open span{padding-left:5px;font-size:13px}
+      @media(max-width:900px){.enterprise-shell{padding:16px 14px 28px}.enterprise-name{font-size:16px}.enterprise-hero{align-items:flex-start;flex-direction:column;gap:8px}.enterprise-doctrine{white-space:normal}.enterprise-main{padding-top:12px}.enterprise-title{font-size:clamp(42px,12vw,66px)}.enterprise-grid{grid-template-columns:1fr}.enterprise-card{min-height:175px}}
+    `}</style>
+    <div className="enterprise-wrap">
+      <header className="enterprise-header"><div className="enterprise-brand"><span className="enterprise-mark">C</span><span className="enterprise-name">Cornerstone AI Enterprise</span></div><span className="enterprise-status" aria-label="Online" /></header>
+      <OperatorCommandStrip />
+      <main className="enterprise-main"><section className="enterprise-hero"><div><div className="enterprise-kicker">Operator view</div><h1 className="enterprise-title">{doctrine}</h1></div><div className="enterprise-doctrine">Cash first. Evidence always.</div></section><div className="enterprise-grid">{destinations.map((item,index)=><Card key={item.title} item={item} index={index}/>)}</div></main>
+    </div>
+  </div>;
+}
