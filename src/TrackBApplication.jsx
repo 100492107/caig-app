@@ -1,22 +1,18 @@
 import React, { useEffect, useMemo, useState } from "react";
 import "./trackBApplication.css";
-import AutopilotStagedBridge from "./AutopilotStagedBridge.jsx";
-import YouTubeGrowthNicheWorkspace from "./YouTubeGrowthNicheWorkspace.jsx";
+import ContentEngineWorkspace from "./ContentEngineWorkspace.jsx";
 import CaptionWriterStaged from "./CaptionWriterStaged.jsx";
 import PersistentGenerations from "./PersistentGenerations.jsx";
-import ClientDeliveryStaged from "./ClientDeliveryStaged.jsx";
 import { CreatorsStaged, ShopStaged, MediaStaged, CaptionStudioStaged, LocalAIStaged } from "./TrackBStagedSurfaces.jsx";
 import LocalAIStatus from "./LocalAIStatus.jsx";
 
 const GROUPS = [
-  { label: "Create", items: [
-    { id: "autopilot", label: "Autopilot", icon: "✦", stages: ["Radar", "Concepts", "Production"] },
-    { id: "creators", label: "Creators", icon: "◌", stages: ["Creators", "Research", "Production"] },
-    { id: "shop", label: "Shop", icon: "◇", stages: ["Offer", "Creative", "Test"] },
-    { id: "youtube", label: "YouTube", icon: "▶", stages: ["Brief", "Opportunity", "Package", "Production"] },
+  { label: "Engine", items: [
+    { id: "content-engine", label: "Content Engine", icon: "✦", stages: ["Discover", "Analyse", "Build", "Multiply", "Publish", "Monetise"] },
   ]},
-  { label: "Commercial", items: [
-    { id: "client-delivery", label: "Client Delivery", icon: "$", stages: ["Clients", "Brief", "Factory", "Review", "Delivery"] },
+  { label: "Owned Assets", items: [
+    { id: "creators", label: "Creators", icon: "◌", stages: ["Creators", "Research", "Production"] },
+    { id: "shop", label: "Commerce", icon: "◇", stages: ["Offer", "Creative", "Test"] },
   ]},
   { label: "Library", items: [
     { id: "media", label: "Media", icon: "▦", stages: ["Library", "Sources", "Derived"] },
@@ -30,23 +26,21 @@ const GROUPS = [
 ];
 const ITEMS = GROUPS.flatMap((g) => g.items);
 
-function Workspace({ id, stage, onStageChange }) {
+function Workspace({ id, stage }) {
   switch (id) {
-    case "autopilot": return <AutopilotStagedBridge stage={stage} onStageChange={onStageChange} />;
+    case "content-engine": return <ContentEngineWorkspace stage={stage} />;
     case "creators": return <CreatorsStaged stage={stage} />;
     case "shop": return <ShopStaged stage={stage} />;
-    case "youtube": return <YouTubeGrowthNicheWorkspace />;
-    case "client-delivery": return <ClientDeliveryStaged stage={stage} />;
     case "media": return <MediaStaged stage={stage} />;
     case "caption-writer": return <CaptionWriterStaged stage={stage} />;
     case "caption-studio": return <CaptionStudioStaged stage={stage} />;
     case "local-ai": return <LocalAIStaged stage={stage} />;
-    default: return <AutopilotStagedBridge stage={stage} onStageChange={onStageChange} />;
+    default: return <ContentEngineWorkspace stage={stage} />;
   }
 }
 
 export default function TrackBApplication() {
-  const [view, setView] = useState(() => { try { return sessionStorage.getItem("caig_track_b_view") || "autopilot"; } catch { return "autopilot"; } });
+  const [view, setView] = useState(() => { try { return sessionStorage.getItem("caig_track_b_view") || "content-engine"; } catch { return "content-engine"; } });
   const [collapsed, setCollapsed] = useState(() => { try { return localStorage.getItem("caig_tb_sidebar") === "1"; } catch { return false; } });
   const [mobileOpen, setMobileOpen] = useState(false);
   const [stage, setStage] = useState(0);
@@ -71,7 +65,7 @@ export default function TrackBApplication() {
     <aside className={`tb-sidebar${mobileOpen ? " is-open" : ""}`}>
       <div className="tb-brand">
         <a href="/" className="tb-brand-link" aria-label="Back to Cornerstone Enterprise">
-          <span className="tb-mark">C</span><span className="tb-brand-copy"><strong>Creative Station</strong><span>Track B</span></span>
+          <span className="tb-mark">C</span><span className="tb-brand-copy"><strong>Content Engine</strong><span>Track B</span></span>
         </a>
         <button className="tb-mobile-close" type="button" onClick={() => setMobileOpen(false)} aria-label="Close navigation">×</button>
         <button className="tb-collapse" type="button" onClick={() => setCollapsed((v) => !v)} aria-label={collapsed ? "Expand navigation" : "Collapse navigation"}>{collapsed ? "›" : "‹"}</button>
@@ -81,7 +75,7 @@ export default function TrackBApplication() {
     </aside>
     <main className="tb-main">
       <header className="tb-topbar"><div className="tb-topbar-inner"><button type="button" className="tb-mobile-menu" onClick={() => setMobileOpen(true)} aria-label="Open navigation" aria-expanded={mobileOpen}>☰</button><div className="tb-context"><div className="tb-context-kicker">Track B</div><div className="tb-context-title">{current.label}</div></div><LocalAIStatus compact /><div className="tb-stagebar">{stages.length > 0 && <div className="tb-stage-nav" aria-label={`${current.label} stages`}>{stages.map((s, i) => <button key={s} type="button" className={stage === i ? "is-active" : ""} onClick={() => changeStage(i)} aria-current={stage === i ? "step" : undefined} aria-label={`${s}, stage ${i + 1} of ${stages.length}`}><span>{String(i + 1).padStart(2, "0")}</span>{s}</button>)}</div>}</div></div></header>
-      <div className="tb-content"><div className="tb-workspace-body"><Workspace id={view} stage={stage} onStageChange={changeStage} /></div>{stages.length > 1 && <div className="tb-mobile-stage-controls"><button className="tb-secondary" disabled={stage === 0} onClick={() => changeStage(stage - 1)}>Back</button><span aria-live="polite">{stages[stage]}</span><button className="tb-primary" disabled={stage === stages.length - 1} onClick={() => changeStage(stage + 1)}>Next</button></div>}<div className="tb-bottom-safe" /></div>
+      <div className="tb-content"><div className="tb-workspace-body"><Workspace id={view} stage={stage} /></div>{stages.length > 1 && <div className="tb-mobile-stage-controls"><button className="tb-secondary" disabled={stage === 0} onClick={() => changeStage(stage - 1)}>Back</button><span aria-live="polite">{stages[stage]}</span><button className="tb-primary" disabled={stage === stages.length - 1} onClick={() => changeStage(stage + 1)}>Next</button></div>}<div className="tb-bottom-safe" /></div>
     </main>
   </div>;
 }
