@@ -3,12 +3,18 @@ import "./trackBApplication.css";
 import ContentEngineWorkspace from "./ContentEngineWorkspace.jsx";
 import CaptionWriterStaged from "./CaptionWriterStaged.jsx";
 import PersistentGenerations from "./PersistentGenerations.jsx";
+import MPTVideoStudio from "./MPTVideoStudio.jsx";
+import TrackBMeasurementWorkspace from "./TrackBMeasurementWorkspace.jsx";
 import { CreatorsStaged, ShopStaged, MediaStaged, CaptionStudioStaged, LocalAIStaged } from "./TrackBStagedSurfaces.jsx";
 import LocalAIStatus from "./LocalAIStatus.jsx";
 
 const GROUPS = [
   { label: "Engine", items: [
-    { id: "content-engine", label: "Content Engine", icon: "✦", stages: ["Discover", "Analyse", "Build", "Multiply", "Publish", "Monetise"] },
+    { id: "content-engine", label: "Content Engine", icon: "✦", stages: ["Discover", "Analyse", "Build", "Multiply", "Publish", "Monetise", "Measure"] },
+    { id: "measurement", label: "Measure", icon: "◒", stages: ["Published", "Capture", "History"] },
+  ]},
+  { label: "Production", items: [
+    { id: "production", label: "Production Studio", icon: "▶", stages: ["Source", "Mode", "Queue"] },
   ]},
   { label: "Owned Assets", items: [
     { id: "creators", label: "Creators", icon: "◌", stages: ["Creators", "Research", "Production"] },
@@ -29,6 +35,8 @@ const ITEMS = GROUPS.flatMap((g) => g.items);
 function Workspace({ id, stage }) {
   switch (id) {
     case "content-engine": return <ContentEngineWorkspace stage={stage} />;
+    case "measurement": return <TrackBMeasurementWorkspace stage={stage} />;
+    case "production": return <MPTVideoStudio stage={stage} />;
     case "creators": return <CreatorsStaged stage={stage} />;
     case "shop": return <ShopStaged stage={stage} />;
     case "media": return <MediaStaged stage={stage} />;
@@ -46,17 +54,9 @@ export default function TrackBApplication() {
   const [stage, setStage] = useState(0);
   const current = useMemo(() => ITEMS.find((item) => item.id === view) || ITEMS[0], [view]);
   const stages = current.stages || [];
-
   useEffect(() => { try { sessionStorage.setItem("caig_track_b_view", view); } catch {} setStage(0); setMobileOpen(false); }, [view]);
   useEffect(() => { try { localStorage.setItem("caig_tb_sidebar", collapsed ? "1" : "0"); } catch {} }, [collapsed]);
-  useEffect(() => {
-    const onKey = (e) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "\\") { e.preventDefault(); setCollapsed((v) => !v); }
-      if (e.key === "Escape") setMobileOpen(false);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  useEffect(() => { const onKey = (e) => { if ((e.metaKey || e.ctrlKey) && e.key === "\\") { e.preventDefault(); setCollapsed((v) => !v); } if (e.key === "Escape") setMobileOpen(false); }; window.addEventListener("keydown", onKey); return () => window.removeEventListener("keydown", onKey); }, []);
   const changeStage = (next) => setStage(Math.max(0, Math.min(next, Math.max(0, stages.length - 1))));
 
   return <div className={`tb-app${collapsed ? " is-collapsed" : ""}`}>
@@ -64,9 +64,7 @@ export default function TrackBApplication() {
     {mobileOpen && <button className="tb-mobile-backdrop" type="button" aria-label="Close navigation" onClick={() => setMobileOpen(false)} />}
     <aside className={`tb-sidebar${mobileOpen ? " is-open" : ""}`}>
       <div className="tb-brand">
-        <a href="/" className="tb-brand-link" aria-label="Back to Cornerstone Enterprise">
-          <span className="tb-mark">C</span><span className="tb-brand-copy"><strong>Content Engine</strong><span>Track B</span></span>
-        </a>
+        <a href="/" className="tb-brand-link" aria-label="Back to Cornerstone Enterprise"><span className="tb-mark">C</span><span className="tb-brand-copy"><strong>Content Engine</strong><span>Track B</span></span></a>
         <button className="tb-mobile-close" type="button" onClick={() => setMobileOpen(false)} aria-label="Close navigation">×</button>
         <button className="tb-collapse" type="button" onClick={() => setCollapsed((v) => !v)} aria-label={collapsed ? "Expand navigation" : "Collapse navigation"}>{collapsed ? "›" : "‹"}</button>
       </div>
