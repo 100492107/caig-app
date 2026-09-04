@@ -1,227 +1,32 @@
 import React, { useMemo } from "react";
 import { getTodaysVerse } from "./dailyScripture.js";
 
-const CRM_URL = "https://cornerstonegroupdatabase-bfc2v3f4m-100492107s-projects.vercel.app/";
+const RECOVERY_URL = "https://cornerstonegroupdatabase-bfc2v3f4m-100492107s-projects.vercel.app/";
 const NEW_LIFE_URL = "https://new-life-game-alpha.vercel.app/start-v2.html";
-
-const DAILY_PRESSURE = [
-  { headline: "Your family gets the result of today’s work.", support: "Not the plan. Not the intention. The result.", challenge: "Make today count. Do the work that changes your position." },
-  { headline: "You do not need another plan. You need a serious day.", support: "Pick the work that matters and stay with it.", challenge: "No busywork before the important work is moving." },
-  { headline: "The life you want is paid for with the work you do today.", support: "Freedom comes later. The standard is today.", challenge: "Earn the next step by executing this one." },
-  { headline: "Stop waiting to feel ready.", support: "You already know enough to start.", challenge: "Turn the next hour into measurable progress." },
-  { headline: "Hard work first. Everything else can wait.", support: "Your attention is worth more than another distraction.", challenge: "Get one important result before you give your attention away." },
-  { headline: "Build the future by winning the day.", support: "Cash. Assets. Discipline. Repeated.", challenge: "Do the work that makes tomorrow easier and stronger." },
-  { headline: "Potential does not pay. Output does.", support: "Make something happen today.", challenge: "Leave evidence behind before you stop." },
-  { headline: "Do not make your future compete with your comfort.", support: "Choose the useful thing.", challenge: "Take the harder action while you still have the energy." },
-  { headline: "One serious day can change the direction of a month.", support: "Treat today like it matters.", challenge: "Protect the next focused block and use it properly." },
-  { headline: "Your standard is visible in what you finish.", support: "Execution is character made visible.", challenge: "Finish something that matters before you open another loop." },
-  { headline: "Make money. Build assets. Strengthen the man doing both.", support: "That is the order.", challenge: "Start with the highest-value action in front of you." },
-  { headline: "Do not let another day become preparation for the life you want.", support: "Today is part of the build.", challenge: "Move the business. Move yourself. Leave evidence." },
-  { headline: "You are not here to be busy. You are here to build.", support: "Useful work beats impressive intentions.", challenge: "Pick one outcome and make it real." },
-  { headline: "Pressure is useful when it becomes action.", support: "Do not carry it. Convert it.", challenge: "Turn urgency into one completed result now." },
-  { headline: "Finish the thing you keep avoiding.", support: "That is probably where the growth is.", challenge: "Do it before the easier work gets a chance to distract you." },
-  { headline: "Work like the future depends on your consistency.", support: "Because it does.", challenge: "Give the next block your full attention." },
-  { headline: "The scoreboard only moves when you move it.", support: "No waiting. No pretending.", challenge: "Create a real business result today." },
-  { headline: "Earn your confidence through action.", support: "Do first. Review after.", challenge: "Take the obvious next step without overthinking it." },
-  { headline: "A better life requires better days.", support: "Start with this one.", challenge: "Make today a day you can point to." },
-  { headline: "Do the work now so your family has more choices later.", support: "That is the bigger game.", challenge: "Use your best hours on work that creates value." },
-  { headline: "Do not waste a good morning on low-value work.", support: "Protect the hours that can change the picture.", challenge: "Cash first. Then build." },
-  { headline: "The work does not become easier because you postpone it.", support: "Start while it is still uncomfortable.", challenge: "Get the hard thing moving." },
-  { headline: "You have enough ideas. Now produce.", support: "Less thinking about it. More evidence of it.", challenge: "Ship something useful today." },
-  { headline: "Your future business is being built in ordinary hours.", support: "Treat them like they matter.", challenge: "Make this next hour count." },
-  { headline: "Consistency beats the occasional heroic day.", support: "Build the standard you can repeat.", challenge: "Do today’s work properly." },
-  { headline: "Do not quit on a day that could compound.", support: "One more useful action matters.", challenge: "Create one more opportunity before you finish." },
-  { headline: "The goal is freedom. The mechanism is disciplined work.", support: "There is no shortcut around the mechanism.", challenge: "Execute the next useful step." },
-  { headline: "Make today too productive to regret.", support: "You can rest after the important work is done.", challenge: "Start with the highest-impact task." },
-  { headline: "Leave tonight with proof that you moved forward.", support: "Something should be different because you worked today.", challenge: "Make that change before the day closes." },
-  { headline: "Do the work your future self will thank you for.", support: "Not the work that merely feels easy now.", challenge: "Choose the action with the biggest useful consequence." },
+const PRESSURE = [
+  ["Find the leak before creating more demand.", "Revenue Recovery is about money already entering a business and disappearing before the decision is finished.", "Open Track A and identify the next recoverable opportunity."],
+  ["Do not build from imagination when the market is already talking.", "Track B starts with what people are already choosing to watch.", "Find a winning reference, understand the mechanism, then build the stronger original."],
+  ["Cash and assets are different jobs.", "Recover today's missed revenue first. Build tomorrow's media asset second.", "Move the highest-probability cash action, then compound a content asset."],
+  ["A cold lead is not automatically a dead lead.", "The gap between interest and action is often where revenue disappears.", "Open the recovery pipeline and find the oldest live opportunity."],
+  ["Do not confuse more content with better content.", "One proven mechanism repeated intelligently can beat a queue of random ideas.", "Multiply the best evidence you already have."],
+  ["Make the system earn the next feature.", "A new tool matters only when it removes a proven sales, production or measurement bottleneck.", "Use the existing engine and record what blocks the next result."],
+  ["Work where the money is stuck.", "The fastest useful action is normally the one closest to a real commercial outcome.", "Do the next recovery, call, publication or monetisation test that has evidence behind it."],
 ];
-
-function dayIndex(date = new Date()) {
-  const start = new Date(date.getFullYear(), 0, 1);
-  return Math.floor((date - start) / 86400000);
-}
-
-function phaseForHour(hour) {
-  if (hour < 13) return { label: "CASH FIRST", title: "Move money before you build more." };
-  if (hour < 18) return { label: "BUILD SECOND", title: "Turn the work into an asset." };
-  return { label: "FINISH STRONG", title: "Leave evidence behind tonight." };
-}
-
-function WorkspaceCard({ number, name, label, description, href, external, tone, action }) {
-  return (
-    <a className={`home-engine home-engine-${tone}`} href={href} target={external ? "_blank" : undefined} rel={external ? "noreferrer" : undefined}>
-      <div className="home-engine-top">
-        <span className="home-engine-number">0{number}</span>
-        <span className="home-engine-arrow" aria-hidden="true">{external ? "↗" : "→"}</span>
-      </div>
-      <div>
-        <div className="home-engine-name">{name}</div>
-        <div className="home-engine-label">{label}</div>
-        <p>{description}</p>
-      </div>
-      <div className="home-engine-action">{action} <span aria-hidden="true">{external ? "↗" : "→"}</span></div>
-    </a>
-  );
-}
-
+function dayIndex(date = new Date()) { const start = new Date(date.getFullYear(), 0, 1); return Math.floor((date - start) / 86400000); }
+function phase(hour) { if (hour < 13) return ["CASH FIRST", "Recover value before building more."]; if (hour < 18) return ["BUILD SECOND", "Turn evidence into an asset."]; return ["FINISH CLEAN", "Leave the next action obvious."]; }
+function Engine({ number, title, label, body, href, external, tone, action }) { return <a className={`ce-engine ce-${tone}`} href={href} target={external ? "_blank" : undefined} rel={external ? "noreferrer" : undefined}><div className="ce-engine-top"><span>0{number}</span><b>{external ? "↗" : "→"}</b></div><div><h2>{title}</h2><small>{label}</small><p>{body}</p></div><div className="ce-engine-action">{action}<span>{external ? "↗" : "→"}</span></div></a>; }
 export default function EnterpriseCommandHome() {
   const now = new Date();
-  const hour = now.getHours();
-  const pressure = DAILY_PRESSURE[dayIndex(now) % DAILY_PRESSURE.length];
-  const phase = phaseForHour(hour);
+  const [phaseLabel, phaseTitle] = phase(now.getHours());
+  const pressure = PRESSURE[dayIndex(now) % PRESSURE.length];
   const verse = useMemo(() => getTodaysVerse(), []);
-
-  const primary = hour < 13
-    ? { href: CRM_URL, external: true, label: "START TRACK A" }
-    : { href: "/creative", external: false, label: "START TRACK B" };
-
-  return (
-    <main className="enterprise-home-v3">
-      <style>{`
-        .enterprise-home-v3{min-height:100svh;width:100%;background:var(--bg);color:var(--text);font-family:var(--sans);padding:16px clamp(14px,2.4vw,42px) 40px}
-        .home-v3-shell{width:100%;max-width:none;margin:0 auto}
-        .home-v3-header{min-height:54px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:18px}
-        .home-v3-brand{display:flex;align-items:center;gap:11px;min-width:0}
-        .home-v3-mark{width:38px;height:38px;border-radius:11px;background:#ddd9cc;color:#141516;display:grid;place-items:center;font-weight:900;flex:0 0 38px}
-        .home-v3-name{font-size:15px;font-weight:790;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-        .home-v3-right{display:flex;align-items:center;gap:18px}
-        .home-v3-nav{display:flex;align-items:center;gap:3px}
-        .home-v3-nav a{display:flex;align-items:center;gap:6px;padding:8px 10px;border-radius:9px;color:var(--text-muted);text-decoration:none;font-size:10px;font-weight:780;transition:background .16s ease,color .16s ease}
-        .home-v3-nav a:hover{background:var(--surface);color:var(--text)}
-        .home-v3-nav a:nth-child(1) b{color:var(--track-a)}
-        .home-v3-nav a:nth-child(2) b{color:var(--track-b)}
-        .home-v3-nav a:nth-child(3) b{color:var(--new-life)}
-        .home-v3-nav small{font-size:7px;letter-spacing:.13em;text-transform:uppercase;color:var(--text-subtle);font-weight:760}
-        .home-v3-nav b{font-size:12px;font-weight:700}
-        .home-v3-online{display:flex;align-items:center;gap:7px;color:var(--text-subtle);font-size:7px;letter-spacing:.15em;text-transform:uppercase;font-weight:780}
-        .home-v3-online i{width:6px;height:6px;border-radius:50%;background:var(--success);display:block}
-
-        .home-v3-hero{margin-top:28px;display:grid;grid-template-columns:minmax(0,1.55fr) minmax(300px,.45fr);gap:26px;align-items:stretch}
-        .home-v3-hero-main{min-height:430px;padding:clamp(28px,4vw,58px);border:1px solid var(--word-border);border-radius:20px;background:linear-gradient(145deg,color-mix(in srgb,var(--word) 8%,var(--surface)),var(--surface) 65%);display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;position:relative}
-        .home-v3-hero-main:after{content:"";position:absolute;width:420px;height:420px;right:-210px;bottom:-250px;border-radius:50%;background:var(--word);opacity:.06;filter:blur(4px);pointer-events:none}
-        .home-v3-kicker{font-size:9px;letter-spacing:.24em;text-transform:uppercase;color:var(--word);font-weight:840}
-        .home-v3-headline{margin:18px 0 0;max-width:18ch;font-size:clamp(46px,6vw,92px);line-height:.90;letter-spacing:-.07em;font-weight:880;color:var(--text-h)}
-        .home-v3-support{margin:22px 0 0;max-width:62ch;font-size:clamp(15px,1.5vw,21px);line-height:1.45;color:#d0d1cc;font-weight:560}
-        .home-v3-hero-bottom{display:flex;align-items:flex-end;justify-content:space-between;gap:26px;margin-top:42px;position:relative;z-index:1}
-        .home-v3-challenge{max-width:680px}
-        .home-v3-challenge span{display:block;font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:var(--text-subtle);font-weight:820}
-        .home-v3-challenge strong{display:block;margin-top:8px;font-size:14px;line-height:1.45;color:var(--text)}
-        .home-v3-cta{flex:0 0 auto;min-height:48px;padding:0 18px;border:1px solid var(--border-strong);border-radius:11px;background:#ddd9cc;color:#141516;text-decoration:none;display:flex;align-items:center;gap:10px;font-size:11px;font-weight:850;white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,.16)}
-        .home-v3-cta span{font-size:16px}
-
-        .home-v3-mission{min-height:430px;padding:28px 26px;border:1px solid var(--border);border-radius:20px;background:var(--surface);display:flex;flex-direction:column;justify-content:space-between}
-        .home-v3-mission-label{font-size:8px;letter-spacing:.20em;text-transform:uppercase;color:var(--text-subtle);font-weight:820}
-        .home-v3-mission-title{margin-top:14px;font-size:30px;line-height:1.02;letter-spacing:-.055em;font-weight:850}
-        .home-v3-standard{margin-top:28px;padding-top:18px;border-top:1px solid var(--border)}
-        .home-v3-standard-label{font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-subtle);font-weight:820}
-        .home-v3-standard-value{margin-top:8px;font-size:17px;font-weight:820;color:var(--word)}
-        .home-v3-verse{padding-top:20px;border-top:1px solid var(--border)}
-        .home-v3-verse-ref{font-size:9px;color:var(--word);font-weight:800}
-        .home-v3-verse-text{margin-top:7px;font-size:12px;line-height:1.5;color:var(--text-muted)}
-
-        .home-v3-engines{margin-top:26px;display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-        .home-engine{min-height:240px;padding:21px 22px;border:1px solid var(--border);border-radius:17px;background:var(--surface);display:flex;flex-direction:column;justify-content:space-between;text-decoration:none;color:var(--text);transition:transform .18s ease,border-color .18s ease,background .18s ease}
-        .home-engine:hover{transform:translateY(-2px);background:var(--surface-2)}
-        .home-engine-a:hover{border-color:color-mix(in srgb,var(--track-a) 35%,var(--border))}
-        .home-engine-b:hover{border-color:color-mix(in srgb,var(--track-b) 35%,var(--border))}
-        .home-engine-life:hover{border-color:color-mix(in srgb,var(--new-life) 35%,var(--border))}
-        .home-engine-top{display:flex;justify-content:space-between;align-items:center}
-        .home-engine-number{font-size:8px;letter-spacing:.16em;color:var(--text-subtle);font-weight:820}
-        .home-engine-arrow{width:31px;height:31px;border:1px solid var(--border);border-radius:9px;display:grid;place-items:center;font-size:13px}
-        .home-engine-a .home-engine-arrow{color:var(--track-a)}
-        .home-engine-b .home-engine-arrow{color:var(--track-b)}
-        .home-engine-life .home-engine-arrow{color:var(--new-life)}
-        .home-engine-name{margin-top:32px;font-size:30px;line-height:1;letter-spacing:-.055em;font-weight:850}
-        .home-engine-label{margin-top:8px;font-size:8px;letter-spacing:.17em;text-transform:uppercase;color:var(--text-subtle);font-weight:820}
-        .home-engine p{margin:12px 0 0;max-width:40ch;color:var(--text-muted);font-size:11px;line-height:1.5}
-        .home-engine-action{margin-top:20px;padding-top:14px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;font-size:9px;font-weight:820;text-transform:uppercase;letter-spacing:.12em;color:var(--text-muted)}
-
-        .home-v3-footer{margin-top:26px;padding-top:15px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;color:var(--text-subtle);font-size:8px;letter-spacing:.12em;text-transform:uppercase;font-weight:780}
-        .home-v3-footer strong{color:var(--text-muted)}
-
-        @media(max-width:900px){
-          .home-v3-right{gap:10px}
-          .home-v3-nav small{display:none}
-          .home-v3-hero{grid-template-columns:1fr;gap:12px}
-          .home-v3-hero-main,.home-v3-mission{min-height:auto}
-          .home-v3-hero-main{padding:26px;min-height:390px}
-          .home-v3-mission{min-height:260px;padding:24px}
-          .home-v3-engines{grid-template-columns:1fr;gap:10px}
-          .home-engine{min-height:155px}
-          .home-engine-name{margin-top:18px;font-size:27px}
-        }
-        @media(max-width:600px){
-          .enterprise-home-v3{padding:10px 12px calc(24px + env(safe-area-inset-bottom))}
-          .home-v3-header{min-height:50px}
-          .home-v3-mark{width:34px;height:34px;flex-basis:34px}
-          .home-v3-name{font-size:13px}
-          .home-v3-nav{display:none}
-          .home-v3-online{font-size:7px}
-          .home-v3-hero{margin-top:18px}
-          .home-v3-hero-main{min-height:460px;padding:24px 20px;border-radius:17px}
-          .home-v3-headline{font-size:clamp(44px,13vw,64px);max-width:12ch}
-          .home-v3-support{font-size:15px;max-width:32ch}
-          .home-v3-hero-bottom{display:block;margin-top:30px}
-          .home-v3-challenge strong{font-size:13px}
-          .home-v3-cta{width:100%;justify-content:center;margin-top:18px;min-height:50px}
-          .home-v3-mission{min-height:235px;padding:22px;border-radius:17px}
-          .home-v3-mission-title{font-size:27px}
-          .home-v3-standard{margin-top:20px}
-          .home-v3-verse{padding-top:18px}
-          .home-v3-engines{margin-top:18px}
-          .home-engine{min-height:132px;padding:17px 18px;border-radius:15px}
-          .home-engine-name{font-size:25px}
-          .home-engine p{font-size:10px;margin-top:8px}
-          .home-engine-action{margin-top:13px;padding-top:11px}
-          .home-v3-footer{margin-top:18px;display:block;line-height:1.7}
-        }
-      `}</style>
-
-      <div className="home-v3-shell">
-        <header className="home-v3-header">
-          <div className="home-v3-brand"><span className="home-v3-mark">C</span><span className="home-v3-name">Cornerstone AI Enterprise</span></div>
-          <div className="home-v3-right">
-            <nav className="home-v3-nav" aria-label="Primary workspaces">
-              <a href={CRM_URL} target="_blank" rel="noreferrer"><span>Track A</span><small>Money</small><b>↗</b></a>
-              <a href="/creative"><span>Track B</span><small>Build</small><b>→</b></a>
-              <a href={NEW_LIFE_URL} target="_blank" rel="noreferrer"><span>New Life</span><small>Standard</small><b>↗</b></a>
-            </nav>
-            <div className="home-v3-online"><i /> online</div>
-          </div>
-        </header>
-
-        <section className="home-v3-hero">
-          <article className="home-v3-hero-main">
-            <div>
-              <div className="home-v3-kicker">{phase.label} · TODAY</div>
-              <h1 className="home-v3-headline">{pressure.headline}</h1>
-              <p className="home-v3-support">{pressure.support}</p>
-            </div>
-            <div className="home-v3-hero-bottom">
-              <div className="home-v3-challenge"><span>Today’s order</span><strong>{phase.title} {pressure.challenge}</strong></div>
-              <a className="home-v3-cta" href={primary.href} target={primary.external ? "_blank" : undefined} rel={primary.external ? "noreferrer" : undefined}>{primary.label} <span aria-hidden="true">→</span></a>
-            </div>
-          </article>
-
-          <aside className="home-v3-mission">
-            <div>
-              <div className="home-v3-mission-label">The mission</div>
-              <div className="home-v3-mission-title">Build a life your family can rely on.</div>
-              <div className="home-v3-standard"><div className="home-v3-standard-label">Standard</div><div className="home-v3-standard-value">Cash → Assets → Freedom</div></div>
-            </div>
-            <div className="home-v3-verse"><div className="home-v3-verse-ref">{verse.ref}</div><div className="home-v3-verse-text">“{verse.text}”</div></div>
-          </aside>
-        </section>
-
-        <section className="home-v3-engines" aria-label="Primary workspaces">
-          <WorkspaceCard number={1} name="Track A" label="Cash · Outreach" description="Create demand, move conversations, and get closer to money." href={CRM_URL} external tone="a" action="Open CRM" />
-          <WorkspaceCard number={2} name="Track B" label="Build · Ship" description="Turn ideas into finished content, offers, and assets." href="/creative" tone="b" action="Open Station" />
-          <WorkspaceCard number={3} name="New Life" label="Standard · Habits" description="Strengthen the routines and behaviour that support the whole system." href={NEW_LIFE_URL} external tone="life" action="Open New Life" />
-        </section>
-
-        <footer className="home-v3-footer"><span>Today: <strong>cash → assets → standards</strong></span><span>Work first. Review after.</span></footer>
-      </div>
-    </main>
-  );
+  return <main className="command-home-v11"><style>{`
+    .command-home-v11{min-height:100svh;background:var(--bg);color:var(--text);font-family:var(--sans);padding:16px clamp(14px,2.5vw,42px) 44px}.ch-shell{width:100%}.ch-head{min-height:54px;display:flex;justify-content:space-between;align-items:center;gap:18px;border-bottom:1px solid var(--border)}.ch-brand{display:flex;gap:11px;align-items:center;color:inherit;text-decoration:none}.ch-mark{width:38px;height:38px;border-radius:11px;background:#ddd9cc;color:#141516;display:grid;place-items:center;font-weight:900}.ch-brand strong{display:block;font-size:14px;letter-spacing:-.02em}.ch-brand small{display:block;margin-top:2px;color:var(--text-subtle);font-size:8px;letter-spacing:.16em;text-transform:uppercase}.ch-nav{display:flex;gap:3px;align-items:center}.ch-nav a{color:var(--text-muted);text-decoration:none;font-size:10px;font-weight:800;padding:8px 10px;border-radius:9px}.ch-nav a:hover{background:var(--surface);color:var(--text)}.ch-nav b{font-size:11px}.ch-nav a:nth-child(1) b{color:var(--track-a)}.ch-nav a:nth-child(2) b{color:var(--track-b)}.ch-nav a:nth-child(3) b{color:var(--new-life)}.ch-online{font-size:8px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-subtle);display:flex;align-items:center;gap:6px}.ch-online i{width:6px;height:6px;border-radius:50%;background:var(--success)}.ch-hero{margin-top:25px;display:grid;grid-template-columns:minmax(0,1.5fr) minmax(280px,.5fr);gap:14px}.ch-main,.ch-side{border:1px solid var(--border);background:var(--surface);border-radius:18px}.ch-main{min-height:410px;padding:clamp(26px,4vw,56px);display:flex;flex-direction:column;justify-content:space-between}.ch-kicker{font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--text-subtle);font-weight:850}.ch-title{margin:15px 0 0;max-width:17ch;font-size:clamp(44px,6vw,84px);line-height:.92;letter-spacing:-.07em;font-weight:900}.ch-copy{max-width:66ch;margin:19px 0 0;color:#c6c8c4;font-size:15px;line-height:1.55}.ch-bottom{display:flex;justify-content:space-between;align-items:end;gap:24px;margin-top:35px}.ch-pressure strong{display:block;color:var(--text);font-size:13px}.ch-pressure span{display:block;margin-top:5px;color:var(--text-muted);font-size:10px;line-height:1.45}.ch-button{display:inline-flex;align-items:center;gap:10px;background:#ddd9cc;color:#151617;text-decoration:none;border-radius:10px;padding:13px 16px;font-size:10px;font-weight:880;white-space:nowrap}.ch-side{padding:24px;display:flex;flex-direction:column;justify-content:space-between}.ch-side h2{margin:9px 0 0;font-size:28px;line-height:1;letter-spacing:-.05em}.ch-side .standard{margin-top:30px;padding-top:17px;border-top:1px solid var(--border)}.ch-side .standard strong{display:block;color:var(--text);font-size:16px}.ch-side .standard small{display:block;margin-top:6px;color:var(--text-muted);font-size:10px;line-height:1.45}.ch-verse{padding-top:17px;border-top:1px solid var(--border)}.ch-verse-ref{font-size:9px;color:var(--track-a);font-weight:850}.ch-verse-text{margin-top:6px;color:var(--text-muted);font-size:11px;line-height:1.5}.ch-engines{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}.ce-engine{min-height:245px;border:1px solid var(--border);border-radius:16px;background:var(--surface);padding:19px 20px;color:var(--text);text-decoration:none;display:flex;flex-direction:column;justify-content:space-between;transition:transform .16s ease,background .16s ease,border-color .16s ease}.ce-engine:hover{transform:translateY(-2px);background:var(--surface-2)}.ce-engine-top{display:flex;justify-content:space-between;color:var(--text-subtle);font-size:8px;letter-spacing:.15em;font-weight:850}.ce-engine-top b{width:29px;height:29px;border:1px solid var(--border);border-radius:8px;display:grid;place-items:center;font-size:12px}.ce-a .ce-engine-top b{color:var(--track-a)}.ce-b .ce-engine-top b{color:var(--track-b)}.ce-life .ce-engine-top b{color:var(--new-life)}.ce-engine h2{margin:31px 0 7px;font-size:29px;line-height:1;letter-spacing:-.055em}.ce-engine small{font-size:8px;letter-spacing:.15em;text-transform:uppercase;color:var(--text-subtle);font-weight:820}.ce-engine p{max-width:40ch;margin:12px 0 0;color:var(--text-muted);font-size:11px;line-height:1.55}.ce-engine-action{border-top:1px solid var(--border);padding-top:13px;display:flex;justify-content:space-between;color:var(--text-muted);font-size:8px;letter-spacing:.13em;text-transform:uppercase;font-weight:850}.ch-footer{margin-top:14px;border-top:1px solid var(--border);padding-top:14px;display:flex;justify-content:space-between;gap:18px;color:var(--text-subtle);font-size:8px;letter-spacing:.1em;text-transform:uppercase}.ch-footer strong{color:var(--text-muted)}@media(max-width:900px){.ch-hero{grid-template-columns:1fr}.ch-engines{grid-template-columns:1fr}.ch-side{min-height:260px}.ch-bottom{align-items:start;flex-direction:column}}@media(max-width:650px){.ch-nav{display:none}.ch-title{font-size:48px}.ch-main{min-height:420px}.ch-footer{flex-direction:column}}
+  `}</style>
+  <div className="ch-shell">
+    <header className="ch-head"><a className="ch-brand" href="/"><span className="ch-mark">C</span><span><strong>CORNERSTONE AI ENTERPRISES</strong><small>Operator OS · September 2026</small></span></a><div className="ch-nav"><a href={RECOVERY_URL} target="_blank" rel="noreferrer"><b>01</b> Revenue Recovery</a><a href="/creative"><b>02</b> Content Engine</a><a href={NEW_LIFE_URL} target="_blank" rel="noreferrer"><b>03</b> New Life</a></div><div className="ch-online"><i /> Systems online</div></header>
+    <section className="ch-hero"><div className="ch-main"><div><div className="ch-kicker">{phaseLabel}</div><h1 className="ch-title">{pressure[0]}</h1><p className="ch-copy">{pressure[1]}</p></div><div className="ch-bottom"><div className="ch-pressure"><strong>{pressure[2]}</strong><span>{phaseTitle}</span></div><a className="ch-button" href={now.getHours() < 13 ? RECOVERY_URL : "/creative"} target={now.getHours() < 13 ? "_blank" : undefined} rel={now.getHours() < 13 ? "noreferrer" : undefined}>{now.getHours() < 13 ? "Open Revenue Recovery" : "Open Content Engine"} <span>→</span></a></div></div><aside className="ch-side"><div><div className="ch-kicker">Operating model</div><h2>Two engines.<br/>One operator.</h2><div className="standard"><strong>Cash engine</strong><small>Recover revenue already entering businesses. Find leakage, restart the right conversations, test, measure and repeat.</small></div><div className="standard"><strong>Asset engine</strong><small>Find proven attention, build stronger original content, multiply it, publish, measure and monetise.</small></div></div><div className="ch-verse"><div className="ch-verse-ref">{verse.reference}</div><div className="ch-verse-text">{verse.text}</div></div></aside></section>
+    <section className="ch-engines"><Engine number="1" title="Revenue Recovery" label="Track A · Cash engine" body="Find revenue leakage inside lead-driven businesses and recover opportunities that have gone cold, stale, missed or stalled." href={RECOVERY_URL} external tone="a" action="Open recovery system"/><Engine number="2" title="Content Engine" label="Track B · Asset engine" body="Study what is already winning, rebuild it as original stronger content, turn long-form into Shorts and compound audience and monetisation." href="/creative" tone="b" action="Open content system"/><Engine number="3" title="New Life" label="Personal execution" body="Protect the operator: discipline, family, health, money and the daily actions that let the two business engines keep compounding." href={NEW_LIFE_URL} external tone="life" action="Open New Life"/></section>
+    <footer className="ch-footer"><span>Cornerstone operating rule</span><strong>Build less · sell better · publish deliberately · measure reality</strong><span>{phaseLabel}</span></footer>
+  </div></main>;
 }
