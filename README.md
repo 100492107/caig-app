@@ -1,78 +1,84 @@
 # Cornerstone AI Enterprises — Operator OS
 
-This repository powers the internal Cornerstone operating application.
+This repository powers the internal Cornerstone AI Enterprise operating application.
 
-## Canonical operating model
+## Current operating model
 
-The application is outcome-led rather than provider-led:
+Cornerstone is built around three engines under one command layer:
 
-`Objective → Research → Decision → Brief → Human Quality Gate → Production → Persistent Asset → Caption → Publish → Measure → Creative DNA`
+### Track A — Revenue Recovery
 
-Track A and Track B are deliberately isolated:
+The niche is **revenue leakage**, not a customer vertical. Track A helps lead-driven businesses recover opportunities that already entered their pipeline but went quiet, stale, unworked or stalled.
 
-- **Track A — cash engine:** US automotive dealer outreach, merchandising, territory control, sample → diagnostic → pilot → recurring support.
-- **Track B — owned media/creator engine:** Cara, Lila and duo production, research, identity-locked generation, captions, publishing and learning.
-- **YouTube — long-form lane:** adult animated business/money storytelling, kept separate from both Tracks A and B.
+`Target account -> Recovery conversation -> Leakage diagnosis -> Controlled test -> Measured recovery -> Repeat / recurring support`
+
+Potential markets include automotive, property, finance, insurance, recruitment, professional services, agencies, SaaS, education, healthcare, fitness, hospitality, trades and other businesses where leads and opportunities can disappear before a sale.
+
+The commercial message is problem-first: **where is revenue entering the business, and where is it disappearing?** AI is the mechanism for identifying leakage, prioritising opportunities and generating context-specific recovery actions. It is not another CRM and it is not positioned as generic AI automation.
+
+### Track B — Content Intelligence & Production Engine
+
+Track B is an owned-media/content factory. It does not depend on finding clients. It finds content that is already proving demand, understands why it works, builds a materially original stronger version, multiplies it into short-form, publishes, measures and monetises.
+
+`Discover -> Analyse -> Build -> Multiply -> Publish -> Monetise -> Measure -> Repeat`
+
+Inputs can include successful YouTube videos, TikTok/Instagram formats, transcripts, reference notes, current trend signals and explicit niche/channel decisions. A reference is used to study demand and mechanism, never to copy wording, footage, narration, branding or distinctive execution.
+
+Cara and Lila remain owned creator assets inside Track B. Their audience, character bibles and platform context are respected when content is made for them. TikTok Shop, affiliate offers, Fanvue, YouTube advertising where eligible, sponsorships, products, subscriptions and licensing are downstream monetisation tests rather than the definition of the engine.
+
+### New Life — Personal Execution Engine
+
+New Life is the personal operating system for action, discipline, family, health, money and long-term stewardship. It supports the operator rather than becoming another business distraction.
 
 ## Application surfaces
 
-- `/` — Cornerstone AI Enterprise launcher. It is the top-level destination chooser for Track A, Track B and New Life.
-- `/creative` — Creative Station / Track B production surface + persistent generation library.
-- `/territory` — Track A ZIP territory control and unreplied-positive queue.
-- `/outreach` — Track A acquisition and dealer workflow.
-- `/workbench` — supporting Revenue Block, Learning Loop and Production Sprint operator workspace.
-- `/ceo` — CEO Control Room view.
-- `/main-app` — retained legacy operational surface during controlled consolidation.
+- `/` — Cornerstone Enterprise command screen for Track A, Track B and New Life.
+- `/creative` — canonical Track B Content Engine and persistent generation library.
+- `/outreach` — canonical Track A Revenue Recovery outreach workspace.
+- `/ceo` — read-focused CEO control room.
+- `/territory`, `/workbench`, `/main-app` — compatibility surfaces retained only where needed for transition; they are not strategy authorities.
 
-### Revenue Block
+## Shared operating loop
 
-Track A pipeline stages are persisted as measurable events: outreach → positive reply → sample → diagnostic → pilot → recurring. ZIP territories and unreplied positive leads are tracked separately so the cash engine can be worked systematically.
+`Objective -> Research -> Decision -> Brief -> Human Quality Gate -> Production -> Persistent Asset -> Publish -> Measure -> Learn`
 
-### Learning Loop
+Track A uses the same evidence discipline for commercial recovery. Track B uses it for content and audience growth. Data and research remain domain-scoped so evidence does not bleed between engines.
 
-After publishing, the operator can capture reach/views/saves/shares/profile actions/clicks/conversions/revenue plus a short “why this worked” note. The system scores the outcome, promotes qualifying winners into reusable Creative DNA, extracts the invariant mechanism and stores controlled-variation guidance. Replication writes the learning into the existing Autopilot state so the next run starts with the proven mechanism rather than memory.
+## Content Engine capabilities
 
-Public-social proof and Fanvue monetisation proof are stored separately.
+The canonical Track B workspace can:
 
-### Production Sprint
+1. discover current opportunities in a selected niche;
+2. analyse a reference video or content format;
+3. identify the mechanism, strengths, weaknesses and originality opportunity;
+4. produce an original long-form package with titles, thumbnails, script and visual plan;
+5. derive multiple standalone Shorts from the finished long-form concept;
+6. create publication/SEO guidance;
+7. design monetisation tests;
+8. record research and job state in the persistent generation system.
 
-The operator gets a keyboard-first A/R/K review queue, a cost pre-flight with cheaper-path suggestion, persistent caption-backlog visibility and a structured scene-contract pre-flight. Generated media can be verified visually against the contract before publish when QA is required, with local Qwen Vision providing the verdict.
+## Research domains
+
+- `TRACK_A_REVENUE_RECOVERY` — revenue leakage, lead handling, follow-up, pipeline recovery and missed opportunity signals.
+- `TRACK_B_CONTENT_ENGINE` — public content performance, niche demand, storytelling, packaging, retention and format mechanisms.
+- `TRACK_B_CREATOR_GROWTH` — creator-specific mode for Cara/Lila when their character/audience context is explicitly selected.
+
+The older automotive-only and fixed YouTube-business research domains are retired from active architecture.
 
 ## Production rules
 
-1. Research is workspace/domain-scoped evidence. Never mix Track A, Track B or YouTube research.
-2. The Human Quality Gate is a required production stage before premium generation spend.
-3. Source assets and derived assets remain distinct and persist in the application storage model.
-4. Publication is job-based, idempotent and retry-aware.
-5. Creative DNA is stored as evidence-backed patterns, not as generic prompt inspiration.
-6. The operator home should make the next commercially useful action obvious.
-7. Winners earn reuse only from measured evidence; the system replicates mechanisms, not protected executions.
-8. Automated scene verification is fail-closed for Track B content with final media: FAL renders the media, local Qwen Vision inspects it, Supabase stores the verdict, and publishing is blocked unless the verdict passes.
-9. No external model provider is part of the intelligence or QA layer. Qwen runs locally on Apple Silicon. FAL is a media-generation provider only.
-
-## Architecture
-
-There is one canonical implementation per active capability. Do not create new `V2`, `V3`, `Unified`, `Final`, `New`, `Test` or parallel workspace components for an existing feature. Historical implementations are not runtime authorities and live under `src/legacy/` when retained for reference.
-
-## Deployment
-
-The project is a Vite/React application deployed on Vercel. The five-minute publisher is intentionally scheduled outside Vercel Cron so it remains compatible with the Hobby plan; GitHub Actions calls `/api/cron-publish` with `CRON_SECRET`.
-
-## Required production configuration
-
-Vercel/server-side runtime requires the appropriate Supabase service credentials and the scheduled-publisher webhook. GitHub Actions requires a repository secret named `CRON_SECRET`.
-
-The browser may use a Supabase publishable/anonymous client key for authenticated client operations; database RLS, not key secrecy, is the security boundary. Privileged service-role and third-party provider keys must remain server-side. Where Vite environment variables are provisioned, use `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` rather than duplicating client configuration in source.
-
-## Supabase migrations
-
-Run migrations in timestamp order. The strict ownership migrations are intentionally fail-closed for authenticated clients. Existing NULL-owned rows are backfilled only when exactly one non-deleted Supabase user exists; otherwise those rows remain inaccessible to client roles until explicitly assigned.
-
-The operator leverage and scene-verification migrations add revenue events, evidence, learning recommendations, caption backlog, scene contracts, asset provenance, territory control and publish QA state.
+- Research is workspace/domain-scoped.
+- Public-web research is not private account analytics.
+- Prefer repeated winners over isolated viral outliers.
+- Abstract mechanisms; do not copy protected executions.
+- The Human Quality Gate runs before expensive generation.
+- Source and derived assets remain distinct and persistent.
+- Final media can be visually verified by local Qwen Vision when required.
+- No invented claims, testimonials, audience reactions or performance metrics.
+- Build only what removes a demonstrated bottleneck.
+- Measure business outcomes, not software activity.
 
 ## Local services
-
-Normal production uses the local Qwen text server and worker. Track B final-media QA additionally requires a local Qwen Vision server and scene worker:
 
 ```bash
 npm run qwen:server
@@ -81,12 +87,12 @@ npm run qwen:vision:server
 npm run qwen:scene:worker
 ```
 
-The vision server listens on `127.0.0.1:8001` by default and uses `QWEN_VISION_MODEL` from `.env.qwen.local` when supplied. The scene worker polls `local_ai_jobs` for `scene_verify` jobs, verifies images directly and extracts multiple frames from videos with local `ffmpeg` before asking local Qwen Vision for a strict pass/fail verdict.
+Qwen is the intelligence layer. FAL and other approved providers are renderer implementations only. Supabase provides durable job/state storage. Vercel provides secure API orchestration.
 
-Before first use of the vision server, the local Qwen environment needs `mlx-vlm` installed:
+## Architecture rule
 
-```bash
-.venv-qwen/bin/pip install mlx-vlm
-```
+There is one canonical implementation per active capability. Do not create `V2`, `V3`, `Unified`, `Final`, `New`, `Test` or parallel workspaces for an existing function. Historical components may remain under `src/legacy/` for reference, but they are not active strategy authorities.
 
-Qwen is the intelligence layer. FAL.ai is the renderer. Supabase is the durable state and evidence layer. Vercel is orchestration and secure API execution.
+## Security
+
+Keep service credentials server-side. Use authenticated access and database RLS where configured. Never rely on front-end routing as a security boundary. Keep Track A commercial data separate from Track B creative data.

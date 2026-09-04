@@ -1,142 +1,194 @@
-# Qwen Agent Rules — Cornerstone AI Assets
+# Cornerstone AI Enterprise Operating Rules
 
-This repository is an operating system, not a blank canvas. Read these rules before executing any Qwen job or making product changes.
+This repository is the operating system for Cornerstone AI Enterprises. It is not a blank creative canvas. Product decisions, research, Qwen jobs and new UI must follow the current three-engine architecture.
 
 ## Mission
 
-Qwen should produce reliable, evidence-grounded creative work for the correct workspace without drifting across audiences, research domains or product contexts.
+Cornerstone runs three connected but distinct engines under one operating layer:
 
-The current Qwen worker is a job-driven local worker invoked with `npm run qwen:worker`. It uses the local Qwen server, Supabase job queue, persona source files, live research where requested, and the format-archaeology / niche-lock prompt layer.
+- **Track A — Revenue Recovery:** recover revenue already entering a business but being lost when leads, enquiries, conversations, appointments, quotes or opportunities go cold, stale, unworked or fail to move.
+- **Track B — Content Engine:** find content that already proves audience demand, understand why it works, build materially original and stronger content, multiply it into derivatives, publish, measure and monetise.
+- **New Life — Personal Execution:** the personal operating system for disciplined action, family, health, finances and long-term stewardship.
+
+The parent enterprise layer makes the next useful action obvious without mixing evidence or context between engines.
 
 ## Canonical application architecture
 
-The production application is organised around these canonical runtime surfaces:
+- `/` -> `EnterpriseCommandHome.jsx` — top-level Cornerstone launcher for Track A, Track B and New Life.
+- `/creative` -> `TrackBApplication.jsx` + `PersistentGenerations.jsx` — canonical Track B Content Engine and persistent generation library.
+- `/outreach` -> `TrackAOutreachWorkspace.jsx` — canonical Revenue Recovery outreach workspace.
+- `/territory` -> compatibility route only; do not rebuild a vertical-specific prospecting subsystem here.
+- `/ceo` -> `CEOHome.jsx` — read-focused operator control room.
+- `/workbench` and `/main-app` are compatibility surfaces only and must not become the source of truth for current strategy.
 
-- `/` → `EnterpriseHome.jsx` — top-level Cornerstone AI Enterprise launcher for Track A, Track B and New Life.
-- `/creative` → `TrackBApplication.jsx` + `PersistentGenerations.jsx` — canonical Track B application shell and persistent generation library.
-- `/outreach` → `TrackAOutreachWorkspace.jsx` — canonical Track A cash-engine surface.
-- `/territory` → `TrackATerritoryBlock.jsx` — systematic ZIP territory control and unreplied-positive queue.
-- `/main-app` → `MainAppShell.jsx` — retained explicit legacy operational tooling during consolidation.
-- `/ceo` → `CEOHome.jsx` — read-focused CEO control room.
-- `/workbench` → `OperatorWorkbench.jsx` — supporting adaptive operator workbench for revenue, learning and production workflows; it is not the top-level enterprise home.
+Do not create another `V2`, `V3`, `Unified`, `Final`, `New`, `Test`, `Client Delivery` or parallel workspace for an existing capability. Extend the canonical surface or extract a shared module with one clear responsibility. Historical implementations may remain in `src/legacy/` for reference but are not runtime authorities.
 
-Shared production data follows:
+## Track A — Revenue Recovery domain
 
-`objective → research → decision → brief → quality gate → production job → source asset → derivative → caption → publication → performance → Creative DNA`
+Track A is defined by the **problem**, not a customer vertical.
 
-### Architecture guardrail
+The problem domain is revenue leakage between:
 
-Do **not** create another `V2`, `V3`, `Unified`, `Final`, `New`, `Test`, or parallel workspace component for an existing capability. Extend the canonical surface or extract a named shared module with one clear responsibility.
+`Lead -> Contact -> Conversation -> Appointment -> Opportunity -> Deal`
 
-Historical versioned workspace components that are no longer on the runtime path live in `src/legacy/`. Do not import from `src/legacy/` for new work. The three former transitional V* surfaces have now been collapsed into their canonical implementations and must not be recreated.
+Potential target businesses include automotive, property, finance, insurance, recruitment, professional services, agencies, SaaS, education, healthcare, fitness, hospitality, trades and other legitimate businesses where a commercial enquiry can enter a pipeline and disappear.
 
-## Always
+The speciality is identifying the leakage, prioritising recoverable opportunities and using AI to help restart the right conversations while humans retain control of the actual sale.
 
-- Read the relevant existing source files before inventing new behaviour.
-- Treat `CHARACTER_BIBLE.md`, persona files, voice files and explicit workspace/domain markers as source-of-truth inputs.
-- Treat research as workspace-scoped evidence. Never merge evidence from Track A, Track B or YouTube.
-- Separate observed evidence from inference. Label weak evidence as a hypothesis rather than presenting it as fact.
-- Prefer repeated winning patterns over isolated viral outliers when the evidence is available.
-- Abstract mechanisms; do not copy creators, wording, branding, distinctive characters, proprietary footage or near-identical executions.
-- Preserve the established audience, tone, identity and commercial context of the target workspace.
-- Make success testable. Before considering a job complete, verify that the requested output satisfies the job's explicit constraints and the relevant quality gates in this file.
-- Keep outputs grounded, specific and internally consistent.
-- Report meaningful limitations rather than filling missing evidence with guesses.
-- Prefer the cheaper valid production path before premium inference and record the selected cost tier.
-- Record meaningful production/publishing state changes as durable events where the relevant event table exists.
+Primary language:
 
-## Creative job success condition
+- revenue leakage
+- missed opportunity
+- stale pipeline
+- missed enquiry
+- ageing lead
+- no-show
+- silent conversation
+- old quote
+- stalled deal
+- recovery
 
-A creative job is complete only when:
+Never turn Track A back into a dealership-only, lead-generation-only, CRM-replacement or generic AI-agency proposition.
 
-1. The correct workspace and research domain have been identified.
-2. Relevant source-of-truth files have been applied.
-3. Research evidence, where requested, remains inside that domain.
-4. The output follows the requested format and production constraints.
-5. Character, setting, action, wardrobe, props and timing do not contradict the brief.
-6. No unsupported claims, fabricated metrics, fake social proof or invented source evidence are introduced.
-7. The Human Quality Gate is passed before premium generation spend.
-8. The resulting source/derived assets can be traced back to the originating job.
-9. The final response contains the requested deliverable, not hidden reasoning or internal chain-of-thought.
+### Track A research firewall
 
-If a condition cannot be satisfied, say what is blocked and why.
+Research domain: `TRACK_A_REVENUE_RECOVERY`.
 
-## Research firewall
+Allowed evidence includes lead handling, response time, follow-up, no-shows, quote follow-up, stale pipeline, opportunity recovery, CRM workflow, sales operations, reactivation, conversion leakage and decision-maker behaviour across relevant lead-driven businesses.
 
-### Track A — `TRACK_A_AUTOMOTIVE_B2B`
+A customer vertical is context, not the niche. Automotive evidence may inform an automotive prospect. It must not redefine the entire domain.
 
-Target: US independent automotive dealerships and dealership decision-makers.
+Never use Track B creator/Fanvue evidence as Track A evidence. A format mechanism may transfer only as an abstract mechanism after the model establishes that it fits the buyer and problem.
 
-Allowed evidence includes dealership owners, dealer principals, sales managers, automotive retail, stock merchandising, listings, photography, enquiries, admin, time-to-live, sales workflow, customer perception, operational friction and B2B outreach.
+### Track A commercial rule
 
-Never use creator, beauty, fitness, Fanvue or YouTube business-storytelling evidence as Track A source evidence.
+Cold outreach exists to earn a reply. The message starts with the prospect's problem, not Joseph's biography, technology or process.
 
-### Track B — `TRACK_B_CREATOR_GROWTH`
+Commercial path:
 
-Target: the selected creator's established audience and platform context.
+`Target account -> Recovery conversation -> Leakage diagnosis -> Controlled test -> Measured recovery -> Repeat / recurring support`
 
-Cara remains fitness/lifestyle/discipline/confidence/ordinary-life grounded. Lila remains beauty/lifestyle/understated visual discovery grounded. The duo remains relationship/contrast/chemistry grounded.
+No invented lead volumes, spend, conversion rates, case studies, testimonials or recovered-revenue figures.
 
-Never use Track A dealership/automotive evidence or YouTube business/economics evidence as Track B source evidence.
+## Track B — Content Intelligence & Production Engine
 
-### YouTube — `YOUTUBE_LONGFORM_BUSINESS_MONEY`
+Track B is an owned-media and production system. It does not require client outreach to prove the model.
 
-Target: adult animated business mysteries and money stories.
+Core loop:
 
-Allowed evidence includes long-form YouTube storytelling, business/economics/money narratives, documentary structure, retention, titles, thumbnails, pacing, reveals and animation-friendly visual storytelling.
+`Discover -> Analyse -> Build -> Multiply -> Publish -> Monetise -> Measure -> Repeat`
 
-Never use Track A dealership evidence or Track B creator/Fanvue/lifestyle evidence as YouTube source evidence.
+The system should find videos, channels, posts and formats that already demonstrate attention. It should understand the underlying mechanism, then produce original content that improves the angle, story, packaging, pacing, visual logic or distribution potential.
 
-## Verification
+The selected niche is explicit at job time. Examples include gaming, history, chatting/stories, documentary, business/money, technology, lifestyle and other niches chosen from evidence. There is no permanent Track B niche lock to one subject.
 
-Before returning a job result, perform a final consistency pass:
+### Track B research firewall
 
-- Does the source niche actually match the target niche?
-- Is the mechanism marked USE, ADAPT or IGNORE where relevant?
-- Are claims supported by evidence?
-- Is any exact on-image text being reported only when it was actually observed?
-- Does the creative concept make sense for the named person/account/workspace?
-- Are all scene details physically and temporally coherent?
-- Has anything unrelated been introduced simply because it is common in generic AI-generated content?
-- Has the result been routed through the canonical runtime surface rather than a legacy duplicate?
-- For final Track B media, has local Qwen Vision inspected the rendered image/video frames against the stored scene contract?
+Research domain: `TRACK_B_CONTENT_ENGINE`.
+
+Allowed evidence includes public content performance signals, long-form storytelling, short-form formats, titles, thumbnails, retention mechanisms, topic demand, narrative structures, audience comments, platform-native formats and monetisation routes relevant to the selected niche/channel.
+
+Creator identities such as Cara and Lila are downstream owned assets. Their character bibles remain hard constraints when content is made for them. They do not define the entire Track B operating domain.
+
+Never use Track A revenue-recovery customer data as evidence of content performance.
+
+### Reference-content originality rule
+
+Reference content is a teacher, not a template.
+
+Use reference material to learn:
+
+- why the topic attracted attention
+- what promise the packaging made
+- what happened in the opening seconds
+- how the narrative escalated
+- where curiosity loops were created
+- how visuals supported the story
+- which moments created useful short-form derivatives
+- what weaknesses provide room for improvement
+
+Never copy exact wording, scripts, narration, creator identity, branding, distinctive thumbnail artwork, proprietary footage, music, protected characters or a near-identical execution. The output must be materially original and independently useful.
+
+## Shared research rules
+
+- Fresh public research is evidence about the current public signal layer, not proof of our own performance.
+- Owned analytics are the proof of what works on our accounts.
+- Prefer repeated patterns over isolated viral outliers.
+- Label weak evidence as a hypothesis.
+- Never treat an inaccessible source as visually inspected.
+- Never blend research packs between Track A, Track B or any other workspace.
+- Every mechanism gets a `USE`, `ADAPT` or `IGNORE` decision where relevant.
+
+## Qwen operating rules
+
+The local Qwen stack is the required intelligence layer. Qwen must:
+
+1. Identify the correct workspace and research domain.
+2. Apply the source-of-truth files relevant to that workspace.
+3. Build a research pack when research is requested.
+4. Separate evidence from inference.
+5. Produce a useful decision, not generic ideation.
+6. Pass the relevant human quality gate.
+7. Return the requested deliverable and record durable job state.
+
+Provider choice for rendering is an implementation detail. The intelligence and scene-QA layer remains local Qwen.
+
+## Track B production success condition
+
+A Content Engine job is complete only when the requested stage is satisfied. Depending on the job, this may mean:
+
+- opportunity board with evidence and niche fit
+- reference breakdown with originality plan
+- original long-form package with titles, thumbnails, script and visual plan
+- short-form derivatives with source windows and standalone hooks
+- publish/SEO package
+- monetisation experiments with measurable tests
+- production state that can be traced back to its source/job
+
+More generated content is not automatically progress.
+
+## Quality and scene rules
+
+- Character truth is mandatory when a named creator is involved.
+- Every visual needs a reason to exist.
+- Scene details must agree: subject, place, time, light, action, props, wardrobe and composition.
+- Reject generic AI filler, random luxury scenes, impossible hands, contradictory lighting, irrelevant props and copy-paste motivational language.
+- Use the cheapest valid production path that reaches the quality bar.
+- Final media should be visually checked by local Qwen Vision when the workflow requires scene verification.
+
+## Track A quality rules
+
+- The prospect remains the centre of the message.
+- Do not present a guessed leakage point as a confirmed audit finding.
+- Use controlled language: identify, test, measure, compare, recover, improve.
+- The call establishes the baseline, volume, leakage stage and recoverability.
+- A paid test should be controlled and measured before recurring support is proposed.
+
+## Security and data
+
+- Keep service credentials and provider secrets server-side.
+- Do not rely on front-end routing as a security boundary.
+- Use authenticated database access and RLS where configured.
+- Keep Track A business/prospect data separate from Track B creative data.
+- Never make destructive infrastructure changes as part of a creative task without explicit scope.
 
 ## Never
 
-- Never invent evidence, citations, metrics, audience reactions or private performance data.
-- Never silently change the target niche because another trend looks more viral.
-- Never copy a creator's distinctive execution.
+- Never redefine Track A as automotive-only.
+- Never redefine Track B as client delivery-only.
+- Never use a fixed YouTube niche as the permanent Track B architecture.
+- Never copy a source creator's distinctive execution.
+- Never invent metrics, evidence, audience reactions, testimonials or private performance data.
 - Never expose chain-of-thought or hidden reasoning.
-- Never treat a failed fetch as evidence that something does not exist.
-- Never claim visual details were observed when the source was not visually accessible.
-- Never loosen a niche lock to rescue a weak idea; downgrade confidence or return IGNORE instead.
-- Never add a parallel V2/V3 workspace when a canonical component already exists.
-- Never put service credentials, provider secrets or webhook secrets in browser code.
-- Never use Anthropic, OpenAI, Gemini or another external model as the Cornerstone intelligence or scene-QA layer. Local Qwen is the required intelligence/vision layer; FAL is a media renderer only.
-
-## Operational safety
-
-- Keep changes minimal and explainable.
-- Do not modify secrets or credential files as part of a creative job.
-- Do not deploy or make destructive infrastructure changes as part of a creative job.
-- If a task requires a change outside the normal creative-worker scope, stop and report the boundary rather than improvising.
+- Never add a parallel V2/V3 workspace when a canonical component exists.
+- Never put secrets in browser code.
+- Never use external AI providers as the Cornerstone intelligence or final scene-QA layer.
 
 ## Worker commands
 
-Primary Qwen worker:
-
-`npm run qwen:worker`
-
-Qwen text server:
-
 `npm run qwen:server`
-
-Qwen Vision server for final-media QA:
-
+`npm run qwen:worker`
 `npm run qwen:vision:server`
-
-Local scene verification worker:
-
 `npm run qwen:scene:worker`
 
-Caption worker and Whisper services are separate workflows. Do not assume a caption/Whisper service is running unless the task explicitly requires it and its health check succeeds.
+The normal text flow is local Qwen + Supabase job queue. Vision and scene verification are separate services and must not be assumed healthy unless health checks succeed.
