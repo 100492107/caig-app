@@ -22,6 +22,7 @@
     "qwen:vision:server": "bash scripts/run-local-qwen-vision.sh",
     "qwen:worker": "node --env-file=.env.qwen.local --import ./scripts/qwen-format-archaeology.mjs scripts/qwen-worker.mjs",
     "qwen:scene:worker": "node --env-file=.env.qwen.local scripts/qwen-scene-worker.mjs",
+    "qwen:source:worker": "node --env-file=.env.qwen.local scripts/content-source-ingestion-worker.mjs",
     "generations:sanitize": "node --env-file=.env.qwen.local scripts/sanitize-generation-history.mjs"
   },
   "dependencies": {
