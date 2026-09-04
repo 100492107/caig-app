@@ -4,6 +4,7 @@ import AutopilotStagedBridge from "./AutopilotStagedBridge.jsx";
 import YouTubeGrowthNicheWorkspace from "./YouTubeGrowthNicheWorkspace.jsx";
 import CaptionWriterStaged from "./CaptionWriterStaged.jsx";
 import PersistentGenerations from "./PersistentGenerations.jsx";
+import ClientDeliveryStaged from "./ClientDeliveryStaged.jsx";
 import { CreatorsStaged, ShopStaged, MediaStaged, CaptionStudioStaged, LocalAIStaged } from "./TrackBStagedSurfaces.jsx";
 import LocalAIStatus from "./LocalAIStatus.jsx";
 
@@ -13,6 +14,9 @@ const GROUPS = [
     { id: "creators", label: "Creators", icon: "◌", stages: ["Creators", "Research", "Production"] },
     { id: "shop", label: "Shop", icon: "◇", stages: ["Offer", "Creative", "Test"] },
     { id: "youtube", label: "YouTube", icon: "▶", stages: ["Brief", "Opportunity", "Package", "Production"] },
+  ]},
+  { label: "Commercial", items: [
+    { id: "client-delivery", label: "Client Delivery", icon: "$", stages: ["Clients", "Brief", "Factory", "Review", "Delivery"] },
   ]},
   { label: "Library", items: [
     { id: "media", label: "Media", icon: "▦", stages: ["Library", "Sources", "Derived"] },
@@ -32,6 +36,7 @@ function Workspace({ id, stage, onStageChange }) {
     case "creators": return <CreatorsStaged stage={stage} />;
     case "shop": return <ShopStaged stage={stage} />;
     case "youtube": return <YouTubeGrowthNicheWorkspace />;
+    case "client-delivery": return <ClientDeliveryStaged stage={stage} />;
     case "media": return <MediaStaged stage={stage} />;
     case "caption-writer": return <CaptionWriterStaged stage={stage} />;
     case "caption-studio": return <CaptionStudioStaged stage={stage} />;
