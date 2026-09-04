@@ -20,7 +20,7 @@ document.body.dataset.route = path
 
 const component = path === '/creative'
   ? <div className="creative-studio-surface"><TrackBApplication /><PersistentGenerations /></div>
-  : path === '/outreach' || path === '/territory' || path === '/workbench' || path === '/main-app'
+  : path === '/outreach'
     ? <TrackAOutreachWorkspace />
     : path === '/ceo'
       ? <CEOHome />
