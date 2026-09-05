@@ -1,113 +1,102 @@
-# Cornerstone local AI stack
+# Cornerstone Local AI Stack
+*Current operating guidance · September 2026*
 
-Cornerstone queues local intelligence work in Supabase. The Mac runs Qwen text, Qwen Vision, FFmpeg and Whisper locally and writes job results back to Supabase.
+Cornerstone uses the Mac as the local intelligence and media-processing layer. The web application queues work; local services process it and write durable state back to Supabase.
 
-## Qwen text
+## Services
 
-Default model:
+### Qwen text
 
-`orcarouter/Qwen3.8-27B-Uncensored-MLX`
+Default local model:
 
-The local server exposes an OpenAI-compatible endpoint on `http://127.0.0.1:8000`.
+`mlx-community/Qwen3-8B-4bit`
 
-## Qwen Vision
+Endpoint:
 
-The Track B visual-analysis service exposes an OpenAI-compatible endpoint on `http://127.0.0.1:8001`.
+`http://127.0.0.1:8000`
 
-Default model:
+### Qwen Vision
+
+Default local model:
 
 `mlx-community/Qwen2.5-VL-3B-Instruct-4bit`
 
-## Whisper
+Endpoint:
 
-The local Whisper service runs on `http://127.0.0.1:8787` and exposes `/health` and `/transcribe`.
+`http://127.0.0.1:8001`
 
-Default model:
+Used for source-frame analysis and final scene verification where the workflow requires it.
 
-`mlx-community/whisper-large-v3-turbo`
+### Whisper
 
-The Track B source worker explicitly extracts audio with FFmpeg to 16 kHz mono PCM WAV before sending it to Whisper, so video and audio references follow the same timestamped transcript path.
+Source-video ingestion can use the local Whisper service at:
+
+`http://127.0.0.1:8787`
+
+The source worker extracts 16 kHz mono audio with FFmpeg before transcription.
+
+Whisper is an optional dependency of the broader stack. Do not assume it is healthy until its health endpoint succeeds. When it is unavailable, source-video jobs that require timestamps cannot complete and must report that dependency instead of pretending the analysis happened.
 
 ## Track B source worker
 
-After the browser uploads a source into the private `track-b-source-media` bucket, Cornerstone queues a `content_media_ingestion` job. Start the worker with:
+The Content Engine can upload a source video to the private `track-b-source-media` bucket and queue ingestion.
+
+The target pipeline is:
+
+`source → private storage → ffprobe → FFmpeg audio → transcript → representative frames → Qwen Vision → Qwen text analysis → unified evidence`
+
+Start manually when needed:
 
 ```bash
 source .env.qwen.local
 npm run qwen:source:worker
 ```
 
-The worker performs:
-
-`private source -> download -> ffprobe -> FFmpeg audio -> FFmpeg representative frames -> Whisper timestamps -> Qwen Vision -> queued Qwen text analysis -> unified evidence`
-
-The Content Engine consumes that evidence before producing the original package.
-
-## Local terminals
-
-Terminal A — Qwen text:
+## Normal worker commands
 
 ```bash
-source .env.qwen.local
 npm run qwen:server
-```
-
-Terminal B — Qwen text queue worker:
-
-```bash
-source .env.qwen.local
 npm run qwen:worker
-```
-
-Terminal C — Qwen Vision:
-
-```bash
-source .env.qwen.local
 npm run qwen:vision:server
-```
-
-Terminal D — Whisper:
-
-```bash
-source .env.qwen.local
-npm run caption:whisper:start
-```
-
-Terminal E — Track B source ingestion:
-
-```bash
-source .env.qwen.local
+npm run qwen:scene:worker
 npm run qwen:source:worker
 ```
 
-Terminal F — Track B scene QA, used for final generated-media verification before publishing:
+## LaunchAgent operation
 
-```bash
-source .env.qwen.local
-npm run qwen:scene:worker
+The normal Mac setup uses LaunchAgents so the operator does not need a terminal tab open for every worker.
+
+Expected loaded services include:
+
+```text
+com.cornerstoneaigroup.caig-workers
+com.cornerstone.local-ai
 ```
 
-The browser/Vercel application itself does not replace the local workers. It queues jobs and reads their state from Supabase.
-
-## Supabase
-
-The Track B source-media bucket is private and user-scoped. Browser uploads are stored beneath the authenticated user's ID. The worker retrieves them with a short-lived signed URL.
-
-Environment values used by the workers include:
+Check:
 
 ```bash
-SUPABASE_URL=...
-SUPABASE_SERVICE_ROLE_KEY=...
-TRACK_B_SOURCE_BUCKET=track-b-source-media
-WHISPER_URL=http://127.0.0.1:8787
-QWEN_URL=http://127.0.0.1:8000
-QWEN_VISION_URL=http://127.0.0.1:8001
-QWEN_MODEL=...
-QWEN_VISION_MODEL=...
+launchctl list | grep cornerstone
 ```
 
-Keep service-role credentials in the local env file only. Never expose them in the browser bundle.
+A loaded service with exit status `0` indicates the LaunchAgent is currently loaded without reporting a non-zero last exit status. It does not, by itself, prove that every HTTP endpoint is healthy.
+
+## Health checks
+
+```bash
+curl -fsS http://127.0.0.1:8000/health
+curl -fsS http://127.0.0.1:8001/health
+npm run caption:whisper:health
+```
+
+Use only the checks supported by the service currently installed.
 
 ## 16 GB Apple Silicon guidance
 
-Run one heavyweight model at a time when memory pressure becomes significant. The architecture is model-agnostic: change the model environment variable rather than rewriting application logic.
+Run heavy local models deliberately. The application is model-agnostic, so a model can be changed through environment configuration without rewriting the Content Engine.
+
+The goal is not to keep every model permanently loaded. The goal is reliable intelligence at acceptable memory and cost.
+
+## Security
+
+Keep service-role credentials in the local env file and server-side functions. Never expose them in the browser bundle.
