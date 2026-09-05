@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase } from './supabase';
 
-const RECOVERY_URL = 'https://cornerstonegroupdatabase-bfc2v3f4m-100492107s-projects.vercel.app/';
+const RECOVERY_URL = 'https://cornerstonegroupdatabase.vercel.app/';
 const actions = [
   { title: 'Revenue Recovery', desc: 'Find where revenue is disappearing between enquiry and decision, then move the next recoverable opportunity.', href: RECOVERY_URL, external: true, tag: 'Cash engine' },
   { title: 'Content Engine', desc: 'Find proven attention, analyse the mechanism, build the stronger original, multiply into Shorts and publish.', href: '/creative', external: false, tag: 'Asset engine' },
