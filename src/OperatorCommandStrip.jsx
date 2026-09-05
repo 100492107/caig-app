@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "./supabase";
 
-const CRM_URL = "https://cornerstonegroupdatabase-bfc2v3f4m-100492107s-projects.vercel.app/";
+const CRM_URL = "https://cornerstonegroupdatabase.vercel.app/";
 
 function dayEnd(){const d=new Date();d.setHours(23,59,59,999);return d.toISOString();}
 function Stat({value,label,urgent,loading}){return <div className={`operator-stat${urgent?" is-urgent":""}${loading?" is-loading":""}`}><strong>{loading?"…":value}</strong><span>{label}</span></div>}

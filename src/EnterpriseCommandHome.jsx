@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { getTodaysVerse } from "./dailyScripture.js";
 
-const RECOVERY_URL = "https://cornerstonegroupdatabase-bfc2v3f4m-100492107s-projects.vercel.app/";
+const RECOVERY_URL = "https://cornerstonegroupdatabase.vercel.app/";
 const NEW_LIFE_URL = "https://new-life-game-alpha.vercel.app/start-v2.html";
 const PRESSURE = [
   ["Find the leak before creating more demand.", "Revenue Recovery is about money already entering a business and disappearing before the decision is finished.", "Open Track A and identify the next recoverable opportunity."],
