@@ -1,191 +1,187 @@
-# Cornerstone AI Group — Business Plan
-*Last updated: May 2026*
+# Cornerstone AI Enterprises — Business Plan
 
----
+## Current operating model
 
-## What We're Building
+Cornerstone AI Enterprises runs two commercial engines under one operating layer:
 
-A fully automated AI creator agency.
+- **Track A — Revenue Recovery:** recover revenue already entering a business but leaking when leads, enquiries, conversations, appointments, quotes or opportunities go cold, stale, unworked or fail to move.
+- **Track B — Content Intelligence & Production Engine:** discover content that already demonstrates demand, analyse why it works, build a materially original stronger version, multiply it into derivatives, publish, monetise, measure and repeat.
+- **New Life:** the separate personal execution layer that protects the operator's discipline, family, health, finances and long-term stewardship.
 
-We build, run, and monetise AI personas on subscription platforms (Fanvue, OnlyFans) and social media (Instagram, TikTok, Reddit, Telegram, X). Every part of the operation — content generation, image creation, scheduling, posting, and fan DMs — is handled by AI. No human creative labour after setup.
+Track A is the immediate cash engine. Track B is the compounding asset engine. They share operating discipline, not customer data or research assumptions.
 
-We then sell this as a managed service to clients: **we run their AI creator for them, they take revenue, we take a cut.**
+## Track A — Revenue Recovery
 
-This is not a SaaS tool. This is an agency with a proprietary AI engine that nobody else has.
+### Domain
+Track A is defined by the problem, not a customer vertical.
 
----
+Core chain:
+`Lead → Contact → Conversation → Appointment → Opportunity → Deal`
 
-## Why This Is a Big Opportunity
+Revenue can leak through missed enquiries, slow response, abandoned follow-up, unanswered messages, no-shows, old quotes, dormant opportunities, unclear ownership, failed handoffs and stalled conversations.
 
-The subscription creator economy (Fanvue, OnlyFans) generates billions annually. The bottleneck for most creators is not demand — it's consistent content production, posting cadence, and fan engagement. Most creators burn out or go inconsistent. Both destroy revenue.
+Potential markets include automotive, property, finance, insurance, recruitment, professional services, agencies, SaaS, education, healthcare, fitness, hospitality, trades and other lead-driven businesses.
 
-We solve that entirely. Our system:
+The vertical is context. The speciality stays **revenue leakage and missed opportunity recovery**.
 
-- Generates photorealistic, consistent images of a fixed AI persona using a LoRA-trained model
-- Writes platform-native captions, hooks, and CTAs in the persona's voice
-- Schedules and auto-posts across platforms
-- Handles fan DMs automatically in the persona's voice (coming)
-- Does all of this continuously, without a human in the loop
+### Commercial proposition
+The central question is:
 
-The result is a creator who never burns out, never goes dark, never posts something off-brand, and can run 24/7.
+> **Where is revenue entering the business, and where is it disappearing?**
 
----
+The initial offer is **Missed Opportunity Recovery**.
 
-## Current Status
+Commercial path:
+`Target account → Recovery conversation → Leakage diagnosis → Controlled test → Measured recovery → Repeat / recurring support`
 
-### Live and Working
-- **Cara Whitmore** — our first AI persona, live on Fanvue at £4.99/month
-- Full end-to-end post pipeline: generate → review → schedule → auto-publish
-- Photorealistic image generation via fal.ai (nano-banana-2 + Cara LoRA, 23 reference images)
-- Operator app at `app.cornerstoneaigroup.com` — content generation, review queue, scheduling, image management
-- Gemini 2.5 Flash for caption/copy generation — persona voice, platform-specific, variety-controlled
-- Supabase backend: auth, content queue, image storage, weekly email digest
-- Cron auto-publish: scheduled posts go live at the right time without human action
-- Multi-platform content generation: Instagram, TikTok, Reddit, Telegram, X, Fanvue page — all with platform-specific tone and content rules
-- AI DM configuration written and ready to paste into Fanvue's native AI messages system (`personas/cara/ai-dms.md`)
+The customer is not buying AI as an abstract product. AI is the mechanism used to find leakage, prioritise recoverable opportunities and help restart the right conversations while humans retain control of the actual sale.
 
-### In Progress
-- AI DMs via Fanvue's native system — config is written, needs activating
-- Custom AI DM endpoint (Gemini reads inbox, responds in Cara's voice) — next build sprint
+### Outreach rule
+Cold outreach exists to earn a reply. Start with the prospect's problem, not the founder biography, technology or feature list.
 
-### Not Started Yet
-- Platform API integrations (Instagram, TikTok, Reddit, Telegram, X)
-- Client-facing dashboard (separate login, their persona, their stats)
-- Stripe billing and client onboarding flow
-- Second AI persona (proves the model is repeatable)
+The message should speak to the real possibilities: missed enquiries, ageing leads, no-shows, unanswered replies, old quotes and stalled opportunities. Do not invent a customer's numbers or claim an audit result that has not been established.
 
----
+### Diagnostic
+The recovery diagnosis establishes where leads enter, how they are assigned, what happens after first contact, how long follow-up continues, what happens to no-shows and old quotes, whether dormant opportunities are visible, who owns reactivation and which stage appears most recoverable.
 
-## The Product (What We Sell)
+The four blanks remain mandatory before commercial scope:
+1. economic bucket;
+2. KPI;
+3. current baseline;
+4. directional improvement for the test.
 
-This is not a tool. This is a full creative operation running on autopilot — custom-trained on the persona's face, writing in their voice, posting on cadence, handling DMs. Nothing else on the market does all of this. Price accordingly.
+### AI-assisted recovery
+AI can classify pipeline states, detect stale records, prioritise likely recoverable opportunities, identify missing follow-up, suggest context-specific recovery angles, personalise verified messages and summarise reasons for loss.
 
-### Tier 1 — Starter: Single Platform
-**£3,000/month**
+Humans remain responsible for commercial judgement, commitments and the actual sale.
 
-For creators who want to start with Fanvue only and prove the model before expanding.
-- Custom persona design (name, backstory, voice, visual identity)
-- LoRA training on fal.ai (photorealistic, consistent face/body)
-- Fanvue page setup and content pipeline
-- 7 posts/week on Fanvue
-- AI DM handling (welcome, re-engagement, PPV follow-up)
-- Monthly performance report
+### Proof and expansion
+A controlled paid test proves whether leakage is real, whether opportunities can be recovered and whether the work is valuable enough to repeat. Recurring services are earned by evidence and healthy delivery economics.
 
-**One-time setup fee: £1,500** (covers LoRA training, persona build, platform setup)
+## Track B — Content Intelligence & Production Engine
 
-### Tier 2 — Growth: Multi-Platform
-**£5,000/month**
+### Domain
+Track B is an owned-media/content factory. It is not a client-acquisition-dependent service and is not permanently locked to one niche.
 
-For creators ready to run a full top-of-funnel alongside their subscription page.
-- Everything in Tier 1
-- 2–3 additional social platforms (Instagram, TikTok, Reddit, X, Telegram — client chooses)
-- Platform-native content strategy per channel (different tone, format, cadence per platform)
-- Trend research integrated into every batch
-- Priority support and faster turnaround on content reviews
+The niche/channel is selected at job time from evidence. Candidate territories include gaming, history, chatting/stories, documentary, business/money, technology, lifestyle and other niches with demonstrated demand.
 
-**One-time setup fee: £2,500**
+### Core loop
+`Discover → Analyse → Build → Multiply → Publish → Monetise → Measure → Repeat`
 
-### Tier 3 — Full Autopilot: Complete Operation
-**£8,000–12,000/month**
+### Discover
+Find videos, channels, posts, stories and formats that already demonstrate attention. Evaluate repeated performance, audience promise, emotional mechanism, repeatability, originality potential, production feasibility, derivative potential and monetisation fit. Prefer repeated evidence over isolated viral outliers.
 
-For serious operators who want the full machine running with no manual involvement.
-- Everything in Tier 2
-- All available platforms running simultaneously
-- Daily auto-generation and auto-post (zero operator input required)
-- Full AI DM automation — inbox handled end-to-end
-- PPV strategy and pricing recommendations
-- Dedicated account management
-- Weekly performance call
-- Custom content directions and persona evolution over time
+### Analyse
+Reference content is a teacher, not a template. Analyse topic appeal, title/thumbnail promise, opening, narrative structure, pacing, curiosity loops, emotional triggers, reveals, payoff, visual grammar, weaknesses and upgrade opportunities.
 
-**One-time setup fee: £3,500**
+### Source ingestion
+A ready-made source video can enter the engine directly:
+`Source → private storage → media probe → audio/transcript → representative frames → Qwen Vision → Qwen narrative analysis → unified source evidence`
 
-**Revenue model:** retainer-only. Predictable MRR, no rev share complexity, 90%+ margin at scale.
+The source remains separate from derived work and keeps lineage back to the originating job.
 
-### Rev Share Option (selective)
-**£1,000/month base + 25% of Fanvue net revenue**
+### Build
+The engine produces a materially original stronger version. It may improve the angle, opening, narrative clarity, pacing, evidence, visual storytelling, title/thumbnail promise or payoff. It does not simply paraphrase the source.
 
-Available for high-potential personas where we have conviction in the upside. Lower barrier, higher ceiling for us. Offered at our discretion — not the default.
+### Long-form
+Long-form is first class. A package includes topic, angle, audience promise, narrative architecture, hook, spoken script, chapters, title options, thumbnail concepts, visual timeline, originality constraints, production notes, SEO/upload package and derivative plan.
 
-### White Label / Licence (future)
-Once the engine is proven and documented, licence the operator app + system to other agencies running their own creator rosters. SaaS pricing TBD — likely £2,000–5,000/month per agency seat.
+Title, thumbnail and opening are treated as one promise system.
 
----
+### Multiply
+A long-form asset generates deliberate standalone Shorts and other derivatives. Each short gets an intentional hook, enough context, platform-appropriate pacing, captions, metadata and clear source lineage. Random timestamp cutting is not the default.
 
-## How We Get Clients
+Reverse path:
+`Proven Short → Expanded story → Long-form opportunity`
 
-**Target:** existing creators who are inconsistent, burned out, or doing everything manually. Also managers and agencies who handle multiple creators.
+### Publish
+Publishing is part of the production system. The final package contains the assets and metadata required for authorised publication workflows. Platform-evasion automation is not part of Cornerstone.
 
-**Channels (in order of priority):**
-1. Direct outreach — Reddit communities (r/FanvueCreators, r/onlyfansadvice), Twitter/X creator community, Telegram groups
-2. Referrals from first clients once results are visible
-3. Case study content — show Cara's growth (without revealing she's AI) as social proof
-4. Creator agency partnerships — they bring clients, we power the backend
+### Monetisation
+Potential routes include YouTube advertising where eligible, affiliate commissions, TikTok Shop where available, Fanvue for appropriate owned creator assets, sponsorships, subscriptions, products, digital products and licensing. The route is tested against real audience behaviour.
 
-**The pitch:** "Your creator never burns out. Never goes dark. Always posting, always in voice, always converting."
+### Cara and Lila
+Cara and Lila are owned creator assets inside Track B. Their character and visual bibles remain hard constraints when selected. They are useful owned distribution experiments and can participate in affiliate, social-commerce and appropriate subscription monetisation within platform rules and disclosures. They do not define the whole Track B niche.
 
----
+### No client dependency
+Client content production is a future expansion option, not the proof requirement. Track B can begin with public demand, owned channels and the production engine itself.
 
-## Economics
+## Shared intelligence system
 
-### Our Costs (per persona, per month)
-| Item | Cost |
-|---|---|
-| fal.ai image generation (est. 200 images/month) | ~£40–80 |
-| Gemini API (caption generation) | ~£10–20 |
-| Supabase (shared across personas) | £0–25 |
-| Vercel (shared) | £0–20 |
-| **Total per persona** | **~£50–125/month** |
+Local Qwen is the intelligence layer. Rendering providers are replaceable implementation layers.
 
-### Revenue per client
-| Tier | Retainer | Est. margin |
-|---|---|---|
-| Tier 1 — Starter | £3,000/month | ~£2,875/month (95%+) |
-| Tier 2 — Growth | £5,000/month | ~£4,800/month (96%+) |
-| Tier 3 — Autopilot | £8,000–12,000/month | ~£7,800–11,800/month (97%+) |
+Qwen should decide what matters, what evidence exists, what mechanism is present, what should be built and what should be rejected. This protects portability, cost control and learning speed.
 
-**At 5 clients (mixed tiers, avg £5k):** £25,000 MRR, ~£24,000 gross profit
-**At 10 clients:** £50,000 MRR — with no meaningful increase in infrastructure cost
+## Evidence hierarchy
 
-This is an extremely high-margin business. The heavy lifting is in setup (LoRA training, persona build). Once a persona is live, the ongoing cost is almost nothing.
+1. **Owned evidence:** our real account/customer outcomes.
+2. **Current public evidence:** what the current public signal layer shows.
+3. **Reference evidence:** what a specific source asset contains or achieved.
+4. **Inference:** a model hypothesis about why the evidence exists.
 
----
+These categories must never be presented as interchangeable.
 
-## Immediate Next Steps
+## Why the model can work
 
-### Sprint 1 (Now)
-1. **Activate AI DMs on Cara's Fanvue** — paste `ai-dms.md` config into Fanvue dashboard. This directly drives subscriber conversion and retention.
-2. **Build custom AI DM endpoint** — Gemini reads Fanvue inbox, generates Cara-voice replies, operator reviews before send (or auto-sends). Full automation of the highest-value fan touchpoint.
-3. **Autopilot cron** — extend `cron-publish.js` to also auto-generate content daily. Remove the manual generation step entirely. True hands-off operation.
+Track A is tied to a visible commercial problem with a direct economic consequence. A business has already spent money or effort creating opportunities; the question is what percentage is being lost before the sale.
 
-### Sprint 2
-4. **Grow Cara's subscriber base** — run the posting engine consistently, test Reddit and X for discovery, track what converts.
-5. **Document the Cara build process** — so we can repeat it in 1–2 weeks for a second persona.
-6. **Close first paying client** — one client at £1,500/month validates the model and funds further build.
+Track B begins with demonstrated demand rather than an invented content calendar. Once one concept works, the same underlying learning can generate long-form, short-form, future topics and new experiments. The system therefore creates a compounding library of content intelligence and owned assets.
 
-### Sprint 3
-7. **Second persona live** — proves repeatability, becomes the case study for the pitch deck.
-8. **Client dashboard** — separate Supabase auth scope, persona-specific view, read-only stats and queue visibility.
-9. **Stripe onboarding** — automated billing, contract, persona brief intake form.
+The engines reinforce each other without depending on one another: Track A can fund the operator while Track B compounds owned media.
 
----
+## Validation gates
 
-## Risks and How We Handle Them
+### Track A
+Attention → diagnosis → paid test → measured recovery → repeat → healthy margin.
 
-| Risk | Mitigation |
-|---|---|
-| Fanvue bans AI personas | Terms allow AI-assisted content; persona is presented as a real creator. Monitor policy. Diversify to OnlyFans early. |
-| fal.ai blocks content | Already navigated — cinematic framing, no explicit prompts, `safety_tolerance: 6`. Ban list maintained. |
-| Image quality / face drift | nano-banana-2 + LoRA + 5 reference images locked on permanent storage. Identity lock prompt in every generation. |
-| Client churn | Retainer model with results-based case. Show subscriber growth + revenue data monthly. |
-| Competition copies us | Speed and proprietary LoRA training are the moat. First mover in the managed AI creator space matters. |
+### Track B
+Demand → original build → reliable production → audience response → monetisation → repeatability → healthy economics.
 
----
+## Kill rules
 
-## The Vision
+Weak Track A replies mean change the segment, problem framing or message before increasing volume.
 
-12 months: 10+ AI personas running autonomously across Fanvue and social platforms. £20–30k MRR from retainers. A reputation as the agency that makes AI creators that actually work.
+Strong replies but weak diagnosis mean improve discovery and evidence capture.
 
-24 months: white-label the engine. Other agencies pay us to power their creator roster. Platform becomes the product.
+Strong diagnosis but weak paid conversion means challenge the offer and proof.
 
-This is not a side project. The infrastructure is built. The first persona is live. The unit economics work. The only thing between here and scale is clients and distribution.
+Strong sales but weak recovery results mean fix delivery before scaling.
+
+Weak Track B attention means change topic, promise or format.
+
+Good reference analysis but weak output means improve reconstruction and production.
+
+High views without meaningful audience action do not automatically create a winner.
+
+One viral result is a test. Repeat performance creates an asset.
+
+## Current priorities
+
+1. Make Revenue Recovery fully multi-vertical in the external operating workspace.
+2. Make source-content ingestion reliable end to end.
+3. Strengthen long-form reconstruction and visual production.
+4. Make Shorts a deliberate derivative factory.
+5. Close the publish → measure → Creative DNA feedback loop.
+6. Test owned monetisation across appropriate channels and creator assets.
+
+## 30 / 60 / 90
+
+**Days 1–30:** prove universal Recovery outreach and diagnosis; establish at least one Track B channel/niche experiment; ingest real references; produce original long-form and derivatives; remove stale terminology.
+
+**Days 31–60:** identify the strongest Recovery problem/vertical combinations; standardise diagnosis; identify repeated content mechanisms; improve production and publishing reliability; measure audience action.
+
+**Days 61–90:** scale the best Recovery combinations and test recurring support; scale Track B winning formats into more episodes/channels; increase monetisation experiments only where evidence supports it.
+
+## Non-negotiables
+
+Build less. Sell better. Publish deliberately. Measure reality.
+
+No invented evidence. No vertical lock on Track A. No permanent niche lock on Track B. No copied source execution. No architecture for architecture's sake. No engineering work that exists only to avoid the next commercial action.
+
+## Strategic conclusion
+
+**Track A owns the problem: revenue leakage.**
+
+**Track B owns the loop: discover proven demand, understand it, build better, multiply, publish, monetise, measure and repeat.**
+
+That is the new Cornerstone operating model.
