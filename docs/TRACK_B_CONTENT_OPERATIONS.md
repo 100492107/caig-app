@@ -1,18 +1,15 @@
-# Track B — Content Operations & File Organisation
+# Track B — Content Engine File & Asset Operations
+*Current operating standard · September 2026*
 
 ## Purpose
 
-Keep Cornerstone AI Assets organised around three live creator assets:
+The app is the production system. The computer is the durable working archive.
 
-1. Cara
-2. Lila
-3. Cara + Lila
+Track B handles source material, research evidence, derived production, publishing and measurement across any selected niche/channel. Cara, Lila and other owned identities are applications of the same system.
 
-The app is the production system. The computer is the asset archive.
+## Master folder
 
-## Master computer folder
-
-Use one root folder:
+Use one root:
 
 `~/CornerstoneAIAssets/`
 
@@ -21,140 +18,162 @@ Recommended structure:
 ```text
 CornerstoneAIAssets/
 ├── 00_INBOX/
-├── 01_CARA/
-│   ├── 01_REFERENCE/
-│   ├── 02_IMAGES/
-│   │   ├── SOCIAL/
-│   │   ├── CAROUSELS/
-│   │   └── FANVUE/
-│   ├── 03_VIDEOS/
-│   │   ├── SIMPLE_REELS/
-│   │   ├── ADVANCED_REELS/
-│   │   └── CAPTIONED/
-│   ├── 04_CAPTIONS/
-│   ├── 05_PUBLISHED/
-│   └── 06_ARCHIVE/
-├── 02_LILA/
-│   ├── 01_REFERENCE/
-│   ├── 02_IMAGES/
-│   │   ├── SOCIAL/
-│   │   ├── CAROUSELS/
-│   │   └── FANVUE/
-│   ├── 03_VIDEOS/
-│   │   ├── SIMPLE_REELS/
-│   │   ├── ADVANCED_REELS/
-│   │   └── CAPTIONED/
-│   ├── 04_CAPTIONS/
-│   ├── 05_PUBLISHED/
-│   └── 06_ARCHIVE/
-├── 03_CARA_LILA/
-│   ├── 01_REFERENCE/
-│   ├── 02_IMAGES/
-│   │   ├── SOCIAL/
-│   │   ├── CAROUSELS/
-│   │   └── FANVUE/
-│   ├── 03_VIDEOS/
-│   │   ├── SIMPLE_REELS/
-│   │   ├── ADVANCED_REELS/
-│   │   └── CAPTIONED/
-│   ├── 04_CAPTIONS/
-│   ├── 05_PUBLISHED/
-│   └── 06_ARCHIVE/
-├── 04_BRAND_ASSETS/
-│   ├── LOGO/
-│   ├── FAVICON/
+├── 01_SOURCE_MEDIA/
+│   ├── VIDEO/
+│   ├── AUDIO/
+│   ├── TEXT/
+│   └── REFERENCES/
+├── 02_RESEARCH/
+│   ├── OPPORTUNITIES/
+│   ├── SOURCE_ANALYSIS/
+│   ├── FORMAT_DNA/
+│   └── CREATIVE_DNA/
+├── 03_CHANNELS/
+│   ├── CHANNEL_01/
+│   │   ├── 01_BRIEFS/
+│   │   ├── 02_LONG_FORM/
+│   │   ├── 03_SHORTS/
+│   │   ├── 04_THUMBNAILS/
+│   │   ├── 05_PUBLISHED/
+│   │   └── 06_ARCHIVE/
+│   └── ...
+├── 04_CREATORS/
+│   ├── 01_CARA/
+│   ├── 02_LILA/
+│   └── 03_CARA_LILA/
+├── 05_SHARED_ASSETS/
+│   ├── LOGOS/
 │   ├── TEMPLATES/
-│   └── EXPORT_PRESETS/
-├── 05_CONTENT_PLANS/
+│   ├── EXPORT_PRESETS/
+│   └── AUDIO/
 ├── 06_ANALYTICS/
-└── 99_OLD_TO_SORT/
+├── 07_MONETISATION/
+└── 99_ARCHIVE/
 ```
 
-## File naming
+## Source rule
 
-Use predictable names. Example:
+Original/source material is never overwritten by a derived output.
 
-`2026-08-18_cara_social_pool_01.png`
+A reference video remains a reference video. A source image remains a source image. A transcript is derived evidence, not the replacement for the original source.
 
-`2026-08-18_cara_simple-reel_pool_01.mp4`
+Every derived project should preserve a source ID or lineage reference.
 
-`2026-08-18_lila_fanvue_photo-set_01.png`
+## Ingestion rule
 
-`2026-08-18_duo_carousel_travel_01_slide-01.png`
+For a source video:
 
-`2026-08-18_duo_carousel_travel_01_caption.txt`
+`00_INBOX → SOURCE_MEDIA → ingestion → transcript + frames + metadata → analysis → brief`
 
-## Download rule
+Temporary processing files do not become permanent archive clutter.
 
-Every generated asset gets saved into the creator's folder by creator + content type.
+## Naming standard
 
-Never let reels replace images.
+Use predictable names with date, channel or creator, project and asset type.
 
-Never leave final deliverables in Downloads indefinitely.
+Examples:
 
-Recommended flow:
+`2026-09-05_channel01_reference_company-story_01.mp4`
 
-`Downloads/` → `00_INBOX/` → creator folder → final asset folder.
+`2026-09-05_channel01_longform_company-story_v1.mp4`
 
-## What belongs in 00_INBOX
+`2026-09-05_channel01_short_company-story_hook-03_v1.mp4`
 
-Only newly downloaded files that have not yet been classified.
+`2026-09-05_cara_social_morning-01.png`
 
-This is a temporary folder, not an archive.
+## Long-form package
 
-## What belongs in 99_OLD_TO_SORT
-
-Existing files from the current Mac that are clearly Cornerstone AI Assets material but whose creator/content type is not yet identified.
-
-Do not delete these blindly. Sort them once and then remove the folder.
-
-## Reference rule
-
-Reference images are source-of-truth assets.
-
-Do not mix reference images with generated social imagery.
-
-Do not overwrite a reference image with a new generation.
-
-## Final asset rule
-
-A final approved post may have multiple files:
-
-- source image
-- on-image caption version
-- social caption text
-- simple reel
-- advanced reel
-- captioned final reel
-
-Keep these together by date/content ID when practical.
-
-## Suggested per-content package
+A completed long-form project should keep together:
 
 ```text
-2026-08-18_cara_pool_01/
-├── source-image.png
-├── social-image-captioned.png
+project-id/
+├── source-notes.md
+├── source-analysis.json
+├── research.json
+├── brief.json
+├── script.md
+├── chapters.md
+├── title-options.txt
+├── thumbnail-concepts.md
+├── visual-timeline.json
+├── final.mp4
+├── thumbnail.png
+├── captions.vtt
+├── shorts/
+└── upload-package.md
+```
+
+## Short-form package
+
+Each derivative should retain its parent long-form ID.
+
+```text
+short-id/
+├── source-window.json
+├── hook.txt
+├── title.txt
 ├── caption.txt
-├── simple-reel.mp4
-└── captioned-reel.mp4
+├── video.mp4
+└── parent-link.txt
 ```
 
-For carousels:
+## Creator package
+
+For Cara, Lila and the duo, keep character references separate from generated content.
 
 ```text
-2026-08-18_lila_carousel_morning_01/
-├── slide-01.png
-├── slide-02.png
-├── slide-03.png
-├── slide-04.png
-├── slide-05.png
-├── post-caption.txt
-└── upload-notes.txt
+creators/01_CARA/
+├── CHARACTER_BIBLE/
+├── REFERENCES/
+├── SOCIAL/
+├── FANVUE/
+├── SHOP_AFFILIATE/
+├── PUBLISHED/
+└── ARCHIVE/
 ```
 
-## Cleanup principle
+The same pattern applies to Lila and Cara + Lila.
 
-The computer should contain source-of-truth references, approved content and active working files — not every failed generation.
+## Publishing rule
 
-Failed tests, duplicates, temporary downloads and obsolete renders should be removed or moved to archive after review.
+Final outputs are stored before publishing. Published versions are copied or linked into the PUBLISHED area with publication date and platform information.
+
+Do not leave the only copy of a finished asset in Downloads or a browser session.
+
+## Analytics rule
+
+Analytics records should identify:
+
+- channel;
+- content ID;
+- niche;
+- format;
+- publication date;
+- relevant audience signal;
+- monetisation route;
+- observed result;
+- production time/cost.
+
+Do not label a format as a winner without observed evidence.
+
+## Archive rule
+
+Archive:
+
+- failed generations;
+- superseded renders;
+- duplicate downloads;
+- obsolete exports;
+- experiments that are complete.
+
+Do not delete source-of-truth references merely because a derived asset is complete.
+
+## Operating principle
+
+The filesystem should answer three questions quickly:
+
+1. What was the source?
+2. What did we make from it?
+3. What happened after publication?
+
+The app should answer the same questions at job and asset level.
