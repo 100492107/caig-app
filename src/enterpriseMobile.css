@@ -1,0 +1,291 @@
+/* Cornerstone enterprise / Track A / CEO — phone-first */
+html, body, #root {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+}
+body {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+input, textarea, select { font-size: 16px !important; }
+button, a, [role="button"] { touch-action: manipulation; }
+
+/* —— Enterprise Command Home —— */
+@media (max-width: 900px) {
+  .command-home-v11 {
+    padding: 12px 14px calc(28px + env(safe-area-inset-bottom)) !important;
+  }
+  .command-home-v11 .ch-head {
+    flex-wrap: wrap;
+    gap: 10px !important;
+    min-height: auto !important;
+    padding-bottom: 12px;
+  }
+  .command-home-v11 .ch-brand strong {
+    font-size: 12px !important;
+  }
+  .command-home-v11 .ch-nav {
+    display: flex !important;
+    width: 100%;
+    order: 3;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    gap: 4px !important;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+  }
+  .command-home-v11 .ch-nav::-webkit-scrollbar { display: none; }
+  .command-home-v11 .ch-nav a {
+    flex: 0 0 auto;
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 12px !important;
+    font-size: 11px !important;
+    white-space: nowrap;
+    background: var(--surface);
+  }
+  .command-home-v11 .ch-online {
+    margin-left: auto;
+  }
+  .command-home-v11 .ch-hero {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+    margin-top: 16px !important;
+  }
+  .command-home-v11 .ch-main {
+    min-height: auto !important;
+    padding: 22px 18px !important;
+  }
+  .command-home-v11 .ch-title {
+    max-width: none !important;
+    font-size: clamp(32px, 9vw, 48px) !important;
+  }
+  .command-home-v11 .ch-copy {
+    font-size: 14px !important;
+  }
+  .command-home-v11 .ch-bottom {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 14px !important;
+    margin-top: 24px !important;
+  }
+  .command-home-v11 .ch-button {
+    width: 100%;
+    justify-content: center;
+    min-height: 48px;
+    box-sizing: border-box;
+  }
+  .command-home-v11 .ch-side {
+    padding: 18px !important;
+    min-height: auto !important;
+  }
+  .command-home-v11 .ch-side h2 {
+    font-size: 24px !important;
+  }
+  .command-home-v11 .ch-engines {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+  .command-home-v11 .ce-engine {
+    min-height: auto !important;
+    padding: 18px !important;
+  }
+  .command-home-v11 .ce-engine h2 {
+    margin-top: 18px !important;
+    font-size: 24px !important;
+  }
+  .command-home-v11 .ch-footer {
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+}
+
+@media (max-width: 650px) {
+  .command-home-v11 .ch-title {
+    font-size: clamp(30px, 10vw, 42px) !important;
+  }
+}
+
+/* —— Operator strip (if used on enterprise surfaces) —— */
+@media (max-width: 900px) {
+  .operator-strip {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+  .operator-stats {
+    grid-template-columns: 1fr 1fr 1fr !important;
+  }
+  .operator-command h2 {
+    font-size: 18px !important;
+  }
+  .operator-cta {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+  .operator-head {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  .operator-cta {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* —— Track A Outreach —— */
+.ta-outreach {
+  min-height: 100dvh;
+  background: #0b0d12;
+  color: #f3f4f7;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  padding: 28px 20px calc(40px + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+.ta-outreach-inner {
+  max-width: 1180px;
+  margin: 0 auto;
+  width: 100%;
+}
+.ta-outreach-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 22px;
+}
+.ta-outreach-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+.ta-outreach-grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-top: 12px;
+}
+.ta-outreach-actions {
+  display: flex;
+  gap: 9px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+.ta-outreach-actions button {
+  min-height: 48px;
+}
+@media (max-width: 900px) {
+  .ta-outreach {
+    padding: 16px 14px calc(32px + env(safe-area-inset-bottom));
+  }
+  .ta-outreach-head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .ta-outreach h1 {
+    font-size: clamp(26px, 8vw, 36px) !important;
+    line-height: 1.05 !important;
+  }
+  .ta-outreach-grid-2,
+  .ta-outreach-grid-4 {
+    grid-template-columns: 1fr !important;
+  }
+  .ta-outreach-actions {
+    flex-direction: column;
+  }
+  .ta-outreach-actions button {
+    width: 100%;
+  }
+  .ta-outreach pre {
+    font-size: 14px !important;
+    overflow-wrap: anywhere;
+  }
+}
+
+/* —— CEO OS —— */
+@media (max-width: 900px) {
+  .ceo-page .ceo-header-inner {
+    padding: 12px 14px !important;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .ceo-page .ceo-shell {
+    padding: 20px 14px calc(40px + env(safe-area-inset-bottom)) !important;
+  }
+  .ceo-page .ceo-hero {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+  .ceo-page .ceo-metrics {
+    grid-template-columns: 1fr 1fr !important;
+  }
+  .ceo-page .ceo-actions {
+    grid-template-columns: 1fr !important;
+  }
+  .ceo-page .ceo-next {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  .ceo-page .ceo-next a {
+    width: 100%;
+    text-align: center;
+    min-height: 48px;
+    box-sizing: border-box;
+  }
+  .ceo-page .ceo-footer {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+  .ceo-page h1 {
+    font-size: clamp(32px, 9vw, 48px) !important;
+  }
+}
+
+/* Track B extras */
+@media (max-width: 900px) {
+  .tb-app {
+    overflow-x: hidden !important;
+  }
+  .tb-content {
+    padding: 12px 12px calc(96px + env(safe-area-inset-bottom)) !important;
+  }
+  .tb-primary,
+  .tb-secondary {
+    min-height: 48px !important;
+  }
+  .staged-grid-2,
+  .staged-grid-3,
+  .staged-status-grid,
+  .cw-choice-grid,
+  .cw-write-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .staged-actions,
+  .cw-actions {
+    flex-direction: column !important;
+  }
+  .staged-actions .tb-primary,
+  .staged-actions .tb-secondary,
+  .cw-actions button {
+    width: 100% !important;
+  }
+  .staged-field input,
+  .staged-field select,
+  .staged-field textarea {
+    min-height: 48px !important;
+    font-size: 16px !important;
+  }
+  .staged-title {
+    font-size: clamp(26px, 7vw, 36px) !important;
+  }
+  .stage-surface-head {
+    display: block !important;
+  }
+}
