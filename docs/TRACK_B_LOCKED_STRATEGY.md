@@ -1,80 +1,146 @@
-# Track B — Locked Strategy
+# Track B — Content Engine Operating Strategy
+*Current strategy · September 2026*
 
 ## Purpose
 
-CornerstoneAIAssets builds and operates AI creator businesses.
+Track B is the **Content Intelligence & Production Engine** inside Cornerstone AI Enterprises.
 
-The first three creator assets are:
+Its job is to find proven audience demand, understand the mechanism behind successful content, create materially original stronger content, multiply it into derivatives, publish, monetise, measure and repeat.
 
-1. Cara
-2. Lila
-3. Cara + Lila shared social account
+Core loop:
 
-The app is the internal production system behind those creators.
+`Discover → Analyse → Build → Multiply → Publish → Monetise → Measure → Repeat`
 
-## Track separation
+## Track B is not one niche
 
-Track A is Cornerstone AI Group: automotive/dealership work.
+The engine has no permanent subject-matter lock.
 
-Track B is CornerstoneAIAssets: creator businesses and creator-production infrastructure.
+The operator selects a working niche/channel from evidence. Possible territories include gaming, history, chatting/stories, documentary, business/money, technology, lifestyle and other categories with clear demand.
 
-Never mix the two in creative generation.
+The niche is an operating parameter. The production system remains stable.
 
-## Creator model
+## Source-first model
 
-The goal is not one realistic AI face.
+The preferred starting point is not a blank content calendar.
 
-The goal is a reusable creator with:
+A job can begin with:
 
-- consistent identity
-- consistent visual character
-- distinct personality
-- distinct voice
-- believable lifestyle world
-- varied emotional states
-- recurring human texture
-- coherent content history
+- a successful YouTube video;
+- a successful Short;
+- a reference channel;
+- a social post;
+- a trend signal;
+- one of our own winners;
+- an original topic selected after evidence review.
 
-## Content engines
+The source is analysed before substantial production spend.
 
-### Cara
+## Reference-content rule
 
-Direct, dry, disciplined, British. Natural worlds include mindset, money, fitness, faith, standards, lifestyle, humour and ordinary life.
+Reference material is a teacher, not a template.
 
-### Lila
+The engine may learn the audience promise, emotional trigger, story shape, pacing, title/thumbnail relationship, visual function and production lessons.
 
-Warm, measured, observant, understated. Natural worlds include lifestyle, travel, beauty, wellness, fashion, Mediterranean living, quiet ambition and small observations.
+It must not copy exact wording, narration, creator identity, branding, proprietary footage, music, protected characters, distinctive thumbnail artwork or near-identical execution.
 
-### Cara + Lila
+The output must be materially original and independently useful.
 
-Shared account built around chemistry, contrast, friendship, travel, fun, routines and shared experiences. They remain two distinct personalities.
+## Discover
 
-## Production loop
+Find repeated evidence of attention.
 
-Choose creator → choose Social / Carousel / Fanvue → optional brief → Qwen creative direction → human quality gate → review → generate image → keep original → download / Simple Reel / Advanced Reel → captions → publish → measure → learn.
+Rank opportunities using demand evidence, mechanism clarity, repeatability, originality room, production feasibility, derivative potential and monetisation fit.
 
-## AI responsibilities
+A single viral outlier is a signal to investigate, not proof of a business model.
 
-Qwen is the creative director and production-brain layer.
+## Analyse
 
-The character bibles are the source of truth.
+Analyse the source for:
 
-Image models render approved ideas.
+- topic appeal;
+- audience promise;
+- opening/hook;
+- title/thumbnail promise;
+- narrative architecture;
+- pacing;
+- curiosity loops;
+- emotional triggers;
+- visual storytelling;
+- proof and payoff;
+- weaknesses;
+- derivative moments;
+- production complexity.
 
-Video models add motion.
+Return a mechanism map and an originality plan.
 
-Whisper/FFmpeg provide finishing and dynamic captions.
+## Build
 
-## Quality principle
+Build a stronger original by deliberately improving the angle, opening, narrative clarity, evidence, pacing, visual storytelling, packaging or payoff where the evidence supports the change.
 
-Never optimise for output volume at the expense of believability.
+Do not simply rewrite the source.
 
-A smaller number of coherent, human-feeling posts is better than a large amount of generic AI content.
+## Long-form
 
-## Revenue principle
+Long-form is first class.
 
-The creator accounts exist to generate revenue through audience growth and monetisation. Engineering work must directly improve creator output, publishing, retention or revenue.
+A long-form package contains topic, angle, audience promise, hook, spoken script, chapters, ranked titles, thumbnail concepts, visual timeline, originality constraints, production notes, SEO and a derivative plan.
 
-## Scope lock
+The main video is the parent asset.
 
-Do not add new creator platforms, client systems, model integrations or production layers unless they clearly support the creator revenue loop.
+## Multiply
+
+Turn the parent asset into ranked standalone Shorts and platform-native derivatives.
+
+Each derivative gets its own hook, context, source window, caption treatment, title/caption options, aspect ratio and parent lineage.
+
+The reverse path also exists:
+
+`Proven Short → Expanded story → Long-form candidate`
+
+## Publish
+
+Publishing is a formal stage with output, metadata, status and measurement records.
+
+Use authorised distribution routes. Do not build around platform-evasion automation.
+
+## Monetise
+
+Potential routes include YouTube advertising where eligible, affiliate commissions, TikTok Shop where available, Fanvue for appropriate owned creator assets, sponsorships, subscriptions, products, digital products and licensing.
+
+The audience determines the route. Monetisation is tested, not assumed.
+
+## Owned creator applications
+
+Cara, Lila and Cara + Lila are owned creator assets that run on top of the engine.
+
+Their identity bibles remain hard constraints when selected. They can be used for audience growth, affiliate/social-commerce tests and appropriate private monetisation.
+
+They do not define the Track B research domain.
+
+## Measurement
+
+Track audience response and production economics together.
+
+Useful signals include reach, CTR where available, retention, completion, shares, saves, comments, followers/subscribers, profile actions, clicks, orders, commission, subscriptions, revenue, production minutes, generation cost and rework.
+
+Views alone do not create a winner.
+
+## Creative DNA
+
+Every genuine owned winner creates a record of topic, hook, format, emotional trigger, visual mechanism, packaging, audience response and economics.
+
+Validated DNA is reproduced through controlled variations rather than identical clones.
+
+## Expansion rule
+
+Do not create additional channels, creators, products, client services or infrastructure simply because the system can technically do so.
+
+Scale after demand, audience response, monetisation and production economics support the move.
+
+## Success
+
+Track B succeeds when it can repeatedly:
+
+`Find winner → explain winner → build stronger original → publish → create derivatives → measure → monetise → feed learning back into the next winner.`
+
+More generated content is not the objective. Better evidence, stronger content, audience growth, monetisation and repeatability are.
