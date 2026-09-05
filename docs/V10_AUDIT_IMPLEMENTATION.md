@@ -1,36 +1,91 @@
-# V10 Audit Implementation Status
+# Current Architecture Audit — V11
+*September 2026*
 
-Updated 31 August 2026.
+## Purpose
 
-## Implemented in code
+V10 is retired as the strategic authority. This document records the current V11 architecture and the checks that keep the repository aligned with it.
 
-- Canonical CEO operator home at `/`.
-- Canonical `/creative` and `/outreach` runtime surfaces.
-- No new V2/V3/Unified feature authorities; legacy surfaces are explicitly non-canonical.
-- Vercel function configuration contains no deleted route declarations.
-- Five-minute publication scheduling moved out of Vercel Cron for Hobby-plan compatibility.
-- GitHub publisher workflow now requires `CRON_SECRET`, uses concurrency protection, retries network requests and has a hard timeout.
-- Publisher API validates configuration lazily and records bounded retries/failures.
-- Persistent research, quality-gate, Creative DNA and operating-event tables exist.
-- Strict owner-isolation migration added for Track B/research data.
-- Database-level quality gate prevents Track B production jobs entering `processing` or `completed` without an approved gate.
-- Production jobs now record cost tier, actual credits, provider and failure stage/code.
-- CEO API is authenticated and uses server-side service credentials when configured.
+## V11 architecture
 
-## Required external actions
+### Track A — Revenue Recovery
 
-These cannot be executed from the repository connector because they require private account/database credentials:
+Track A is defined by revenue leakage, not by automotive or any other single vertical.
 
-1. Run Supabase migrations through `20260831100000`, `20260831110000`, `20260831120000` and `20260831123000` in order.
-2. Confirm the single-operator ownership backfill succeeded. If the database has multiple auth users, assign NULL-owned rows explicitly before relying on client access.
-3. Ensure Vercel production has `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` and `MAKE_SCHEDULED_POST_WEBHOOK`.
-4. Ensure GitHub repository secrets contain `CRON_SECRET` matching Vercel.
-5. Rotate the Supabase service-role key or any other privileged credential if one was ever exposed outside server-only configuration. The anonymous Supabase key is not a secret; RLS is the security boundary.
+The canonical problem chain is:
+`Lead → Contact → Conversation → Appointment → Opportunity → Deal`
 
-## Verification targets
+A customer vertical is selected per account as context.
 
-The acceptance path is:
+Canonical research domain:
+`TRACK_A_REVENUE_RECOVERY`
 
-`login → CEO home → Track A/Track B objective → current research → decision → quality gate → generation → persistent source asset → derivative → caption → queue → publication → performance → Creative DNA`
+Canonical commercial path:
+`Target account → Recovery conversation → Leakage diagnosis → Controlled test → Measured recovery → Repeat / recurring support`
 
-Production should be considered fully hardened only after the external actions above are completed and the authenticated end-to-end path has been exercised once in the live environment.
+### Track B — Content Intelligence & Production Engine
+
+Track B is an owned-media/content factory.
+
+Canonical loop:
+`Discover → Analyse → Build → Multiply → Publish → Monetise → Measure → Repeat`
+
+The working niche is selected at job time. It is not permanently hardcoded to business/money, gaming, history or any other topic.
+
+Canonical research domain:
+`TRACK_B_CONTENT_ENGINE`
+
+Reference content is analysed for mechanism and improvement opportunities. The system must create materially original output and preserve source lineage.
+
+### New Life
+
+New Life remains the separate personal execution layer.
+
+## Canonical runtime surfaces
+
+- `/` — Enterprise command layer.
+- `/creative` — Track B Content Engine and persistent generation library.
+- `/outreach` — Track A Revenue Recovery outreach workspace.
+- `/ceo` — read-focused operator control room.
+- compatibility routes remain compatibility routes and must not become alternate strategic authorities.
+
+## Required behaviour
+
+### Track A
+
+- Active UI language says Revenue Recovery / missed opportunity recovery / revenue leakage.
+- No dealership-only assumptions in the product model.
+- Automotive remains a valid vertical, not the domain.
+- Outreach is prospect-first and problem-first.
+- No invented lead volumes, claims, testimonials or recovered-revenue figures.
+
+### Track B
+
+- Active UI language says Content Engine.
+- No client-delivery-first architecture.
+- No permanent YouTube niche lock.
+- Source video ingestion is first class.
+- Long-form and Short derivatives are first class.
+- Current public research and owned analytics remain separate evidence classes.
+- Cara/Lila identity context is downstream of the general engine.
+
+## Source and derived assets
+
+Reference/source media must remain separate from derived outputs. Every derivative should retain lineage to the parent job or source.
+
+## Intelligence
+
+Local Qwen remains the Cornerstone intelligence layer. External models may render media but do not become the source of truth for strategic reasoning or final scene QA.
+
+## Quality and security
+
+- Keep privileged credentials server-side.
+- Use authenticated access and RLS where configured.
+- Separate Track A business data from Track B creative data.
+- Reject generic AI filler and unsupported claims.
+- Do not use source material as permission to copy protected creative expression.
+
+## Acceptance path
+
+`Revenue Recovery or Content Engine → current evidence → decision → quality gate → production → persistent asset → publication → measurement → learning → next decision`
+
+The system is not judged complete because another screen, model or dashboard exists. It is complete enough when the operating loop reliably produces useful commercial or audience evidence.
