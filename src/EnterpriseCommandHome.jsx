@@ -1,16 +1,16 @@
 import React, { useMemo } from "react";
 import { getTodaysVerse } from "./dailyScripture.js";
 
-const RECOVERY_URL = "https://cornerstonegroupdatabase.vercel.app/";
+const RECOVERY_URL = "https://cornerstonegroupdatabase-bfc2v3f4m-100492107s-projects.vercel.app/";
 const NEW_LIFE_URL = "https://new-life-game-alpha.vercel.app/start-v2.html";
 const PRESSURE = [
-  ["Find the leak before creating more demand.", "Revenue Recovery is about money already entering a business and disappearing before the decision is finished.", "Open Track A and identify the next recoverable opportunity."],
-  ["Do not build from imagination when the market is already talking.", "Track B starts with what people are already choosing to watch.", "Find a winning reference, understand the mechanism, then build the stronger original."],
-  ["Cash and assets are different jobs.", "Recover today's missed revenue first. Build tomorrow's media asset second.", "Move the highest-probability cash action, then compound a content asset."],
-  ["A cold lead is not automatically a dead lead.", "The gap between interest and action is often where revenue disappears.", "Open the recovery pipeline and find the oldest live opportunity."],
-  ["Do not confuse more content with better content.", "One proven mechanism repeated intelligently can beat a queue of random ideas.", "Multiply the best evidence you already have."],
-  ["Make the system earn the next feature.", "A new tool matters only when it removes a proven sales, production or measurement bottleneck.", "Use the existing engine and record what blocks the next result."],
-  ["Work where the money is stuck.", "The fastest useful action is normally the one closest to a real commercial outcome.", "Do the next recovery, call, publication or monetisation test that has evidence behind it."],
+  ["Find the leak before creating more demand.", "Revenue Recovery is about money already entering a business and disappearing before the decision is finished.", "Open Revenue Recovery and identify the next recoverable opportunity."],
+  ["Do not build from imagination when the market is already talking.", "The Content Engine starts with what people are already choosing to watch.", "Find a strong reference, understand the mechanism, then build the stronger original."],
+  ["Cash and assets are different jobs.", "Recover today's missed revenue first. Build tomorrow's media asset second.", "Move the highest-probability recovery action, then compound a content asset."],
+  ["A cold lead is not automatically a dead lead.", "The gap between interest and action is often where revenue disappears.", "Open Revenue Recovery and find the oldest live opportunity."],
+  ["Do not confuse more content with better content.", "One proven mechanism repeated intelligently can beat a queue of random ideas.", "Open Content Engine and multiply the best evidence."],
+  ["Make the system earn the next feature.", "A new tool matters only when it removes a proven sales, production or measurement bottleneck.", "Use the current engine and record what blocks the next result."],
+  ["Work where the value is stuck.", "The fastest useful action is normally the one closest to a real commercial or audience outcome.", "Do the next recovery, publication or monetisation test backed by evidence."],
 ];
 function dayIndex(date = new Date()) { const start = new Date(date.getFullYear(), 0, 1); return Math.floor((date - start) / 86400000); }
 function phase(hour) { if (hour < 13) return ["CASH FIRST", "Recover value before building more."]; if (hour < 18) return ["BUILD SECOND", "Turn evidence into an asset."]; return ["FINISH CLEAN", "Leave the next action obvious."]; }
