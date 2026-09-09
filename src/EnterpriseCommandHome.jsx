@@ -1,1 +1,66 @@
-PLACEHOLDER
+import React, { useMemo } from "react";
+import { getTodaysVerse } from "./dailyScripture.js";
+
+const NEW_LIFE_URL = "https://new-life-game-alpha.vercel.app/start-v2.html";
+const PRESSURE = [
+  ["Find what is already winning.", "Do not invent demand. Start from a video or channel the market already chose.", "Paste a winning reference into the Content Engine and run Analyse."],
+  ["Mechanism first, then original.", "Copying packaging is not the job. Understanding why it works is the job.", "Open Analyse, then Build a stronger original package."],
+  ["One package beats ten ideas.", "A finished script, titles, hook and Shorts plan is progress. A longer backlog is not.", "Run Build, then save the approved package to Production."],
+  ["Shorts are derivatives, not the strategy.", "Multiply only after the long-form mechanism is clear.", "Open Multiply once the package is solid."],
+  ["Publish, then measure.", "Audience evidence beats opinion. Feed winners back into Discover.", "Ship one package and capture the result in Measure."],
+  ["Cara and Lila are applications.", "Use Creators when the face and voice matter. The engine still starts from evidence.", "Open Creators only when the package needs an owned persona."],
+  ["Keep the loop tight.", "Discover → Analyse → Build → Multiply → Publish → Monetise → Measure.", "Do the next unfinished stage on the current job."],
+];
+function dayIndex(date = new Date()) {
+  const start = new Date(date.getFullYear(), 0, 1);
+  return Math.floor((date - start) / 86400000);
+}
+function phase(hour) {
+  if (hour < 13) return ["BUILD FIRST", "Turn evidence into a package."];
+  if (hour < 18) return ["SHIP SECOND", "Produce, publish, capture."];
+  return ["FINISH CLEAN", "Leave the next action obvious."];
+}
+function Engine({ number, title, label, body, href, external, tone, action }) {
+  return (
+    <a className={`ce-engine ce-${tone}`} href={href} target={external ? "_blank" : undefined} rel={external ? "noreferrer" : undefined}>
+      <div className="ce-engine-top"><span>0{number}</span><b>{external ? "↗" : "→"}</b></div>
+      <div><h2>{title}</h2><small>{label}</small><p>{body}</p></div>
+      <div className="ce-engine-action">{action}<span>{external ? "↗" : "→"}</span></div>
+    </a>
+  );
+}
+export default function EnterpriseCommandHome() {
+  const now = new Date();
+  const [phaseLabel, phaseTitle] = phase(now.getHours());
+  const pressure = PRESSURE[dayIndex(now) % PRESSURE.length];
+  const verse = useMemo(() => getTodaysVerse(), []);
+  return (
+    <main className="command-home-v11">
+      <style>{`.command-home-v11{min-height:100svh;background:var(--bg);color:var(--text);font-family:var(--sans);padding:16px clamp(14px,2.5vw,42px) 44px}.ch-shell{width:100%}.ch-head{min-height:54px;display:flex;justify-content:space-between;align-items:center;gap:18px;border-bottom:1px solid var(--border)}.ch-brand{display:flex;gap:11px;align-items:center;color:inherit;text-decoration:none}.ch-mark{width:38px;height:38px;border-radius:11px;background:#ddd9cc;color:#141516;display:grid;place-items:center;font-weight:900}.ch-brand strong{display:block;font-size:14px;letter-spacing:-.02em}.ch-brand small{display:block;margin-top:2px;color:var(--text-subtle);font-size:8px;letter-spacing:.16em;text-transform:uppercase}.ch-nav{display:flex;gap:3px;align-items:center}.ch-nav a{color:var(--text-muted);text-decoration:none;font-size:10px;font-weight:800;padding:8px 10px;border-radius:9px}.ch-nav a:hover{background:var(--surface);color:var(--text)}.ch-nav b{font-size:11px}.ch-nav a:nth-child(1) b{color:var(--track-b)}.ch-nav a:nth-child(2) b{color:var(--new-life)}.ch-online{font-size:8px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-subtle);display:flex;align-items:center;gap:6px}.ch-online i{width:6px;height:6px;border-radius:50%;background:var(--success)}.ch-hero{margin-top:25px;display:grid;grid-template-columns:minmax(0,1.5fr) minmax(280px,.5fr);gap:14px}.ch-main,.ch-side{border:1px solid var(--border);background:var(--surface);border-radius:18px}.ch-main{min-height:410px;padding:clamp(26px,4vw,56px);display:flex;flex-direction:column;justify-content:space-between}.ch-kicker{font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--text-subtle);font-weight:850}.ch-title{margin:15px 0 0;max-width:18ch;font-size:clamp(44px,6vw,84px);line-height:.92;letter-spacing:-.07em;font-weight:900}.ch-copy{max-width:66ch;margin:19px 0 0;color:#c6c8c4;font-size:15px;line-height:1.55}.ch-bottom{display:flex;justify-content:space-between;align-items:end;gap:24px;margin-top:35px}.ch-pressure strong{display:block;color:var(--text);font-size:13px}.ch-pressure span{display:block;margin-top:5px;color:var(--text-muted);font-size:10px;line-height:1.45}.ch-button{display:inline-flex;align-items:center;gap:10px;background:#ddd9cc;color:#151617;text-decoration:none;border-radius:10px;padding:13px 16px;font-size:10px;font-weight:880;white-space:nowrap}.ch-side{padding:24px;display:flex;flex-direction:column;justify-content:space-between}.ch-side h2{margin:9px 0 0;font-size:28px;line-height:1;letter-spacing:-.05em}.ch-side .standard{margin-top:30px;padding-top:17px;border-top:1px solid var(--border)}.ch-side .standard strong{display:block;color:var(--text);font-size:16px}.ch-side .standard small{display:block;margin-top:6px;color:var(--text-muted);font-size:10px;line-height:1.45}.ch-verse{padding-top:17px;border-top:1px solid var(--border)}.ch-verse-ref{font-size:9px;color:var(--track-b);font-weight:850}.ch-verse-text{margin-top:6px;color:var(--text-muted);font-size:11px;line-height:1.5}.ch-engines{display:grid;grid-template-columns:1.2fr .9fr .9fr;gap:12px;margin-top:14px}.ce-engine{min-height:245px;border:1px solid var(--border);border-radius:16px;background:var(--surface);padding:19px 20px;color:var(--text);text-decoration:none;display:flex;flex-direction:column;justify-content:space-between;transition:transform .16s ease,background .16s ease,border-color .16s ease}.ce-engine:hover{transform:translateY(-2px);background:var(--surface-2)}.ce-engine-top{display:flex;justify-content:space-between;color:var(--text-subtle);font-size:8px;letter-spacing:.15em;font-weight:850}.ce-engine-top b{width:29px;height:29px;border:1px solid var(--border);border-radius:8px;display:grid;place-items:center;font-size:12px}.ce-b .ce-engine-top b{color:var(--track-b)}.ce-life .ce-engine-top b{color:var(--new-life)}.ce-muted .ce-engine-top b{color:var(--text-subtle)}.ce-engine h2{margin:31px 0 7px;font-size:29px;line-height:1;letter-spacing:-.055em}.ce-engine small{font-size:8px;letter-spacing:.15em;text-transform:uppercase;color:var(--text-subtle);font-weight:820}.ce-engine p{max-width:40ch;margin:12px 0 0;color:var(--text-muted);font-size:11px;line-height:1.55}.ce-engine-action{border-top:1px solid var(--border);padding-top:13px;display:flex;justify-content:space-between;color:var(--text-muted);font-size:8px;letter-spacing:.13em;text-transform:uppercase;font-weight:850}.ce-b{border-color:rgba(196,180,154,.28);background:linear-gradient(180deg,rgba(196,180,154,.06),transparent 40%)}.ch-footer{margin-top:14px;border-top:1px solid var(--border);padding-top:14px;display:flex;justify-content:space-between;gap:18px;color:var(--text-subtle);font-size:8px;letter-spacing:.1em;text-transform:uppercase}.ch-footer strong{color:var(--text-muted)}@media(max-width:900px){.ch-hero{grid-template-columns:1fr}.ch-engines{grid-template-columns:1fr}.ch-side{min-height:260px}.ch-bottom{align-items:start;flex-direction:column}}@media(max-width:650px){.ch-nav a{font-size:9px}.ch-title{font-size:48px}.ch-main{min-height:420px}.ch-footer{flex-direction:column}}`}</style>
+      <div className="ch-shell">
+        <header className="ch-head">
+          <a className="ch-brand" href="/"><span className="ch-mark">C</span><span><strong>CORNERSTONE AI ENTERPRISES</strong><small>Content Engine · September 2026</small></span></a>
+          <div className="ch-nav"><a href="/creative"><b>01</b> Content Engine</a><a href={NEW_LIFE_URL} target="_blank" rel="noreferrer"><b>02</b> New Life</a></div>
+          <div className="ch-online"><i /> Systems online</div>
+        </header>
+        <section className="ch-hero">
+          <div className="ch-main"><div><div className="ch-kicker">{phaseLabel}</div><h1 className="ch-title">{pressure[0]}</h1><p className="ch-copy">{pressure[1]}</p></div>
+            <div className="ch-bottom"><div className="ch-pressure"><strong>{pressure[2]}</strong><span>{phaseTitle}</span></div><a className="ch-button" href="/creative">Open Content Engine <span>→</span></a></div>
+          </div>
+          <aside className="ch-side"><div><div className="ch-kicker">Operating model</div><h2>One engine.<br />One loop.</h2>
+              <div className="standard"><strong>Content Engine</strong><small>Discover what is already winning. Analyse the mechanism. Build a stronger original. Multiply into Shorts. Publish. Monetise. Measure.</small></div>
+              <div className="standard"><strong>Creators</strong><small>Cara, Lila and the duo are owned applications of the same engine when you need a face and voice.</small></div>
+            </div>
+            <div className="ch-verse"><div className="ch-verse-ref">{verse.reference}</div><div className="ch-verse-text">{verse.text}</div></div>
+          </aside>
+        </section>
+        <section className="ch-engines">
+          <Engine number="1" title="Content Engine" label="Primary product" body="Paste a winning video or channel. Analyse why it works. Build a stronger original package with titles, script and Shorts. Then ship and measure." href="/creative" tone="b" action="Open Content Engine" />
+          <Engine number="2" title="Creators" label="Owned faces" body="Cara and Lila packages when the content needs a persona. Same loop — package, post, measure." href="/creative" tone="muted" action="Open Creators inside engine" />
+          <Engine number="3" title="New Life" label="Operator" body="Protect the operator: discipline, health, money and the daily actions that keep the content engine compounding." href={NEW_LIFE_URL} external tone="life" action="Open New Life" />
+        </section>
+        <footer className="ch-footer"><span>Cornerstone operating rule</span><strong>Evidence first · original always · publish deliberately · measure reality</strong><span>{phaseLabel}</span></footer>
+      </div>
+    </main>
+  );
+}
