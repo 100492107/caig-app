@@ -7,6 +7,7 @@ import TrackBMeasurementWorkspace from "./TrackBMeasurementWorkspace.jsx";
 import TrackBPublishWorkspace from "./TrackBPublishWorkspace.jsx";
 import { CreatorsStaged, ShopStaged, MediaStaged, CaptionStudioStaged, LocalAIStaged } from "./TrackBStagedSurfaces.jsx";
 import LocalAIStatus from "./LocalAIStatus.jsx";
+import ProfileChannelsWorkspace from "./ProfileChannelsWorkspace.jsx";
 
 const GROUPS = [
   {
@@ -29,8 +30,9 @@ const GROUPS = [
     ],
   },
   {
-    label: "Owned faces",
+    label: "Owned media",
     items: [
+      { id: "profiles", label: "Profiles & accounts", icon: "◎", stages: [] },
       { id: "creators", label: "Creators (Cara / Lila)", icon: "◌", stages: ["Creator", "Direction", "Package"] },
     ],
   },
@@ -59,6 +61,8 @@ function Workspace({ id, stage, onAdvance }) {
       return <MPTVideoStudio stage={stage} />;
     case "publish":
       return <TrackBPublishWorkspace stage={stage} />;
+    case "profiles":
+      return <ProfileChannelsWorkspace />;
     case "creators":
       return <CreatorsStaged stage={stage} onAdvance={onAdvance} />;
     case "shop":
