@@ -3,13 +3,13 @@ import React from 'react';
 const NEW_LIFE_URL = 'https://new-life-game-alpha.vercel.app/start-v2.html';
 const NAV = [
   { id: 'command', label: 'Command', href: '/' },
-  { id: 'content', label: 'Content', href: '/content' },
+  { id: 'content', label: 'Engine room', href: '/content/remake' },
   { id: 'revenue', label: 'Revenue', href: '/revenue' },
   { id: 'operator', label: 'Operator', href: NEW_LIFE_URL, external: true },
   { id: 'system', label: 'System', href: '/system' },
 ];
 
-export default function EnterpriseShell({ active = 'command', children, eyebrow = '' }) {
+export default function EnterpriseShell({ active = 'command', children, eyebrow = 'Working for you' }) {
   return (
     <div className="enterprise-shell">
       <style>{`
@@ -29,7 +29,7 @@ export default function EnterpriseShell({ active = 'command', children, eyebrow 
       <header className="es-top">
         <a className="es-brand" href="/" aria-label="Cornerstone command">
           <span className="es-mark">C</span>
-          <span className="es-brand-copy"><strong>CORNERSTONE</strong><small>Command system</small></span>
+          <span className="es-brand-copy"><strong>CORNERSTONE</strong><small>Content & revenue engine</small></span>
         </a>
         <nav className="es-nav" aria-label="Cornerstone">
           {NAV.map((item) => (
