@@ -58,6 +58,20 @@ async function waitServerJob(id, setMessage, label = "Engine") {
   throw new Error("Timed out. Start the local Qwen worker on your Mac, then try again.");
 }
 
+async function localAiOnline() {
+  try {
+    const { data } = await supabase
+      .from("local_ai_worker_heartbeat")
+      .select("status,last_seen")
+      .eq("id", "qwen")
+      .maybeSingle();
+    if (!data?.last_seen) return false;
+    return Date.now() - new Date(data.last_seen).getTime() < 20000;
+  } catch {
+    return false;
+  }
+}
+
 export default function ContentEngineWorkspace({ onGo } = {}) {
   const [url, setUrl] = useState("");
   const [niche, setNiche] = useState("Gaming");
@@ -77,6 +91,11 @@ export default function ContentEngineWorkspace({ onGo } = {}) {
   async function run() {
     if (!canRun) {
       setMessage("Paste a winning video URL (or notes) first.");
+      return;
+    }
+    const online = await localAiOnline();
+    if (!online) {
+      setMessage("Local AI offline. On your Mac run: bash scripts/start-local-ai-stack.sh");
       return;
     }
     setBusy(true);
@@ -122,7 +141,7 @@ export default function ContentEngineWorkspace({ onGo } = {}) {
         referenceNotes: notes,
         duration: "20",
         output: "Long-form + Shorts",
-        direction: "Stronger original. Mechanism only — never copy script, identity, or packaging.",
+        direction: "Stronger original. Mechanism only. Never copy script, identity, or packaging.",
         sourceAnalysis: evidence,
       });
       const raw = await waitServerJob(queued.jobId, setMessage, "Package");
@@ -158,7 +177,7 @@ export default function ContentEngineWorkspace({ onGo } = {}) {
         notes: JSON.stringify({ selected_video: selected, shorts, reference_analysis: result?.reference_analysis }),
       });
       setSavedId(saved.id);
-      setMessage("Saved to Studio. Open Studio to render.");
+      setMessage("Saved to cloud Studio (content_queue). Open Studio to render.");
     } catch (e) {
       setMessage(e?.message || String(e));
     } finally {
@@ -239,14 +258,14 @@ export default function ContentEngineWorkspace({ onGo } = {}) {
         <div className="rm-working">
           <div className="pulse" />
           <strong>Building your package</strong>
-          <p>{message || "Local AI is analysing and writing…"}</p>
+          <p>{message || "Local AI is analysing and writing\u2026"}</p>
         </div>
       )}
 
       {step === "input" && (
         <div className="rm-card">
           <label className="rm-label">Winning video or channel URL</label>
-          <input className="rm-input" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://youtube.com/watch?v=…" autoFocus />
+          <input className="rm-input" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://youtube.com/watch?v=\u2026" autoFocus />
           <div className="rm-row">
             <div>
               <label className="rm-label">Niche</label>
@@ -256,16 +275,16 @@ export default function ContentEngineWorkspace({ onGo } = {}) {
             </div>
             <div className="rm-notes">
               <label className="rm-label">What stood out (optional)</label>
-              <textarea className="rm-input" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Hook, pacing, audience…" />
+              <textarea className="rm-input" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Hook, pacing, audience\u2026" />
             </div>
           </div>
           <div className="rm-file">
-            Optional upload for deeper analysis
+            Optional upload · needs Whisper + Vision workers on your Mac
             <input type="file" accept="video/*,audio/*,.txt,.md" onChange={(e) => setFile(e.target.files?.[0] || null)} />
             {file && <div style={{ marginTop: 8, color: "#d8d4c8" }}>{file.name}</div>}
           </div>
-          <button type="button" className="rm-cta" disabled={busy || !canRun} onClick={run}>Build package →</button>
-          <div className={`rm-status${/fail|error|timeout/i.test(message) ? " err" : ""}`}>{message || "Needs local Qwen running on your Mac."}</div>
+          <button type="button" className="rm-cta" disabled={busy || !canRun} onClick={run}>Build package \u2192</button>
+          <div className={`rm-status${/fail|error|timeout/i.test(message) ? " err" : ""}`}>{message || "Local AI must show Online in the sidebar. Start stack: bash scripts/start-local-ai-stack.sh"}</div>
           <div className="rm-hint">
             <div><b>Mechanism</b><span>Why it holds attention</span></div>
             <div><b>Original</b><span>Titles, hook, script</span></div>
@@ -327,9 +346,9 @@ export default function ContentEngineWorkspace({ onGo } = {}) {
             </div>
           )}
           <div className="rm-sticky">
-            <p>{message || (savedId ? "Saved. Open Studio next." : "Save this package, then open Studio.")}</p>
+            <p>{message || (savedId ? "Saved to cloud. Open Studio next." : "Save package to cloud Studio, then render.")}</p>
             <div className="rm-actions" style={{ margin: 0 }}>
-              <button type="button" className="rm-btn primary" disabled={busy || !selected} onClick={save}>{savedId ? "Saved ✓" : "Save to Studio →"}</button>
+              <button type="button" className="rm-btn primary" disabled={busy || !selected} onClick={save}>{savedId ? "Saved \u2713" : "Save to Studio \u2192"}</button>
               {typeof onGo === "function" && (
                 <button type="button" className="rm-btn" onClick={() => onGo("production")}>Open Studio</button>
               )}
