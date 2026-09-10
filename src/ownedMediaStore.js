@@ -1,5 +1,8 @@
+import { supabase } from "./supabase";
+
 const PROFILES_KEY = "caig_owned_profiles_v1";
 const EARNINGS_KEY = "caig_owned_earnings_v1";
+const TABLE = "user_owned_media";
 
 export const DEFAULT_PROFILES = [
   {
@@ -51,47 +54,154 @@ export const DEFAULT_PROFILES = [
   },
 ];
 
-export function loadProfiles() {
+function emptyEarnings() {
+  return { total: 0, currency: "GBP", entries: [] };
+}
+
+function normalizeProfiles(value) {
+  return Array.isArray(value) && value.length ? value : DEFAULT_PROFILES;
+}
+
+function normalizeEarnings(value) {
+  if (!value || typeof value !== "object") return emptyEarnings();
+  return {
+    total: Number(value.total) || 0,
+    currency: value.currency || "GBP",
+    entries: Array.isArray(value.entries) ? value.entries : [],
+  };
+}
+
+export function loadProfilesLocal() {
   try {
     const raw = localStorage.getItem(PROFILES_KEY);
     if (!raw) return DEFAULT_PROFILES;
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) && parsed.length ? parsed : DEFAULT_PROFILES;
+    return normalizeProfiles(JSON.parse(raw));
   } catch {
     return DEFAULT_PROFILES;
   }
 }
 
-export function saveProfiles(rows) {
-  try {
-    localStorage.setItem(PROFILES_KEY, JSON.stringify(rows));
-    window.dispatchEvent(new Event("caig-profiles-updated"));
-  } catch {}
-}
-
-export function loadEarnings() {
+export function loadEarningsLocal() {
   try {
     const raw = localStorage.getItem(EARNINGS_KEY);
-    if (!raw) return { total: 0, currency: "GBP", entries: [] };
-    const parsed = JSON.parse(raw);
-    return {
-      total: Number(parsed.total) || 0,
-      currency: parsed.currency || "GBP",
-      entries: Array.isArray(parsed.entries) ? parsed.entries : [],
-    };
+    if (!raw) return emptyEarnings();
+    return normalizeEarnings(JSON.parse(raw));
   } catch {
-    return { total: 0, currency: "GBP", entries: [] };
+    return emptyEarnings();
   }
 }
 
-export function saveEarnings(data) {
-  try {
-    localStorage.setItem(EARNINGS_KEY, JSON.stringify(data));
-    window.dispatchEvent(new Event("caig-earnings-updated"));
-  } catch {}
+export function loadProfiles() {
+  return loadProfilesLocal();
 }
 
-export function profileStats(profiles = loadProfiles()) {
+export function loadEarnings() {
+  return loadEarningsLocal();
+}
+
+function writeLocal(profiles, earnings) {
+  try {
+    localStorage.setItem(PROFILES_KEY, JSON.stringify(profiles));
+    localStorage.setItem(EARNINGS_KEY, JSON.stringify(earnings));
+  } catch {}
+  window.dispatchEvent(new Event("caig-profiles-updated"));
+  window.dispatchEvent(new Event("caig-earnings-updated"));
+}
+
+export function saveProfiles(rows) {
+  const profiles = normalizeProfiles(rows);
+  const earnings = loadEarningsLocal();
+  writeLocal(profiles, earnings);
+  pushToCloud(profiles, earnings).catch(() => {});
+}
+
+export function saveEarnings(data) {
+  const earnings = normalizeEarnings(data);
+  const profiles = loadProfilesLocal();
+  writeLocal(profiles, earnings);
+  pushToCloud(profiles, earnings).catch(() => {});
+}
+
+async function currentUserId() {
+  const { data, error } = await supabase.auth.getUser();
+  if (error || !data?.user?.id) return null;
+  return data.user.id;
+}
+
+export async function pullFromCloud() {
+  const userId = await currentUserId();
+  if (!userId) {
+    return {
+      ok: false,
+      reason: "signed_out",
+      profiles: loadProfilesLocal(),
+      earnings: loadEarningsLocal(),
+    };
+  }
+
+  const { data, error } = await supabase
+    .from(TABLE)
+    .select("profiles,earnings,updated_at")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error) {
+    return {
+      ok: false,
+      reason: error.message,
+      profiles: loadProfilesLocal(),
+      earnings: loadEarningsLocal(),
+    };
+  }
+
+  if (!data) {
+    const profiles = loadProfilesLocal();
+    const earnings = loadEarningsLocal();
+    const pushed = await pushToCloud(profiles, earnings);
+    return {
+      ok: pushed.ok,
+      reason: pushed.ok ? "seeded" : pushed.reason,
+      profiles,
+      earnings,
+    };
+  }
+
+  const profiles = normalizeProfiles(data.profiles);
+  const earnings = normalizeEarnings(data.earnings);
+  writeLocal(profiles, earnings);
+  return { ok: true, reason: "pulled", profiles, earnings, updatedAt: data.updated_at };
+}
+
+export async function pushToCloud(profiles = loadProfilesLocal(), earnings = loadEarningsLocal()) {
+  const userId = await currentUserId();
+  if (!userId) {
+    return { ok: false, reason: "signed_out" };
+  }
+
+  const payload = {
+    user_id: userId,
+    profiles: normalizeProfiles(profiles),
+    earnings: normalizeEarnings(earnings),
+    updated_at: new Date().toISOString(),
+  };
+
+  const { error } = await supabase.from(TABLE).upsert(payload, { onConflict: "user_id" });
+  if (error) return { ok: false, reason: error.message };
+  return { ok: true, reason: "pushed" };
+}
+
+export async function hydrateOwnedMedia() {
+  const local = {
+    profiles: loadProfilesLocal(),
+    earnings: loadEarningsLocal(),
+  };
+  const remote = await pullFromCloud();
+  return remote.ok
+    ? { ...remote, source: remote.reason === "pulled" ? "cloud" : "local" }
+    : { ok: true, source: "local", reason: remote.reason, ...local };
+}
+
+export function profileStats(profiles = loadProfilesLocal()) {
   const allPlatforms = profiles.flatMap((p) => p.platforms || []);
   const linked = allPlatforms.filter((pl) => String(pl.url || "").trim() || String(pl.handle || "").trim());
   const active = allPlatforms.filter((pl) => pl.status === "active");
