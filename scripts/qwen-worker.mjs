@@ -12,6 +12,7 @@ const IDLE_MS = Number(process.env.QWEN_IDLE_MS || 3000);
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const RESEARCH_DAYS = 7;
 const CUTOFF = () => Date.now() - RESEARCH_DAYS * 24 * 60 * 60 * 1000;
+const SPECIALIST_JOB_TYPES = new Set(['content_media_ingestion', 'scene_verify', 'caption']);
 
 if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
   console.error('Missing SUPABASE_URL/VITE_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY.');
@@ -30,7 +31,7 @@ async function fetchText(url, options = {}) {
   finally { clearTimeout(timer); }
 }
 async function fetchJson(url) { const r = await fetchText(url, { accept: 'application/json', timeoutMs: 12000 }); if (!r.ok) return null; try { return JSON.parse(r.text); } catch { return null; } }
-function stripHtml(v) { return String(v || '').replace(/<[^>]+>/g, ' ').replace(/&amp;/g, '&').replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/\s+/g, ' ').trim(); }
+function stripHtml(v) { return String(v || '').replace(/<[^>]+>/g, ' ').replace(/&/g, '&').replace(/&#39;/g, "'").replace(/"/g, '"').replace(/\s+/g, ' ').trim(); }
 function rssTag(xml, tag) { const m = String(xml || '').match(new RegExp(`<${tag}(?:\\s[^>]*)?>([\\s\\S]*?)<\\/${tag}>`, 'i')); return m ? stripHtml(m[1]) : ''; }
 async function fetchRss(query) {
   const url = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=en-GB&gl=GB&ceid=GB:en`;
@@ -108,8 +109,18 @@ async function callQwen(job, researchPack) {
   const json = await r.json().catch(() => ({})); if (!r.ok) throw new Error(`Qwen request failed (${r.status}): ${JSON.stringify(json)}`); const result = cleanOutput(json?.choices?.[0]?.message?.content); if (!result) throw new Error('Qwen returned no usable message content.'); return result;
 }
 async function claimJob() {
-  const { data, error } = await supabase.from('local_ai_jobs').select('*').eq('status', 'queued').order('created_at', { ascending: true }).limit(1).maybeSingle(); if (error) throw error; if (!data) return null;
-  const { data: claimed, error: updateError } = await supabase.from('local_ai_jobs').update({ status: 'processing', started_at: new Date().toISOString(), error_message: null }).eq('id', data.id).eq('status', 'queued').select('*').maybeSingle(); if (updateError) throw updateError; return claimed || null;
+  const { data: candidates, error } = await supabase
+    .from('local_ai_jobs')
+    .select('*')
+    .eq('status', 'queued')
+    .order('created_at', { ascending: true })
+    .limit(12);
+  if (error) throw error;
+  const data = (candidates || []).find((j) => !SPECIALIST_JOB_TYPES.has(String(j.job_type || ''))) || null;
+  if (!data) return null;
+  const { data: claimed, error: updateError } = await supabase.from('local_ai_jobs').update({ status: 'processing', started_at: new Date().toISOString(), error_message: null }).eq('id', data.id).eq('status', 'queued').select('*').maybeSingle();
+  if (updateError) throw updateError;
+  return claimed || null;
 }
 async function processJob(job) {
   try {
@@ -119,5 +130,5 @@ async function processJob(job) {
     console.log(`[QWEN] completed ${job.id} domain=${research?.researchDomain || 'none'} evidence=${research?.evidence?.length || 0}`);
   } catch (error) { const message = error instanceof Error ? error.message : String(error); console.error(`[QWEN] failed ${job.id}:`, error); await supabase.from('local_ai_jobs').update({ status: 'error', error_message: message }).eq('id', job.id); }
 }
-console.log(`[QWEN] worker online. endpoint=${QWEN_URL}; model=${QWEN_MODEL}; research firewall=enabled`);
+console.log(`[QWEN] worker online. endpoint=${QWEN_URL}; model=${QWEN_MODEL}; research firewall=enabled; specialist jobs skipped`);
 for (;;) { try { const job = await claimJob(); if (job) await processJob(job); else await sleep(IDLE_MS); } catch (error) { console.error('[QWEN] worker loop error:', error); await sleep(POLL_MS); } }
