@@ -33,10 +33,22 @@ New Life is the personal operating system for action, discipline, family, health
 ## Application surfaces
 
 - `/` — Cornerstone Enterprise command screen for Track A, Track B and New Life.
-- `/creative` — canonical Track B Content Engine and persistent generation library.
-- `/outreach` — canonical Track A Revenue Recovery outreach workspace.
-- `/ceo` — read-focused CEO control room.
-- `/territory`, `/workbench`, `/main-app` — compatibility surfaces retained only where needed for transition; they are not strategy authorities.
+- `/content/remake` — canonical Track B starting point: evidence → original package.
+- `/content/creators` — owned creator roster and creator-specific workflow.
+- `/content/profiles` — channels, publishing identity and owned-media earnings.
+- `/content/production` — canonical production jobs and media output.
+- `/content/publish` — canonical publication scheduling and publishing state.
+- `/content/measurement` — canonical performance evidence and learning input.
+- `/revenue` — canonical Track A Revenue Recovery workspace.
+- `/system` — local AI, queue, error and dependency health.
+- `/creative`, `/main-app` — compatibility redirects to the canonical Content starting point.
+- `/outreach`, `/ceo` — compatibility routes retained for transition; they are not separate product authorities.
+
+## Canonical Track B backbone
+
+`Workspace -> Project -> Source / Evidence -> Concept -> Asset -> Production -> Publication -> Performance -> Learning -> Creative DNA`
+
+The legacy `content_queue` is an execution projection only. New product capabilities must not depend on it as the source of truth. Remake saves can still enter the projection because the existing materialiser immediately creates a canonical Track B project for eligible Remake records.
 
 ## Shared operating loop
 
