@@ -1,0 +1,13 @@
+CREATE INDEX IF NOT EXISTS idx_tb_projects_brand_id ON public.track_b_content_projects(brand_id) WHERE brand_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_tb_projects_product_id ON public.track_b_content_projects(product_id) WHERE product_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_tb_production_source_job_id ON public.track_b_production_jobs(source_job_id) WHERE source_job_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_tb_publications_project_id ON public.track_b_publications(project_id) WHERE project_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_tb_publications_asset_id ON public.track_b_publications(asset_id) WHERE asset_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_tb_publications_derivative_id ON public.track_b_publications(derivative_id) WHERE derivative_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_tb_derivatives_production_job_id ON public.track_b_derivatives(parent_production_job_id) WHERE parent_production_job_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_tb_production_shots_owner_id ON public.track_b_production_shots(owner_id);
+CREATE INDEX IF NOT EXISTS idx_tb_scene_contracts_owner_id ON public.track_b_scene_contracts(owner_id);
+CREATE INDEX IF NOT EXISTS idx_tb_asset_provenance_scene_contract_id ON public.track_b_asset_provenance(scene_contract_id) WHERE scene_contract_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_tb_asset_provenance_production_job_id ON public.track_b_asset_provenance(production_job_id) WHERE production_job_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_tb_learning_source_evidence_id ON public.track_b_learning_recommendations(source_evidence_id) WHERE source_evidence_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_tb_creative_dna_source_performance_id ON public.track_b_creative_dna(source_performance_id) WHERE source_performance_id IS NOT NULL;
