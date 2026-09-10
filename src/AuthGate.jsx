@@ -1,6 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from './supabase';
 
+async function syncServerSession(session) {
+  try {
+    await fetch('/api/auth-session', {
+      method: 'POST',
+      headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {},
+      credentials: 'same-origin',
+    });
+  } catch {
+    // UI auth remains authoritative. Server actions will reject unauthenticated requests.
+  }
+}
+
 export default function AuthGate({ children }) {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -11,15 +23,18 @@ export default function AuthGate({ children }) {
 
   useEffect(() => {
     let mounted = true;
-    supabase.auth.getSession().then(({ data }) => {
+    supabase.auth.getSession().then(async ({ data }) => {
       if (!mounted) return;
-      setSession(data.session ?? null);
-      setLoading(false);
+      const nextSession = data.session ?? null;
+      setSession(nextSession);
+      await syncServerSession(nextSession);
+      if (mounted) setLoading(false);
     });
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+    const { data: listener } = supabase.auth.onAuthStateChange(async (_event, nextSession) => {
       if (!mounted) return;
       setSession(nextSession ?? null);
-      setLoading(false);
+      await syncServerSession(nextSession ?? null);
+      if (mounted) setLoading(false);
     });
     return () => {
       mounted = false;
