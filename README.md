@@ -14,7 +14,7 @@ The niche is **revenue leakage**, not a customer vertical. Track A helps lead-dr
 
 Potential markets include automotive, property, finance, insurance, recruitment, professional services, agencies, SaaS, education, healthcare, fitness, hospitality, trades and other businesses where leads and opportunities can disappear before a sale.
 
-The commercial message is problem-first: **where is revenue entering the business, and where is it disappearing?** AI is the mechanism for identifying leakage, prioritising opportunities and generating context-specific recovery actions. It is not another CRM and it is not positioned as generic AI automation.
+The commercial message is problem-first: **where is revenue entering the business, and where is it disappearing?** AI is the mechanism for identifying leakage, prioritising opportunities and generating context-specific recovery actions. It is not another CRM and is not positioned as generic AI automation.
 
 ### Track B — Content Intelligence & Production Engine
 
@@ -43,6 +43,14 @@ New Life is the personal operating system for action, discipline, family, health
 - `/system` — local AI, queue, error and dependency health.
 - `/creative`, `/main-app` — compatibility redirects to the canonical Content starting point.
 - `/outreach`, `/ceo` — compatibility routes retained for transition; they are not separate product authorities.
+
+## Internal / historical surfaces
+
+The repository still contains older shells and experiments so historical implementation context is not lost. These are **internal-only and non-canonical**. They must not be linked from current product navigation, used as strategy authorities, or extended instead of the canonical surfaces above.
+
+Known examples include `src/TrackBApplication.jsx`, `src/EnterpriseCommandHome.jsx`, `src/CEOHome.jsx`, `src/OperatorCommandStrip.jsx`, and components under `src/legacy/`. Compatibility routes exist only to redirect or preserve transition paths; they do not create a second product model.
+
+When retiring a surface, prefer moving it into `src/legacy/` or an explicitly historical location rather than keeping a second implementation active. New capability work belongs in the canonical workspace for that capability.
 
 ## Canonical Track B backbone
 
