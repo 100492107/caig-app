@@ -1,3 +1,11 @@
+/*
+ * INTERNAL / COMPATIBILITY MODULE — NOT THE LIVE PRODUCT SURFACE
+ *
+ * Retained for historical/internal reference only. It is not mounted by
+ * src/main.jsx and must not receive new product work. Build new Track B
+ * capabilities in the canonical /content/* workspaces instead.
+ */
+
 import React, { useEffect, useMemo, useState } from "react";
 import "./trackBApplication.css";
 import ContentEngineWorkspace from "./ContentEngineWorkspace.jsx";
@@ -101,82 +109,29 @@ function HomeHub({ onGo }) {
         .tbh-btn{min-height:42px;padding:0 16px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:#161922;color:#e8e6df;font:inherit;font-size:13px;font-weight:750;cursor:pointer}
         .tbh-btn.primary{background:#d4b56a;border-color:#d4b56a;color:#1a160e;font-weight:850}
       `}</style>
-
       <div className="tbh-kicker">Content Engine · dashboard</div>
       <h1 className="tbh-title">Your media at a glance</h1>
-      <p className="tbh-sub">
-        Stats sync from your account when signed in. Edit links and money in Profiles.
-      </p>
-
+      <p className="tbh-sub">Stats sync from your account when signed in. Edit links and money in Profiles.</p>
       <div className="tbh-dash">
-        <div className="tbh-kpi money">
-          <b>{formatMoney(earnings.total, earnings.currency)}</b>
-          <span>Money logged</span>
-        </div>
-        <div className="tbh-kpi">
-          <b>{stats.withUrl}</b>
-          <span>Links set</span>
-        </div>
-        <div className="tbh-kpi">
-          <b>{stats.active}</b>
-          <span>Active accounts</span>
-        </div>
-        <div className="tbh-kpi">
-          <b>{stats.profiles}</b>
-          <span>Profiles</span>
-        </div>
+        <div className="tbh-kpi money"><b>{formatMoney(earnings.total, earnings.currency)}</b><span>Money logged</span></div>
+        <div className="tbh-kpi"><b>{stats.withUrl}</b><span>Links set</span></div>
+        <div className="tbh-kpi"><b>{stats.active}</b><span>Active accounts</span></div>
+        <div className="tbh-kpi"><b>{stats.profiles}</b><span>Profiles</span></div>
       </div>
-
       <div className="tbh-section">
         <h2>Linked pages</h2>
         {linked.length === 0 ? (
-          <div className="tbh-empty">
-            No exact links yet. Open Profiles, paste each public URL, set status to active.
-            <div className="tbh-cta-row">
-              <button type="button" className="tbh-btn primary" onClick={() => onGo("profiles")}>
-                Add links in Profiles →
-              </button>
-            </div>
-          </div>
+          <div className="tbh-empty">No exact links yet. Open Profiles, paste each public URL, set status to active.<div className="tbh-cta-row"><button type="button" className="tbh-btn primary" onClick={() => onGo("profiles")}>Add links in Profiles →</button></div></div>
         ) : (
           <div className="tbh-accounts">
-            {linked.map((pl, i) => (
-              <div className="tbh-acc" key={`${pl.network}-${pl.url}-${i}`}>
-                <div>
-                  <strong>{pl.network}</strong>
-                  <span style={{ marginLeft: 8 }}>{pl.handle || pl.status}</span>
-                </div>
-                <a href={pl.url} target="_blank" rel="noreferrer">{pl.url}</a>
-              </div>
-            ))}
-            <div className="tbh-cta-row">
-              <button type="button" className="tbh-btn" onClick={() => onGo("profiles")}>Edit profiles</button>
-            </div>
+            {linked.map((pl, i) => <div className="tbh-acc" key={`${pl.network}-${pl.url}-${i}`}><div><strong>{pl.network}</strong><span style={{marginLeft:8}}>{pl.handle || pl.status}</span></div><a href={pl.url} target="_blank" rel="noreferrer">{pl.url}</a></div>)}
+            <div className="tbh-cta-row"><button type="button" className="tbh-btn" onClick={() => onGo("profiles")}>Edit profiles</button></div>
           </div>
         )}
       </div>
-
       <div className="tbh-jobs">
-        <button type="button" className="tbh-job hero" onClick={() => onGo("remake")}>
-          <div className="tbh-job-icon">✦</div>
-          <strong>Remake a winner</strong>
-          <span>Paste a working video. Get package + Shorts.</span>
-          <div className="tbh-job-foot">Start →</div>
-        </button>
-        <div className="tbh-side">
-          <button type="button" className="tbh-job" onClick={() => onGo("creators")}>
-            <div className="tbh-job-icon">◌</div>
-            <strong>Creator post</strong>
-            <span>Cara / Lila packages</span>
-            <div className="tbh-job-foot">Open →</div>
-          </button>
-          <button type="button" className="tbh-job" onClick={() => onGo("production")}>
-            <div className="tbh-job-icon">▶</div>
-            <strong>Studio</strong>
-            <span>Render saved packages</span>
-            <div className="tbh-job-foot">Open →</div>
-          </button>
-        </div>
+        <button type="button" className="tbh-job hero" onClick={() => onGo("remake")}><div className="tbh-job-icon">✦</div><strong>Remake a winner</strong><span>Paste a working video. Get package + Shorts.</span><div className="tbh-job-foot">Start →</div></button>
+        <div className="tbh-side"><button type="button" className="tbh-job" onClick={() => onGo("creators")}><div className="tbh-job-icon">◌</div><strong>Creator post</strong><span>Cara / Lila packages</span><div className="tbh-job-foot">Open →</div></button><button type="button" className="tbh-job" onClick={() => onGo("production")}><div className="tbh-job-icon">▶</div><strong>Studio</strong><span>Render saved packages</span><div className="tbh-job-foot">Open →</div></button></div>
       </div>
     </div>
   );
@@ -184,135 +139,59 @@ function HomeHub({ onGo }) {
 
 function Workspace({ id, stage, onAdvance, onGo }) {
   switch (id) {
-    case "home":
-      return <HomeHub onGo={onGo} />;
-    case "remake":
-      return <ContentEngineWorkspace onGo={onGo} />;
-    case "creators":
-      return <CreatorsStaged stage={stage} onAdvance={onAdvance} />;
-    case "profiles":
-      return <ProfileChannelsWorkspace />;
-    case "production":
-      return <MPTVideoStudio stage={stage} />;
-    case "library":
-      return <MediaStaged stage={0} />;
-    case "publish":
-      return <TrackBPublishWorkspace stage={stage} />;
-    case "measurement":
-      return <TrackBMeasurementWorkspace stage={stage} />;
-    case "shop":
-      return <ShopStaged stage={stage} onAdvance={onAdvance} />;
-    case "caption-studio":
-      return <CaptionStudioStaged stage={stage} />;
-    case "caption-writer":
-      return <CaptionWriterStaged stage={stage} />;
-    case "local-ai":
-      return <LocalAIStaged stage={stage} />;
-    default:
-      return <HomeHub onGo={onGo} />;
+    case "home": return <HomeHub onGo={onGo} />;
+    case "remake": return <ContentEngineWorkspace onGo={onGo} />;
+    case "creators": return <CreatorsStaged stage={stage} onAdvance={onAdvance} />;
+    case "profiles": return <ProfileChannelsWorkspace />;
+    case "production": return <MPTVideoStudio stage={stage} />;
+    case "library": return <MediaStaged stage={0} />;
+    case "publish": return <TrackBPublishWorkspace stage={stage} />;
+    case "measurement": return <TrackBMeasurementWorkspace stage={stage} />;
+    case "shop": return <ShopStaged stage={stage} onAdvance={onAdvance} />;
+    case "caption-studio": return <CaptionStudioStaged stage={stage} />;
+    case "caption-writer": return <CaptionWriterStaged stage={stage} />;
+    case "local-ai": return <LocalAIStaged stage={stage} />;
+    default: return <HomeHub onGo={onGo} />;
   }
 }
 
 export default function TrackBApplication() {
-  const [view, setView] = useState(() => {
-    try {
-      return sessionStorage.getItem("caig_track_b_view") || "home";
-    } catch {
-      return "home";
-    }
-  });
+  const [view, setView] = useState(() => { try { return sessionStorage.getItem("caig_track_b_view") || "home"; } catch { return "home"; } });
   const [mobileOpen, setMobileOpen] = useState(false);
   const [stage, setStage] = useState(0);
   const current = useMemo(() => NAV.find((item) => item.id === view) || NAV[0], [view]);
-
-  useEffect(() => {
-    try {
-      sessionStorage.setItem("caig_track_b_view", view);
-    } catch {}
-    setStage(0);
-    setMobileOpen(false);
-  }, [view]);
-
-  useEffect(() => {
-    const onKey = (e) => {
-      if (e.key === "Escape") setMobileOpen(false);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
-
-  useEffect(() => {
-    if (view === "home") window.dispatchEvent(new Event("caig-profiles-updated"));
-  }, [view]);
-
+  useEffect(() => { try { sessionStorage.setItem("caig_track_b_view", view); } catch {} setStage(0); setMobileOpen(false); }, [view]);
+  useEffect(() => { const onKey = (e) => { if (e.key === "Escape") setMobileOpen(false); }; window.addEventListener("keydown", onKey); return () => window.removeEventListener("keydown", onKey); }, []);
+  useEffect(() => { if (view === "home") window.dispatchEvent(new Event("caig-profiles-updated")); }, [view]);
   const onAdvance = () => setStage((s) => s + 1);
   const onGo = (id) => setView(id);
-
   return (
     <div className="tb-app">
       <style>{`
         .creative-studio-surface > button[aria-label="Open saved generations"]{display:none!important}
         .tb-mobile-backdrop{position:fixed;inset:0;z-index:90;border:0;background:rgba(0,0,0,.55);cursor:pointer}
         .tb-mobile-close{display:none;margin-left:auto;width:36px;height:36px;border:1px solid rgba(255,255,255,.1);border-radius:10px;background:#161922;color:#eceae4;font-size:20px;cursor:pointer;line-height:1}
-        @media(max-width:900px){
-          .tb-mobile-close{display:grid;place-items:center}
-          .tb-sidebar{padding-bottom:env(safe-area-inset-bottom)}
-        }
+        @media(max-width:900px){.tb-mobile-close{display:grid;place-items:center}.tb-sidebar{padding-bottom:env(safe-area-inset-bottom)}}
+        .tb-internal-notice{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 18px;padding:10px 12px;border:1px solid rgba(212,181,106,.22);border-radius:10px;background:rgba(212,181,106,.06);color:#9a9faa;font-size:11px;line-height:1.45}
+        .tb-internal-notice strong{color:#d4b56a;font-size:9px;letter-spacing:.14em;text-transform:uppercase;white-space:nowrap}
+        .tb-internal-notice code{font-size:10px}
       `}</style>
-      {mobileOpen && (
-        <button className="tb-mobile-backdrop" type="button" aria-label="Close navigation" onClick={() => setMobileOpen(false)} />
-      )}
+      {mobileOpen && <button className="tb-mobile-backdrop" type="button" aria-label="Close navigation" onClick={() => setMobileOpen(false)} />}
       <aside className={`tb-sidebar${mobileOpen ? " is-open" : ""}`}>
-        <div className="tb-brand">
-          <a href="/" className="tb-brand-link" aria-label="Back to Cornerstone">
-            <span className="tb-mark">C</span>
-            <span className="tb-brand-copy">
-              <strong>Content Engine</strong>
-              <span>Make · ship · earn</span>
-            </span>
-          </a>
-          <button className="tb-mobile-close" type="button" onClick={() => setMobileOpen(false)} aria-label="Close">×</button>
-        </div>
+        <div className="tb-brand"><a href="/" className="tb-brand-link" aria-label="Back to Cornerstone"><span className="tb-mark">C</span><span className="tb-brand-copy"><strong>Content Engine</strong><span>Make · ship · earn</span></span></a><button className="tb-mobile-close" type="button" onClick={() => setMobileOpen(false)} aria-label="Close">×</button></div>
         <nav className="tb-nav" aria-label="Main">
-          <section className="tb-group">
-            <div className="tb-group-label">Workspace</div>
-            {NAV.map((item) => (
-              <button
-                key={item.id}
-                className={`tb-item${view === item.id ? " is-active" : ""}`}
-                type="button"
-                onClick={() => setView(item.id)}
-                aria-current={view === item.id ? "page" : undefined}
-              >
-                <span className="tb-icon">{item.icon}</span>
-                <span className="tb-label">{item.label}</span>
-              </button>
-            ))}
-          </section>
+          <section className="tb-group"><div className="tb-group-label">Workspace</div>{NAV.map((item) => <button key={item.id} className={`tb-item${view === item.id ? " is-active" : ""}`} type="button" onClick={() => setView(item.id)} aria-current={view === item.id ? "page" : undefined}><span className="tb-icon">{item.icon}</span><span className="tb-item-copy"><span>{item.label}</span>{item.id === "home" && <small>Dashboard</small>}{item.id === "remake" && <small>Build a winner</small>}{item.id === "creators" && <small>Cara · Lila</small>}{item.id === "profiles" && <small>Accounts</small>}{item.id === "production" && <small>Render</small>}{item.id === "library" && <small>Saved media</small>}</span></button>)}</section>
+          <section className="tb-group" style={{marginTop:18}}><div className="tb-group-label">Internal tools</div><button className="tb-item" type="button" onClick={() => setView("publish")}><span className="tb-icon">↗</span><span className="tb-item-copy"><span>Publish</span><small>Internal compatibility</small></span></button><button className="tb-item" type="button" onClick={() => setView("measurement")}><span className="tb-icon">◒</span><span className="tb-item-copy"><span>Measure</span><small>Internal compatibility</small></span></button><button className="tb-item" type="button" onClick={() => setView("shop")}><span className="tb-icon">◆</span><span className="tb-item-copy"><span>Shop</span><small>Internal compatibility</small></span></button></section>
         </nav>
-        <div className="tb-sidebar-footer">
-          <LocalAIStatus compact />
-          <a href="/" className="tb-enterprise"><span>←</span><span>Command centre</span></a>
-        </div>
+        <div className="tb-sidebar-footer"><LocalAIStatus /></div>
       </aside>
-      <main className="tb-main">
-        <header className="tb-topbar">
-          <div className="tb-topbar-inner">
-            <button type="button" className="tb-mobile-menu" onClick={() => setMobileOpen(true)} aria-label="Menu">☰</button>
-            <div className="tb-context">
-              <div className="tb-context-kicker">Content Engine</div>
-              <div className="tb-context-title">{current.label}</div>
-            </div>
-            <LocalAIStatus compact />
-          </div>
-        </header>
+      <div className="tb-main">
+        <header className="tb-topbar"><button type="button" className="tb-menu" onClick={() => setMobileOpen((open) => !open)} aria-label="Open navigation">☰</button><div className="tb-topbar-current"><span className="tb-topbar-kicker">Internal / Compatibility</span><strong>{current.label}</strong></div><a href="/" className="tb-topbar-home">Cornerstone Command</a></header>
         <div className="tb-content">
-          <div className="tb-workspace-body">
-            <Workspace id={view} stage={stage} onAdvance={onAdvance} onGo={onGo} />
-          </div>
-          <div className="tb-bottom-safe" />
+          <div className="tb-internal-notice" role="note" aria-label="Internal compatibility module"><strong>Internal / compatibility module</strong><span>Not mounted by the live router. New Track B work belongs in the canonical <code>/content/*</code> workspaces.</span></div>
+          <Workspace id={view} stage={stage} onAdvance={onAdvance} onGo={onGo} />
         </div>
-      </main>
+      </div>
     </div>
   );
 }
