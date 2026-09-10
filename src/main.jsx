@@ -1,4 +1,4 @@
-import { StrictMode } from 'react'
+import { StrictMode, Suspense, lazy } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import './CreativeStudioTheme.css'
@@ -8,15 +8,20 @@ import './trackBNavigationFix.css'
 import './uxPolish.css'
 import './enterpriseInteractionFix.css'
 import './enterpriseMobile.css'
-import CommandHomeV2 from './CommandHomeV2.jsx'
 import AuthGate from './AuthGate.jsx'
-import ContentWorkspaceShell from './ContentWorkspaceShell.jsx'
-import RevenueWorkspaceShell from './RevenueWorkspaceShell.jsx'
-import SystemWorkspace from './SystemWorkspace.jsx'
+
+const CommandHomeV2 = lazy(() => import('./CommandHomeV2.jsx'))
+const ContentWorkspaceShell = lazy(() => import('./ContentWorkspaceShell.jsx'))
+const RevenueWorkspaceShell = lazy(() => import('./RevenueWorkspaceShell.jsx'))
+const SystemWorkspace = lazy(() => import('./SystemWorkspace.jsx'))
 
 const path = window.location.pathname.replace(/\/+$/, '') || '/'
 document.documentElement.dataset.route = path
 document.body.dataset.route = path
+
+function Loading() {
+  return <div style={{ minHeight: '100svh', display: 'grid', placeItems: 'center', color: 'var(--text-muted)', background: 'var(--bg)', fontSize: 12 }} role="status" aria-live="polite">Opening Cornerstone…</div>
+}
 
 function Route(){
   if(path==='/'||path==='/command')return <CommandHomeV2/>
@@ -26,4 +31,12 @@ function Route(){
   return <CommandHomeV2/>
 }
 
-createRoot(document.getElementById('root')).render(<StrictMode><AuthGate><Route/></AuthGate></StrictMode>)
+createRoot(document.getElementById('root')).render(
+  <StrictMode>
+    <AuthGate>
+      <Suspense fallback={<Loading />}>
+        <Route/>
+      </Suspense>
+    </AuthGate>
+  </StrictMode>
+)
