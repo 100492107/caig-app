@@ -3,9 +3,13 @@ import { supabase } from './supabase';
 
 async function syncServerSession(session) {
   try {
-    await fetch('/api/auth-session', {
+    await fetch('/api/queue-update', {
       method: 'POST',
-      headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {},
+      headers: {
+        'Content-Type': 'application/json',
+        ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+      },
+      body: JSON.stringify({ action: 'sync_session' }),
       credentials: 'same-origin',
     });
   } catch {
