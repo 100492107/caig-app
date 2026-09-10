@@ -6,6 +6,8 @@ import {
   saveEarnings,
   formatMoney,
   profileStats,
+  hydrateOwnedMedia,
+  pushToCloud,
 } from "./ownedMediaStore.js";
 
 const STATUSES = ["planned", "active", "paused", "retired"];
@@ -17,11 +19,46 @@ export default function ProfileChannelsWorkspace() {
   const [earnAmount, setEarnAmount] = useState("");
   const [earnNote, setEarnNote] = useState("");
   const [message, setMessage] = useState("");
+  const [sync, setSync] = useState({ status: "local", detail: "Loading…" });
+  const [syncing, setSyncing] = useState(false);
+  const bootRef = React.useRef(true);
   const active = profiles.find((p) => p.id === activeId) || profiles[0];
   const stats = profileStats(profiles);
 
-  useEffect(() => { saveProfiles(profiles); }, [profiles]);
-  useEffect(() => { saveEarnings(earnings); }, [earnings]);
+  useEffect(() => {
+    if (bootRef.current) return;
+    saveProfiles(profiles);
+  }, [profiles]);
+
+  useEffect(() => {
+    if (bootRef.current) return;
+    saveEarnings(earnings);
+  }, [earnings]);
+
+  useEffect(() => {
+    let live = true;
+    (async () => {
+      setSync({ status: "syncing", detail: "Syncing with cloud…" });
+      const result = await hydrateOwnedMedia();
+      if (!live) return;
+      setProfiles(result.profiles);
+      setEarnings(result.earnings);
+      bootRef.current = false;
+      if (result.source === "cloud") {
+        setSync({ status: "cloud", detail: "Synced to your account" });
+      } else if (result.reason === "signed_out") {
+        setSync({ status: "local", detail: "Sign in to sync across devices" });
+      } else {
+        setSync({
+          status: "local",
+          detail: result.reason === "seeded" ? "Cloud row created" : result.reason || "Local only",
+        });
+      }
+    })();
+    return () => {
+      live = false;
+    };
+  }, []);
 
   function updateActive(patch) {
     setProfiles((rows) => rows.map((p) => (p.id === active.id ? { ...p, ...patch } : p)));
@@ -31,19 +68,45 @@ export default function ProfileChannelsWorkspace() {
     updateActive({ platforms });
   }
   function addPlatform() {
-    updateActive({ platforms: [...(active.platforms || []), { network: "New network", handle: "", url: "", status: "planned" }] });
+    updateActive({
+      platforms: [...(active.platforms || []), { network: "New network", handle: "", url: "", status: "planned" }],
+    });
   }
   function addProfile() {
     const id = `profile_${Date.now()}`;
-    setProfiles((rows) => [...rows, { id, name: "New profile", type: "Channel", role: "Describe what this is for", platforms: [{ network: "YouTube", handle: "", url: "", status: "planned" }], notes: "" }]);
+    setProfiles((rows) => [
+      ...rows,
+      {
+        id,
+        name: "New profile",
+        type: "Channel",
+        role: "Describe what this is for",
+        platforms: [{ network: "YouTube", handle: "", url: "", status: "planned" }],
+        notes: "",
+      },
+    ]);
     setActiveId(id);
     setMessage("New profile added. Paste the exact public URL.");
   }
   function addEarning() {
     const n = Number(String(earnAmount).replace(/[^0-9.-]/g, ""));
-    if (!n || Number.isNaN(n)) { setMessage("Enter a valid amount."); return; }
-    const entry = { id: `e_${Date.now()}`, amount: n, note: earnNote.trim() || "Manual entry", profileId: active?.id, profileName: active?.name, at: new Date().toISOString() };
-    setEarnings((prev) => ({ ...prev, total: (Number(prev.total) || 0) + n, entries: [entry, ...(prev.entries || [])].slice(0, 50) }));
+    if (!n || Number.isNaN(n)) {
+      setMessage("Enter a valid amount.");
+      return;
+    }
+    const entry = {
+      id: `e_${Date.now()}`,
+      amount: n,
+      note: earnNote.trim() || "Manual entry",
+      profileId: active?.id,
+      profileName: active?.name,
+      at: new Date().toISOString(),
+    };
+    setEarnings((prev) => ({
+      ...prev,
+      total: (Number(prev.total) || 0) + n,
+      entries: [entry, ...(prev.entries || [])].slice(0, 50),
+    }));
     setEarnAmount("");
     setEarnNote("");
     setMessage(`Logged ${formatMoney(n, earnings.currency)}.`);
@@ -58,6 +121,12 @@ export default function ProfileChannelsWorkspace() {
         .pf-kicker{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);font-weight:800}
         .pf-title{margin:8px 0 0;font-size:clamp(28px,4vw,40px);line-height:1.05;letter-spacing:-.04em;font-weight:850}
         .pf-help{margin:10px 0 0;max-width:60ch;color:var(--muted);font-size:14px;line-height:1.5}
+        .pf-sync{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:12px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--panel);font-size:12px;color:var(--muted)}
+        .pf-sync-dot{width:8px;height:8px;border-radius:50%;background:#737a84}
+        .pf-sync-dot.cloud{background:#7b9a83}
+        .pf-sync-dot.syncing{background:var(--gold)}
+        .pf-sync-dot.local{background:#7b6060}
+        .pf-sync .pf-btn{min-height:34px;padding:0 12px;font-size:11px}
         .pf-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:16px 0 18px}
         @media(max-width:700px){.pf-stats{grid-template-columns:1fr 1fr}}
         .pf-stat{padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:var(--panel)}
@@ -101,7 +170,29 @@ export default function ProfileChannelsWorkspace() {
       <div className="pf-hero">
         <div className="pf-kicker">Owned media map</div>
         <h1 className="pf-title">Profiles</h1>
-        <p className="pf-help">Paste exact public links. Log money earned. Home reads both instantly.</p>
+        <p className="pf-help">Paste exact public links. Log money earned. Data syncs to your account when signed in.</p>
+        <div className="pf-sync">
+          <span className={`pf-sync-dot ${sync.status}`} />
+          <span>{sync.detail}</span>
+          <button
+            type="button"
+            className="pf-btn"
+            disabled={syncing}
+            onClick={async () => {
+              setSyncing(true);
+              const result = await pushToCloud(profiles, earnings);
+              setSyncing(false);
+              if (result.ok) setSync({ status: "cloud", detail: "Pushed to cloud" });
+              else
+                setSync({
+                  status: "local",
+                  detail: result.reason === "signed_out" ? "Sign in to sync" : result.reason,
+                });
+            }}
+          >
+            {syncing ? "Syncing…" : "Sync now"}
+          </button>
+        </div>
       </div>
 
       <div className="pf-stats">
@@ -170,9 +261,9 @@ export default function ProfileChannelsWorkspace() {
 
             <div className="pf-money">
               <strong>Total logged · {formatMoney(earnings.total, earnings.currency)}</strong>
-              <p>Manual log for now. Home updates when you save links or log money.</p>
+              <p>Saved locally and pushed to cloud when you are signed in.</p>
             </div>
-            <div className="pf-status">{message || "Saved on this device."}</div>
+            <div className="pf-status">{message || "Edits auto-sync when signed in."}</div>
           </section>
         )}
       </div>
