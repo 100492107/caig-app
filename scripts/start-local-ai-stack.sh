@@ -96,6 +96,7 @@ if [[ -n "${SUPABASE_SERVICE_ROLE_KEY:-}" ]]; then
   if [[ -x "$ROOT/.venv-caption/bin/python" ]]; then
     start_bg "caption-worker" "scripts/caption-worker.mjs" "caption-worker.log" env PATH="$PATH" "$NODE_BIN" --env-file=.env.qwen.local "$ROOT/scripts/caption-worker.mjs"
   fi
+  start_bg "source-ingestion" "scripts/content-source-ingestion-worker.mjs" "source-ingestion.log" env PATH="$PATH" QWEN_URL="http://${QWEN_HOST}:${QWEN_PORT}" QWEN_VISION_URL="http://${QWEN_VISION_HOST}:${QWEN_VISION_PORT}" QWEN_MODEL="$QWEN_MODEL" QWEN_VISION_MODEL="$QWEN_VISION_MODEL" WHISPER_URL="http://127.0.0.1:8787" "$NODE_BIN" --env-file=.env.qwen.local "$ROOT/scripts/content-source-ingestion-worker.mjs"
 else
   echo "[LOCAL AI] CAIG workers skipped: SUPABASE_SERVICE_ROLE_KEY not loaded"
 fi
