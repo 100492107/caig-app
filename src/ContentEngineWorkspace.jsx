@@ -58,7 +58,7 @@ async function waitServerJob(id, setMessage, label = "Engine") {
   throw new Error("Timed out. Start the local Qwen worker on your Mac, then try again.");
 }
 
-export default function ContentEngineWorkspace() {
+export default function ContentEngineWorkspace({ onGo } = {}) {
   const [url, setUrl] = useState("");
   const [niche, setNiche] = useState("Gaming");
   const [notes, setNotes] = useState("");
@@ -173,7 +173,8 @@ export default function ContentEngineWorkspace() {
   return (
     <div className="rm">
       <style>{`
-        .rm{max-width:820px;margin:0 auto;color:#f3f1eb;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,system-ui,sans-serif;position:relative}
+        .rm{max-width:820px;margin:0 auto;color:#f3f1eb;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,system-ui,sans-serif;position:relative}
+        .rm *,.rm *::before,.rm *::after{box-sizing:border-box}
         .rm::before{content:"";position:absolute;inset:-30px -15% auto;height:220px;background:radial-gradient(ellipse 60% 80% at 20% 0%,rgba(212,181,106,.12),transparent 70%);pointer-events:none}
         .rm > *{position:relative}
         .rm-kicker{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#d4b56a;font-weight:800}
@@ -186,23 +187,21 @@ export default function ContentEngineWorkspace() {
         .rm-progress span.done{color:#a8b09a}
         .rm-card{margin-top:20px;padding:26px;border-radius:24px;border:1px solid rgba(255,255,255,.08);background:linear-gradient(180deg,#191c26,#14171f);box-shadow:0 24px 60px rgba(0,0,0,.25)}
         .rm-label{display:block;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#a8aeb8;margin-bottom:8px}
-        .rm-input{width:100%;min-height:54px;padding:14px 16px;border-radius:14px;border:1px solid rgba(255,255,255,.1);background:#0c0e14;color:#f3f1eb;font:inherit;font-size:15px;outline:none;box-sizing:border-box;transition:border-color .15s}
+        .rm-input{width:100%;min-height:54px;padding:14px 16px;border-radius:14px;border:1px solid rgba(255,255,255,.1);background:#0c0e14;color:#f3f1eb;font:inherit;font-size:15px;outline:none}
         .rm-input:focus{border-color:rgba(212,181,106,.5);box-shadow:0 0 0 3px rgba(212,181,106,.1)}
         .rm-row{display:grid;grid-template-columns:1fr;gap:14px;margin-top:14px}
         .rm-notes textarea{min-height:96px;resize:vertical;line-height:1.5}
         .rm-file{margin-top:14px;padding:14px 16px;border-radius:14px;border:1px dashed rgba(255,255,255,.12);background:rgba(255,255,255,.02);font-size:12px;color:#8b919c}
         .rm-file input{margin-top:8px;width:100%;color:#c4c8d0}
         .rm-cta{margin-top:20px;width:100%;min-height:54px;border:0;border-radius:14px;background:linear-gradient(180deg,#e0c87a,#d4b56a);color:#1a160e;font:inherit;font-size:15px;font-weight:850;cursor:pointer;box-shadow:0 12px 32px rgba(212,181,106,.28)}
-        .rm-cta:hover:not(:disabled){filter:brightness(1.04)}
         .rm-cta:disabled{opacity:.5;cursor:default;box-shadow:none}
         .rm-status{margin-top:14px;font-size:13px;color:#9a9faa;min-height:20px}
-        .rm-status.err{color:#d4a0a0}.rm-status.ok{color:#8fb597}
+        .rm-status.err{color:#d4a0a0}
         .rm-hint{margin-top:18px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
         @media(max-width:640px){.rm-hint{grid-template-columns:1fr}}
         .rm-hint div{padding:12px;border-radius:12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06)}
         .rm-hint b{display:block;font-size:11px;color:#e0dccf;font-weight:800}
         .rm-hint span{display:block;margin-top:4px;font-size:11px;color:#7a818c;line-height:1.4}
-        .rm-doc{margin-top:8px}
         .rm-hero-result{margin-top:18px;padding:22px 24px;border-radius:20px;border:1px solid rgba(212,181,106,.28);background:linear-gradient(135deg,rgba(212,181,106,.14),#161922 60%)}
         .rm-hero-result strong{display:block;font-size:22px;letter-spacing:-.03em;color:#f3e7c8;line-height:1.25}
         .rm-hero-result p{margin:10px 0 0;color:#cfc3a4;font-size:14px;line-height:1.5}
@@ -214,7 +213,7 @@ export default function ContentEngineWorkspace() {
         .rm-script{margin-top:10px;white-space:pre-wrap;font-size:14px;line-height:1.65;color:#ddd9d0;max-height:380px;overflow:auto;padding:4px}
         .rm-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
         .rm-btn{min-height:42px;padding:0 16px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:#161922;color:#e8e6df;font:inherit;font-size:13px;font-weight:750;cursor:pointer}
-        .rm-btn.primary{background:linear-gradient(180deg,#e0c87a,#d4b56a);border-color:#d4b56a;color:#1a160e;font-weight:850;box-shadow:0 8px 24px rgba(212,181,106,.22)}
+        .rm-btn.primary{background:linear-gradient(180deg,#e0c87a,#d4b56a);border-color:#d4b56a;color:#1a160e;font-weight:850}
         .rm-grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
         @media(max-width:600px){.rm-grid2{grid-template-columns:1fr}}
         .rm-sticky{position:sticky;bottom:16px;margin-top:24px;padding:14px 16px;border-radius:16px;border:1px solid rgba(212,181,106,.25);background:rgba(18,21,28,.92);backdrop-filter:blur(16px);display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;box-shadow:0 16px 40px rgba(0,0,0,.35)}
@@ -228,9 +227,7 @@ export default function ContentEngineWorkspace() {
 
       <div className="rm-kicker">Remake a winner</div>
       <h1 className="rm-title">Paste something that already works</h1>
-      <p className="rm-sub">
-        One input. Full package. We extract why it wins, then write your stronger original with titles, hook, script and Shorts.
-      </p>
+      <p className="rm-sub">One input. Full package. Mechanism, original, titles, hook, script, Shorts.</p>
 
       <div className="rm-progress">
         <span className={step === "input" ? "on" : step !== "input" ? "done" : ""}>1 · Reference</span>
@@ -259,7 +256,7 @@ export default function ContentEngineWorkspace() {
             </div>
             <div className="rm-notes">
               <label className="rm-label">What stood out (optional)</label>
-              <textarea className="rm-input" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Hook, pacing, audience, angle you want to beat…" />
+              <textarea className="rm-input" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Hook, pacing, audience…" />
             </div>
           </div>
           <div className="rm-file">
@@ -267,16 +264,12 @@ export default function ContentEngineWorkspace() {
             <input type="file" accept="video/*,audio/*,.txt,.md" onChange={(e) => setFile(e.target.files?.[0] || null)} />
             {file && <div style={{ marginTop: 8, color: "#d8d4c8" }}>{file.name}</div>}
           </div>
-          <button type="button" className="rm-cta" disabled={busy || !canRun} onClick={run}>
-            Build package →
-          </button>
-          <div className={`rm-status${/fail|error|timeout/i.test(message) ? " err" : ""}`}>
-            {message || "Needs local Qwen running on your Mac."}
-          </div>
+          <button type="button" className="rm-cta" disabled={busy || !canRun} onClick={run}>Build package →</button>
+          <div className={`rm-status${/fail|error|timeout/i.test(message) ? " err" : ""}`}>{message || "Needs local Qwen running on your Mac."}</div>
           <div className="rm-hint">
-            <div><b>Mechanism</b><span>Why it holds attention — not the words</span></div>
-            <div><b>Original</b><span>Titles, hook, script built to beat it</span></div>
-            <div><b>Shorts</b><span>Clips ready for TikTok / Reels / Shorts</span></div>
+            <div><b>Mechanism</b><span>Why it holds attention</span></div>
+            <div><b>Original</b><span>Titles, hook, script</span></div>
+            <div><b>Shorts</b><span>TikTok / Reels / Shorts</span></div>
           </div>
         </div>
       )}
@@ -289,83 +282,58 @@ export default function ContentEngineWorkspace() {
               <p>{selected.angle || selected.why_this_should_work || "Original package ready to ship."}</p>
             </div>
           )}
-
           {analysis && (analysis.mechanism || analysis.why_it_works) && (
             <div className="rm-section">
               <h3>Why the reference wins</h3>
-              <div className="rm-block">
-                <strong>{analysis.mechanism || "Mechanism"}</strong>
-                <p>{analysis.why_it_works || analysis.summary || ""}</p>
-              </div>
+              <div className="rm-block"><strong>{analysis.mechanism || "Mechanism"}</strong><p>{analysis.why_it_works || analysis.summary || ""}</p></div>
             </div>
           )}
-
           {selected && (selected.titles || []).length > 0 && (
             <div className="rm-section">
               <h3>Titles</h3>
               {(selected.titles || []).slice(0, 5).map((t) => (
-                <div className="rm-block" key={t.rank || t.title}>
-                  <strong>{t.title}</strong>
-                  {t.reason && <span>{t.reason}</span>}
-                </div>
+                <div className="rm-block" key={t.rank || t.title}><strong>{t.title}</strong>{t.reason && <span>{t.reason}</span>}</div>
               ))}
             </div>
           )}
-
           {selected?.hook_0_5s && (
-            <div className="rm-section">
-              <h3>Hook · first 5 seconds</h3>
-              <div className="rm-block"><strong>{selected.hook_0_5s}</strong></div>
-            </div>
+            <div className="rm-section"><h3>Hook · first 5 seconds</h3><div className="rm-block"><strong>{selected.hook_0_5s}</strong></div></div>
           )}
-
           {selected?.script && (
             <div className="rm-section">
               <h3>Script</h3>
               <div className="rm-block">
                 <div className="rm-script">{selected.script}</div>
-                <div className="rm-actions">
-                  <button type="button" className="rm-btn" onClick={() => copy(selected.script)}>Copy script</button>
-                </div>
+                <div className="rm-actions"><button type="button" className="rm-btn" onClick={() => copy(selected.script)}>Copy script</button></div>
               </div>
             </div>
           )}
-
           {shorts.length > 0 && (
             <div className="rm-section">
               <h3>Shorts · {shorts.length}</h3>
               <div className="rm-grid2">
                 {shorts.map((c) => (
-                  <div className="rm-block" key={`${c.rank}-${c.hook}`}>
-                    <strong>#{c.rank} · {c.short_title || "Short"}</strong>
-                    <span>{c.hook}</span>
-                  </div>
+                  <div className="rm-block" key={`${c.rank}-${c.hook}`}><strong>#{c.rank} · {c.short_title || "Short"}</strong><span>{c.hook}</span></div>
                 ))}
               </div>
             </div>
           )}
-
           {(result.monetisation_tests || []).length > 0 && (
             <div className="rm-section">
               <h3>Money tests</h3>
               {(result.monetisation_tests || []).map((x, i) => (
-                <div className="rm-block" key={i}>
-                  <strong>{x.route}</strong>
-                  <span>{x.test} · {x.metric}</span>
-                </div>
+                <div className="rm-block" key={i}><strong>{x.route}</strong><span>{x.test} · {x.metric}</span></div>
               ))}
             </div>
           )}
-
           <div className="rm-sticky">
             <p>{message || (savedId ? "Saved. Open Studio next." : "Save this package, then open Studio.")}</p>
             <div className="rm-actions" style={{ margin: 0 }}>
-              <button type="button" className="rm-btn primary" disabled={busy || !selected} onClick={save}>
-                {savedId ? "Saved ✓" : "Save to Studio →"}
-              </button>
-              <button type="button" className="rm-btn" onClick={() => { setStep("input"); setResult(null); setMessage(""); }}>
-                New remake
-              </button>
+              <button type="button" className="rm-btn primary" disabled={busy || !selected} onClick={save}>{savedId ? "Saved ✓" : "Save to Studio →"}</button>
+              {typeof onGo === "function" && (
+                <button type="button" className="rm-btn" onClick={() => onGo("production")}>Open Studio</button>
+              )}
+              <button type="button" className="rm-btn" onClick={() => { setStep("input"); setResult(null); setMessage(""); }}>New remake</button>
             </div>
           </div>
         </div>
