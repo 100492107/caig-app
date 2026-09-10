@@ -1,14 +1,141 @@
-import React,{useEffect,useMemo,useState} from 'react';
-import {supabase} from './supabase';
+import React, { useEffect, useMemo, useState } from 'react';
+import { supabase } from './supabase';
 
-export default function CanonicalPublishWorkspace(){
- const [rows,setRows]=useState([]),[selectedId,setSelectedId]=useState(''),[date,setDate]=useState(''),[time,setTime]=useState(''),[message,setMessage]=useState(''),[busy,setBusy]=useState(false);
- const selected=useMemo(()=>rows.find(r=>r.id===selectedId)||null,[rows,selectedId]);
- async function load(){const {data,error}=await supabase.from('track_b_publications').select('id,project_id,asset_id,production_job_id,platform,title,status,scheduled_at,published_at,publish_attempts,last_attempt_at,last_error,metadata,created_at').order('created_at',{ascending:false}).limit(100);if(error)setMessage(error.message);else setRows(data||[])}
- useEffect(()=>{load();const t=setInterval(load,8000);return()=>clearInterval(t)},[]);
- useEffect(()=>{if(selected?.scheduled_at){const d=new Date(selected.scheduled_at);if(!Number.isNaN(d.getTime())){const local=new Date(d.getTime()-d.getTimezoneOffset()*60000);setDate(local.toISOString().slice(0,10));setTime(local.toISOString().slice(11,16))}}},[selected]);
- async function schedule(){if(!selected){setMessage('Choose a publication first.');return}if(!date||!time){setMessage('Choose a date and time.');return}setBusy(true);setMessage('Scheduling publication…');try{const {data:userData,error:userError}=await supabase.auth.getUser();if(userError||!userData?.user)throw new Error('Sign in required.');const scheduledAt=new Date(`${date}T${time}:00`);const {error}=await supabase.from('track_b_publications').update({status:'scheduled',scheduled_at:scheduledAt.toISOString(),last_error:null}).eq('id',selected.id).eq('owner_id',userData.user.id);if(error)throw error;const projection=selected.metadata?.content_queue_projection_id;if(projection){await supabase.from('content_queue').update({status:'scheduled',scheduled_date:date,scheduled_time:time,publishing_started_at:null,last_publish_error:null}).eq('id',projection).eq('client_id',userData.user.id)}setMessage(`Scheduled for ${date} at ${time}.`);await load()}catch(e){setMessage(e?.message||String(e))}finally{setBusy(false)}}
- const goToProduction=()=>{window.location.href='/content/production'};
- const goToRemake=()=>{window.location.href='/content/remake'};
- return <main className='canonical-publish'><style>{`.canonical-publish{color:var(--text)}.cpub-k{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-subtle);font-weight:850}.cpub-h{margin:10px 0 0;font-size:clamp(36px,6vw,64px);line-height:.92;letter-spacing:-.07em}.cpub-s{margin:12px 0 0;max-width:65ch;color:var(--text-muted);font-size:13px;line-height:1.55}.cpub-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:12px;margin-top:22px}.cpub-card{border:1px solid var(--border);background:var(--surface);border-radius:18px;padding:18px}.cpub-list{display:grid;gap:8px;margin-top:12px}.cpub-item{width:100%;text-align:left;padding:13px;border:1px solid var(--border);border-radius:12px;background:var(--surface-2);color:var(--text);cursor:pointer}.cpub-item.active{border-color:rgba(212,181,106,.4);background:rgba(212,181,106,.08)}.cpub-item strong{font-size:12px}.cpub-meta{margin-top:5px;color:var(--text-muted);font-size:10px}.cpub-pill{display:inline-block;margin-top:8px;padding:4px 7px;border-radius:999px;background:rgba(212,181,106,.1);font-size:8px;color:#cdbf9d}.cpub-field{width:100%;margin-top:7px;padding:10px;border:1px solid var(--border);border-radius:10px;background:var(--surface-2);color:var(--text);font:inherit}.cpub-btn{margin-top:14px;width:100%;min-height:44px;border:1px solid #ddd9cc;border-radius:10px;background:#ddd9cc;color:#171717;font-weight:900;cursor:pointer}.cpub-msg{margin-top:10px;color:var(--text-muted);font-size:10px}.cpub-empty{padding:22px;border:1px dashed var(--border);border-radius:14px;background:var(--surface-2)}.cpub-empty strong{display:block;font-size:14px}.cpub-empty p{margin:7px 0 0;color:var(--text-muted);font-size:12px;line-height:1.5}.cpub-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}.cpub-empty-btn{min-height:40px;padding:0 14px;border:1px solid rgba(212,181,106,.45);border-radius:10px;background:rgba(212,181,106,.1);color:var(--text);font:inherit;font-size:12px;font-weight:850;cursor:pointer}.cpub-empty-btn.secondary{border-color:var(--border);background:var(--surface);color:var(--text-muted)}@media(max-width:900px){.cpub-grid{grid-template-columns:1fr}}`}</style><div className='cpub-k'>Content · Publish</div><h1 className='cpub-h'>Ship from the publication record.</h1><p className='cpub-s'>The publication table is the canonical scheduling and publication state. The legacy queue only mirrors the schedule for the existing publisher adapter.</p><div className='cpub-grid'><section className='cpub-card'><div className='cpub-k'>Publication queue</div><div className='cpub-list'>{rows.length?rows.map(r=><button key={r.id} className={`cpub-item ${selectedId===r.id?'active':''}`} onClick={()=>setSelectedId(r.id)}><strong>{r.title||'Untitled publication'}</strong><div className='cpub-meta'>{r.platform} · {r.status} · {r.publish_attempts} attempts</div>{r.scheduled_at&&<span className='cpub-pill'>{new Date(r.scheduled_at).toLocaleString('en-GB')}</span>}</button>):<div className='cpub-empty'><strong>Nothing is ready to publish yet.</strong><p>Publish works from canonical publication records created after a production job. Start with a saved project, create its production output, then schedule it here.</p><div className='cpub-actions'><button type='button' className='cpub-empty-btn' onClick={goToProduction}>Go to Production →</button><button type='button' className='cpub-empty-btn secondary' onClick={goToRemake}>Start from Remake</button></div></div>}</div></section><section className='cpub-card'><div className='cpub-k'>Schedule</div>{selected?<><div style={{marginTop:10,fontSize:13,fontWeight:800}}>{selected.title||'Publication'}</div><div className='cpub-meta'>{selected.platform} · {selected.status}</div><label className='cpub-k' style={{display:'block',marginTop:16}}>Date<input className='cpub-field' type='date' value={date} onChange={e=>setDate(e.target.value)}/></label><label className='cpub-k' style={{display:'block',marginTop:12}}>Time<input className='cpub-field' type='time' value={time} onChange={e=>setTime(e.target.value)}/></label><button className='cpub-btn' disabled={busy} onClick={schedule}>{busy?'Scheduling…':'Schedule →'}</button>{selected.last_error&&<div style={{marginTop:10,color:'#d4a6a6',fontSize:10}}>{selected.last_error}</div>}</>:<div className='cpub-empty' style={{marginTop:10}}><strong>Select a publication.</strong><p>When a publication exists, its scheduling controls appear here. There is nothing to schedule until a production job creates the canonical publication record.</p><div className='cpub-actions'><button type='button' className='cpub-empty-btn' onClick={goToProduction}>Create output in Production →</button></div></div>}</section></div>{message&&<div className='cpub-msg'>{message}</div>}</main>
+export default function CanonicalPublishWorkspace() {
+  const [rows, setRows] = useState([]);
+  const [selectedId, setSelectedId] = useState('');
+  const [date, setDate] = useState('');
+  const [time, setTime] = useState('09:00');
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState('');
+
+  const selected = useMemo(() => rows.find((r) => r.id === selectedId) || null, [rows, selectedId]);
+  const scheduled = rows.filter((r) => r.scheduled_at || /schedul/i.test(String(r.status || ''))).length;
+  const live = rows.filter((r) => /publish|live|ship/i.test(String(r.status || ''))).length;
+  const drafts = rows.filter((r) => /draft|ready|pending/i.test(String(r.status || ''))).length;
+
+  async function load() {
+    const { data, error } = await supabase
+      .from('track_b_publications')
+      .select('id,title,platform,status,scheduled_at,publish_attempts,last_error,created_at,updated_at,project_id,production_job_id')
+      .order('updated_at', { ascending: false })
+      .limit(100);
+    if (error) setMessage(error.message);
+    else setRows(data || []);
+  }
+
+  useEffect(() => {
+    load();
+    const t = setInterval(load, 8000);
+    return () => clearInterval(t);
+  }, []);
+
+  async function schedule() {
+    if (!selected) return;
+    if (!date) {
+      setMessage('Choose a date so Cornerstone can schedule this.');
+      return;
+    }
+    setBusy(true);
+    setMessage('Scheduling…');
+    try {
+      const scheduledAt = new Date(`${date}T${time || '09:00'}:00`).toISOString();
+      const { error } = await supabase
+        .from('track_b_publications')
+        .update({ status: 'scheduled', scheduled_at: scheduledAt })
+        .eq('id', selected.id);
+      if (error) throw new Error(error.message);
+      setMessage('Scheduled. This is now part of what is going live.');
+      await load();
+    } catch (err) {
+      setMessage(err.message || 'Could not schedule.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <main className="paid-pub">
+      <style>{`
+        .paid-pub{color:var(--text)}
+        .pu-strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:16px}
+        .pu-stat{border:1px solid var(--border);background:var(--surface);border-radius:14px;padding:14px}
+        .pu-stat b{display:block;font-size:24px;letter-spacing:-.04em}
+        .pu-stat span{display:block;margin-top:6px;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-subtle)}
+        .pu-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:12px}
+        .pu-card{border:1px solid var(--border);background:var(--surface);border-radius:18px;padding:18px}
+        .pu-k{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-subtle);font-weight:850}
+        .pu-h{margin:10px 0 0;font-size:clamp(28px,4vw,40px);line-height:.95;letter-spacing:-.05em}
+        .pu-s{margin:10px 0 0;color:var(--text-muted);font-size:12px;line-height:1.5}
+        .pu-list{display:grid;gap:8px;margin-top:14px}
+        .pu-item{text-align:left;width:100%;padding:12px;border:1px solid var(--border);border-radius:12px;background:var(--surface-2);color:var(--text);cursor:pointer}
+        .pu-item.active{border-color:rgba(212,181,106,.45);background:rgba(212,181,106,.08)}
+        .pu-item strong{display:block;font-size:13px}
+        .pu-meta{display:block;margin-top:4px;font-size:10px;color:var(--text-muted)}
+        .pu-pill{display:inline-block;margin-top:8px;padding:4px 7px;border-radius:999px;background:rgba(212,181,106,.1);font-size:9px;color:#cdbf9d}
+        .pu-field{width:100%;margin-top:7px;padding:10px;border:1px solid var(--border);border-radius:10px;background:var(--surface-2);color:var(--text);font:inherit}
+        .pu-btn{margin-top:14px;width:100%;min-height:46px;border:1px solid #ddd9cc;border-radius:11px;background:#ddd9cc;color:#171717;font-weight:900;cursor:pointer}
+        .pu-btn:disabled{opacity:.55}
+        .pu-empty{padding:16px;border:1px dashed var(--border);border-radius:14px;color:var(--text-muted);font-size:12px;line-height:1.5}
+        .pu-empty a{color:var(--text);font-weight:850}
+        .pu-msg{margin-top:10px;color:var(--text-muted);font-size:11px}
+        @media(max-width:900px){.pu-strip{grid-template-columns:1fr 1fr}.pu-grid{grid-template-columns:1fr}}
+      `}</style>
+
+      <div className="pu-strip">
+        <div className="pu-stat"><b>{rows.length}</b><span>Ready to ship</span></div>
+        <div className="pu-stat"><b>{drafts}</b><span>Awaiting schedule</span></div>
+        <div className="pu-stat"><b>{scheduled}</b><span>Scheduled</span></div>
+        <div className="pu-stat"><b>{live}</b><span>Marked live</span></div>
+      </div>
+
+      <div className="pu-grid">
+        <section className="pu-card">
+          <div className="pu-k">Going live</div>
+          <h2 className="pu-h">What is ready to leave the building.</h2>
+          <p className="pu-s">These are publication records created from production. Pick one, choose when it should go live, and let Cornerstone carry the schedule.</p>
+          <div className="pu-list">
+            {rows.length ? rows.map((r) => (
+              <button key={r.id} type="button" className={`pu-item${selectedId === r.id ? ' active' : ''}`} onClick={() => setSelectedId(r.id)}>
+                <strong>{r.title || 'Untitled publication'}</strong>
+                <span className="pu-meta">{r.platform} · {r.status} · {r.publish_attempts || 0} attempts</span>
+                {r.scheduled_at ? <span className="pu-pill">{new Date(r.scheduled_at).toLocaleString('en-GB')}</span> : null}
+              </button>
+            )) : (
+              <div className="pu-empty">
+                Nothing is ready to go live yet. Produce a package first — then it appears here to schedule.
+                <br /><a href="/content/production">Open production →</a>
+              </div>
+            )}
+          </div>
+        </section>
+
+        <section className="pu-card">
+          <div className="pu-k">Schedule</div>
+          {selected ? (
+            <>
+              <div style={{ marginTop: 10, fontSize: 15, fontWeight: 850 }}>{selected.title || 'Publication'}</div>
+              <span className="pu-meta">{selected.platform} · {selected.status}</span>
+              <label className="pu-k" style={{ display: 'block', marginTop: 16 }}>Date
+                <input className="pu-field" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+              </label>
+              <label className="pu-k" style={{ display: 'block', marginTop: 12 }}>Time
+                <input className="pu-field" type="time" value={time} onChange={(e) => setTime(e.target.value)} />
+              </label>
+              <button className="pu-btn" type="button" disabled={busy} onClick={schedule}>
+                {busy ? 'Scheduling…' : 'Schedule this →'}
+              </button>
+              {selected.last_error ? <div style={{ marginTop: 10, color: '#d4a6a6', fontSize: 11 }}>{selected.last_error}</div> : null}
+            </>
+          ) : (
+            <div className="pu-empty" style={{ marginTop: 12 }}>Select something on the left. One decision: when it goes live.</div>
+          )}
+          {message ? <div className="pu-msg">{message}</div> : null}
+          <div className="pu-msg" style={{ marginTop: 16 }}>
+            <a href="/content/measurement" style={{ color: 'inherit', fontWeight: 850 }}>After it ships, capture what worked →</a>
+          </div>
+        </section>
+      </div>
+    </main>
+  );
 }
