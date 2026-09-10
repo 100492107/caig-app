@@ -196,9 +196,11 @@ export async function hydrateOwnedMedia() {
     earnings: loadEarningsLocal(),
   };
   const remote = await pullFromCloud();
-  return remote.ok
-    ? { ...remote, source: remote.reason === "pulled" ? "cloud" : "local" }
-    : { ok: true, source: "local", reason: remote.reason, ...local };
+  if (remote.ok) {
+    const source = remote.reason === "pulled" || remote.reason === "seeded" ? "cloud" : "local";
+    return { ...remote, source };
+  }
+  return { ok: true, source: "local", reason: remote.reason, ...local };
 }
 
 export function profileStats(profiles = loadProfilesLocal()) {
