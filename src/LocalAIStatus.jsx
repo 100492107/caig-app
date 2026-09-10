@@ -2,7 +2,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import { supabase } from "./supabase";
 import "./localAIStatus.css";
 
-const STALE_AFTER_MS = 15000;
+// Heartbeat can be 30–60s; use a wide window so Home and System agree.
+const STALE_AFTER_MS = 90000;
 
 export default function LocalAIStatus({ compact = false }) {
   const [worker, setWorker] = useState(null);
