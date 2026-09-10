@@ -19,6 +19,12 @@ const path = window.location.pathname.replace(/\/+$/, '') || '/'
 document.documentElement.dataset.route = path
 document.body.dataset.route = path
 
+const LEGACY_REDIRECTS = {
+  '/creative': '/content/remake',
+  '/main-app': '/content/remake',
+}
+if (LEGACY_REDIRECTS[path]) window.location.replace(LEGACY_REDIRECTS[path])
+
 function Loading(){return <div style={{minHeight:'100svh',display:'grid',placeItems:'center',color:'var(--text-muted)',background:'var(--bg)',fontSize:12}} role="status" aria-live="polite">Opening Cornerstone…</div>}
 function Route(){
   if(path==='/'||path==='/command')return <CommandHome/>
