@@ -1,9 +1,10 @@
 # Cornerstone AI Enterprise Operating Rules
 
 **Canonical strategy document:** `docs/CORNERSTONE_MASTER_CONTEXT.md`  
+**Architecture document:** `docs/CORNERSTONE_ARCHITECTURE_SEP_2026.md`  
 **Local AI runbook:** `docs/LOCAL_RUN.md`
 
-This repository is the operating system for Cornerstone AI Enterprises. Product decisions, research, Qwen jobs and new UI must follow the three-engine architecture.
+This repository is the operating system for Cornerstone AI Enterprises. Product decisions, research, Qwen jobs and new UI must follow the canonical enterprise architecture.
 
 ## Mission
 
@@ -13,17 +14,46 @@ This repository is the operating system for Cornerstone AI Enterprises. Product 
 
 Track A = cash now. Track B = compounding assets. New Life = capacity to run both.
 
+## Canonical product tree
+
+```text
+Cornerstone
+├── Command
+├── Content
+│   ├── Remake
+│   ├── Creators
+│   ├── Profiles
+│   ├── Production
+│   ├── Publish
+│   └── Measure
+├── Revenue
+├── Operator
+└── System
+```
+
 ## Canonical routes
 
-- `/` → `EnterpriseCommandHome.jsx`
-- `/creative` → `TrackBApplication.jsx` + `PersistentGenerations.jsx`
-- `/outreach` → `TrackAOutreachWorkspace.jsx`
-- `/ceo` → `CEOHome.jsx`
-- `/territory`, `/workbench`, `/main-app` → compatibility only
+- `/` → Command
+- `/content/remake` → Remake
+- `/content/creators` → Creators
+- `/content/profiles` → Profiles
+- `/content/production` → Production
+- `/content/publish` → Publish
+- `/content/measurement` → Measure
+- `/revenue` → Track A Revenue Recovery
+- Operator → external New Life application
+- `/system` → system health and dependencies
 
-External Track A CRM: `https://cornerstonegroupdatabase.vercel.app/`
+Compatibility aliases may remain temporarily (`/creative`, `/outreach`, `/ceo`, `/territory`, `/workbench`, `/main-app`) but new work must use canonical routes.
 
-Do not create parallel V2/V3/Final/Unified workspaces for an existing capability.
+## Command
+
+Command is control, not another workspace. It presents:
+
+- **VALUE** — revenue / recovery / content return
+- **FLOW** — jobs / production / publish
+- **HEALTH** — AI / queue / errors / dependencies
+- **NEXT** — one best action
 
 ## Track A
 
@@ -47,6 +77,15 @@ Public research ≠ owned analytics. Prefer repeated patterns. Label hypotheses.
 
 Local Qwen is the intelligence layer. Identify domain → load context → research if needed → separate evidence from inference → human quality gate → durable job state.  
 Rendering providers are implementation details.
+
+## Security
+
+- Browser actions must be authenticated.
+- Server APIs must verify the Supabase user independently of UI auth.
+- Service-role keys are server-only and every privileged operation must be scoped to the authenticated owner.
+- Never trust a browser-supplied user ID for ownership.
+- New private storage paths must begin with the authenticated user's ID.
+- Do not add globally permissive authenticated or anonymous RLS policies to user data.
 
 ## Never
 
