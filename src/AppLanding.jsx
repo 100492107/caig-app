@@ -9,20 +9,14 @@ export default function AppLanding() {
         <h1>Where do you want to work?</h1>
         <p className="app-sub">Choose the workspace you need.</p>
         <div className="app-choice-grid">
-          <a className="app-choice" href="/creative">
+          <a className="app-choice" href="/content/remake">
             <div className="app-choice-number">01</div>
-            <div>
-              <h2>Creative Engine</h2>
-              <p>Develop ideas, test hypotheses, create media, review and publish.</p>
-            </div>
+            <div><h2>Content Engine</h2><p>Start from evidence, build an original package, produce, publish and measure.</p></div>
             <span>Open →</span>
           </a>
-          <a className="app-choice" href="/main-app">
+          <a className="app-choice" href="/content/creators">
             <div className="app-choice-number">02</div>
-            <div>
-              <h2>Main App</h2>
-              <p>Content Engine, UGC Centre, clients, review queue, calendar and operations.</p>
-            </div>
+            <div><h2>Creators</h2><p>Open owned faces and voices for creator-led content workflows.</p></div>
             <span>Open →</span>
           </a>
         </div>
