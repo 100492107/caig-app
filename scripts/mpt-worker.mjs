@@ -207,12 +207,112 @@ async function recoverProcessingJob() {
   return (data || []).find((job) => !ignoredMptTaskIds.has(job.mpt_task_id)) || null;
 }
 
+async function completeCanonicalProduction(job, stored) {
+  const canonicalJobId = job.payload?.canonical_production_job_id || job.payload?.canonicalProductionJobId;
+  const projectId = job.payload?.canonical_project_id || job.payload?.canonicalProjectId;
+  if (!canonicalJobId || !projectId || !job.owner_id) return;
+
+  const { data: project, error: projectError } = await supabase
+    .from('track_b_content_projects')
+    .select('id,workspace_id,title')
+    .eq('id', projectId)
+    .eq('owner_id', job.owner_id)
+    .maybeSingle();
+  if (projectError) throw projectError;
+  if (!project) throw new Error('Canonical Track B project not found for completed production.');
+
+  const { data: existingAsset, error: assetLookupError } = await supabase
+    .from('track_b_assets')
+    .select('id')
+    .eq('owner_id', job.owner_id)
+    .eq('storage_path', stored.storagePath)
+    .maybeSingle();
+  if (assetLookupError) throw assetLookupError;
+
+  let asset = existingAsset;
+  if (!asset) {
+    const { data: createdAsset, error: assetError } = await supabase
+      .from('track_b_assets')
+      .insert({
+        workspace_id: project.workspace_id || null,
+        asset_type: 'video',
+        name: project.title || `Track B production ${canonicalJobId.slice(0, 8)}`,
+        provider: 'mpt',
+        storage_path: stored.storagePath,
+        public_url: stored.publicUrl,
+        metadata: {
+          canonical: true,
+          canonical_production_job_id: canonicalJobId,
+          canonical_project_id: projectId,
+          mpt_video_job_id: job.id,
+          mpt_task_id: job.mpt_task_id,
+        },
+        approval_status: 'pending',
+        owner_id: job.owner_id,
+      })
+      .select('id')
+      .single();
+    if (assetError) throw assetError;
+    asset = createdAsset;
+  }
+
+  const { error: provenanceError } = await supabase
+    .from('track_b_asset_provenance')
+    .insert({
+      owner_id: job.owner_id,
+      asset_id: asset.id,
+      source_type: 'production_output',
+      production_job_id: canonicalJobId,
+      provider: 'mpt',
+      metadata: {
+        mpt_video_job_id: job.id,
+        mpt_task_id: job.mpt_task_id,
+        storage_path: stored.storagePath,
+      },
+    });
+  if (provenanceError && provenanceError.code !== '23505') throw provenanceError;
+
+  const { error: publicationError } = await supabase
+    .from('track_b_publications')
+    .update({
+      asset_id: asset.id,
+      status: 'draft',
+      metadata: {
+        ...(job.payload?.publication_metadata || {}),
+        canonical: true,
+        mpt_video_job_id: job.id,
+        asset_storage_path: stored.storagePath,
+        asset_public_url: stored.publicUrl,
+      },
+    })
+    .eq('production_job_id', canonicalJobId)
+    .eq('owner_id', job.owner_id);
+  if (publicationError) throw publicationError;
+
+  const { error: canonicalUpdateError } = await supabase
+    .from('track_b_production_jobs')
+    .update({
+      status: 'completed',
+      completed_at: new Date().toISOString(),
+      actual_credits: null,
+      failure_stage: null,
+      failure_code: null,
+      provider: 'mpt',
+    })
+    .eq('id', canonicalJobId)
+    .eq('owner_id', job.owner_id);
+  if (canonicalUpdateError) throw canonicalUpdateError;
+
+  console.log(`[MPT] canonical production completed ${canonicalJobId}; asset=${asset.id}`);
+}
+
 async function processJob(job) {
   try {
     let taskId = job.mpt_task_id;
     if (!taskId) {
       taskId = await enqueueToMpt(job);
       await supabase.from('mpt_video_jobs').update({ mpt_task_id: taskId }).eq('id', job.id);
+      job.mpt_task_id = taskId;
     }
     if (job.status === 'error') {
       await supabase.from('mpt_video_jobs').update({ status: 'processing', error_message: null }).eq('id', job.id);
@@ -231,6 +331,14 @@ async function processJob(job) {
       error_message: null,
     }).eq('id', job.id);
     if (error) throw error;
+    await completeCanonicalProduction(job, stored);
+    if (job.payload?.content_queue_id) {
+      await supabase.from('content_queue').update({
+        status: 'ready',
+        video_url: stored.publicUrl,
+        last_publish_error: null,
+      }).eq('id', job.payload.content_queue_id);
+    }
     console.log(`[MPT] completed ${job.id} -> ${stored.publicUrl}`);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
@@ -243,6 +351,14 @@ async function processJob(job) {
       status: 'error',
       error_message: message,
     }).eq('id', job.id);
+    if (job.payload?.canonical_production_job_id && job.owner_id) {
+      await supabase.from('track_b_production_jobs').update({
+        status: 'failed',
+        failure_stage: 'mpt',
+        failure_code: 'MPT_EXECUTION_FAILED',
+        config: { failure_message: message },
+      }).eq('id', job.payload.canonical_production_job_id).eq('owner_id', job.owner_id);
+    }
   }
 }
 
