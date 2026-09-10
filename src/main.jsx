@@ -8,7 +8,7 @@ import './trackBNavigationFix.css'
 import './uxPolish.css'
 import './enterpriseInteractionFix.css'
 import './enterpriseMobile.css'
-import EnterpriseCommandHome from './CommandHome.jsx'
+import CommandHomeV2 from './CommandHomeV2.jsx'
 import AuthGate from './AuthGate.jsx'
 import ContentWorkspaceShell from './ContentWorkspaceShell.jsx'
 import RevenueWorkspaceShell from './RevenueWorkspaceShell.jsx'
@@ -18,12 +18,12 @@ const path = window.location.pathname.replace(/\/+$/, '') || '/'
 document.documentElement.dataset.route = path
 document.body.dataset.route = path
 
-function Route() {
-  if (path === '/' || path === '/command') return <EnterpriseCommandHome />
-  if (path === '/content' || path.startsWith('/content/')) return <ContentWorkspaceShell />
-  if (path === '/revenue' || path === '/outreach') return <RevenueWorkspaceShell />
-  if (path === '/system' || path === '/ceo') return <SystemWorkspace />
-  return <EnterpriseCommandHome />
+function Route(){
+  if(path==='/'||path==='/command')return <CommandHomeV2/>
+  if(path==='/content'||path.startsWith('/content/'))return <ContentWorkspaceShell/>
+  if(path==='/revenue'||path==='/outreach')return <RevenueWorkspaceShell/>
+  if(path==='/system'||path==='/ceo')return <SystemWorkspace/>
+  return <CommandHomeV2/>
 }
 
-createRoot(document.getElementById('root')).render(<StrictMode><AuthGate><Route /></AuthGate></StrictMode>)
+createRoot(document.getElementById('root')).render(<StrictMode><AuthGate><Route/></AuthGate></StrictMode>)
