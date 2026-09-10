@@ -1,4 +1,4 @@
-import { requireUser, sameOrigin } from '../lib/auth.js';
+import { requireUser, setSessionCookie, clearSessionCookie, sameOrigin } from '../lib/auth.js';
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://zvyioxhwdyocaanzcgqf.supabase.co';
 const OUTREACH_MODEL = process.env.QWEN_MODEL || 'mlx-community/Qwen3-8B-4bit';
@@ -20,6 +20,18 @@ export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store'); res.setHeader('Vary', 'Authorization, Cookie');
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (!sameOrigin(req)) return res.status(403).json({ error: 'Invalid origin' });
+  const authHeader = String(req.headers?.authorization || '');
+  const rawToken = authHeader.toLowerCase().startsWith('bearer ') ? authHeader.slice(7).trim() : '';
+  if (req.method === 'POST') {
+    let maybeBody = null;
+    try { maybeBody = await parseBody(req); } catch { maybeBody = {}; }
+    if (maybeBody?.action === 'sync_session') {
+      if (!rawToken) { clearSessionCookie(res); return res.status(204).end(); }
+      try { const user = await requireUser({ headers: { authorization: `Bearer ${rawToken}` } }); if (!user?.id) { clearSessionCookie(res); return res.status(401).json({ error: 'Invalid session' }); } const exp = Number(user?.exp || 0); const now = Math.floor(Date.now() / 1000); setSessionCookie(res, rawToken, exp > now ? Math.min(Math.max(60, exp - now), 3600) : 3600); return res.status(200).json({ ok: true, userId: user.id }); }
+      catch (error) { clearSessionCookie(res); return res.status(500).json({ error: error?.message || String(error) }); }
+    }
+    req.body = maybeBody;
+  }
   const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!SERVICE_KEY) return res.status(500).json({ error: 'SUPABASE_SERVICE_ROLE_KEY not configured' });
   let user; try { user = await requireUser(req); } catch (error) { return res.status(500).json({ error: error?.message || String(error) }); }
@@ -34,47 +46,30 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Unsupported GET action' });
     } catch (error) { console.error('queue-update GET error', error); return res.status(500).json({ error: error?.message || String(error) }); }
   }
-
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
-  let body; try { body = await parseBody(req); } catch { return res.status(400).json({ error: 'Invalid JSON body' }); }
+  const body = req.body || {};
 
   if (body.action === 'delete_generation') { const id = String(body.id || '').trim(); if (!id || !/^[0-9a-f-]{36}$/i.test(id)) return res.status(400).json({ error: 'Valid generation id required' }); try { await deleteGeneration(SERVICE_KEY, ownerId, id); return res.status(200).json({ success: true }); } catch (error) { return res.status(500).json({ error: error?.message || String(error) }); } }
-
   if (body.action === 'queue_media_ingestion') {
     const objectPath = clean(body.objectPath), requestedUserId = clean(body.userId), fileName = clean(body.fileName) || 'source', contentType = clean(body.contentType) || 'application/octet-stream';
-    if (!objectPath) return res.status(400).json({ error: 'objectPath required' });
-    if (requestedUserId && requestedUserId !== ownerId) return res.status(403).json({ error: 'User mismatch' });
-    if (!objectPath.startsWith(`${ownerId}/`)) return res.status(403).json({ error: 'Source path is outside your account' });
-    try { const created = await createJob(SERVICE_KEY, { owner_id: ownerId, title: `Track B source ingestion · ${fileName}`, job_type: 'content_media_ingestion', model: OUTREACH_MODEL, persona_id: 'cornerstone_content_engine', system_prompt: 'You are the Track B media ingestion controller. Download the private source, extract evidence, then hand off to Qwen text and vision analysis.', user_prompt: `Ingest source media from ${SOURCE_BUCKET}/${objectPath}.`, options: { bucket: SOURCE_BUCKET, object_path: objectPath, file_name: fileName, content_type: contentType, research_domain: 'TRACK_B_CONTENT_ENGINE', workspace_id: 'track_b' }, status: 'queued', production_status: 'source_queued' }); return res.status(200).json({ jobId: created.id }); }
-    catch (error) { console.error('queue_media_ingestion error', error); return res.status(500).json({ error: error?.message || String(error) }); }
+    if (!objectPath) return res.status(400).json({ error: 'objectPath required' }); if (requestedUserId && requestedUserId !== ownerId) return res.status(403).json({ error: 'User mismatch' }); if (!objectPath.startsWith(`${ownerId}/`)) return res.status(403).json({ error: 'Source path is outside your account' });
+    try { const created = await createJob(SERVICE_KEY, { owner_id: ownerId, title: `Track B source ingestion · ${fileName}`, job_type: 'content_media_ingestion', model: OUTREACH_MODEL, persona_id: 'cornerstone_content_engine', system_prompt: 'You are the Track B media ingestion controller. Download the private source, extract evidence, then hand off to Qwen text and vision analysis.', user_prompt: `Ingest source media from ${SOURCE_BUCKET}/${objectPath}.`, options: { bucket: SOURCE_BUCKET, object_path: objectPath, file_name: fileName, content_type: contentType, research_domain: 'TRACK_B_CONTENT_ENGINE', workspace_id: 'track_b' }, status: 'queued', production_status: 'source_queued' }); return res.status(200).json({ jobId: created.id }); } catch (error) { console.error('queue_media_ingestion error', error); return res.status(500).json({ error: error?.message || String(error) }); }
   }
-
   if (body.action === 'save_content_package') {
     const id = clean(body.id) || `ce-${crypto.randomUUID()}`; if (!clean(body.contentLabel)) return res.status(400).json({ error: 'contentLabel required' });
-    try { const row = { id, created_at: new Date().toISOString(), client_id: ownerId, persona_id: clean(body.personaId) || 'cornerstone', persona_name: clean(body.personaName) || 'Cornerstone', platform: clean(body.platform) || 'YouTube', pillar: 'Track B Content Engine', hook: clean(body.hook), caption: clean(body.caption), hashtags: clean(body.hashtags), status: 'ready', image_prompt: body.imagePrompt || null, photo_idea: clean(body.photoIdea), cta: clean(body.cta), photo_direction: clean(body.photoDirection), post_type: clean(body.postType) || 'Long-form + Shorts', content_label: clean(body.contentLabel), trend_hook: clean(body.hook), shot_angle: '', wardrobe: '', style_ref: 'original', notes: clean(body.notes), post_format: 'video' }; const insert = await supabaseFetch('/rest/v1/content_queue', { method: 'POST', headers: { 'Content-Type': 'application/json', Prefer: 'return=representation' }, body: JSON.stringify(row) }, SERVICE_KEY); const text = await insert.text(); if (!insert.ok) throw new Error(`Production handoff failed: ${text}`); return res.status(200).json({ id: JSON.parse(text)[0]?.id || id }); }
-    catch (error) { console.error('save_content_package error', error); return res.status(500).json({ error: error?.message || String(error) }); }
+    try { const row = { id, created_at: new Date().toISOString(), client_id: ownerId, persona_id: clean(body.personaId) || 'cornerstone', persona_name: clean(body.personaName) || 'Cornerstone', platform: clean(body.platform) || 'YouTube', pillar: 'Track B Content Engine', hook: clean(body.hook), caption: clean(body.caption), hashtags: clean(body.hashtags), status: 'ready', image_prompt: body.imagePrompt || null, photo_idea: clean(body.photoIdea), cta: clean(body.cta), photo_direction: clean(body.photoDirection), post_type: clean(body.postType) || 'Long-form + Shorts', content_label: clean(body.contentLabel), trend_hook: clean(body.hook), shot_angle: '', wardrobe: '', style_ref: 'original', notes: clean(body.notes), post_format: 'video' }; const insert = await supabaseFetch('/rest/v1/content_queue', { method: 'POST', headers: { 'Content-Type': 'application/json', Prefer: 'return=representation' }, body: JSON.stringify(row) }, SERVICE_KEY); const text = await insert.text(); if (!insert.ok) throw new Error(`Production handoff failed: ${text}`); return res.status(200).json({ id: JSON.parse(text)[0]?.id || id }); } catch (error) { console.error('save_content_package error', error); return res.status(500).json({ error: error?.message || String(error) }); }
   }
-
   if (body.action === 'update_content_queue') {
-    const id = clean(body.id), update = body.update && typeof body.update === 'object' ? body.update : null;
-    if (!id || !update) return res.status(400).json({ error: 'id and update required' });
-    const allowed = ['status','scheduled_date','scheduled_time','publishing_started_at','last_publish_error','last_publish_attempt_at','publish_attempts','video_url','image_url','scene_verification_status','scene_verification','scene_verified_at'];
-    const safeUpdate = Object.fromEntries(Object.entries(update).filter(([key]) => allowed.includes(key)));
-    if (!Object.keys(safeUpdate).length) return res.status(400).json({ error: 'No supported fields supplied' });
-    try { const response = await supabaseFetch(`/rest/v1/content_queue?id=eq.${encodeURIComponent(id)}&client_id=eq.${encodeURIComponent(ownerId)}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', Prefer: 'return=representation' }, body: JSON.stringify(safeUpdate) }, SERVICE_KEY); const text = await response.text(); if (!response.ok) return res.status(response.status).json({ error: text }); return res.status(200).json({ row: JSON.parse(text)[0] || null }); }
-    catch (error) { return res.status(500).json({ error: error?.message || String(error) }); }
+    const id = clean(body.id), update = body.update && typeof body.update === 'object' ? body.update : null; if (!id || !update) return res.status(400).json({ error: 'id and update required' });
+    const allowed = ['status','scheduled_date','scheduled_time','publishing_started_at','last_publish_error','last_publish_attempt_at','publish_attempts','video_url','image_url','scene_verification_status','scene_verification','scene_verified_at']; const safeUpdate = Object.fromEntries(Object.entries(update).filter(([key]) => allowed.includes(key))); if (!Object.keys(safeUpdate).length) return res.status(400).json({ error: 'No supported fields supplied' });
+    try { const response = await supabaseFetch(`/rest/v1/content_queue?id=eq.${encodeURIComponent(id)}&client_id=eq.${encodeURIComponent(ownerId)}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', Prefer: 'return=representation' }, body: JSON.stringify(safeUpdate) }, SERVICE_KEY); const text = await response.text(); if (!response.ok) return res.status(response.status).json({ error: text }); return res.status(200).json({ row: JSON.parse(text)[0] || null }); } catch (error) { return res.status(500).json({ error: error?.message || String(error) }); }
   }
-
   if (body.action === 'queue_outreach') {
     const business = normaliseBusiness(body.business || body.dealer); if (!business.name) return res.status(400).json({ error: 'business.name required' });
-    try { const created = await createJob(SERVICE_KEY, { owner_id: ownerId, title: `Track A Revenue Recovery · ${business.name} · Email ${business.emailStage + 1}`, job_type: 'trend_scan', model: OUTREACH_MODEL, persona_id: 'cornerstone_track_a_revenue_recovery', system_prompt: 'Write like a real person. No em dashes. Pain then value then soft cliffhanger. Never photos, listings or AI cadence.', user_prompt: buildOutreachPrompt(business), options: { max_tokens: 6500, temperature: .52, research: true, outreach: true, recovery_business_id: business.id, research_domain: 'TRACK_A_REVENUE_RECOVERY', workspace_id: 'track_a', research_firewall: true }, status: 'queued', production_status: 'not_started' }); return res.status(200).json({ jobId: created.id, business }); }
-    catch (error) { console.error('queue_outreach error', error); return res.status(500).json({ error: error?.message || String(error) }); }
+    try { const created = await createJob(SERVICE_KEY, { owner_id: ownerId, title: `Track A Revenue Recovery · ${business.name} · Email ${business.emailStage + 1}`, job_type: 'trend_scan', model: OUTREACH_MODEL, persona_id: 'cornerstone_track_a_revenue_recovery', system_prompt: 'Write like a real person. No em dashes. Pain then value then soft cliffhanger. Never photos, listings or AI cadence.', user_prompt: buildOutreachPrompt(business), options: { max_tokens: 6500, temperature: .52, research: true, outreach: true, recovery_business_id: business.id, research_domain: 'TRACK_A_REVENUE_RECOVERY', workspace_id: 'track_a', research_firewall: true }, status: 'queued', production_status: 'not_started' }); return res.status(200).json({ jobId: created.id, business }); } catch (error) { console.error('queue_outreach error', error); return res.status(500).json({ error: error?.message || String(error) }); }
   }
-
   if (body.action === 'queue_content_engine') {
-    try { const payload = { niche: body.niche, channel: body.channel, referenceUrl: body.referenceUrl, referenceNotes: body.referenceNotes, duration: body.duration, output: body.output, direction: body.direction, sourceAnalysis: body.sourceAnalysis }; const created = await createJob(SERVICE_KEY, { owner_id: ownerId, title: `Track B Content Engine · ${clean(payload.niche) || 'Opportunity Discovery'}`, job_type: 'content_engine', model: OUTREACH_MODEL, persona_id: 'cornerstone_content_engine', system_prompt: 'You are Cornerstone AI Enterprise Track B Content Intelligence & Production Engine. Research current demand, learn from reference material without copying it, then build original content.', user_prompt: buildContentEnginePrompt(payload), options: { max_tokens: 16000, temperature: .55, research: true, content_engine: true, research_domain: 'TRACK_B_CONTENT_ENGINE', workspace_id: 'track_b', reference_url: clean(payload.referenceUrl), niche: clean(payload.niche), has_source_analysis: Boolean(payload.sourceAnalysis) }, status: 'queued', production_status: 'not_started' }); return res.status(200).json({ jobId: created.id }); }
-    catch (error) { console.error('queue_content_engine error', error); return res.status(500).json({ error: error?.message || String(error) }); }
+    try { const payload = { niche: body.niche, channel: body.channel, referenceUrl: body.referenceUrl, referenceNotes: body.referenceNotes, duration: body.duration, output: body.output, direction: body.direction, sourceAnalysis: body.sourceAnalysis }; const created = await createJob(SERVICE_KEY, { owner_id: ownerId, title: `Track B Content Engine · ${clean(payload.niche) || 'Opportunity Discovery'}`, job_type: 'content_engine', model: OUTREACH_MODEL, persona_id: 'cornerstone_content_engine', system_prompt: 'You are Cornerstone AI Enterprise Track B Content Intelligence & Production Engine. Research current demand, learn from reference material without copying it, then build original content.', user_prompt: buildContentEnginePrompt(payload), options: { max_tokens: 16000, temperature: .55, research: true, content_engine: true, research_domain: 'TRACK_B_CONTENT_ENGINE', workspace_id: 'track_b', reference_url: clean(payload.referenceUrl), niche: clean(payload.niche), has_source_analysis: Boolean(payload.sourceAnalysis) }, status: 'queued', production_status: 'not_started' }); return res.status(200).json({ jobId: created.id }); } catch (error) { console.error('queue_content_engine error', error); return res.status(500).json({ error: error?.message || String(error) }); }
   }
-
   return res.status(400).json({ error: 'Unsupported action' });
 }
