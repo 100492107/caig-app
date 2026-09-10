@@ -13,6 +13,7 @@ import {
   loadEarnings,
   profileStats,
   formatMoney,
+  hydrateOwnedMedia,
 } from "./ownedMediaStore.js";
 
 const NAV = [
@@ -26,6 +27,7 @@ const NAV = [
 
 function useOwnedMedia() {
   const [tick, setTick] = useState(0);
+  const [ready, setReady] = useState(false);
   useEffect(() => {
     const bump = () => setTick((t) => t + 1);
     window.addEventListener("caig-profiles-updated", bump);
@@ -37,12 +39,23 @@ function useOwnedMedia() {
       window.removeEventListener("storage", bump);
     };
   }, []);
+  useEffect(() => {
+    let live = true;
+    hydrateOwnedMedia().then(() => {
+      if (!live) return;
+      setReady(true);
+      setTick((t) => t + 1);
+    });
+    return () => {
+      live = false;
+    };
+  }, []);
   return useMemo(() => {
     const profiles = loadProfiles();
     const earnings = loadEarnings();
     const stats = profileStats(profiles);
-    return { profiles, earnings, stats, tick };
-  }, [tick]);
+    return { profiles, earnings, stats, tick, ready };
+  }, [tick, ready]);
 }
 
 function HomeHub({ onGo }) {
@@ -92,7 +105,7 @@ function HomeHub({ onGo }) {
       <div className="tbh-kicker">Content Engine · dashboard</div>
       <h1 className="tbh-title">Your media at a glance</h1>
       <p className="tbh-sub">
-        Stats update from Profiles. Paste exact links and log money there — this page reads them instantly.
+        Stats sync from your account when signed in. Edit links and money in Profiles.
       </p>
 
       <div className="tbh-dash">
