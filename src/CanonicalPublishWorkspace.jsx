@@ -1,141 +1,19 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { supabase } from './supabase';
 
-export default function CanonicalPublishWorkspace() {
-  const [rows, setRows] = useState([]);
-  const [selectedId, setSelectedId] = useState('');
-  const [date, setDate] = useState('');
-  const [time, setTime] = useState('09:00');
-  const [busy, setBusy] = useState(false);
-  const [message, setMessage] = useState('');
+const css=`
+.pu{color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,system-ui,sans-serif}.pu-head{display:flex;justify-content:space-between;gap:20px;align-items:end}.pu-k{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--text-subtle);font-weight:850}.pu-h{margin:8px 0 0;font-size:clamp(34px,5vw,58px);line-height:.95;letter-spacing:-.065em}.pu-p{margin:12px 0 0;max-width:64ch;color:var(--text-muted);font-size:13px;line-height:1.6}.pu-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:20px}.pu-stat{padding:13px 14px;border:1px solid var(--border);border-radius:14px;background:var(--surface)}.pu-stat b{font-size:21px;letter-spacing:-.04em}.pu-stat span{display:block;margin-top:4px;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-subtle)}
+.pu-layout{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(280px,.85fr);gap:14px;margin-top:14px}.pu-card{border:1px solid var(--border);background:var(--surface);border-radius:18px;padding:18px;min-width:0}.pu-title{font-size:14px;font-weight:850}.pu-sub{margin-top:4px;color:var(--text-muted);font-size:11px;line-height:1.45}.pu-list{display:grid;gap:7px;margin-top:14px}.pu-item{width:100%;text-align:left;padding:14px;border:1px solid var(--border);border-radius:13px;background:var(--surface-2);color:var(--text);cursor:pointer}.pu-item.active{border-color:rgba(212,181,106,.5);background:rgba(212,181,106,.08)}.pu-item strong{display:block;font-size:12px}.pu-meta{margin-top:5px;color:var(--text-muted);font-size:10px}.pu-pill{display:inline-block;margin-top:8px;padding:4px 7px;border-radius:999px;background:rgba(255,255,255,.05);font-size:9px;color:var(--text-muted)}
+.pu-decision{margin-top:14px;padding:15px;border:1px solid rgba(212,181,106,.22);border-radius:15px;background:linear-gradient(135deg,rgba(212,181,106,.07),var(--surface-2))}.pu-decision strong{font-size:14px}.pu-decision span{display:block;margin-top:4px;color:var(--text-muted);font-size:10px}.pu-field{width:100%;margin-top:7px;padding:11px 12px;border:1px solid var(--border);border-radius:11px;background:var(--surface-2);color:var(--text);font:inherit}.pu-btn{width:100%;min-height:46px;margin-top:14px;border:1px solid rgba(212,181,106,.4);border-radius:11px;background:linear-gradient(180deg,#e0c87a,#d4b56a);color:#17130c;font-weight:900;cursor:pointer}.pu-btn:disabled{opacity:.5;cursor:default}.pu-link{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:0 12px;border:1px solid var(--border);border-radius:10px;background:transparent;color:var(--text);font:inherit;font-size:11px;font-weight:800;text-decoration:none}.pu-empty{padding:18px;border:1px dashed var(--border);border-radius:14px;background:var(--surface-2);color:var(--text-muted);font-size:11px;line-height:1.5}.pu-empty a{color:var(--text);font-weight:850}.pu-msg{margin-top:10px;color:var(--text-muted);font-size:11px;line-height:1.45}.pu-error{margin-top:12px;padding:10px 12px;border-radius:10px;background:rgba(150,70,70,.12);color:#d6aaaa;font-size:10px}
+@media(max-width:900px){.pu-layout{grid-template-columns:1fr}}@media(max-width:560px){.pu-stats{grid-template-columns:1fr 1fr}.pu-stat:last-child{grid-column:1/-1}}
+`;
 
-  const selected = useMemo(() => rows.find((r) => r.id === selectedId) || null, [rows, selectedId]);
-  const scheduled = rows.filter((r) => r.scheduled_at || /schedul/i.test(String(r.status || ''))).length;
-  const live = rows.filter((r) => /publish|live|ship/i.test(String(r.status || ''))).length;
-  const drafts = rows.filter((r) => /draft|ready|pending/i.test(String(r.status || ''))).length;
-
-  async function load() {
-    const { data, error } = await supabase
-      .from('track_b_publications')
-      .select('id,title,platform,status,scheduled_at,publish_attempts,last_error,created_at,updated_at,project_id,production_job_id')
-      .order('updated_at', { ascending: false })
-      .limit(100);
-    if (error) setMessage(error.message);
-    else setRows(data || []);
-  }
-
-  useEffect(() => {
-    load();
-    const t = setInterval(load, 8000);
-    return () => clearInterval(t);
-  }, []);
-
-  async function schedule() {
-    if (!selected) return;
-    if (!date) {
-      setMessage('Choose a date so Cornerstone can schedule this.');
-      return;
-    }
-    setBusy(true);
-    setMessage('Scheduling…');
-    try {
-      const scheduledAt = new Date(`${date}T${time || '09:00'}:00`).toISOString();
-      const { error } = await supabase
-        .from('track_b_publications')
-        .update({ status: 'scheduled', scheduled_at: scheduledAt })
-        .eq('id', selected.id);
-      if (error) throw new Error(error.message);
-      setMessage('Scheduled. This is now part of what is going live.');
-      await load();
-    } catch (err) {
-      setMessage(err.message || 'Could not schedule.');
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  return (
-    <main className="paid-pub">
-      <style>{`
-        .paid-pub{color:var(--text)}
-        .pu-strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:16px}
-        .pu-stat{border:1px solid var(--border);background:var(--surface);border-radius:14px;padding:14px}
-        .pu-stat b{display:block;font-size:24px;letter-spacing:-.04em}
-        .pu-stat span{display:block;margin-top:6px;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-subtle)}
-        .pu-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:12px}
-        .pu-card{border:1px solid var(--border);background:var(--surface);border-radius:18px;padding:18px}
-        .pu-k{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-subtle);font-weight:850}
-        .pu-h{margin:10px 0 0;font-size:clamp(28px,4vw,40px);line-height:.95;letter-spacing:-.05em}
-        .pu-s{margin:10px 0 0;color:var(--text-muted);font-size:12px;line-height:1.5}
-        .pu-list{display:grid;gap:8px;margin-top:14px}
-        .pu-item{text-align:left;width:100%;padding:12px;border:1px solid var(--border);border-radius:12px;background:var(--surface-2);color:var(--text);cursor:pointer}
-        .pu-item.active{border-color:rgba(212,181,106,.45);background:rgba(212,181,106,.08)}
-        .pu-item strong{display:block;font-size:13px}
-        .pu-meta{display:block;margin-top:4px;font-size:10px;color:var(--text-muted)}
-        .pu-pill{display:inline-block;margin-top:8px;padding:4px 7px;border-radius:999px;background:rgba(212,181,106,.1);font-size:9px;color:#cdbf9d}
-        .pu-field{width:100%;margin-top:7px;padding:10px;border:1px solid var(--border);border-radius:10px;background:var(--surface-2);color:var(--text);font:inherit}
-        .pu-btn{margin-top:14px;width:100%;min-height:46px;border:1px solid #ddd9cc;border-radius:11px;background:#ddd9cc;color:#171717;font-weight:900;cursor:pointer}
-        .pu-btn:disabled{opacity:.55}
-        .pu-empty{padding:16px;border:1px dashed var(--border);border-radius:14px;color:var(--text-muted);font-size:12px;line-height:1.5}
-        .pu-empty a{color:var(--text);font-weight:850}
-        .pu-msg{margin-top:10px;color:var(--text-muted);font-size:11px}
-        @media(max-width:900px){.pu-strip{grid-template-columns:1fr 1fr}.pu-grid{grid-template-columns:1fr}}
-      `}</style>
-
-      <div className="pu-strip">
-        <div className="pu-stat"><b>{rows.length}</b><span>Ready to ship</span></div>
-        <div className="pu-stat"><b>{drafts}</b><span>Awaiting schedule</span></div>
-        <div className="pu-stat"><b>{scheduled}</b><span>Scheduled</span></div>
-        <div className="pu-stat"><b>{live}</b><span>Marked live</span></div>
-      </div>
-
-      <div className="pu-grid">
-        <section className="pu-card">
-          <div className="pu-k">Going live</div>
-          <h2 className="pu-h">What is ready to leave the building.</h2>
-          <p className="pu-s">These are publication records created from production. Pick one, choose when it should go live, and let Cornerstone carry the schedule.</p>
-          <div className="pu-list">
-            {rows.length ? rows.map((r) => (
-              <button key={r.id} type="button" className={`pu-item${selectedId === r.id ? ' active' : ''}`} onClick={() => setSelectedId(r.id)}>
-                <strong>{r.title || 'Untitled publication'}</strong>
-                <span className="pu-meta">{r.platform} · {r.status} · {r.publish_attempts || 0} attempts</span>
-                {r.scheduled_at ? <span className="pu-pill">{new Date(r.scheduled_at).toLocaleString('en-GB')}</span> : null}
-              </button>
-            )) : (
-              <div className="pu-empty">
-                Nothing is ready to go live yet. Produce a package first — then it appears here to schedule.
-                <br /><a href="/content/production">Open production →</a>
-              </div>
-            )}
-          </div>
-        </section>
-
-        <section className="pu-card">
-          <div className="pu-k">Schedule</div>
-          {selected ? (
-            <>
-              <div style={{ marginTop: 10, fontSize: 15, fontWeight: 850 }}>{selected.title || 'Publication'}</div>
-              <span className="pu-meta">{selected.platform} · {selected.status}</span>
-              <label className="pu-k" style={{ display: 'block', marginTop: 16 }}>Date
-                <input className="pu-field" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-              </label>
-              <label className="pu-k" style={{ display: 'block', marginTop: 12 }}>Time
-                <input className="pu-field" type="time" value={time} onChange={(e) => setTime(e.target.value)} />
-              </label>
-              <button className="pu-btn" type="button" disabled={busy} onClick={schedule}>
-                {busy ? 'Scheduling…' : 'Schedule this →'}
-              </button>
-              {selected.last_error ? <div style={{ marginTop: 10, color: '#d4a6a6', fontSize: 11 }}>{selected.last_error}</div> : null}
-            </>
-          ) : (
-            <div className="pu-empty" style={{ marginTop: 12 }}>Select something on the left. One decision: when it goes live.</div>
-          )}
-          {message ? <div className="pu-msg">{message}</div> : null}
-          <div className="pu-msg" style={{ marginTop: 16 }}>
-            <a href="/content/measurement" style={{ color: 'inherit', fontWeight: 850 }}>After it ships, capture what worked →</a>
-          </div>
-        </section>
-      </div>
-    </main>
-  );
+export default function CanonicalPublishWorkspace(){
+  const [rows,setRows]=useState([]);const [selectedId,setSelectedId]=useState('');const [date,setDate]=useState('');const [time,setTime]=useState('09:00');const [busy,setBusy]=useState(false);const [message,setMessage]=useState('');
+  const selected=useMemo(()=>rows.find(r=>r.id===selectedId)||null,[rows,selectedId]);
+  const scheduled=rows.filter(r=>r.scheduled_at).length; const drafts=rows.filter(r=>/draft|ready|pending/i.test(String(r.status||''))).length;
+  async function load(){const {data,error}=await supabase.from('track_b_publications').select('id,title,platform,status,scheduled_at,publish_attempts,last_error,created_at,updated_at,project_id,production_job_id').order('updated_at',{ascending:false}).limit(100);if(error)setMessage(error.message);else setRows(data||[])}
+  useEffect(()=>{load();const t=setInterval(load,8000);return()=>clearInterval(t)},[]);
+  async function schedule(){if(!selected)return;if(!date){setMessage('Choose a date first.');return}setBusy(true);setMessage('Scheduling…');try{const at=new Date(`${date}T${time||'09:00'}:00`).toISOString();const {error}=await supabase.from('track_b_publications').update({status:'scheduled',scheduled_at:at}).eq('id',selected.id);if(error)throw new Error(error.message);setMessage('Scheduled. This publication is now in the live queue.');await load()}catch(e){setMessage(e.message||'Could not schedule.')}finally{setBusy(false)}}
+  return <main className="pu"><style>{css}</style><div className="pu-head"><div><div className="pu-k">Publishing</div><h1 className="pu-h">Put good work in market.</h1><p className="pu-p">Production creates the asset. This is the final operator decision: what goes live, where, and when.</p></div></div><div className="pu-stats"><div className="pu-stat"><b>{rows.length}</b><span>Publications</span></div><div className="pu-stat"><b>{drafts}</b><span>Awaiting schedule</span></div><div className="pu-stat"><b>{scheduled}</b><span>Scheduled</span></div></div><div className="pu-layout"><section className="pu-card"><div className="pu-title">Launch queue</div><div className="pu-sub">Every record below came from the canonical production flow.</div><div className="pu-list">{rows.length?rows.map(r=><button key={r.id} type="button" className={`pu-item${selectedId===r.id?' active':''}`} onClick={()=>setSelectedId(r.id)}><strong>{r.title||'Untitled publication'}</strong><div className="pu-meta">{r.platform||'Unknown platform'} · {r.status||'draft'} · {r.publish_attempts||0} attempts</div>{r.scheduled_at?<span className="pu-pill">{new Date(r.scheduled_at).toLocaleString('en-GB')}</span>:null}</button>):<div className="pu-empty">Nothing has reached publishing yet.<br/><a href="/content/production">Go back to production →</a></div>}</div></section><section className="pu-card"><div className="pu-title">Launch decision</div><div className="pu-sub">Choose a date and time. No extra setup.</div>{selected?<div className="pu-decision"><strong>{selected.title||'Publication'}</strong><span>{selected.platform} · current status: {selected.status}</span></div>:<div className="pu-empty" style={{marginTop:14}}>Select a publication from the queue.</div>}{selected?<><label className="pu-k" style={{display:'block',marginTop:16}}>Date<input className="pu-field" type="date" value={date} onChange={e=>setDate(e.target.value)}/></label><label className="pu-k" style={{display:'block',marginTop:12}}>Time<input className="pu-field" type="time" value={time} onChange={e=>setTime(e.target.value)}/></label><button className="pu-btn" disabled={busy||!selected} onClick={schedule}>{busy?'Scheduling…':'Schedule publication →'}</button>{selected.last_error?<div className="pu-error">{selected.last_error}</div>:null}</>:null}{message?<div className="pu-msg">{message}</div>:null}<div className="pu-msg" style={{marginTop:16}}><a className="pu-link" href="/content/measurement">After launch: capture the result →</a></div></section></div></main>;
 }
