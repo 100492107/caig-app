@@ -1,0 +1,67 @@
+/* Cornerstone design reset: calm, editorial, product-grade. */
+:root{
+  --bg:#f7f5ef;
+  --surface:#ffffff;
+  --surface-2:#f1efe9;
+  --surface-soft:#fbfaf7;
+  --border:#e1ded5;
+  --border-strong:#ccc8bd;
+  --text:#171a18;
+  --text-h:#111311;
+  --text-muted:#656a63;
+  --text-subtle:#969b94;
+  --accent:#2f5bff;
+  --accent-dim:#edf1ff;
+  --accent-border:#cbd5ff;
+  --track-b:#2f5bff;
+  --track-b-dim:#edf1ff;
+  --success:#237454;
+  --danger:#b64242;
+  --warning:#9a641d;
+  --sans:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+  --display:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
+  --shadow:0 20px 60px rgba(31,34,30,.08);
+  --radius:12px;
+  --radius-lg:18px;
+  color-scheme:light;
+  font-family:var(--sans);
+}
+html,body{background:var(--bg)!important;color:var(--text)!important}
+body{font-size:14px;font-weight:500;letter-spacing:-.01em}
+h1,h2,h3,h4{font-family:var(--display)!important;color:var(--text-h)!important;font-weight:720!important;letter-spacing:-.055em!important}
+button,input,select,textarea{font-family:var(--sans)!important}
+::selection{background:#dfe5ff;color:#111}
+
+/* Old screen-local dark styling is intentionally neutralised. */
+.cp,.cp *,.pu,.pu *,.tb,.tb *,.ch,.ch *,.production-workspace,.production-workspace *,.publish-workspace,.publish-workspace *,.voice-workspace,.voice-workspace *{--border:var(--border);--surface:var(--surface);--surface-2:var(--surface-2);--text:var(--text);--text-muted:var(--text-muted);--text-subtle:var(--text-subtle)}
+.cp,.pu,.tb,.ch,.production-workspace,.publish-workspace,.voice-workspace{color:var(--text)!important}
+.cp-card,.pu-card,.tb-card,.ch-card,.pw-card,.pub-card,.vw-card{background:var(--surface)!important;border:1px solid var(--border)!important;box-shadow:0 10px 35px rgba(31,34,30,.035)!important}
+.cp-item,.cp-mode,.pu-item,.tb-choice,.tb-row,.vw-choice,.vw-row,.pw-item,.pw-mode,.pw-job,.pub-item,.ch-item{background:#f8f7f3!important;color:var(--text)!important;border-color:var(--border)!important}
+.cp-item.active,.cp-mode.active,.pu-item.active,.tb-choice.active,.vw-choice.active,.pw-item.active,.pw-mode.active,.pub-item.active,.ch-item.active{background:var(--accent-dim)!important;border-color:var(--accent-border)!important}
+.cp-field,.pu-field,.tb-field input,.tb-field select,.tb-field textarea,.vw-field input,.vw-field select,.vw-field textarea,.pw-field input,.pub-field,.ch-field input,.ch-field textarea,.ch-field select{background:#fff!important;color:var(--text)!important;border-color:var(--border-strong)!important}
+.cp-btn,.tb-btn.primary,.vw-btn.primary,.ch-primary,.pub-btn,.pw-cta{background:var(--accent)!important;border-color:var(--accent)!important;color:#fff!important;box-shadow:0 8px 20px rgba(47,91,255,.18)!important}
+.cp-btn:hover,.tb-btn.primary:hover,.vw-btn.primary:hover,.pub-btn:hover,.pw-cta:hover{filter:brightness(.96);transform:translateY(-1px)}
+.pu-k,.cp-k,.tb-k,.vw-eyebrow,.vw-label,.pw-eyebrow,.pw-label,.pub-eyebrow,.pub-label,.ch-k,.ch-section-head h3{color:#757b74!important}
+.cp-modes,.tb-grid,.vw-grid{gap:10px!important}
+
+/* Make the work surfaces feel like products, not forms. */
+.production-workspace,.publish-workspace,.voice-workspace,.ch{max-width:1240px!important;margin:0 auto!important}
+.pw-intro,.pub-intro,.vw-intro,.ch-head{padding-bottom:34px!important}
+.pw-title,.pub-title,.vw-title,.ch-h{font-size:clamp(42px,5.5vw,72px)!important;line-height:.94!important;max-width:12ch}
+.pw-copy,.pub-copy,.vw-copy,.ch-p{max-width:58ch!important;font-size:15px!important;color:#6a7069!important}
+
+/* Creator roster: cards are the object, not the fields. */
+.vw-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}.vw-choice{min-height:150px!important;padding:22px!important;border-radius:16px!important}.vw-choice strong{font-size:27px!important}.vw-choice span{font-size:11px!important;max-width:22ch}.vw-field{max-width:700px}.vw-actions{margin-top:18px}.vw-btn{border-radius:11px!important;min-height:44px!important}
+
+/* Make: selected work is the hero, controls are quiet. */
+.pw-hero{grid-template-columns:minmax(0,1.5fr) minmax(300px,.7fr)!important;gap:22px!important}.pw-card{border-radius:20px!important;padding:24px!important}.pw-card h2{font-size:30px!important}.pw-item{padding:16px!important;border-radius:13px!important}.pw-item strong{font-size:13px!important}.pw-modes{grid-template-columns:1fr!important}.pw-mode{padding:14px 15px!important}.pw-mode b{font-size:12px!important}.pw-list{max-height:520px!important}
+
+/* Publish: queue left, launch decision right, no dashboard chrome. */
+.pub-grid{grid-template-columns:minmax(0,1.15fr) minmax(320px,.75fr)!important;gap:22px!important}.pub-card{border-radius:20px!important;padding:24px!important}.pub-card h2{font-size:31px!important}.pub-stats{grid-template-columns:repeat(3,1fr)!important}.pub-stat{background:transparent!important;border:0!important;border-top:1px solid var(--border)!important;border-bottom:1px solid var(--border)!important;border-radius:0!important;padding:18px 4px!important}
+
+/* Channels: calmer management layout. */
+.ch-stats{grid-template-columns:repeat(4,1fr)!important}.ch-card{border-radius:20px!important;padding:22px!important}.ch-list{gap:4px!important}.ch-item{padding:14px!important;border-radius:12px!important}.ch-layout{grid-template-columns:260px minmax(0,1fr)!important;gap:20px!important}.ch-section{margin-top:26px!important}.ch-money{background:linear-gradient(135deg,#eef2ff,#fff)!important;border-color:#d5ddff!important}.ch-money b{color:#22336d!important}.ch-money span{color:#67708b!important}
+
+@media(max-width:900px){.pw-hero,.pub-grid,.ch-layout{grid-template-columns:1fr!important}.vw-grid{grid-template-columns:1fr!important}.ch-stats{grid-template-columns:1fr 1fr!important}}
+@media(max-width:600px){.pw-title,.pub-title,.vw-title,.ch-h{font-size:44px!important}.cp-card,.pu-card,.tb-card,.vw-card,.pw-card,.pub-card,.ch-card{padding:17px!important}.pub-stats{grid-template-columns:1fr!important}}
