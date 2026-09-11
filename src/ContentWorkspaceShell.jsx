@@ -7,9 +7,46 @@ import CanonicalPublishWorkspace from './CanonicalPublishWorkspace.jsx';
 import CanonicalMeasureWorkspace from './CanonicalMeasureWorkspace.jsx';
 import { CreatorsStaged } from './TrackBStagedSurfaces.jsx';
 
-const STAGES=[['remake','Create','Find a strong idea and make it yours.'],['creators','Voices','Choose who brings it to life.'],['profiles','Channels','Choose where it should win.'],['production','Make','Turn the package into finished work.'],['publish','Publish','Put approved work into the world.'],['measurement','Learn','See what worked and use it.']];
-const NEXT={remake:['creators','Choose a voice'],creators:['profiles','Choose a channel'],profiles:['production','Make the work'],production:['publish','Publish it'],publish:['measurement','See the result'],measurement:['remake','Use the learning']};
-function stageFor(pathname){const value=pathname.match(/^\/content(?:\/([^/]+))?/)?.[1]||'remake';return STAGES.some(([id])=>id===value)?value:'remake';}
-function Workspace({stage}){switch(stage){case'remake':return <CreateWorkspace/>;case'creators':return <CreatorsStaged stage={0} onAdvance={()=>{window.location.href='/content/profiles'}}/>;case'profiles':return <ProfileChannelsWorkspace/>;case'production':return <CanonicalProductionWorkspace/>;case'publish':return <CanonicalPublishWorkspace/>;case'measurement':return <CanonicalMeasureWorkspace/>;default:return null;}}
-export default function ContentWorkspaceShell(){const stage=useMemo(()=>stageFor(window.location.pathname),[]);const item=STAGES.find(([id])=>id===stage)||STAGES[0];const next=NEXT[stage]||NEXT.remake;return <EnterpriseShell active={stage==='remake'?'content':stage}><main className="studio-shell"><style>{`.studio-shell{max-width:1240px;margin:0 auto}.studio-back{display:inline-flex;align-items:center;gap:6px;color:var(--text-subtle);font-size:10px;font-weight:750;text-decoration:none;margin-bottom:22px}.studio-back:hover{color:var(--text)}.studio-nav{display:flex;gap:3px;margin-bottom:30px;border-bottom:1px solid var(--border);overflow:auto;scrollbar-width:none}.studio-nav::-webkit-scrollbar{display:none}.studio-nav a{position:relative;padding:11px 13px 12px;color:var(--text-subtle);text-decoration:none;font-size:10px;font-weight:760;white-space:nowrap}.studio-nav a:hover{color:var(--text)}.studio-nav a.active{color:var(--text)}.studio-nav a.active:after{content:'';position:absolute;left:12px;right:12px;bottom:-1px;height:1px;background:var(--track-b)}.studio-nav small{display:none}.studio-title{display:flex;justify-content:space-between;align-items:flex-end;gap:30px;padding-bottom:25px;border-bottom:1px solid var(--border);margin-bottom:22px}.studio-title h1{margin:9px 0 0;font-family:var(--display);font-size:clamp(43px,5.8vw,70px);font-weight:500;line-height:.95;letter-spacing:-.055em}.studio-title p{margin:10px 0 0;max-width:650px;color:var(--text-muted);font-size:13px;line-height:1.6}.studio-k{font-size:9px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--track-b)}.studio-next{min-width:155px;text-align:right}.studio-next span{display:block;font-size:8px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-subtle)}.studio-next a{display:inline-flex;gap:6px;margin-top:6px;color:var(--text);font-size:10px;font-weight:850;text-decoration:none}.studio-next b{color:var(--track-b)}@media(max-width:760px){.studio-title{display:block}.studio-next{display:none}.studio-nav a{padding:10px 11px}.studio-h{font-size:42px}}
-`}</style><a href="/" className="studio-back">← Home</a><nav className="studio-nav" aria-label="Content workflow">{STAGES.map(([id,label])=><a key={id} href={`/content/${id}`} className={stage===id?'active':''} aria-current={stage===id?'page':undefined}>{label}</a>)}</nav><header className="studio-title"><div><div className="studio-k">Your studio</div><h1>{item[1]}</h1><p>{item[2]}</p></div><div className="studio-next"><span>Next</span><a href={`/content/${next[0]}`}>{next[1]} <b>→</b></a></div></header><Workspace stage={stage}/></main></EnterpriseShell>}
+const STAGES=[
+ ['remake','Create','Start with an idea, reference or learning signal.'],
+ ['creators','Voices','Choose the point of view behind the piece.'],
+ ['profiles','Channels','Choose where the piece should live.'],
+ ['production','Make','Turn the idea into finished creative.'],
+ ['publish','Publish','Choose when the finished piece enters the world.'],
+ ['measurement','Learn','Capture the result and improve the next one.']
+];
+
+function stageFor(pathname){const id=pathname.match(/^\/content(?:\/([^/]+))?/)?.[1]||'remake';return STAGES.some(x=>x[0]===id)?id:'remake';}
+function Workspace({stage}){
+ switch(stage){
+  case 'remake': return <CreateWorkspace/>;
+  case 'creators': return <CreatorsStaged stage={0} onAdvance={()=>{window.location.href='/content/profiles'}}/>;
+  case 'profiles': return <ProfileChannelsWorkspace/>;
+  case 'production': return <CanonicalProductionWorkspace/>;
+  case 'publish': return <CanonicalPublishWorkspace/>;
+  case 'measurement': return <CanonicalMeasureWorkspace/>;
+  default: return null;
+ }
+}
+
+export default function ContentWorkspaceShell(){
+ const stage=useMemo(()=>stageFor(window.location.pathname),[]);
+ const item=STAGES.find(x=>x[0]===stage)||STAGES[0];
+ const active=stage==='remake'?'content':stage;
+ return <EnterpriseShell active={active} eyebrow={item[1]}>
+  <div className="product-page">
+   <div className="product-breadcrumb"><span>Cornerstone</span><b>/</b><strong>{item[1]}</strong></div>
+   <header className="product-header">
+    <div>
+      <div className="product-kicker">{item[0]==='remake'?'Create something worth making':'Content studio'}</div>
+      <h1>{item[1]}</h1>
+      <p>{item[2]}</p>
+    </div>
+    <div className="product-steps" aria-label="Content workflow">
+      {STAGES.map(([id,label],i)=><a key={id} href={`/content/${id}`} className={id===stage?'active':''}><span>{String(i+1).padStart(2,'0')}</span><b>{label}</b></a>)}
+    </div>
+   </header>
+   <div className="product-work"><Workspace stage={stage}/></div>
+  </div>
+ </EnterpriseShell>;
+}
