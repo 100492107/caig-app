@@ -31,6 +31,7 @@ export QWEN_PORT="${QWEN_PORT:-8000}"
 export QWEN_VISION_MODEL="${QWEN_VISION_MODEL:-mlx-community/Qwen2.5-VL-3B-Instruct-4bit}"
 export QWEN_VISION_HOST="${QWEN_VISION_HOST:-127.0.0.1}"
 export QWEN_VISION_PORT="${QWEN_VISION_PORT:-8001}"
+export QWEN_FAST_MAX_TOKENS="${QWEN_FAST_MAX_TOKENS:-6000}"
 
 is_running() { local pattern="$1"; pgrep -f "$pattern" >/dev/null 2>&1; }
 port_ready() { local host="$1" port="$2"; curl -fsS --max-time 2 "http://${host}:${port}/v1/models" >/dev/null 2>&1; }
@@ -78,7 +79,7 @@ fi
 if [[ -n "${SUPABASE_SERVICE_ROLE_KEY:-}" ]]; then
   # Keep the worker contract explicit. The stack launcher must produce the same
   # operator-first Track B shape as the npm script, not a different runtime mode.
-  restart_bg "qwen-worker" "scripts/qwen-worker.mjs" "qwen-worker.log" env QWEN_URL="http://${QWEN_HOST}:${QWEN_PORT}" QWEN_MODEL="$QWEN_MODEL" "$NODE_BIN" --env-file=.env.qwen.local --import ./scripts/qwen-format-archaeology.mjs --import ./scripts/qwen-output-contract.mjs "$ROOT/scripts/qwen-worker.mjs"
+  restart_bg "qwen-worker" "scripts/qwen-worker.mjs" "qwen-worker.log" env QWEN_URL="http://${QWEN_HOST}:${QWEN_PORT}" QWEN_MODEL="$QWEN_MODEL" QWEN_FAST_MAX_TOKENS="$QWEN_FAST_MAX_TOKENS" "$NODE_BIN" --env-file=.env.qwen.local --import ./scripts/qwen-format-archaeology.mjs --import ./scripts/qwen-output-contract.mjs "$ROOT/scripts/qwen-worker.mjs"
   start_bg "scene-worker" "scripts/qwen-scene-worker.mjs" "scene-worker.log" env PATH="$PATH" "$NODE_BIN" --env-file=.env.qwen.local "$ROOT/scripts/qwen-scene-worker.mjs"
   if [[ -x "$ROOT/.venv-caption/bin/python" ]]; then start_bg "caption-worker" "scripts/caption-worker.mjs" "caption-worker.log" env PATH="$PATH" "$NODE_BIN" --env-file=.env.qwen.local "$ROOT/scripts/caption-worker.mjs"; fi
   start_bg "source-ingestion" "scripts/content-source-ingestion-worker.mjs" "source-ingestion.log" env PATH="$PATH" QWEN_URL="http://${QWEN_HOST}:${QWEN_PORT}" QWEN_VISION_URL="http://${QWEN_VISION_HOST}:${QWEN_VISION_PORT}" QWEN_MODEL="$QWEN_MODEL" QWEN_VISION_MODEL="$QWEN_VISION_MODEL" WHISPER_URL="http://127.0.0.1:8787" "$NODE_BIN" --env-file=.env.qwen.local "$ROOT/scripts/content-source-ingestion-worker.mjs"
@@ -93,4 +94,4 @@ else
 fi
 
 echo "[LOCAL AI] shared stack requested"
-echo "[LOCAL AI] Qwen: ${QWEN_HOST}:${QWEN_PORT} · Vision: ${QWEN_VISION_HOST}:${QWEN_VISION_PORT}"
+echo "[LOCAL AI] Qwen: ${QWEN_HOST}:${QWEN_PORT} · Vision: ${QWEN_VISION_HOST}:${QWEN_VISION_PORT} · Track B max tokens: ${QWEN_FAST_MAX_TOKENS}"
