@@ -14,6 +14,7 @@ import AuthGate from './AuthGate.jsx'
 const ContentWorkspaceShell = lazy(() => import('./ContentWorkspaceShell.jsx'))
 const RevenueWorkspaceShell = lazy(() => import('./RevenueWorkspaceShell.jsx'))
 const SystemWorkspace = lazy(() => import('./SystemWorkspace.jsx'))
+const GenerationsWorkspace = lazy(() => import('./GenerationsWorkspace.jsx'))
 
 const path = window.location.pathname.replace(/\/+$/, '') || '/'
 document.documentElement.dataset.route = path
@@ -31,6 +32,7 @@ function Route(){
   if(path==='/content'||path.startsWith('/content/'))return <ContentWorkspaceShell/>
   if(path==='/revenue'||path==='/outreach')return <RevenueWorkspaceShell/>
   if(path==='/system'||path==='/ceo')return <SystemWorkspace/>
+  if(path==='/generations')return <GenerationsWorkspace/>
   return <CommandHome/>
 }
 
