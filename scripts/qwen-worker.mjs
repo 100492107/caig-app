@@ -68,16 +68,8 @@ function domainFor(job) {
 }
 function researchSpec(job) {
   const domain = domainFor(job); const prompt = `${job?.user_prompt || ''}\n${job?.system_prompt || ''}`;
-  if (domain === 'TRACK_A_REVENUE_RECOVERY') return {
-    domain, topic: `${extract(prompt, 'VERTICAL', 'lead-driven business')} revenue leakage`, platforms: ['Google News', 'Reddit'], reddit: ['smallbusiness', 'sales', 'AiForSmallBusiness'],
-    queries: ['lead follow up revenue leakage sales opportunities 2026', 'missed enquiries stale leads no shows quote follow up 2026', 'CRM lead response pipeline leakage conversion 2026', 'sales opportunity reactivation follow up automation 2026', 'missed sales opportunities customer follow up 2026'],
-    firewall: 'Only revenue leakage, lead handling, sales follow-up, pipeline recovery and the selected business context are valid evidence. Customer vertical is not the niche.'
-  };
-  if (domain === 'TRACK_B_CONTENT_ENGINE') return {
-    domain, topic: `${extract(prompt, 'NICHE', 'content')} audience and format intelligence`, platforms: ['Google News', 'Reddit', 'TikTok', 'Instagram'], reddit: ['NewTubers', 'PartneredYoutube', 'ContentCreators'],
-    queries: [`${extract(prompt, 'NICHE', 'content')} YouTube high performing formats 2026`, `${extract(prompt, 'NICHE', 'content')} long form storytelling retention 2026`, `${extract(prompt, 'NICHE', 'content')} YouTube titles thumbnails hook trends 2026`, `${extract(prompt, 'NICHE', 'content')} TikTok Shorts hooks formats 2026`],
-    firewall: 'Evidence must stay inside the selected niche/channel and public content-performance context. Reference content is studied for mechanism, not copied.'
-  };
+  if (domain === 'TRACK_A_REVENUE_RECOVERY') return { domain, topic: `${extract(prompt, 'VERTICAL', 'lead-driven business')} revenue leakage`, platforms: ['Google News', 'Reddit'], reddit: ['smallbusiness', 'sales', 'AiForSmallBusiness'], queries: ['lead follow up revenue leakage sales opportunities 2026', 'missed enquiries stale leads no shows quote follow up 2026', 'CRM lead response pipeline leakage conversion 2026', 'sales opportunity reactivation follow up automation 2026', 'missed sales opportunities customer follow up 2026'], firewall: 'Only revenue leakage, lead handling, sales follow-up, pipeline recovery and the selected business context are valid evidence. Customer vertical is not the niche.' };
+  if (domain === 'TRACK_B_CONTENT_ENGINE') return { domain, topic: `${extract(prompt, 'NICHE', 'content')} audience and format intelligence`, platforms: ['Google News', 'Reddit', 'TikTok', 'Instagram'], reddit: ['NewTubers', 'PartneredYoutube', 'ContentCreators'], queries: [`${extract(prompt, 'NICHE', 'content')} YouTube high performing formats 2026`, `${extract(prompt, 'NICHE', 'content')} long form storytelling retention 2026`, `${extract(prompt, 'NICHE', 'content')} YouTube titles thumbnails hook trends 2026`, `${extract(prompt, 'NICHE', 'content')} TikTok Shorts hooks formats 2026`], firewall: 'Evidence must stay inside the selected niche/channel and public content-performance context. Reference content is studied for mechanism, not copied.' };
   const niche = extract(prompt, 'NICHE', 'creator lifestyle'); const creator = extract(prompt, 'CREATOR', 'Cara and Lila');
   return { domain: 'TRACK_B_CREATOR_GROWTH', topic: `${creator} · ${niche}`, platforms: ['TikTok', 'Instagram', 'Reddit', 'Google News'], reddit: ['InstagramMarketing', 'TikTokMarketing', 'ContentCreators'], queries: [`TikTok ${niche} creator format 2026`, `Instagram ${niche} reel carousel trend 2026`, `${niche} creator content trend 2026`], firewall: 'Only creator-growth and the selected niche context are evidence.' };
 }
@@ -119,7 +111,7 @@ async function persistResearch(job, research) {
 async function recoverStaleJobs() {
   const cutoff = new Date(Date.now() - STALE_MS).toISOString();
   const { data, error } = await supabase.from('local_ai_jobs').select('id,title,status,started_at').eq('status','processing').lt('started_at',cutoff).limit(20); if (error) throw error;
-  for (const job of data || []) { await supabase.from('local_ai_jobs').update({ status:'queued', error_message:'Recovered stale processing job after worker restart.', production_status:'requeued' }).eq('id',job.id).eq('status','processing'); console.warn(`[QWEN] requeued stale job ${job.id}`); }
+  for (const job of data || []) { await supabase.from('local_ai_jobs').update({ status:'queued', error_message:'Recovered stale processing job after worker restart.', production_status:'not_started' }).eq('id',job.id).eq('status','processing'); console.warn(`[QWEN] requeued stale job ${job.id}`); }
 }
 async function callQwen(job, researchPack) {
   const compactEvidence = (researchPack?.evidence || []).slice(0, 12).map((item) => ({ platform: item.platform, source: item.source, title: item.title, signal: String(item.signal || '').slice(0, 900), score: item.score ?? null, comments: item.comments ?? null }));
@@ -134,22 +126,20 @@ async function callQwen(job, researchPack) {
 async function claimJob() {
   const { data: candidates, error } = await supabase.from('local_ai_jobs').select('*').eq('status', 'queued').order('created_at', { ascending: true }).limit(12); if (error) throw error;
   const data = (candidates || []).find((j) => !SPECIALIST_JOB_TYPES.has(String(j.job_type || ''))) || null; if (!data) return null;
-  const { data: claimed, error: updateError } = await supabase.from('local_ai_jobs').update({ status: 'processing', started_at: new Date().toISOString(), error_message: null }).eq('id', data.id).eq('status', 'queued').select('*').maybeSingle(); if (updateError) throw updateError; return claimed || null;
+  const { data: claimed, error: updateError } = await supabase.from('local_ai_jobs').update({ status: 'processing', started_at: new Date().toISOString(), error_message: null, production_status:'producing' }).eq('id', data.id).eq('status', 'queued').select('*').maybeSingle(); if (updateError) throw updateError; return claimed || null;
 }
 async function processJob(job) {
   try {
-    await supabase.from('local_ai_jobs').update({ production_status:'researching', error_message:null }).eq('id',job.id).eq('status','processing');
     const research = await buildResearch(job);
-    await supabase.from('local_ai_jobs').update({ production_status:'generating' }).eq('id',job.id).eq('status','processing');
     const researchRunId = await persistResearch(job, research);
     const raw = await callQwen(job, research);
     let result = raw;
     try { const parsed = JSON.parse(raw); result = JSON.stringify(research ? { ...parsed, research, research_run_id: researchRunId } : parsed); } catch { result = JSON.stringify(research ? { text: raw, research, research_run_id: researchRunId } : { text: raw }); }
-    const { error } = await supabase.from('local_ai_jobs').update({ status: 'completed', result, completed_at: new Date().toISOString(), error_message: null, production_status: research ? 'researched' : 'completed' }).eq('id', job.id); if (error) throw error;
+    const { error } = await supabase.from('local_ai_jobs').update({ status: 'completed', result, completed_at: new Date().toISOString(), error_message: null, production_status: research ? 'completed' : 'completed' }).eq('id', job.id); if (error) throw error;
     console.log(`[QWEN] completed ${job.id} domain=${research?.researchDomain || 'none'} researchRun=${researchRunId || 'none'} evidence=${research?.evidence?.length || 0} max_tokens=${FAST_MAX_TOKENS} thinking=off`);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error); console.error(`[QWEN] failed ${job.id}:`, error);
-    await supabase.from('local_ai_jobs').update({ status:'error', error_message:message, production_status:'worker_error' }).eq('id',job.id);
+    await supabase.from('local_ai_jobs').update({ status:'error', error_message:message, production_status:'error' }).eq('id',job.id);
   }
 }
 console.log(`[QWEN] worker online. endpoint=${QWEN_URL}; model=${QWEN_MODEL}; research=parallel+compact; max_tokens=${FAST_MAX_TOKENS}; thinking=off; stale recovery=${STALE_MS}ms`);
