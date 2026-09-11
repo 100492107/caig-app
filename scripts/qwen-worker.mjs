@@ -9,6 +9,7 @@ const QWEN_URL = (process.env.QWEN_URL || 'http://127.0.0.1:8000').replace(/\/$/
 const QWEN_MODEL = process.env.QWEN_MODEL || 'mlx-community/Qwen3-8B-4bit';
 const POLL_MS = Number(process.env.QWEN_POLL_MS || 4000);
 const IDLE_MS = Number(process.env.QWEN_IDLE_MS || 3000);
+const STALE_MS = Number(process.env.QWEN_STALE_MS || 30 * 60 * 1000);
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const RESEARCH_DAYS = 7;
 const CUTOFF = () => Date.now() - RESEARCH_DAYS * 24 * 60 * 60 * 1000;
@@ -31,7 +32,7 @@ async function fetchText(url, options = {}) {
   finally { clearTimeout(timer); }
 }
 async function fetchJson(url) { const r = await fetchText(url, { accept: 'application/json', timeoutMs: 12000 }); if (!r.ok) return null; try { return JSON.parse(r.text); } catch { return null; } }
-function stripHtml(v) { return String(v || '').replace(/<[^>]+>/g, ' ').replace(/&/g, '&').replace(/&#39;/g, "'").replace(/"/g, '"').replace(/\s+/g, ' ').trim(); }
+function stripHtml(v) { return String(v || '').replace(/<[^>]+>/g, ' ').replace(/&/g, '&').replace(/&#39;/g, "'").replace(/\s+/g, ' ').trim(); }
 function rssTag(xml, tag) { const m = String(xml || '').match(new RegExp(`<${tag}(?:\\s[^>]*)?>([\\s\\S]*?)<\\/${tag}>`, 'i')); return m ? stripHtml(m[1]) : ''; }
 async function fetchRss(query) {
   const url = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=en-GB&gl=GB&ceid=GB:en`;
@@ -101,6 +102,51 @@ async function buildResearch(job) {
   const filtered = evidence.filter((x) => x.domain === spec.domain).filter((x) => !x.published || Date.parse(x.published) >= CUTOFF() || ['official-creative-center'].includes(x.sourceType)).slice(0, 100);
   return { generatedAt: new Date().toISOString(), windowDays: RESEARCH_DAYS, researchDomain: spec.domain, targetTopic: spec.topic, confidence: filtered.length >= 12 ? 'high' : filtered.length >= 6 ? 'medium' : 'low', requestedPlatforms: spec.platforms, firewall: spec.firewall, methodology: 'Fresh public-web research run independently for this job domain. Results from other workspaces are not merged.', limitations: filtered.length ? [] : ['No qualifying current public evidence was retrieved.'], evidence: filtered };
 }
+async function persistResearch(job, research) {
+  if (!research?.researchDomain || !job?.owner_id) return null;
+  const { data: existing, error: existingError } = await supabase.from('track_b_research_runs').select('id').eq('job_id', job.id).maybeSingle();
+  if (existingError) throw existingError;
+  if (existing?.id) return existing.id;
+  const { data: run, error: runError } = await supabase.from('track_b_research_runs').insert({
+    owner_id: job.owner_id,
+    job_id: job.id,
+    research_domain: research.researchDomain,
+    target_topic: research.targetTopic,
+    window_days: research.windowDays || RESEARCH_DAYS,
+    confidence: research.confidence || 'low',
+    methodology: research.methodology,
+    limitations: research.limitations || [],
+  }).select('id').single();
+  if (runError) throw runError;
+  const signals = (research.evidence || []).map((item) => ({
+    research_run_id: run.id,
+    platform: item.platform || null,
+    source_type: item.sourceType || null,
+    source: item.source || null,
+    title: item.title || null,
+    published_at: item.published || null,
+    url: item.url || null,
+    signal: item.signal || null,
+    evidence: item.evidence || null,
+    metadata: { query: item.query || null, score: item.score ?? null, comments: item.comments ?? null },
+  }));
+  if (signals.length) {
+    const { error: signalError } = await supabase.from('track_b_research_signals').insert(signals);
+    if (signalError) throw signalError;
+  }
+  const { error: jobError } = await supabase.from('local_ai_jobs').update({ research_run_id: run.id }).eq('id', job.id).eq('owner_id', job.owner_id);
+  if (jobError) throw jobError;
+  return run.id;
+}
+async function recoverStaleJobs() {
+  const cutoff = new Date(Date.now() - STALE_MS).toISOString();
+  const { data, error } = await supabase.from('local_ai_jobs').select('id,title,status,started_at').eq('status','processing').lt('started_at',cutoff).limit(20);
+  if (error) throw error;
+  for (const job of data || []) {
+    await supabase.from('local_ai_jobs').update({ status:'queued', error_message:'Recovered stale processing job after worker restart.', production_status:'requeued' }).eq('id',job.id).eq('status','processing');
+    console.warn(`[QWEN] requeued stale job ${job.id}`);
+  }
+}
 async function callQwen(job, researchPack) {
   const researchContext = researchPack ? `\n\nLIVE RESEARCH\nDomain: ${researchPack.researchDomain}\nTopic: ${researchPack.targetTopic}\nConfidence: ${researchPack.confidence}\nFirewall: ${researchPack.firewall}\nEvidence:\n${JSON.stringify(researchPack.evidence)}\n\nUse repeated mechanisms, not isolated outliers. Separate evidence from inference. Never copy distinctive wording, creator identity, branding, footage or execution.` : '';
   const character = await loadCharacterContext(job);
@@ -109,12 +155,7 @@ async function callQwen(job, researchPack) {
   const json = await r.json().catch(() => ({})); if (!r.ok) throw new Error(`Qwen request failed (${r.status}): ${JSON.stringify(json)}`); const result = cleanOutput(json?.choices?.[0]?.message?.content); if (!result) throw new Error('Qwen returned no usable message content.'); return result;
 }
 async function claimJob() {
-  const { data: candidates, error } = await supabase
-    .from('local_ai_jobs')
-    .select('*')
-    .eq('status', 'queued')
-    .order('created_at', { ascending: true })
-    .limit(12);
+  const { data: candidates, error } = await supabase.from('local_ai_jobs').select('*').eq('status', 'queued').order('created_at', { ascending: true }).limit(12);
   if (error) throw error;
   const data = (candidates || []).find((j) => !SPECIALIST_JOB_TYPES.has(String(j.job_type || ''))) || null;
   if (!data) return null;
@@ -124,11 +165,16 @@ async function claimJob() {
 }
 async function processJob(job) {
   try {
-    const research = await buildResearch(job); const raw = await callQwen(job, research); let result = raw;
-    try { const parsed = JSON.parse(raw); result = JSON.stringify(research ? { ...parsed, research } : parsed); } catch { result = JSON.stringify(research ? { text: raw, research } : { text: raw }); }
-    const { error } = await supabase.from('local_ai_jobs').update({ status: 'completed', result, completed_at: new Date().toISOString(), error_message: null, production_status: research ? 'researched' : 'completed' }).eq('id', job.id); if (error) throw error;
-    console.log(`[QWEN] completed ${job.id} domain=${research?.researchDomain || 'none'} evidence=${research?.evidence?.length || 0}`);
-  } catch (error) { const message = error instanceof Error ? error.message : String(error); console.error(`[QWEN] failed ${job.id}:`, error); await supabase.from('local_ai_jobs').update({ status: 'error', error_message: message }).eq('id', job.id); }
+    const research = await buildResearch(job);
+    const researchRunId = await persistResearch(job, research);
+    const raw = await callQwen(job, research);
+    let result = raw;
+    try { const parsed = JSON.parse(raw); result = JSON.stringify(research ? { ...parsed, research, research_run_id: researchRunId } : parsed); } catch { result = JSON.stringify(research ? { text: raw, research, research_run_id: researchRunId } : { text: raw }); }
+    const { error } = await supabase.from('local_ai_jobs').update({ status: 'completed', result, completed_at: new Date().toISOString(), error_message: null, production_status: research ? 'researched' : 'completed' }).eq('id', job.id);
+    if (error) throw error;
+    console.log(`[QWEN] completed ${job.id} domain=${research?.researchDomain || 'none'} researchRun=${researchRunId || 'none'} evidence=${research?.evidence?.length || 0}`);
+  } catch (error) { const message = error instanceof Error ? error.message : String(error); console.error(`[QWEN] failed ${job.id}:`, error); await supabase.from('local_ai_jobs').update({ status: 'error', error_message: message, production_status: 'worker_error' }).eq('id', job.id); }
 }
-console.log(`[QWEN] worker online. endpoint=${QWEN_URL}; model=${QWEN_MODEL}; research firewall=enabled; specialist jobs skipped`);
-for (;;) { try { const job = await claimJob(); if (job) await processJob(job); else await sleep(IDLE_MS); } catch (error) { console.error('[QWEN] worker loop error:', error); await sleep(POLL_MS); } }
+console.log(`[QWEN] worker online. endpoint=${QWEN_URL}; model=${QWEN_MODEL}; research firewall=enabled; canonical research persistence=enabled; stale recovery=${STALE_MS}ms; specialist jobs skipped`);
+let lastRecovery = 0;
+for (;;) { try { if (Date.now() - lastRecovery > STALE_MS) { await recoverStaleJobs(); lastRecovery = Date.now(); } const job = await claimJob(); if (job) await processJob(job); else await sleep(IDLE_MS); } catch (error) { console.error('[QWEN] worker loop error:', error); await sleep(POLL_MS); } }
