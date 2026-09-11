@@ -12,6 +12,8 @@ Return JSON with TWO top-level objects:
 operator_brief MUST contain:
 - finding: what Cornerstone actually learned from evidence.
 - evidence_status: observed | supported | mixed | inferred | insufficient.
+- evidence_quality: strong | usable | weak | insufficient, with a brief reason.
+- source_inspection: not_inspected | metadata_only | transcript_or_text | media_inspected | source_plus_public_signal.
 - evidence_points: concise source-backed points with source and URL where available.
 - mechanism: the transferable demand mechanism.
 - why: why the mechanism plausibly matters. Clearly mark inference.
@@ -27,6 +29,9 @@ HARD EVIDENCE FIREWALL:
 - Never describe a source as inspected unless the job actually contains transcript, extracted media evidence, metadata or reliable research evidence.
 - Never put a number in an evidence claim unless the number exists in the supplied evidence or live research context.
 - Distinguish SOURCE FACT, PUBLIC SIGNAL, INFERENCE and CREATIVE RECOMMENDATION.
+- Do not upgrade evidence quality merely because more weak signals were found.
+- Public trend/research signals may support a mechanism without proving anything about the supplied reference itself.
+- If source inspection is unavailable, say so plainly and lower confidence rather than filling the gap with assumptions.
 - Weak evidence is acceptable. Fabricated confidence is not.
 
 production_package should contain the useful execution detail: ranked titles, thumbnail concepts, hook, script, chapters, visual timeline, production prompts, follow-ups, originality plan, short-form derivatives, publication sequence, measurement plan and monetisation tests.
