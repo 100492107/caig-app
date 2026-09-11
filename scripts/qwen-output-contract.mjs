@@ -53,7 +53,7 @@ globalThis.fetch = async function contractFetch(input, init = {}) {
       body.messages[systemIndex] = { ...body.messages[systemIndex], content: `${system}${TRACK_B_CONTRACT}` };
     }
 
-    body.max_tokens = Math.max(Number(body.max_tokens || 0), 2200);
+    body.max_tokens = Math.max(Number(body.max_tokens || 0), 6000);
     body.temperature = Math.min(Number(body.temperature ?? 0.55), 0.55);
     return previousFetch(input, { ...init, body: JSON.stringify(body) });
   } catch (error) {
