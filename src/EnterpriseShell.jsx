@@ -5,6 +5,7 @@ const NEW_LIFE_URL = 'https://new-life-game-alpha.vercel.app/start-v2.html';
 const NAV = [
   { id: 'command', label: 'Home', href: '/' },
   { id: 'content', label: 'Content', href: '/content/remake' },
+  { id: 'library', label: 'Library', href: '/generations' },
   { id: 'newlife', label: 'New Life', href: NEW_LIFE_URL, external: true },
   { id: 'system', label: 'System', href: '/system' },
 ];
