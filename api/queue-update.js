@@ -3,17 +3,38 @@ import { requireUser, setSessionCookie, clearSessionCookie, sameOrigin } from '.
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://zvyioxhwdyocaanzcgqf.supabase.co';
 const OUTREACH_MODEL = process.env.QWEN_MODEL || 'mlx-community/Qwen3-8B-4bit';
 const SOURCE_BUCKET = process.env.TRACK_B_SOURCE_BUCKET || 'track-b-source-media';
+
 function clean(value) { return String(value ?? '').trim(); }
 function stripModelThinking(value) { return String(value ?? '').replace(/<think>[\s\S]*?<\/think>/gi, '').replace(/<analysis>[\s\S]*?<\/analysis>/gi, '').replace(/<reasoning>[\s\S]*?<\/reasoning>/gi, '').trim(); }
 function sanitiseJob(job) { if (!job) return job; const next = { ...job }; if (typeof next.result === 'string') next.result = stripModelThinking(next.result); if (typeof next.error_message === 'string') next.error_message = stripModelThinking(next.error_message); return next; }
 function normaliseBusiness(business = {}) { return { id: clean(business.id), name: clean(business.name || business.businessName || business.dealerName), decisionMaker: clean(business.decisionMaker || business.ownerName || business.contact), email: clean(business.email), website: clean(business.website), location: clean(business.location || business.city || business.postcode), vertical: clean(business.vertical || business.industry), offer: clean(business.offer || business.product || business.service), leadSource: clean(business.leadSource), knownSignal: clean(business.knownSignal || business.observation || business.notes), status: clean(business.status), emailStage: Number(business.emailStage || 0), previousEmails: business.previousEmails || {} }; }
 function buildOutreachPrompt(business) { return `You write cold email for Cornerstone Track A Revenue Recovery. You write like a real person, not a model.\n\nDOMAIN LOCK: TRACK_A_REVENUE_RECOVERY only. Problem = revenue leakage when paid-for enquiries, leads, conversations, appointments or quotes go quiet, stale or unworked. Vertical (e.g. automotive) is context only.\n\nHARD BANS:\n- No em dashes (the character). Use full stops, commas or new sentences.\n- No AI cadence: no "I'm reaching out because", no polished marketing rhythm, no long balanced clauses.\n- No photos, listings, visual assets, AI photography, CRM replacement, feature lists, pricing, invented volumes or fake results.\n- First email under ~80 words.\n- Do not ask for a 15-minute call in email 1.\n\nFIRST EMAIL STRUCTURE (always):\n1. Pain: name the quiet paid-for enquiry problem in plain words\n2. Value: one line that a second pass can recover conversations without new spend or CRM change\n3. Cliffhanger: one soft question that invites a reply (curious if that shows up / is that a gap / worth a look)\n\nFOLLOW-UPS: short, one new angle each, still human, still no em dashes.\n\nBUSINESS DATA (use only this, invent nothing):\n${JSON.stringify(business, null, 2)}\n\nEMAIL KPI: reply from the decision-maker. Soft interest question, not a meeting demand.\n\nRETURN JSON ONLY:\n{\"recommended_subject\":\"\",\"subject_options\":[\"\",\"\",\"\"],\"email\":\"\",\"why_this_should_get_a_reply\":\"\",\"pattern_interrupt\":\"\",\"recovery_opportunity\":\"\",\"discovery_questions\":[\"\",\"\",\"\"],\"cta\":\"\",\"followup_plan\":{\"day_2_angle\":\"\",\"day_3_angle\":\"\",\"day_4_angle\":\"\",\"day_5_angle\":\"\"},\"quality_gate\":{\"prospect_first\":\"PASS\",\"problem_fit\":\"PASS\",\"replyability\":\"PASS\",\"specificity\":\"PASS\",\"human_voice\":\"PASS\",\"no_em_dashes\":\"PASS\",\"no_unsupported_claims\":\"PASS\",\"no_photo_listing_framing\":\"PASS\",\"research_domain\":\"TRACK_A_REVENUE_RECOVERY\"}}`; }
-function buildContentEnginePrompt(payload) { const niche = clean(payload.niche || 'Choose the strongest opportunity from current evidence'); const sourceAnalysis = payload.sourceAnalysis ? `\n\nUNIFIED SOURCE EVIDENCE — THIS WAS GENERATED FROM THE UPLOADED REFERENCE\n${String(payload.sourceAnalysis).slice(0, 120000)}\n\nTreat this as evidence about the source. Distinguish observed facts from inference. Do not copy its wording, narration, scenes, creator identity, branding or distinctive creative execution.` : ''; return `You are the senior strategist of Cornerstone AI Enterprise's Track B Content Intelligence & Production Engine. WORKSPACE: TRACK_B_CONTENT_ENGINE.\nMISSION: find proven demand, understand why it works, build an original stronger version, multiply it into short-form, publish, measure and monetise.\n\nTARGET NICHE: ${niche}\nCHANNEL: ${clean(payload.channel) || 'Not fixed yet'}\nREFERENCE URL: ${clean(payload.referenceUrl) || 'None'}\nREFERENCE NOTES / TRANSCRIPT: ${clean(payload.referenceNotes) || 'None'}\nTARGET DURATION: ${clean(payload.duration || '20')} minutes\nOUTPUT: ${clean(payload.output || 'Long-form + Shorts')}\nEXTRA DIRECTION: ${clean(payload.direction) || 'None'}\n${sourceAnalysis}\n\nREFERENCE CONTENT IS A TEACHER, NOT A TEMPLATE. Use it to understand audience demand, topic appeal, hook structure, pacing, narrative mechanisms and weaknesses. Never reproduce exact wording, script, narration, footage, music, creator identity, branding, distinctive thumbnail or near-identical execution. The final work must be materially original.\n\nRESEARCH-FIRST: Prefer repeated public evidence over isolated viral outliers. Separate public signals from owned analytics. If a source is inaccessible, say so.\n\nBUILD: create an original stronger angle and long-form package with opportunity board, 10 titles, 3 thumbnails, hook, full spoken script, chapters, visual timeline, SEO/upload package, 5 follow-up ideas, a clear originality plan, and a concise `scene_directions` array of practical original scene or visual approaches. These are creative options, not claims about the source.\n\nMULTIPLY: create multiple standalone short-form derivatives with source windows, hooks, titles/captions and platform notes.\n\nPUBLISH + MEASURE: produce a publication sequence, measurement plan, baseline metrics and an explicit winner rule.\n\nMONETISE: propose measurable tests only. Potential routes include YouTube advertising where eligible, affiliate offers, TikTok Shop where available, Fanvue for appropriate owned creator assets, sponsorships, subscriptions, products and licensing. Never promise revenue.\n\nRETURN JSON ONLY in the shape requested by the Content Engine interface.`; }
+
+function buildContentEnginePrompt(payload) {
+  const niche = clean(payload.niche || 'Choose the strongest opportunity from current evidence');
+  const sourceAnalysis = payload.sourceAnalysis ? `\n\nUNIFIED SOURCE EVIDENCE — THIS WAS GENERATED FROM THE UPLOADED REFERENCE\n${String(payload.sourceAnalysis).slice(0, 120000)}\n\nTreat this as evidence about the source. Distinguish observed facts from inference. Do not copy its wording, narration, scenes, creator identity, branding or distinctive creative execution.` : '';
+  const learningContext = payload.learningContext ? `\n\nLATEST MEASURED LEARNING SIGNAL — USE THIS TO SHAPE THE NEXT ORIGINAL PACKAGE\n${String(payload.learningContext).slice(0, 30000)}\n\nThis learning signal comes from a previously recorded performance result. Use it as directional evidence, not as a claim about the new package. Preserve the invariant mechanism, vary the execution, and do not copy the winning asset.` : '';
+  return `You are the senior strategist of Cornerstone AI Enterprise's Track B Content Intelligence & Production Engine. WORKSPACE: TRACK_B_CONTENT_ENGINE.\nMISSION: find proven demand, understand why it works, build an original stronger version, multiply it into short-form, publish, measure and monetise.\n\nTARGET NICHE: ${niche}\nCHANNEL: ${clean(payload.channel) || 'Not fixed yet'}\nREFERENCE URL: ${clean(payload.referenceUrl) || 'None'}\nREFERENCE NOTES / TRANSCRIPT: ${clean(payload.referenceNotes) || 'None'}\nTARGET DURATION: ${clean(payload.duration || '20')} minutes\nOUTPUT: ${clean(payload.output || 'Long-form + Shorts')}\nEXTRA DIRECTION: ${clean(payload.direction) || 'None'}\n${sourceAnalysis}${learningContext}\n\nREFERENCE CONTENT IS A TEACHER, NOT A TEMPLATE. Use it to understand audience demand, topic appeal, hook structure, pacing, narrative mechanisms and weaknesses. Never reproduce exact wording, script, narration, footage, music, creator identity, branding, distinctive thumbnail or near-identical execution. The final work must be materially original.\n\nRESEARCH-FIRST: Prefer repeated public evidence over isolated viral outliers. Separate public signals from owned analytics. If a source is inaccessible, say so.\n\nBUILD: create an original stronger angle and long-form package with opportunity board, 10 titles, 3 thumbnails, hook, full spoken script, chapters, visual timeline, SEO/upload package, 5 follow-up ideas, a clear originality plan, and a concise `scene_directions` array of practical original scene or visual approaches. These are creative options, not claims about the source.\n\nMULTIPLY: create multiple standalone short-form derivatives with source windows, hooks, titles/captions and platform notes.\n\nPUBLISH + MEASURE: produce a publication sequence, measurement plan, baseline metrics and an explicit winner rule.\n\nMONETISE: propose measurable tests only. Potential routes include YouTube advertising where eligible, affiliate offers, TikTok Shop where available, Fanvue for appropriate owned creator assets, sponsorships, subscriptions, products and licensing. Never promise revenue.\n\nRETURN JSON ONLY in the shape requested by the Content Engine interface.`;
+}
+
 async function supabaseFetch(path, options = {}, serviceKey) { const headers = { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, ...(options.headers || {}) }; return fetch(`${SUPABASE_URL}${path}`, { ...options, headers }); }
 async function readJob(serviceKey, id, ownerId) { const r = await supabaseFetch(`/rest/v1/local_ai_jobs?id=eq.${encodeURIComponent(id)}&owner_id=eq.${encodeURIComponent(ownerId)}&select=id,title,job_type,model,persona_id,status,result,error_message,system_prompt,user_prompt,options,production_status,created_at,completed_at,video_url,captioned_video_url,owner_id`, {}, serviceKey); const text = await r.text(); if (!r.ok) throw new Error(`Supabase read failed: ${text}`); return sanitiseJob(JSON.parse(text)[0] || null); }
 async function listGenerations(serviceKey, ownerId, { limit = 100, offset = 0 } = {}) { const safeLimit = Math.max(1, Math.min(Number(limit) || 100, 100)); const safeOffset = Math.max(0, Number(offset) || 0); const select = 'id,title,job_type,model,persona_id,status,result,error_message,system_prompt,user_prompt,options,production_status,created_at,completed_at,video_url,captioned_video_url,owner_id'; const r = await supabaseFetch(`/rest/v1/local_ai_jobs?owner_id=eq.${encodeURIComponent(ownerId)}&select=${encodeURIComponent(select)}&order=created_at.desc&limit=${safeLimit}&offset=${safeOffset}`, { headers: { Prefer: 'count=exact' } }, serviceKey); const text = await r.text(); if (!r.ok) throw new Error(`Supabase list failed: ${text}`); const rows = JSON.parse(text).map(sanitiseJob); const range = r.headers.get('content-range') || ''; const m = range.match(/\/([0-9]+)$/); const total = m ? Number(m[1]) : null; const nextOffset = rows.length === safeLimit ? safeOffset + rows.length : null; return { rows, total, offset: safeOffset, limit: safeLimit, nextOffset, hasMore: nextOffset !== null && (total === null || nextOffset < total) }; }
 async function deleteGeneration(serviceKey, ownerId, id) { const r = await supabaseFetch(`/rest/v1/local_ai_jobs?id=eq.${encodeURIComponent(id)}&owner_id=eq.${encodeURIComponent(ownerId)}`, { method: 'DELETE' }, serviceKey); const text = await r.text(); if (!r.ok) throw new Error(`Supabase delete failed: ${text}`); }
 async function createJob(serviceKey, row) { const r = await supabaseFetch('/rest/v1/local_ai_jobs', { method: 'POST', headers: { 'Content-Type': 'application/json', Prefer: 'return=representation' }, body: JSON.stringify(row) }, serviceKey); const text = await r.text(); if (!r.ok) throw new Error(`Supabase queue failed: ${text}`); return JSON.parse(text)[0]; }
+async function readLatestLearningRecommendation(serviceKey, ownerId) {
+  const params = new URLSearchParams({
+    owner_id: `eq.${ownerId}`,
+    status: 'eq.active',
+    select: 'id,proof_type,creator_id,platform,source_evidence_id,recommendation_type,hook_type,format,first_frame_behaviour,emotional_trigger,invariant_pattern,controlled_variations,reusable_prompt_context,confidence,created_at',
+    order: 'created_at.desc',
+    limit: '1',
+  });
+  const r = await supabaseFetch(`/rest/v1/track_b_learning_recommendations?${params.toString()}`, {}, serviceKey);
+  const text = await r.text();
+  if (!r.ok) throw new Error(`Learning recommendation read failed: ${text}`);
+  return JSON.parse(text)[0] || null;
+}
 async function parseBody(req) { const chunks = []; for await (const chunk of req) chunks.push(chunk); return JSON.parse(Buffer.concat(chunks).toString() || '{}'); }
 
 export default async function handler(req, res) {
@@ -67,7 +88,48 @@ export default async function handler(req, res) {
     try { const created = await createJob(SERVICE_KEY, { owner_id: ownerId, title: `Track A Revenue Recovery · ${business.name} · Email ${business.emailStage + 1}`, job_type: 'trend_scan', model: OUTREACH_MODEL, persona_id: 'cornerstone_track_a_revenue_recovery', system_prompt: 'Write like a real person. No em dashes. Pain then value then soft cliffhanger. Never photos, listings or AI cadence.', user_prompt: buildOutreachPrompt(business), options: { max_tokens: 6500, temperature: .52, research: true, outreach: true, recovery_business_id: business.id, research_domain: 'TRACK_A_REVENUE_RECOVERY', workspace_id: 'track_a', research_firewall: true }, status: 'queued', production_status: 'not_started' }); return res.status(200).json({ jobId: created.id, business }); } catch (error) { console.error('queue_outreach error', error); return res.status(500).json({ error: error?.message || String(error) }); }
   }
   if (body.action === 'queue_content_engine') {
-    try { const payload = { niche: body.niche, channel: body.channel, referenceUrl: body.referenceUrl, referenceNotes: body.referenceNotes, duration: body.duration, output: body.output, direction: body.direction, sourceAnalysis: body.sourceAnalysis }; const created = await createJob(SERVICE_KEY, { owner_id: ownerId, title: `Track B Content Engine · ${clean(payload.niche) || 'Opportunity Discovery'}`, job_type: 'content_engine', model: OUTREACH_MODEL, persona_id: 'cornerstone_content_engine', system_prompt: 'You are Cornerstone AI Enterprise Track B Content Intelligence & Production Engine. Research current demand, learn from reference material without copying it, then build original content.', user_prompt: buildContentEnginePrompt(payload), options: { max_tokens: 16000, temperature: .55, research: true, content_engine: true, research_domain: 'TRACK_B_CONTENT_ENGINE', workspace_id: 'track_b', reference_url: clean(payload.referenceUrl), niche: clean(payload.niche), has_source_analysis: Boolean(payload.sourceAnalysis) }, status: 'queued', production_status: 'not_started' }); return res.status(200).json({ jobId: created.id }); } catch (error) { console.error('queue_content_engine error', error); return res.status(500).json({ error: error?.message || String(error) }); }
+    try {
+      const learning = await readLatestLearningRecommendation(SERVICE_KEY, ownerId);
+      const payload = {
+        niche: body.niche,
+        channel: body.channel,
+        referenceUrl: body.referenceUrl,
+        referenceNotes: body.referenceNotes,
+        duration: body.duration,
+        output: body.output,
+        direction: body.direction,
+        sourceAnalysis: body.sourceAnalysis,
+        learningContext: learning,
+      };
+      const created = await createJob(SERVICE_KEY, {
+        owner_id: ownerId,
+        title: `Track B Content Engine · ${clean(payload.niche) || 'Opportunity Discovery'}${learning ? ' · Learning-led' : ''}`,
+        job_type: 'content_engine',
+        model: OUTREACH_MODEL,
+        persona_id: 'cornerstone_content_engine',
+        system_prompt: 'You are Cornerstone AI Enterprise Track B Content Intelligence & Production Engine. Research current demand, learn from reference material without copying it, and use previously measured learning as directional evidence before building original content.',
+        user_prompt: buildContentEnginePrompt(payload),
+        options: {
+          max_tokens: 16000,
+          temperature: .55,
+          research: true,
+          content_engine: true,
+          research_domain: 'TRACK_B_CONTENT_ENGINE',
+          workspace_id: 'track_b',
+          reference_url: clean(payload.referenceUrl),
+          niche: clean(payload.niche),
+          has_source_analysis: Boolean(payload.sourceAnalysis),
+          learning_recommendation_id: learning?.id || null,
+          learning_source_evidence_id: learning?.source_evidence_id || null,
+        },
+        status: 'queued',
+        production_status: 'not_started'
+      });
+      return res.status(200).json({ jobId: created.id, learningApplied: Boolean(learning), learningRecommendationId: learning?.id || null });
+    } catch (error) {
+      console.error('queue_content_engine error', error);
+      return res.status(500).json({ error: error?.message || String(error) });
+    }
   }
   return res.status(400).json({ error: 'Unsupported action' });
 }
