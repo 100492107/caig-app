@@ -1,5 +1,4 @@
 import React from 'react';
-import PersistentGenerations from './PersistentGenerations.jsx';
 
 const NEW_LIFE_URL = 'https://new-life-game-alpha.vercel.app/start-v2.html';
 const NAV = [
@@ -52,7 +51,6 @@ export default function EnterpriseShell({ active = 'command', children, eyebrow 
         {eyebrow ? <div className="es-context">{eyebrow}</div> : null}
       </header>
       <div className="es-body">{children}</div>
-      <PersistentGenerations />
     </div>
   );
 }
