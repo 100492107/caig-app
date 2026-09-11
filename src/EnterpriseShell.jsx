@@ -1,83 +1,66 @@
 import React from 'react';
 
 const NEW_LIFE_URL = 'https://new-life-game-alpha.vercel.app/start-v2.html';
-const PRIMARY = [
+const NAV = [
   { id: 'command', label: 'Home', href: '/' },
   { id: 'content', label: 'Create', href: '/content/remake' },
   { id: 'library', label: 'Library', href: '/generations' },
-];
-const WORK = [
   { id: 'voices', label: 'Voices', href: '/content/creators' },
   { id: 'channels', label: 'Channels', href: '/content/profiles' },
-  { id: 'production', label: 'Production', href: '/content/production' },
-  { id: 'publish', label: 'Publishing', href: '/content/publish' },
-  { id: 'learning', label: 'Learning', href: '/content/measurement' },
+  { id: 'production', label: 'Make', href: '/content/production' },
+  { id: 'publish', label: 'Publish', href: '/content/publish' },
+  { id: 'learning', label: 'Learn', href: '/content/measurement' },
 ];
 const SECONDARY = [
   { id: 'newlife', label: 'New Life', href: NEW_LIFE_URL, external: true },
   { id: 'system', label: 'System', href: '/system' },
 ];
 
-function Item({ item, active }) {
-  return (
-    <a
-      href={item.href}
-      className={`cs-link${active === item.id ? ' is-active' : ''}`}
-      target={item.external ? '_blank' : undefined}
-      rel={item.external ? 'noreferrer' : undefined}
-    >
-      <span>{item.label}</span>
-      {item.external ? <small>↗</small> : null}
-    </a>
-  );
-}
-
-export default function EnterpriseShell({ active = 'command', children, eyebrow = '' }) {
-  const workActive = ['voices', 'channels', 'production', 'publish', 'learning'].includes(active) ? active : null;
+export default function EnterpriseShell({ active = 'command', children }) {
   return (
     <div className="cornerstone-shell">
       <style>{`
-        .cornerstone-shell{min-height:100svh;background:radial-gradient(circle at 88% -10%,rgba(196,180,154,.08),transparent 34%),var(--bg);color:var(--text);font-family:var(--sans)}
+        .cornerstone-shell{min-height:100svh;background:var(--bg);color:var(--text);font-family:var(--sans)}
         .cornerstone-shell *{box-sizing:border-box}
-        .cs-rail{position:fixed;inset:0 auto 0 0;width:228px;padding:20px 14px 16px;border-right:1px solid var(--border);background:rgba(12,14,18,.82);backdrop-filter:blur(22px);z-index:100;display:flex;flex-direction:column}
-        .cs-brand{display:flex;align-items:center;gap:11px;padding:2px 10px 22px;color:inherit;text-decoration:none}
-        .cs-mark{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;background:#eee9dd;color:#171717;font-weight:950;font-size:18px;box-shadow:0 8px 28px rgba(0,0,0,.18)}
-        .cs-brand-copy strong{display:block;font-size:12px;letter-spacing:.12em}
-        .cs-brand-copy small{display:block;margin-top:5px;color:var(--text-subtle);font-size:8px;letter-spacing:.14em;text-transform:uppercase}
-        .cs-section{padding:0 7px;margin:12px 0 7px;font-size:8px;font-weight:900;letter-spacing:.16em;text-transform:uppercase;color:var(--text-subtle)}
-        .cs-nav{display:grid;gap:3px}
-        .cs-link{display:flex;align-items:center;justify-content:space-between;min-height:40px;padding:0 11px;border:1px solid transparent;border-radius:10px;color:var(--text-muted);text-decoration:none;font-size:11px;font-weight:800;transition:.16s ease}
-        .cs-link:hover{background:rgba(255,255,255,.045);color:var(--text)}
-        .cs-link.is-active{background:linear-gradient(135deg,rgba(196,180,154,.14),rgba(255,255,255,.035));border-color:rgba(196,180,154,.22);color:var(--text);box-shadow:inset 0 0 0 1px rgba(255,255,255,.015)}
-        .cs-link small{font-size:11px;color:var(--text-subtle)}
-        .cs-footer{margin-top:auto;padding:13px 10px;border-top:1px solid var(--border)}
-        .cs-footer .status{display:flex;align-items:center;gap:8px;color:var(--text-muted);font-size:9px}
-        .cs-footer .dot{width:7px;height:7px;border-radius:50%;background:var(--success);box-shadow:0 0 12px rgba(111,155,122,.45)}
-        .cs-main{margin-left:228px;min-height:100svh}
-        .cs-top{height:62px;position:sticky;top:0;z-index:80;display:flex;align-items:center;justify-content:space-between;padding:0 30px;border-bottom:1px solid var(--border);background:rgba(12,14,18,.74);backdrop-filter:blur(22px)}
-        .cs-context{font-size:9px;font-weight:850;letter-spacing:.14em;text-transform:uppercase;color:var(--text-subtle)}
-        .cs-breadcrumb{color:var(--text-muted);font-size:11px}
-        .cs-body{width:min(1320px,100%);margin:0 auto;padding:30px 34px 80px}
-        @media(max-width:900px){.cs-rail{position:sticky;width:auto;height:auto;inset:auto;display:block;padding:8px 10px;border-right:0;border-bottom:1px solid var(--border)}.cs-brand{padding:4px 6px 9px}.cs-brand-copy small{display:none}.cs-nav{display:flex;overflow:auto;scrollbar-width:none}.cs-nav::-webkit-scrollbar{display:none}.cs-section{display:none}.cs-link{min-height:38px;white-space:nowrap;padding:0 12px}.cs-footer{display:none}.cs-main{margin-left:0}.cs-top{height:46px;padding:0 16px}.cs-body{padding:22px 16px 60px}}
-        @media(max-width:560px){.cs-context{display:none}.cs-top{justify-content:flex-end}}
+        .cs-top{position:sticky;top:0;z-index:100;display:flex;align-items:center;gap:28px;padding:12px clamp(18px,4vw,52px);border-bottom:1px solid rgba(255,255,255,.065);background:rgba(11,12,15,.88);backdrop-filter:blur(22px)}
+        .cs-brand{display:flex;align-items:center;gap:11px;min-width:max-content;color:inherit;text-decoration:none}
+        .cs-mark{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;background:#eee9dd;color:#171614;font-family:Georgia,'Times New Roman',serif;font-size:19px;font-weight:800}
+        .cs-brand-copy strong{display:block;font-size:12px;line-height:1;letter-spacing:.16em;font-weight:800}
+        .cs-brand-copy small{display:block;margin-top:5px;font-size:8px;letter-spacing:.07em;color:#777b83}
+        .cs-nav{display:flex;align-items:center;gap:2px;flex:1;overflow:auto;scrollbar-width:none}
+        .cs-nav::-webkit-scrollbar{display:none}
+        .cs-link{display:inline-flex;align-items:center;gap:5px;padding:9px 11px;border-radius:9px;color:#8e9198;text-decoration:none;font-size:10px;font-weight:780;white-space:nowrap;transition:all .18s ease}
+        .cs-link:hover{color:#f4f1e9;background:rgba(255,255,255,.045)}
+        .cs-link.is-active{color:#f4f1e9;background:#191c22}
+        .cs-link.is-active::after{content:"";width:14px;height:1px;margin-top:11px;margin-left:-7px;background:#d4b56a;position:absolute}
+        .cs-more{display:flex;align-items:center;gap:5px;margin-left:auto;white-space:nowrap}
+        .cs-more .cs-link{padding-left:9px;padding-right:9px}
+        .cs-main{min-height:calc(100svh - 61px)}
+        .cs-body{width:min(1320px,100%);margin:0 auto;padding:32px clamp(18px,4vw,52px) 84px}
+        @media(max-width:980px){.cs-top{gap:16px}.cs-brand-copy small{display:none}.cs-nav{order:3;flex-basis:100%}.cornerstone-shell{overflow-x:hidden}.cs-top{flex-wrap:wrap}.cs-more{margin-left:0}.cs-main{min-height:0}}
+        @media(max-width:620px){.cs-top{padding:10px 12px;gap:10px}.cs-brand-copy{display:none}.cs-mark{width:33px;height:33px;border-radius:10px}.cs-link{font-size:10px;padding:8px 9px}.cs-body{padding:24px 14px 60px}.cs-nav{margin:0 -4px;padding:0 4px}}
       `}</style>
-      <aside className="cs-rail">
+      <header className="cs-top">
         <a className="cs-brand" href="/" aria-label="Cornerstone home">
           <span className="cs-mark">C</span>
-          <span className="cs-brand-copy"><strong>CORNERSTONE</strong><small>Content workspace</small></span>
+          <span className="cs-brand-copy"><strong>CORNERSTONE</strong><small>AI content studio</small></span>
         </a>
-        <div className="cs-section">Workspace</div>
-        <nav className="cs-nav" aria-label="Primary workspace navigation">{PRIMARY.map((item) => <Item key={item.id} item={item} active={active === 'command' && item.id === 'command' ? 'command' : active === 'content' && item.id === 'content' ? 'content' : active === 'library' && item.id === 'library' ? 'library' : null} />)}</nav>
-        <div className="cs-section">Work</div>
-        <nav className="cs-nav" aria-label="Content work navigation">{WORK.map((item) => <Item key={item.id} item={item} active={workActive} />)}</nav>
-        <div className="cs-section">More</div>
-        <nav className="cs-nav" aria-label="Secondary navigation">{SECONDARY.map((item) => <Item key={item.id} item={item} active={active} />)}</nav>
-        <div className="cs-footer"><div className="status"><i className="dot" /> <span>Workspace ready</span></div></div>
-      </aside>
-      <div className="cs-main">
-        <header className="cs-top"><div className="cs-breadcrumb">{eyebrow || 'Your workspace'}</div><div className="cs-context">Cornerstone</div></header>
-        <div className="cs-body">{children}</div>
-      </div>
+        <nav className="cs-nav" aria-label="Cornerstone workspace">
+          {NAV.map((item) => (
+            <a key={item.id} href={item.href} className={`cs-link${active === item.id ? ' is-active' : ''}`}>
+              {item.label}
+            </a>
+          ))}
+        </nav>
+        <div className="cs-more">
+          {SECONDARY.map((item) => (
+            <a key={item.id} href={item.href} className={`cs-link${active === item.id ? ' is-active' : ''}`} target={item.external ? '_blank' : undefined} rel={item.external ? 'noreferrer' : undefined}>
+              {item.label}{item.external ? ' ↗' : ''}
+            </a>
+          ))}
+        </div>
+      </header>
+      <main className="cs-main"><div className="cs-body">{children}</div></main>
     </div>
   );
 }
