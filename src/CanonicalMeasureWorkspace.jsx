@@ -1,154 +1,19 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { supabase } from './supabase';
 
-export default function CanonicalMeasureWorkspace() {
-  const [publications, setPublications] = useState([]);
-  const [evidence, setEvidence] = useState([]);
-  const [selectedId, setSelectedId] = useState('');
-  const [views, setViews] = useState('');
-  const [engagement, setEngagement] = useState('');
-  const [revenue, setRevenue] = useState('');
-  const [winner, setWinner] = useState(false);
-  const [note, setNote] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [message, setMessage] = useState('');
+const css=`
+.pm{color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,system-ui,sans-serif}.pm-head{display:flex;justify-content:space-between;align-items:end;gap:20px}.pm-k{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--text-subtle);font-weight:850}.pm-h{margin:8px 0 0;font-size:clamp(34px,5vw,58px);line-height:.95;letter-spacing:-.065em}.pm-p{margin:12px 0 0;max-width:65ch;color:var(--text-muted);font-size:13px;line-height:1.6}.pm-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:20px}.pm-stat{padding:13px 14px;border:1px solid var(--border);border-radius:14px;background:var(--surface)}.pm-stat b{font-size:21px;letter-spacing:-.04em}.pm-stat span{display:block;margin-top:4px;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-subtle)}
+.pm-layout{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(280px,.9fr);gap:14px;margin-top:14px}.pm-card{border:1px solid var(--border);background:var(--surface);border-radius:18px;padding:18px;min-width:0}.pm-title{font-size:14px;font-weight:850}.pm-sub{margin-top:4px;color:var(--text-muted);font-size:11px;line-height:1.45}.pm-list{display:grid;gap:7px;margin-top:14px}.pm-item{width:100%;text-align:left;padding:14px;border:1px solid var(--border);border-radius:13px;background:var(--surface-2);color:var(--text);cursor:pointer}.pm-item.active{border-color:rgba(212,181,106,.5);background:rgba(212,181,106,.08)}.pm-item strong{display:block;font-size:12px}.pm-meta{margin-top:5px;color:var(--text-muted);font-size:10px}.pm-badge{display:inline-block;margin-top:8px;padding:4px 7px;border-radius:999px;background:rgba(212,181,106,.12);font-size:9px;color:#d9c897}
+.pm-decision{margin-top:14px;padding:15px;border:1px solid rgba(212,181,106,.22);border-radius:15px;background:linear-gradient(135deg,rgba(212,181,106,.07),var(--surface-2))}.pm-decision strong{font-size:14px}.pm-field{width:100%;margin-top:6px;padding:11px 12px;border:1px solid var(--border);border-radius:11px;background:var(--surface-2);color:var(--text);font:inherit}.pm-check{display:flex;gap:8px;align-items:flex-start;margin-top:13px;color:var(--text-muted);font-size:11px;line-height:1.45}.pm-btn{width:100%;min-height:46px;margin-top:14px;border:1px solid rgba(212,181,106,.4);border-radius:11px;background:linear-gradient(180deg,#e0c87a,#d4b56a);color:#17130c;font-weight:900;cursor:pointer}.pm-btn:disabled{opacity:.5}.pm-empty{padding:18px;border:1px dashed var(--border);border-radius:14px;background:var(--surface-2);color:var(--text-muted);font-size:11px;line-height:1.5}.pm-empty a{color:var(--text);font-weight:850}.pm-msg{margin-top:10px;color:var(--text-muted);font-size:11px;line-height:1.45}.pm-winners{margin-top:14px;display:grid;gap:7px}.pm-winner{padding:12px 13px;border:1px solid rgba(212,181,106,.22);border-radius:12px;background:rgba(212,181,106,.05)}.pm-winner strong{font-size:11px}.pm-winner span{display:block;margin-top:4px;font-size:10px;color:var(--text-muted)}
+@media(max-width:900px){.pm-layout{grid-template-columns:1fr}}@media(max-width:560px){.pm-stats{grid-template-columns:1fr 1fr}}
+`;
 
-  const selected = useMemo(() => publications.find((p) => p.id === selectedId) || null, [publications, selectedId]);
-  const winners = evidence.filter((e) => e.winner).length;
-
-  async function load() {
-    const [p, e] = await Promise.all([
-      supabase.from('track_b_publications').select('id,title,platform,status,scheduled_at,created_at,updated_at,project_id').order('updated_at', { ascending: false }).limit(100),
-      supabase.from('track_b_performance_evidence').select('id,publication_id,views,revenue,winner,operator_note,created_at').order('created_at', { ascending: false }).limit(100),
-    ]);
-    if (!p.error) setPublications(p.data || []);
-    if (e.error) setEvidence([]);
-    else setEvidence(e.data || []);
-  }
-
-  useEffect(() => { load(); }, []);
-
-  async function save() {
-    if (!selected) return;
-    setBusy(true);
-    setMessage('Saving what we learned…');
-    try {
-      const { data: userData, error: userError } = await supabase.auth.getUser();
-      if (userError || !userData?.user) throw new Error('Sign in required.');
-      const payload = {
-        owner_id: userData.user.id,
-        publication_id: selected.id,
-        creator_id: 'owned',
-        proof_type: 'public_social',
-        platform: String(selected.platform || 'YouTube'),
-        title: selected.title || null,
-        views: Number(views) || 0,
-        comments: Number(engagement) || 0,
-        revenue: Number(revenue) || 0,
-        winner,
-        operator_note: note || null,
-      };
-      const { error } = await supabase.from('track_b_performance_evidence').insert(payload);
-      if (error) throw new Error(error.message);
-      setMessage(winner ? 'Marked as a winning format. Command will prefer this next.' : 'Evidence saved. The engine can learn from this.');
-      setViews(''); setEngagement(''); setRevenue(''); setWinner(false); setNote('');
-      await load();
-    } catch (err) {
-      setMessage(err.message || 'Could not save evidence.');
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  return (
-    <main className="paid-measure">
-      <style>{`
-        .paid-measure{color:var(--text)}
-        .pm-strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:16px}
-        .pm-stat{border:1px solid var(--border);background:var(--surface);border-radius:14px;padding:14px}
-        .pm-stat b{display:block;font-size:24px;letter-spacing:-.04em}
-        .pm-stat span{display:block;margin-top:6px;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-subtle)}
-        .pm-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:12px}
-        .pm-card{border:1px solid var(--border);background:var(--surface);border-radius:18px;padding:18px}
-        .pm-k{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-subtle);font-weight:850}
-        .pm-h{margin:10px 0 0;font-size:clamp(28px,4vw,40px);line-height:.95;letter-spacing:-.05em}
-        .pm-s{margin:10px 0 0;color:var(--text-muted);font-size:12px;line-height:1.5}
-        .pm-list{display:grid;gap:8px;margin-top:14px}
-        .pm-item{text-align:left;width:100%;padding:12px;border:1px solid var(--border);border-radius:12px;background:var(--surface-2);color:var(--text);cursor:pointer}
-        .pm-item.active{border-color:rgba(212,181,106,.45);background:rgba(212,181,106,.08)}
-        .pm-item strong{display:block;font-size:13px}
-        .pm-item span{display:block;margin-top:4px;font-size:10px;color:var(--text-muted)}
-        .pm-field{width:100%;margin-top:7px;padding:10px;border:1px solid var(--border);border-radius:10px;background:var(--surface-2);color:var(--text);font:inherit}
-        .pm-btn{margin-top:14px;width:100%;min-height:46px;border:1px solid #ddd9cc;border-radius:11px;background:#ddd9cc;color:#171717;font-weight:900;cursor:pointer}
-        .pm-btn:disabled{opacity:.55}
-        .pm-empty{padding:16px;border:1px dashed var(--border);border-radius:14px;color:var(--text-muted);font-size:12px;line-height:1.5}
-        .pm-empty a{color:var(--text);font-weight:850}
-        .pm-msg{margin-top:10px;color:var(--text-muted);font-size:11px;line-height:1.45}
-        .pm-check{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:12px}
-        @media(max-width:900px){.pm-strip{grid-template-columns:1fr 1fr}.pm-grid{grid-template-columns:1fr}}
-      `}</style>
-
-      <div className="pm-strip">
-        <div className="pm-stat"><b>{publications.length}</b><span>Shipped / scheduled</span></div>
-        <div className="pm-stat"><b>{evidence.length}</b><span>Lessons captured</span></div>
-        <div className="pm-stat"><b>{winners}</b><span>Winning formats</span></div>
-        <div className="pm-stat"><b>£{evidence.reduce((n, e) => n + (Number(e.revenue) || 0), 0).toLocaleString('en-GB')}</b><span>Attributed here</span></div>
-      </div>
-
-      <div className="pm-grid">
-        <section className="pm-card">
-          <div className="pm-k">What worked</div>
-          <h2 className="pm-h">Turn results into the next decision.</h2>
-          <p className="pm-s">Measurement is not a report. It is how Cornerstone learns which formats to remake, which to stop, and which to scale.</p>
-          <div className="pm-list">
-            {publications.length ? publications.map((p) => (
-              <button key={p.id} type="button" className={`pm-item${selectedId === p.id ? ' active' : ''}`} onClick={() => setSelectedId(p.id)}>
-                <strong>{p.title || 'Untitled'}</strong>
-                <span>{p.platform} · {p.status}</span>
-              </button>
-            )) : (
-              <div className="pm-empty">
-                Nothing has shipped yet, so there is nothing to learn from. That is expected on day one.
-                <br /><a href="/content/publish">Schedule the first publication →</a>
-              </div>
-            )}
-          </div>
-        </section>
-
-        <section className="pm-card">
-          <div className="pm-k">Capture the lesson</div>
-          {selected ? (
-            <>
-              <div style={{ marginTop: 10, fontSize: 15, fontWeight: 850 }}>{selected.title || 'Publication'}</div>
-              <label className="pm-k" style={{ display: 'block', marginTop: 14 }}>Views
-                <input className="pm-field" inputMode="numeric" value={views} onChange={(e) => setViews(e.target.value)} placeholder="e.g. 12400" />
-              </label>
-              <label className="pm-k" style={{ display: 'block', marginTop: 12 }}>Engagement
-                <input className="pm-field" inputMode="numeric" value={engagement} onChange={(e) => setEngagement(e.target.value)} placeholder="likes + comments + shares" />
-              </label>
-              <label className="pm-k" style={{ display: 'block', marginTop: 12 }}>Revenue attributed (£)
-                <input className="pm-field" inputMode="decimal" value={revenue} onChange={(e) => setRevenue(e.target.value)} placeholder="0" />
-              </label>
-              <label className="pm-k" style={{ display: 'block', marginTop: 12 }}>What we noticed
-                <textarea className="pm-field" rows={3} value={note} onChange={(e) => setNote(e.target.value)} placeholder="Hook worked. First 3 seconds carried retention. CTA underperformed." />
-              </label>
-              <label className="pm-check">
-                <input type="checkbox" checked={winner} onChange={(e) => setWinner(e.target.checked)} />
-                Mark as a winning format to remake
-              </label>
-              <button className="pm-btn" type="button" disabled={busy} onClick={save}>
-                {busy ? 'Saving…' : 'Save lesson →'}
-              </button>
-            </>
-          ) : (
-            <div className="pm-empty" style={{ marginTop: 12 }}>Select a shipped or scheduled item. Tell Cornerstone what the market rewarded.</div>
-          )}
-          {message ? <div className="pm-msg">{message}</div> : null}
-          <div className="pm-msg" style={{ marginTop: 16 }}>
-            <a href="/content/remake" style={{ color: 'inherit', fontWeight: 850 }}>Use a winner as the next Remake reference →</a>
-          </div>
-        </section>
-      </div>
-    </main>
-  );
+export default function CanonicalMeasureWorkspace(){
+  const [publications,setPublications]=useState([]);const [evidence,setEvidence]=useState([]);const [selectedId,setSelectedId]=useState('');const [views,setViews]=useState('');const [engagement,setEngagement]=useState('');const [revenue,setRevenue]=useState('');const [winner,setWinner]=useState(false);const [note,setNote]=useState('');const [busy,setBusy]=useState(false);const [message,setMessage]=useState('');
+  const selected=useMemo(()=>publications.find(p=>p.id===selectedId)||null,[publications,selectedId]); const winners=evidence.filter(e=>e.winner).length; const totalRevenue=evidence.reduce((n,e)=>n+(Number(e.revenue)||0),0);
+  async function load(){const [p,e]=await Promise.all([supabase.from('track_b_publications').select('id,title,platform,status,scheduled_at,created_at,updated_at,project_id').order('updated_at',{ascending:false}).limit(100),supabase.from('track_b_performance_evidence').select('id,publication_id,views,revenue,winner,operator_note,created_at').order('created_at',{ascending:false}).limit(100)]);if(p.error)setMessage(p.error.message);else setPublications(p.data||[]);if(e.error)setEvidence([]);else setEvidence(e.data||[])}
+  useEffect(()=>{load();const t=setInterval(load,10000);return()=>clearInterval(t)},[]);
+  async function save(){if(!selected)return;setBusy(true);setMessage('Saving the lesson…');try{const {data:userData,error:userError}=await supabase.auth.getUser();if(userError||!userData?.user)throw new Error('Sign in required.');const {error}=await supabase.from('track_b_performance_evidence').insert({owner_id:userData.user.id,publication_id:selected.id,creator_id:'owned',proof_type:'public_social',platform:String(selected.platform||'YouTube'),title:selected.title||null,views:Number(views)||0,comments:Number(engagement)||0,revenue:Number(revenue)||0,winner,operator_note:note||null});if(error)throw new Error(error.message);setMessage(winner?'Saved as a winner. Cornerstone can use it as a future reference.':'Lesson saved.');setViews('');setEngagement('');setRevenue('');setWinner(false);setNote('');await load()}catch(e){setMessage(e.message||'Could not save evidence.')}finally{setBusy(false)}}
+  const winningRows=evidence.filter(e=>e.winner).slice(0,5);
+  return <main className="pm"><style>{css}</style><div className="pm-head"><div><div className="pm-k">Learning</div><h1 className="pm-h">Find the signal.</h1><p className="pm-p">Record what the market rewarded. Winners become future references; weak ideas stop quietly.</p></div></div><div className="pm-stats"><div className="pm-stat"><b>{publications.length}</b><span>Publications</span></div><div className="pm-stat"><b>{evidence.length}</b><span>Lessons</span></div><div className="pm-stat"><b>{winners}</b><span>Winners</span></div><div className="pm-stat"><b>£{totalRevenue.toLocaleString('en-GB')}</b><span>Attributed</span></div></div><div className="pm-layout"><section className="pm-card"><div className="pm-title">Published work</div><div className="pm-sub">Select the piece you want to learn from.</div><div className="pm-list">{publications.length?publications.map(p=><button key={p.id} type="button" className={`pm-item${selectedId===p.id?' active':''}`} onClick={()=>setSelectedId(p.id)}><strong>{p.title||'Untitled publication'}</strong><div className="pm-meta">{p.platform||'Platform'} · {p.status||'draft'}</div>{evidence.some(e=>e.publication_id===p.id&&e.winner)?<span className="pm-badge">Winning format</span>:null}</button>):<div className="pm-empty">Nothing has shipped yet. Schedule the first publication, then bring the result back here.<br/><a href="/content/publish">Go to publishing →</a></div>}</div>{winningRows.length?<div className="pm-winners"><div className="pm-k">Recent winners</div>{winningRows.map(e=><div className="pm-winner" key={e.id}><strong>{e.title||'Winning publication'}</strong><span>{Number(e.views||0).toLocaleString('en-GB')} views · £{Number(e.revenue||0).toLocaleString('en-GB')}</span></div>)}</div>:null}</section><section className="pm-card"><div className="pm-title">Capture the lesson</div><div className="pm-sub">One result, one note, one decision.</div>{selected?<><div className="pm-decision"><strong>{selected.title||'Publication'}</strong><div className="pm-meta">{selected.platform} · {selected.status}</div></div><label className="pm-k" style={{display:'block',marginTop:16}}>Views<input className="pm-field" inputMode="numeric" value={views} onChange={e=>setViews(e.target.value)} placeholder="12,400"/></label><label className="pm-k" style={{display:'block',marginTop:12}}>Engagement<input className="pm-field" inputMode="numeric" value={engagement} onChange={e=>setEngagement(e.target.value)} placeholder="Likes + comments + shares"/></label><label className="pm-k" style={{display:'block',marginTop:12}}>Revenue attributed<input className="pm-field" inputMode="decimal" value={revenue} onChange={e=>setRevenue(e.target.value)} placeholder="0"/></label><label className="pm-k" style={{display:'block',marginTop:12}}>Operator note<textarea className="pm-field" rows={4} value={note} onChange={e=>setNote(e.target.value)} placeholder="What carried the result? What should we repeat or change?"/></label><label className="pm-check"><input type="checkbox" checked={winner} onChange={e=>setWinner(e.target.checked)}/><span><strong style={{color:'var(--text)'}}>Mark this as a winner.</strong><br/>Use the format as a future Remake reference.</span></label><button className="pm-btn" disabled={busy} onClick={save}>{busy?'Saving…':'Save lesson →'}</button></>:<div className="pm-empty" style={{marginTop:14}}>Select a publication on the left to record its result.</div>}{message?<div className="pm-msg">{message}</div>:null}<div className="pm-msg" style={{marginTop:16}}><a href="/content/remake" style={{color:'inherit',fontWeight:850}}>Turn a winner into the next package →</a></div></section></div></main>;
 }
