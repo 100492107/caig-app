@@ -3,8 +3,8 @@ import React from 'react';
 const NEW_LIFE_URL = 'https://new-life-game-alpha.vercel.app/start-v2.html';
 const NAV = [
   { id: 'command', label: 'Home', href: '/' },
-  { id: 'content', label: 'Content', href: '/content/remake' },
-  { id: 'library', label: 'Library', href: '/generations' },
+  { id: 'content', label: 'Track B', href: '/content/remake' },
+  { id: 'library', label: 'Intelligence', href: '/generations' },
   { id: 'newlife', label: 'New Life', href: NEW_LIFE_URL, external: true },
   { id: 'system', label: 'System', href: '/system' },
 ];
@@ -26,14 +26,14 @@ export default function EnterpriseShell({ active = 'command', children, eyebrow 
         .es-nav a:hover{background:var(--surface);color:var(--text)}
         .es-nav a.active{background:var(--surface-2);color:var(--text)}
         .es-nav a.active::after{content:"";position:absolute;left:11px;right:11px;bottom:3px;height:1px;background:var(--track-b);opacity:.85}
-        .es-context{max-width:280px;overflow:hidden;text-overflow:ellipsis;font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-subtle);white-space:nowrap}
+        .es-context{max-width:300px;overflow:hidden;text-overflow:ellipsis;font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-subtle);white-space:nowrap}
         .es-body{width:min(1480px,100%);margin:0 auto;padding:18px clamp(14px,3vw,42px) 64px}
         @media(max-width:720px){.es-top{gap:9px}.es-brand-copy,.es-context{display:none}.es-nav{justify-content:flex-start}}
       `}</style>
       <header className="es-top">
         <a className="es-brand" href="/" aria-label="Cornerstone home">
           <span className="es-mark">C</span>
-          <span className="es-brand-copy"><strong>CORNERSTONE</strong><small>Content Engine</small></span>
+          <span className="es-brand-copy"><strong>CORNERSTONE</strong><small>Track B · Intelligence + Production</small></span>
         </a>
         <nav className="es-nav" aria-label="Cornerstone">
           {NAV.map((item) => (
