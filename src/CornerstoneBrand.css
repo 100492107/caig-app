@@ -1,0 +1,47 @@
+:root{
+  --bg:#0a0b0d;
+  --surface:#111318;
+  --surface-2:#17191f;
+  --surface-3:#1d2027;
+  --border:rgba(255,255,255,.075);
+  --border-strong:rgba(255,255,255,.13);
+  --text:#f4f1ea;
+  --text-h:#fbf9f4;
+  --text-muted:#a3a19a;
+  --text-subtle:#6d7077;
+  --track-b:#d6c29a;
+  --accent:#d8c39a;
+  --accent-soft:rgba(216,195,154,.09);
+  --success:#87a98d;
+  --danger:#c77a7a;
+  --sans:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Inter,system-ui,sans-serif;
+  --display:Iowan Old Style,"Baskerville","Times New Roman",Georgia,serif;
+  --radius:14px;
+}
+body{font-family:var(--sans);background:var(--bg);color:var(--text)}
+button,input,select,textarea{font-family:var(--sans)}
+.cornerstone-shell{background:radial-gradient(900px 420px at 88% -12%,rgba(214,194,154,.08),transparent 60%),var(--bg)!important}
+.cs-rail{background:rgba(10,11,13,.92)!important;border-right-color:rgba(255,255,255,.06)!important}
+.cs-brand{padding-top:6px!important}
+.cs-mark{width:38px!important;height:38px!important;border-radius:12px!important;background:#efe9dc!important;box-shadow:0 9px 24px rgba(0,0,0,.22)!important}
+.cs-brand-copy strong{font-family:var(--display);font-size:15px!important;letter-spacing:.08em!important;font-weight:700!important}
+.cs-brand-copy small{letter-spacing:.18em!important}
+.cs-section{font-size:7px!important;letter-spacing:.2em!important;margin-top:20px!important}
+.cs-link{min-height:42px!important;border-radius:9px!important;font-size:11px!important}
+.cs-link.is-active{background:rgba(216,195,154,.1)!important;border-color:rgba(216,195,154,.2)!important}
+.cs-main{background:transparent!important}
+.cs-top{background:rgba(10,11,13,.78)!important;border-bottom-color:rgba(255,255,255,.05)!important}
+.cs-context{font-size:8px!important;letter-spacing:.2em!important}
+.cs-breadcrumb{font-size:10px!important;color:#8c8d90!important}
+.cs-body{padding-top:34px!important}
+h1,h2,h3,.hero-title,.studio-title h1,.studio-shell h1,.cp-h,.pu-h,.ch-h,.tb-h{font-family:var(--display)!important;font-weight:600!important;letter-spacing:-.045em!important}
+.studio-nav,.cp-card,.pu-card,.ch-card,.tb-card,.cp-command,.pu-decision,.ch-sync,.ch-money{box-shadow:0 20px 60px rgba(0,0,0,.12)}
+.cp-card,.pu-card,.ch-card,.tb-card{background:linear-gradient(180deg,rgba(255,255,255,.024),rgba(255,255,255,.012))!important;border-color:rgba(255,255,255,.065)!important}
+.cp-btn,.pu-btn,.ch-primary,.tb-btn.primary,.primary{background:#efe8da!important;color:#171614!important;border-color:#efe8da!important;box-shadow:0 10px 24px rgba(0,0,0,.18)!important}
+.cp-item.active,.cp-mode.active,.pu-item.active,.ch-item.active,.tb-choice.active{border-color:rgba(216,195,154,.38)!important;background:rgba(216,195,154,.075)!important}
+.cp-item:hover,.cp-mode:hover,.pu-item:hover,.ch-item:hover,.tb-choice:hover{border-color:rgba(255,255,255,.15)!important;transform:translateY(-1px)}
+.cp-item,.cp-mode,.pu-item,.ch-item,.tb-choice{transition:transform .16s ease,border-color .16s ease,background .16s ease}
+.cp-meta,.pu-meta,.ch-card-sub,.tb-p,.cp-sub,.pu-sub{color:#8f9095!important}
+.cp-k,.pu-k,.ch-k,.tb-k,.studio-k,.studio-command-k{color:#a99773!important;letter-spacing:.19em!important}
+.cp-field,.pu-field,.ch-field input,.ch-field textarea,.ch-field select,.tb-field input,.tb-field select,.tb-field textarea{background:#0d0f13!important;border-color:rgba(255,255,255,.085)!important}
+@media(max-width:900px){.cs-body{padding-top:24px!important}}
