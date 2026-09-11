@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import EnterpriseShell from './EnterpriseShell.jsx';
 
-const clean = (value) => String(value ?? '').replace(/<think>[\\s\\S]*?<\\/think>/gi, '').trim();
+const clean = (value) => String(value ?? '').trim();
 
 export default function GenerationsWorkspace() {
   const [jobs, setJobs] = useState([]);
