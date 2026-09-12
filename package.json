@@ -25,6 +25,7 @@
     "qwen:source:worker": "node --env-file=.env.qwen.local scripts/content-source-ingestion-worker.mjs",
     "qwen:youtube:worker": "node --env-file=.env.qwen.local scripts/youtube-source-worker.mjs",
     "qwen:creator:worker": "node --env-file=.env.qwen.local scripts/creator-source-worker.mjs",
+    "source:setup": "bash scripts/setup-local-source-tools.sh",
     "generations:sanitize": "node --env-file=.env.qwen.local scripts/sanitize-generation-history.mjs"
   },
   "dependencies": {
@@ -37,7 +38,7 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "eslint": "^9.39.4",
-    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-hooks": "^7.1.0",
     "eslint-plugin-react-refresh": "^0.5.2",
     "vite": "^8.0.4"
   }
