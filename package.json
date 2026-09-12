@@ -29,6 +29,7 @@
     "generations:sanitize": "node --env-file=.env.qwen.local scripts/sanitize-generation-history.mjs"
   },
   "dependencies": {
+    "@vitejs/plugin-react": "^6.0.1",
     "@supabase/supabase-js": "^2.104.1",
     "react": "^19.2.4",
     "react-dom": "^19.2.4"
