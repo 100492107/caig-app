@@ -1,19 +1,91 @@
-import React,{useMemo}from'react';
-import EnterpriseShell from'./EnterpriseShell.jsx';
-import CreateWorkspace from'./CreateWorkspace.jsx';
-import ProfileChannelsWorkspace from'./ProfileChannelsWorkspace.jsx';
-import CanonicalProductionWorkspace from'./CanonicalProductionWorkspace.jsx';
-import CanonicalPublishWorkspace from'./CanonicalPublishWorkspace.jsx';
-import CanonicalMeasureWorkspace from'./CanonicalMeasureWorkspace.jsx';
-import{CreatorsStaged}from'./TrackBStagedSurfaces.jsx';
+import React, { useMemo } from 'react'
+import EnterpriseShell from './EnterpriseShell.jsx'
+import CreateWorkspace from './CreateWorkspace.jsx'
+import ProfileChannelsWorkspace from './ProfileChannelsWorkspace.jsx'
+import CanonicalProductionWorkspace from './CanonicalProductionWorkspace.jsx'
+import CanonicalPublishWorkspace from './CanonicalPublishWorkspace.jsx'
+import CanonicalMeasureWorkspace from './CanonicalMeasureWorkspace.jsx'
+import { CreatorsStaged } from './TrackBStagedSurfaces.jsx'
 
-const S=[['remake','Create','Find an idea worth owning.'],['creators','Voices','Choose who makes it believable.'],['profiles','Channels','Choose where it should live.'],['production','Make','Turn the idea into finished work.'],['publish','Publish','Choose the moment it enters the world.'],['measurement','Learn','See what worked and use it.']];
-const N={remake:['creators','Choose a voice'],creators:['profiles','Choose a channel'],profiles:['production','Make it'],production:['publish','Publish it'],publish:['measurement','Learn from it'],measurement:['remake','Use the learning']};
-const W=({stage})=>{switch(stage){case'remake':return <CreateWorkspace/>;case'creators':return <CreatorsStaged stage={0} onAdvance={()=>location.href='/content/profiles'}/>;case'profiles':return <ProfileChannelsWorkspace/>;case'production':return <CanonicalProductionWorkspace/>;case'publish':return <CanonicalPublishWorkspace/>;case'measurement':return <CanonicalMeasureWorkspace/>;default:return null}};
-export default function ContentWorkspaceShell2(){const stage=useMemo(()=>{const p=location.pathname.match(/^\/content(?:\/([^/]+))?/ )?.[1]||'remake';return S.some(x=>x[0]===p)?p:'remake'},[]);const item=S.find(x=>x[0]===stage)||S[0],next=N[stage];return <EnterpriseShell active={stage==='remake'?'content':stage} eyebrow={item[1]}><main className="cs-work"><style>{`
-.cs-work{min-height:calc(100svh - 1px)}
-.cs-context{height:46px;display:flex;align-items:center;justify-content:space-between;padding:0 6px;border-bottom:1px solid var(--line);color:var(--quiet);font-size:9px}.cs-context b{color:var(--ink);font-weight:800}.cs-context a{color:var(--ink);text-decoration:none;font-weight:800}.cs-context a i{font-style:normal;color:var(--accent);font-size:13px;margin-left:5px}
-.cs-hero{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:35px;padding:34px 0 28px;border-bottom:1px solid var(--line)}.cs-over{font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);font-weight:850}.cs-hero h1{margin:8px 0 0;max-width:11ch;font-size:clamp(48px,6vw,82px);line-height:.87}.cs-hero p{margin:13px 0 0;max-width:620px;color:var(--muted);font-size:14px;line-height:1.55}.cs-progress{display:grid;grid-template-columns:repeat(6,1fr);gap:3px;align-items:end;min-width:420px;padding-bottom:3px}.cs-step{display:grid;gap:7px;color:var(--quiet);font-size:8px;font-weight:750}.cs-step span{display:block;height:3px;background:var(--line);border-radius:99px}.cs-step.active{color:var(--ink)}.cs-step.active span{background:var(--accent)}
-@media(max-width:900px){.cs-hero{grid-template-columns:1fr}.cs-progress{min-width:0;grid-template-columns:repeat(6,minmax(70px,1fr));overflow:auto}.cs-step{min-width:70px}.cs-context{padding:0}}
-@media(max-width:560px){.cs-context{height:42px}.cs-hero{padding:28px 0 24px}.cs-hero h1{font-size:54px}.cs-hero p{font-size:13px}}
-`}</style><div className="cs-context"><span>Studio / <b>{item[1]}</b></span><a href={`/content/${next[0]}`}>Next: {next[1]}<i>→</i></a></div><header className="cs-hero"><div><div className="cs-over">Cornerstone studio</div><h1>{item[1]}</h1><p>{item[2]}</p></div><div className="cs-progress" aria-label="Workflow progress">{S.map(([id,label],i)=><div key={id} className={`cs-step${stage===id?' active':''}`}><span/>{label}</div>)}</div></header><W stage={stage}/></main></EnterpriseShell>}
+const STAGES = [
+  ['remake', 'Create', 'Start from a winning reference or a blank idea.'],
+  ['creators', 'Voices', 'Choose who this piece sounds like.'],
+  ['profiles', 'Channels', 'Where it will live and earn.'],
+  ['production', 'Make', 'Turn the package into finished media.'],
+  ['publish', 'Publish', 'Schedule what goes into the world.'],
+  ['measurement', 'Learn', 'Capture what worked. Feed the next create.'],
+]
+
+const NEXT = {
+  remake: ['creators', 'Voices'],
+  creators: ['profiles', 'Channels'],
+  profiles: ['production', 'Make'],
+  production: ['publish', 'Publish'],
+  publish: ['measurement', 'Learn'],
+  measurement: ['remake', 'Create'],
+}
+
+function stageFor(pathname) {
+  const id = pathname.match(/^\/content(?:\/([^/]+))?/)?.[1] || 'remake'
+  return STAGES.some(([x]) => x === id) ? id : 'remake'
+}
+
+function Workspace({ stage }) {
+  switch (stage) {
+    case 'remake':
+      return <CreateWorkspace />
+    case 'creators':
+      return <CreatorsStaged stage={0} onAdvance={() => { window.location.href = '/content/profiles' }} />
+    case 'profiles':
+      return <ProfileChannelsWorkspace />
+    case 'production':
+      return <CanonicalProductionWorkspace />
+    case 'publish':
+      return <CanonicalPublishWorkspace />
+    case 'measurement':
+      return <CanonicalMeasureWorkspace />
+    default:
+      return null
+  }
+}
+
+export default function ContentWorkspaceShell2() {
+  const stage = useMemo(() => stageFor(window.location.pathname), [])
+  const item = STAGES.find(([id]) => id === stage) || STAGES[0]
+  const next = NEXT[stage] || NEXT.remake
+  const index = STAGES.findIndex(([id]) => id === stage) + 1
+
+  return (
+    <EnterpriseShell active="content" eyebrow={`Create · ${item[1]}`}>
+      <main className="cs-work">
+        <div className="cs-context">
+          <span>Studio / <b>{item[1]}</b> · {index} of 6</span>
+          <a href={`/content/${next[0]}`}>Next · {next[1]} →</a>
+        </div>
+
+        <header className="cs-hero">
+          <div>
+            <div className="cs-over">Cornerstone studio</div>
+            <h1>{item[1]}</h1>
+            <p>{item[2]}</p>
+          </div>
+          <nav className="cs-progress" aria-label="Create workflow">
+            {STAGES.map(([id, label]) => (
+              <a
+                key={id}
+                href={`/content/${id}`}
+                className={`cs-step${stage === id ? ' active' : ''}`}
+                aria-current={stage === id ? 'step' : undefined}
+              >
+                <span />
+                {label}
+              </a>
+            ))}
+          </nav>
+        </header>
+
+        <Workspace stage={stage} />
+      </main>
+    </EnterpriseShell>
+  )
+}
