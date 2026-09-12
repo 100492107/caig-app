@@ -14,7 +14,7 @@ const FAST_MAX_TOKENS = Number(process.env.QWEN_FAST_MAX_TOKENS || 1200);
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const RESEARCH_DAYS = 7;
 const CUTOFF = () => Date.now() - RESEARCH_DAYS * 24 * 60 * 60 * 1000;
-const SPECIALIST_JOB_TYPES = new Set(['content_media_ingestion', 'scene_verify', 'caption']);
+const SPECIALIST_JOB_TYPES = new Set(['youtube_source_ingestion', 'content_media_ingestion', 'scene_verify', 'caption']);
 
 if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) { console.error('Missing SUPABASE_URL/VITE_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY.'); process.exit(1); }
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
