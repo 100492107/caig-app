@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import './CornerstoneSignature.css'
 import './CornerstoneFinal.css'
+import './CornerstonePremium.css'
 import CommandHome from './CommandHome.jsx'
 import AuthGate from './AuthGate.jsx'
 
