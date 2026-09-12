@@ -1,102 +1,224 @@
-/* Force every workspace onto the premium token system */
+/* ============================================================
+   UNIVERSAL CONTROLS — every button, input, card, row matches
+   Loaded last. Wins over embedded workspace <style> blocks.
+   ============================================================ */
+
 :root {
   --border: var(--line) !important;
+  --border-strong: var(--line-2) !important;
   --text-muted: var(--text-2) !important;
   --text-subtle: var(--text-3) !important;
   --surface: var(--panel) !important;
   --surface-2: var(--panel-2) !important;
+  --surface-soft: var(--panel-2) !important;
+  --shadow: none !important;
   --track-b: var(--accent) !important;
   --success: var(--ok) !important;
   --danger: var(--bad) !important;
+  --word: var(--accent) !important;
 }
 
-.rm-btn.primary, .pp-btn, .pu-btn, .pm-btn, .cp-btn, .sys-command a.primary {
-  background: var(--accent) !important;
-  border-color: transparent !important;
-  color: #1a0f0c !important;
-  box-shadow: none !important;
-  border-radius: 6px !important;
-  font-weight: 600 !important;
+/* ---------- BUTTONS (all variants) ---------- */
+button,
+.cs-btn,
+.cs-btn-ghost,
+.rm-btn,
+.rm-btn.primary,
+.pp-btn,
+.pu-btn,
+.pm-btn,
+.cp-btn,
+.cp-link,
+.pub-btn,
+.ch-btn,
+.sys-command a,
+.sys-command a.primary,
+a.primary,
+a.ghost,
+.primary,
+.ghost,
+.learn-actions a,
+.home .primary,
+.home .ghost {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
   min-height: 36px !important;
+  height: auto !important;
+  padding: 0 14px !important;
+  border-radius: 6px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  font-family: inherit !important;
+  letter-spacing: normal !important;
+  text-transform: none !important;
+  text-decoration: none !important;
+  cursor: pointer !important;
+  box-shadow: none !important;
+  transition: background 0.12s ease, border-color 0.12s ease, opacity 0.12s ease !important;
+  background-image: none !important;
 }
 
+/* Primary = copper fill */
+.cs-btn,
+.rm-btn.primary,
+.pp-btn,
+.pu-btn,
+.pm-btn,
+.cp-btn,
+.pub-btn,
+.ch-btn,
+.sys-command a.primary,
+a.primary,
+.primary,
+.home .primary {
+  background: var(--accent) !important;
+  border: 1px solid transparent !important;
+  color: #1a0f0c !important;
+}
+
+.cs-btn:hover,
+.rm-btn.primary:hover,
+.pp-btn:hover,
+.pu-btn:hover,
+.pm-btn:hover,
+.cp-btn:hover,
+.pub-btn:hover,
+a.primary:hover,
+.primary:hover {
+  background: var(--accent-2) !important;
+}
+
+/* Secondary / ghost */
+.cs-btn-ghost,
+.rm-btn:not(.primary),
+a.ghost,
+.ghost,
+.home .ghost,
+.cp-link,
+.sys-command a:not(.primary) {
+  background: transparent !important;
+  border: 1px solid var(--line-2) !important;
+  color: var(--text) !important;
+}
+
+.cs-btn-ghost:hover,
+.rm-btn:not(.primary):hover,
+a.ghost:hover,
+.ghost:hover,
+.cp-link:hover {
+  background: rgba(255,255,255,0.04) !important;
+  border-color: var(--line-3) !important;
+}
+
+button:disabled,
+.rm-btn:disabled,
+.pp-btn:disabled,
+.pu-btn:disabled,
+.pm-btn:disabled {
+  opacity: 0.45 !important;
+  cursor: default !important;
+}
+
+/* ---------- INPUTS ---------- */
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+select,
+textarea,
+.rm-input, .rm-select, .rm-textarea,
+.pp-field, .pu-field, .pm-field, .pub-field, .ch-field {
+  width: 100% !important;
+  min-height: 36px !important;
+  padding: 8px 12px !important;
+  border: 1px solid var(--line-2) !important;
+  border-radius: 6px !important;
+  background: var(--panel-2) !important;
+  color: var(--text) !important;
+  font-size: 13px !important;
+  font-family: inherit !important;
+  box-shadow: none !important;
+}
+
+textarea, .rm-textarea { min-height: 88px !important; resize: vertical !important; line-height: 1.45 !important; }
+
+input:focus, select:focus, textarea:focus,
+.rm-input:focus, .rm-select:focus, .rm-textarea:focus,
+.pp-field:focus, .pu-field:focus, .pm-field:focus, .pub-field:focus {
+  outline: none !important;
+  border-color: var(--accent-line) !important;
+  box-shadow: 0 0 0 3px var(--accent-soft) !important;
+}
+
+/* ---------- CARDS / BOARDS ---------- */
 .rm-board, .rm-hero, .rm-card, .rm-working,
 .pp-card, .pu-card, .pm-card, .cp-card, .ch-card,
-.sys-card, .sys-panel, .panel {
+.pub-board, .pub-queue, .pub-launch, .pub-selected,
+.sys-card, .sys-panel, .panel, .home .panel {
   border: 1px solid var(--line) !important;
   border-radius: 12px !important;
   background: var(--panel) !important;
   box-shadow: none !important;
+  color: var(--text) !important;
 }
 
+.pub-queue { background: var(--panel) !important; color: var(--text) !important; }
+.pub-selected { background: var(--panel-2) !important; color: var(--text) !important; }
+
+/* ---------- LIST ITEMS ---------- */
 .pp-item, .pu-item, .pm-item, .cp-item, .cp-mode, .cp-job,
-.ch-item, .rm-list div, .sys-row {
+.ch-item, .pub-item, .rm-list div, .sys-row, .home .row {
   border: 1px solid var(--line) !important;
   border-radius: 8px !important;
   background: var(--panel-2) !important;
   color: var(--text) !important;
 }
-.pp-item.active, .pu-item.active, .pm-item.active, .cp-item.active, .cp-mode.active {
+
+.pp-item.active, .pu-item.active, .pm-item.active, .cp-item.active,
+.cp-mode.active, .pub-item.active {
   border-color: var(--accent-line) !important;
   background: var(--accent-soft) !important;
   box-shadow: inset 2px 0 0 var(--accent) !important;
 }
 
-.rm-h, .pp-h, .pu-h, .pm-h, .cp-title, .sys-title {
-  letter-spacing: -0.03em !important;
-  font-weight: 600 !important;
+/* ---------- TYPE ---------- */
+.rm-h, .pp-h, .pu-h, .pm-h, .cp-title, .pub-title, .sys-title {
   color: var(--text) !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.03em !important;
 }
-.rm-k, .pp-k, .pu-k, .pm-k, .sys-kicker {
+.rm-k, .pp-k, .pu-k, .pm-k, .pub-eyebrow, .pub-k, .sys-kicker {
   color: var(--text-3) !important;
-  letter-spacing: 0.06em !important;
   font-size: 11px !important;
   font-weight: 600 !important;
+  letter-spacing: 0.06em !important;
 }
-.rm-p, .pp-sub, .pu-sub, .pm-sub, .sys-sub {
+.rm-p, .pp-sub, .pu-sub, .pm-sub, .pub-copy, .pub-help, .sys-sub {
   color: var(--text-2) !important;
   font-size: 13px !important;
   line-height: 1.5 !important;
 }
-.rm-status, .pp-message, .pu-message, .pm-msg, .cp-message {
-  color: var(--text-3) !important;
-  font-size: 12px !important;
-}
-.rm-status.err, .pp-error, .cp-error { color: var(--bad) !important; }
 
-.rm-sticky, .pp-actions, .pu-actions, .pm-decision {
-  border: 1px solid var(--line) !important;
-  border-radius: 12px !important;
-  background: var(--panel) !important;
-  backdrop-filter: none !important;
+/* Badges */
+.pm-badge, .home .badge, .badge {
+  background: var(--accent-soft) !important;
+  border: 1px solid var(--accent-line) !important;
+  color: var(--accent-2) !important;
+  border-radius: 999px !important;
 }
 
+/* System */
 .system-workspace { display: grid; gap: 20px; }
 .sys-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
-.sys-card {
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: var(--panel);
-  padding: 16px;
-}
-.sys-card strong { display: block; font-size: 20px; font-weight: 600; letter-spacing: -0.03em; }
+.sys-card strong { display: block; font-size: 20px; font-weight: 600; }
 .sys-card span { display: block; margin-top: 6px; font-size: 11px; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.06em; }
-.sys-card small { display: block; margin-top: 8px; font-size: 12px; color: var(--text-2); line-height: 1.4; }
+.sys-card small { display: block; margin-top: 8px; font-size: 12px; color: var(--text-2); }
 .sys-ok { color: var(--ok) !important; }
 .sys-bad { color: var(--bad) !important; }
-.sys-panel {
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: var(--panel);
-  padding: 16px;
-}
 .sys-list { display: grid; gap: 8px; }
 .sys-row {
   display: flex; justify-content: space-between; gap: 12px;
-  padding: 10px 0; border-bottom: 1px solid var(--line);
+  padding: 10px 0; border-bottom: 1px solid var(--line) !important;
+  border-radius: 0 !important; background: transparent !important;
 }
-.sys-row span { color: var(--text-3); font-size: 12px; }
-.sys-row strong { font-size: 12px; text-align: right; }
 .sys-command { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
 .sys-command a {
   display: inline-flex; align-items: center; justify-content: center;
@@ -106,15 +228,5 @@
 }
 .sys-command a.primary { background: var(--accent); border-color: transparent; color: #1a0f0c; }
 
-.cs-stage-body > main,
-.cs-stage-body > .home,
-.cs-stage-body > .cs-page,
-.cs-stage-body > .system-workspace,
-.cs-stage-body > .library { max-width: none; }
-
-@media (max-width: 900px) {
-  .sys-grid { grid-template-columns: 1fr 1fr; }
-}
-@media (max-width: 560px) {
-  .sys-grid { grid-template-columns: 1fr; }
-}
+@media (max-width: 900px) { .sys-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 560px) { .sys-grid { grid-template-columns: 1fr; } }
