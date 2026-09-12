@@ -1,73 +1,52 @@
 import React from 'react'
 
-const NEW_LIFE_URL = 'https://new-life-game-alpha.vercel.app/start-v2.html'
-
-// Premium products do not put the entire pipeline in the primary nav.
+const NEW_LIFE = 'https://new-life-game-alpha.vercel.app/start-v2.html'
 const NAV = [
-  { id: 'command', label: 'Home', href: '/' },
-  { id: 'content', label: 'Create', href: '/content/remake' },
-  { id: 'library', label: 'Library', href: '/generations' },
-  { id: 'system', label: 'System', href: '/system' },
+  { id: 'command', label: 'Home', href: '/', key: 'H' },
+  { id: 'content', label: 'Create', href: '/content/remake', key: 'C' },
+  { id: 'library', label: 'Library', href: '/generations', key: 'L' },
+  { id: 'system', label: 'System', href: '/system', key: 'S' },
 ]
 
 export default function EnterpriseShell({ active = 'command', children, eyebrow = '' }) {
-  const resolved =
-    active === 'remake' ||
-    active === 'creators' ||
-    active === 'profiles' ||
-    active === 'production' ||
-    active === 'publish' ||
-    active === 'measurement' ||
-    active === 'content'
-      ? 'content'
-      : active
+  const resolved = ['remake','creators','profiles','production','publish','measurement','content'].includes(active)
+    ? 'content'
+    : active
 
   return (
-    <div className="cornerstone-app">
-      <aside className="cp-sidebar" aria-label="Primary">
-        <a className="cp-brand" href="/" aria-label="Cornerstone home">
-          <span className="cp-mark" aria-hidden="true"><span>C</span></span>
-          <span className="cp-brand-copy">
-            <strong>CORNERSTONE</strong>
-            <small>Content Engine</small>
+    <div className="cs-app">
+      <aside className="cs-rail" aria-label="Primary">
+        <a className="cs-brand" href="/">
+          <span className="cs-brand-mark">C</span>
+          <span className="cs-brand-text">
+            <strong>Cornerstone</strong>
+            <span>Content engine</span>
           </span>
         </a>
-
-        <nav className="cp-nav" aria-label="Workspace">
+        <nav className="cs-rail-nav" aria-label="Workspace">
           {NAV.map((item) => (
             <a
               key={item.id}
               href={item.href}
-              className={`cp-nav-item${resolved === item.id ? ' is-active' : ''}`}
+              className={`cs-rail-link${resolved === item.id ? ' is-active' : ''}`}
               aria-current={resolved === item.id ? 'page' : undefined}
             >
-              <span>{item.label}</span>
+              {item.label}
+              <kbd>{item.key}</kbd>
             </a>
           ))}
         </nav>
-
-        <div className="cp-sidebar-foot">
-          <a className="cp-foot-link" href="/system">
-            <span className="cp-status-dot" aria-hidden="true" />
-            System
-          </a>
-          <a className="cp-foot-link" href={NEW_LIFE_URL} target="_blank" rel="noreferrer">
-            New Life <span aria-hidden="true">↗</span>
-          </a>
+        <div className="cs-rail-foot">
+          <a href="/system"><span className="cs-dot" /> Status</a>
+          <a href={NEW_LIFE} target="_blank" rel="noreferrer">New Life ↗</a>
         </div>
       </aside>
-
-      <div className="cp-main-shell">
-        <header className="cp-topbar">
-          <div className="cp-top-left">
-            <span className="cp-top-eyebrow">{eyebrow || 'Cornerstone'}</span>
-          </div>
-          <div className="cp-top-right">
-            <span className="cp-live-dot" aria-hidden="true" />
-            Private
-          </div>
-        </header>
-        <main className="cp-main-content">{children}</main>
+      <div className="cs-stage">
+        <div className="cs-stage-bar">
+          <span className="label">{eyebrow || 'Cornerstone'}</span>
+          <span className="meta">Private workspace</span>
+        </div>
+        <div className="cs-stage-body">{children}</div>
       </div>
     </div>
   )
