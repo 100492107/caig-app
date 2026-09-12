@@ -3,18 +3,20 @@ import path from 'node:path'
 import os from 'node:os'
 import { spawn, spawnSync } from 'node:child_process'
 import { createClient } from '@supabase/supabase-js'
+import process from 'node:process'
 
-const SUPABASE_URL = String(process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || '').replace(/\/+$/, '')
-const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
-const BUCKET = process.env.TRACK_B_SOURCE_BUCKET || 'track-b-source-media'
-const POLL_MS = Number(process.env.YOUTUBE_SOURCE_POLL_MS || 4000)
-const TIMEOUT_MS = Number(process.env.YOUTUBE_SOURCE_TIMEOUT_MS || 20 * 60 * 1000)
-const MAX_BYTES = Number(process.env.YOUTUBE_SOURCE_MAX_BYTES || 5 * 1024 * 1024 * 1024)
-const DENO = process.env.YOUTUBE_DENO || ''
-const COOKIE_BROWSER = String(process.env.YOUTUBE_COOKIES_BROWSER || '').trim()
+const env = process.env || {}
+const SUPABASE_URL = String(env.VITE_SUPABASE_URL || env.SUPABASE_URL || '').replace(/\/+$/, '')
+const SERVICE_KEY = env.SUPABASE_SERVICE_ROLE_KEY
+const BUCKET = env.TRACK_B_SOURCE_BUCKET || 'track-b-source-media'
+const POLL_MS = Number(env.YOUTUBE_SOURCE_POLL_MS || 4000)
+const TIMEOUT_MS = Number(env.YOUTUBE_SOURCE_TIMEOUT_MS || 20 * 60 * 1000)
+const MAX_BYTES = Number(env.YOUTUBE_SOURCE_MAX_BYTES || 5 * 1024 * 1024 * 1024)
+const DENO = env.YOUTUBE_DENO || ''
+const COOKIE_BROWSER = String(env.YOUTUBE_COOKIES_BROWSER || '').trim()
 
 if (!SUPABASE_URL || !SERVICE_KEY) {
-  console.error('[YOUTUBE] Missing Supabase configuration.')
+  console.error('[YOUTUBE] Missing Supabase configuration. Ensure .env.qwen.local has VITE_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.')
   process.exit(1)
 }
 
@@ -28,7 +30,7 @@ function commandPath(command) {
 
 function resolvePython() {
   const candidates = [
-    process.env.YOUTUBE_PYTHON,
+    env.YOUTUBE_PYTHON,
     path.join(process.cwd(), '.venv-source', 'bin', 'python'),
     path.join(process.cwd(), '.venv-caption', 'bin', 'python'),
     commandPath('python3'),
@@ -178,7 +180,6 @@ async function process(job) {
     if (childError) throw childError
     if (!child?.id) throw new Error('Inspection job insert returned no id.')
     const result = { status: 'youtube_downloaded', source_url: sourceUrl, source_object_path: objectPath, media_job_id: child.id, media_job_status: child.status, source_id: sourceId(sourceUrl), bytes: stat.size, extraction_strategy: downloadResult.strategy, downloader_python: downloadResult.python, pipeline: ['youtube_download', 'private_storage', 'media_ingestion', 'transcript', 'vision', 'source_analysis'] }
-    // Store as object (jsonb). Do not JSON.stringify — that breaks media_job_id reads in the UI.
     const { error } = await supabase.from('local_ai_jobs').update({ status: 'completed', result, completed_at: new Date().toISOString(), production_status: 'video_ready', error_message: null }).eq('id', job.id)
     if (error) throw error
     console.log(`[YOUTUBE] completed ${job.id} -> ${child.id} strategy=${downloadResult.strategy}`)
