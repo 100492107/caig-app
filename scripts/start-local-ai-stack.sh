@@ -77,9 +77,14 @@ else
 fi
 
 if [[ -n "${SUPABASE_SERVICE_ROLE_KEY:-}" ]]; then
+  if [[ ! -x "$ROOT/.venv-source/bin/python" ]]; then
+    echo "[LOCAL AI] source environment missing; creating it"
+    bash "$ROOT/scripts/setup-local-source-tools.sh"
+  fi
+  SOURCE_PYTHON="${SOURCE_PYTHON:-$ROOT/.venv-source/bin/python}"
   restart_bg "qwen-worker" "scripts/qwen-worker.mjs" "qwen-worker.log" env QWEN_URL="http://${QWEN_HOST}:${QWEN_PORT}" QWEN_MODEL="$QWEN_MODEL" QWEN_FAST_MAX_TOKENS="$QWEN_FAST_MAX_TOKENS" "$NODE_BIN" --env-file=.env.qwen.local --import ./scripts/qwen-format-archaeology.mjs --import ./scripts/qwen-output-contract.mjs "$ROOT/scripts/qwen-worker.mjs"
-  start_bg "source-worker" "scripts/youtube-source-worker.mjs" "source-worker.log" env PATH="$PATH" YOUTUBE_PYTHON="${YOUTUBE_PYTHON:-$ROOT/.venv-caption/bin/python}" "$NODE_BIN" --env-file=.env.qwen.local "$ROOT/scripts/youtube-source-worker.mjs"
-  start_bg "creator-source" "scripts/creator-source-worker.mjs" "creator-source.log" env PATH="$PATH" CREATOR_PYTHON="${CREATOR_PYTHON:-$ROOT/.venv-caption/bin/python}" "$NODE_BIN" --env-file=.env.qwen.local "$ROOT/scripts/creator-source-worker.mjs"
+  start_bg "source-worker" "scripts/youtube-source-worker.mjs" "source-worker.log" env PATH="$PATH" YOUTUBE_PYTHON="$SOURCE_PYTHON" "$NODE_BIN" --env-file=.env.qwen.local "$ROOT/scripts/youtube-source-worker.mjs"
+  start_bg "creator-source" "scripts/creator-source-worker.mjs" "creator-source.log" env PATH="$PATH" CREATOR_PYTHON="$SOURCE_PYTHON" "$NODE_BIN" --env-file=.env.qwen.local "$ROOT/scripts/creator-source-worker.mjs"
   start_bg "scene-worker" "scripts/qwen-scene-worker.mjs" "scene-worker.log" env PATH="$PATH" "$NODE_BIN" --env-file=.env.qwen.local "$ROOT/scripts/qwen-scene-worker.mjs"
   if [[ -x "$ROOT/.venv-caption/bin/python" ]]; then start_bg "caption-worker" "scripts/caption-worker.mjs" "caption-worker.log" env PATH="$PATH" "$NODE_BIN" --env-file=.env.qwen.local "$ROOT/scripts/caption-worker.mjs"; fi
   start_bg "source-ingestion" "scripts/content-source-ingestion-worker.mjs" "source-ingestion.log" env PATH="$PATH" QWEN_URL="http://${QWEN_HOST}:${QWEN_PORT}" QWEN_VISION_URL="http://${QWEN_VISION_HOST}:${QWEN_VISION_PORT}" QWEN_MODEL="$QWEN_MODEL" QWEN_VISION_MODEL="$QWEN_VISION_MODEL" WHISPER_URL="http://127.0.0.1:8787" "$NODE_BIN" --env-file=.env.qwen.local "$ROOT/scripts/content-source-ingestion-worker.mjs"
