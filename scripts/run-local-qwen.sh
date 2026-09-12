@@ -26,13 +26,12 @@ if [[ "$(uname -m)" != "arm64" ]]; then
   exit 1
 fi
 
-# True only for TEXT models — Vision (VL) on this port is NOT good enough
 text_model_ready() {
   local body
   body="$(curl -fsS --max-time 2 "http://${QWEN_HOST}:${QWEN_PORT}/v1/models" 2>/dev/null || true)"
   if [[ -z "$body" ]]; then return 1; fi
-  if echo "$body" | grep -Eqi 'Qwen2\.5-VL|vision'; then return 1; fi
-  echo "$body" | grep -Eqi 'Qwen3|qwen2\.5-7|Instruct'
+  # Success if Qwen3 (or similar text) is listed — VL aliases in the same payload are fine
+  echo "$body" | grep -Eqi 'Qwen3|qwen2\.5-7B'
 }
 
 if text_model_ready; then
@@ -44,12 +43,14 @@ if text_model_ready; then
   exit 0
 fi
 
-# If Vision is occupying the text port, free it
 if curl -fsS --max-time 1 "http://${QWEN_HOST}:${QWEN_PORT}/v1/models" >/dev/null 2>&1; then
-  echo "Non-text model is bound to ${QWEN_PORT}. Freeing port for Qwen text…"
-  pkill -f "mlx_vlm.server.*${QWEN_PORT}" 2>/dev/null || true
-  pkill -f "mlx_lm.server.*${QWEN_PORT}" 2>/dev/null || true
-  sleep 1
+  body="$(curl -fsS --max-time 2 "http://${QWEN_HOST}:${QWEN_PORT}/v1/models" 2>/dev/null || true)"
+  if echo "$body" | grep -Eqi 'VL' && ! echo "$body" | grep -Eqi 'Qwen3'; then
+    echo "Non-text model is bound to ${QWEN_PORT}. Freeing port for Qwen text…"
+    pkill -f "mlx_vlm.server.*${QWEN_PORT}" 2>/dev/null || true
+    pkill -f "mlx_lm.server.*${QWEN_PORT}" 2>/dev/null || true
+    sleep 1
+  fi
 fi
 
 if ! .venv-qwen/bin/python -c "import mlx_lm" >/dev/null 2>&1; then
