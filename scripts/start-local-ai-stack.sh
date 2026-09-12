@@ -77,8 +77,15 @@ else
 fi
 
 if [[ -n "${SUPABASE_SERVICE_ROLE_KEY:-}" ]]; then
+  NEED_SOURCE_SETUP=0
   if [[ ! -x "$ROOT/.venv-source/bin/python" ]]; then
-    echo "[LOCAL AI] source environment missing; creating it"
+    NEED_SOURCE_SETUP=1
+  else
+    SOURCE_MINOR="$($ROOT/.venv-source/bin/python -c 'import sys; print(sys.version_info.minor)' 2>/dev/null || echo 0)"
+    if [[ "${SOURCE_MINOR:-0}" -lt 11 ]]; then NEED_SOURCE_SETUP=1; fi
+  fi
+  if [[ "$NEED_SOURCE_SETUP" -eq 1 ]]; then
+    echo "[LOCAL AI] source environment missing or using unsupported Python; creating/upgrading it"
     bash "$ROOT/scripts/setup-local-source-tools.sh"
   fi
   SOURCE_PYTHON="${SOURCE_PYTHON:-$ROOT/.venv-source/bin/python}"
