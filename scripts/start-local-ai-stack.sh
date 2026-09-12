@@ -35,11 +35,11 @@ export QWEN_FAST_MAX_TOKENS="${QWEN_FAST_MAX_TOKENS:-6000}"
 
 is_running() { local pattern="$1"; pgrep -f "$pattern" >/dev/null 2>&1; }
 port_ready() { local host="$1" port="$2"; curl -fsS --max-time 2 "http://${host}:${port}/v1/models" >/dev/null 2>&1; }
-# True only when TEXT model answers (Vision on 8000 was causing false online + Qwen 404)
+# Ready when a TEXT model is present. VL ids alone are not enough; Qwen3 + VL aliases is OK.
 text_qwen_ready() {
   local body
   body="$(curl -fsS --max-time 2 "http://${QWEN_HOST}:${QWEN_PORT}/v1/models" 2>/dev/null || true)"
-  [[ -n "$body" ]] && echo "$body" | grep -Eqi 'Qwen3|qwen2\.5-7|Instruct-4bit' && ! echo "$body" | grep -Eqi 'Qwen2\.5-VL|vision'
+  [[ -n "$body" ]] && echo "$body" | grep -Eqi 'Qwen3|qwen2\.5-7B|Qwen2\.5-3B-Instruct[^-]'
 }
 vision_ready() {
   local body
@@ -77,12 +77,17 @@ if text_qwen_ready; then
   echo "[LOCAL AI] Qwen text already online on ${QWEN_HOST}:${QWEN_PORT}"
 else
   if port_ready "$QWEN_HOST" "$QWEN_PORT"; then
-    echo "[LOCAL AI] wrong process on ${QWEN_PORT} (expected text Qwen3). Freeing port…"
+    echo "[LOCAL AI] port ${QWEN_PORT} is up but Qwen3 text model not listed. Freeing port…"
     pkill -f "mlx_vlm.server.*${QWEN_PORT}" 2>/dev/null || true
-    pkill -f "mlx_lm.server.*${QWEN_PORT}" 2>/dev/null || true
+    body="$(curl -fsS --max-time 2 "http://${QWEN_HOST}:${QWEN_PORT}/v1/models" 2>/dev/null || true)"
+    if echo "$body" | grep -Eqi 'VL' && ! echo "$body" | grep -Eqi 'Qwen3'; then
+      pkill -f "mlx_lm.server.*${QWEN_PORT}" 2>/dev/null || true
+    fi
     sleep 1
   fi
-  start_bg "qwen" "mlx_lm.server.*${QWEN_PORT}" "qwen.log" bash "$ROOT/scripts/run-local-qwen.sh"
+  if ! text_qwen_ready; then
+    start_bg "qwen" "mlx_lm.server.*${QWEN_PORT}" "qwen.log" bash "$ROOT/scripts/run-local-qwen.sh"
+  fi
 fi
 
 if [[ -n "${SUPABASE_SERVICE_ROLE_KEY:-}" && -n "${VITE_SUPABASE_URL:-${SUPABASE_URL:-}}" ]]; then
