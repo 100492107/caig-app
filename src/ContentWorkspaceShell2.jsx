@@ -1,6 +1,6 @@
 import React from 'react'
 import EnterpriseShell from './EnterpriseShell.jsx'
-import CreateWorkspace from './CreateWorkspace2.jsx'
+import CreateWorkspace from './CreateWorkspace3.jsx'
 import ProfileChannelsWorkspace from './ProfileChannelsWorkspace.jsx'
 import CanonicalProductionWorkspace from './CanonicalProductionWorkspace.jsx'
 import CanonicalPublishWorkspace from './CanonicalPublishWorkspace.jsx'
