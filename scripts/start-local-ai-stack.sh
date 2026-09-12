@@ -35,6 +35,17 @@ export QWEN_FAST_MAX_TOKENS="${QWEN_FAST_MAX_TOKENS:-6000}"
 
 is_running() { local pattern="$1"; pgrep -f "$pattern" >/dev/null 2>&1; }
 port_ready() { local host="$1" port="$2"; curl -fsS --max-time 2 "http://${host}:${port}/v1/models" >/dev/null 2>&1; }
+# True only when TEXT model answers (Vision on 8000 was causing false online + Qwen 404)
+text_qwen_ready() {
+  local body
+  body="$(curl -fsS --max-time 2 "http://${QWEN_HOST}:${QWEN_PORT}/v1/models" 2>/dev/null || true)"
+  [[ -n "$body" ]] && echo "$body" | grep -Eqi 'Qwen3|qwen2\.5-7|Instruct-4bit' && ! echo "$body" | grep -Eqi 'Qwen2\.5-VL|vision'
+}
+vision_ready() {
+  local body
+  body="$(curl -fsS --max-time 2 "http://${QWEN_VISION_HOST}:${QWEN_VISION_PORT}/v1/models" 2>/dev/null || true)"
+  [[ -n "$body" ]] && echo "$body" | grep -Eqi 'VL|vision'
+}
 
 start_bg() {
   local name="$1" pattern="$2" logfile="$3"; shift 3
@@ -46,9 +57,10 @@ start_bg() {
 
 restart_bg() {
   local name="$1" pattern="$2" logfile="$3"; shift 3
+  set +e
   if is_running "$pattern"; then
     echo "[LOCAL AI] restarting $name"
-    pkill -f "$pattern" 2>/dev/null || true
+    pkill -f "$pattern" >/dev/null 2>&1
     for _ in {1..20}; do
       if ! is_running "$pattern"; then break; fi
       sleep 0.25
@@ -58,9 +70,20 @@ restart_bg() {
   fi
   nohup "$@" >>"$LOG_DIR/$logfile" 2>&1 < /dev/null &
   echo $! >"$STATE_DIR/$name.pid"
+  set -e
 }
 
-if port_ready "$QWEN_HOST" "$QWEN_PORT"; then echo "[LOCAL AI] Qwen already online on ${QWEN_HOST}:${QWEN_PORT}"; else start_bg "qwen" "mlx_lm.server.*${QWEN_PORT}" "qwen.log" bash "$ROOT/scripts/run-local-qwen.sh"; fi
+if text_qwen_ready; then
+  echo "[LOCAL AI] Qwen text already online on ${QWEN_HOST}:${QWEN_PORT}"
+else
+  if port_ready "$QWEN_HOST" "$QWEN_PORT"; then
+    echo "[LOCAL AI] wrong process on ${QWEN_PORT} (expected text Qwen3). Freeing port…"
+    pkill -f "mlx_vlm.server.*${QWEN_PORT}" 2>/dev/null || true
+    pkill -f "mlx_lm.server.*${QWEN_PORT}" 2>/dev/null || true
+    sleep 1
+  fi
+  start_bg "qwen" "mlx_lm.server.*${QWEN_PORT}" "qwen.log" bash "$ROOT/scripts/run-local-qwen.sh"
+fi
 
 if [[ -n "${SUPABASE_SERVICE_ROLE_KEY:-}" && -n "${VITE_SUPABASE_URL:-${SUPABASE_URL:-}}" ]]; then
   if ! is_running "scripts/qwen-heartbeat.mjs"; then start_bg "qwen-heartbeat" "scripts/qwen-heartbeat.mjs" "qwen-heartbeat.log" env QWEN_MODEL="$QWEN_MODEL" QWEN_URL="http://${QWEN_HOST}:${QWEN_PORT}" "$NODE_BIN" "$ROOT/scripts/qwen-heartbeat.mjs"; fi
@@ -68,7 +91,11 @@ else
   echo "[LOCAL AI] heartbeat skipped: Supabase worker credentials not loaded"
 fi
 
-if port_ready "$QWEN_VISION_HOST" "$QWEN_VISION_PORT"; then echo "[LOCAL AI] Qwen Vision already online on ${QWEN_VISION_HOST}:${QWEN_VISION_PORT}"; else start_bg "qwen-vision" "mlx_vlm.server.*${QWEN_VISION_PORT}" "qwen-vision.log" bash "$ROOT/scripts/run-local-qwen-vision.sh"; fi
+if vision_ready; then
+  echo "[LOCAL AI] Qwen Vision already online on ${QWEN_VISION_HOST}:${QWEN_VISION_PORT}"
+else
+  start_bg "qwen-vision" "mlx_vlm.server.*${QWEN_VISION_PORT}" "qwen-vision.log" bash "$ROOT/scripts/run-local-qwen-vision.sh"
+fi
 
 if [[ -x "$ROOT/.venv-caption/bin/python" ]]; then
   if curl -fsS --max-time 2 "http://127.0.0.1:8787/health" >/dev/null 2>&1; then echo "[LOCAL AI] Whisper already online on 127.0.0.1:8787"; else start_bg "whisper" "mlx-whisper-server.py" "whisper.log" bash "$ROOT/scripts/run-local-whisper.sh"; fi
@@ -89,7 +116,6 @@ if [[ -n "${SUPABASE_SERVICE_ROLE_KEY:-}" ]]; then
     bash "$ROOT/scripts/setup-local-source-tools.sh"
   fi
   SOURCE_PYTHON="${SOURCE_PYTHON:-$ROOT/.venv-source/bin/python}"
-  # Always restart workers so code + env reloads
   restart_bg "qwen-worker" "scripts/qwen-worker.mjs" "qwen-worker.log" env QWEN_URL="http://${QWEN_HOST}:${QWEN_PORT}" QWEN_MODEL="$QWEN_MODEL" QWEN_FAST_MAX_TOKENS="$QWEN_FAST_MAX_TOKENS" "$NODE_BIN" --env-file=.env.qwen.local --import ./scripts/qwen-format-archaeology.mjs --import ./scripts/qwen-output-contract.mjs "$ROOT/scripts/qwen-worker.mjs"
   restart_bg "source-worker" "scripts/youtube-source-worker.mjs" "source-worker.log" env PATH="$PATH" YOUTUBE_PYTHON="$SOURCE_PYTHON" "$NODE_BIN" --env-file=.env.qwen.local "$ROOT/scripts/youtube-source-worker.mjs"
   restart_bg "creator-source" "scripts/creator-source-worker.mjs" "creator-source.log" env PATH="$PATH" CREATOR_PYTHON="$SOURCE_PYTHON" "$NODE_BIN" --env-file=.env.qwen.local "$ROOT/scripts/creator-source-worker.mjs"
