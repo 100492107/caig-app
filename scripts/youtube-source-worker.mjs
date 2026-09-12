@@ -176,8 +176,10 @@ async function process(job) {
       production_status: 'source_queued',
     }).select('id,status').single()
     if (childError) throw childError
+    if (!child?.id) throw new Error('Inspection job insert returned no id.')
     const result = { status: 'youtube_downloaded', source_url: sourceUrl, source_object_path: objectPath, media_job_id: child.id, media_job_status: child.status, source_id: sourceId(sourceUrl), bytes: stat.size, extraction_strategy: downloadResult.strategy, downloader_python: downloadResult.python, pipeline: ['youtube_download', 'private_storage', 'media_ingestion', 'transcript', 'vision', 'source_analysis'] }
-    const { error } = await supabase.from('local_ai_jobs').update({ status: 'completed', result: JSON.stringify(result), completed_at: new Date().toISOString(), production_status: 'video_ready', error_message: null }).eq('id', job.id)
+    // Store as object (jsonb). Do not JSON.stringify — that breaks media_job_id reads in the UI.
+    const { error } = await supabase.from('local_ai_jobs').update({ status: 'completed', result, completed_at: new Date().toISOString(), production_status: 'video_ready', error_message: null }).eq('id', job.id)
     if (error) throw error
     console.log(`[YOUTUBE] completed ${job.id} -> ${child.id} strategy=${downloadResult.strategy}`)
   } catch (error) {
