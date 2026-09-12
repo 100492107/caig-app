@@ -1,35 +1,234 @@
-import React,{useEffect,useMemo,useState} from 'react'
-import {supabase} from './supabase'
+import React, { useEffect, useMemo, useState } from 'react'
+import { supabase } from './supabase'
 
-const CREATOR_OPTIONS=[{id:'cara',name:'Cara',tone:'Direct, dry, disciplined'},{id:'lila',name:'Lila',tone:'Warm, observant, understated'},{id:'cara_lila',name:'Cara + Lila',tone:'Contrast, chemistry, two voices'}]
-const PLATFORMS=['TikTok','Instagram','YouTube','Fanvue','Multi-platform']
-const OBJECTIVES=['Content creation','TikTok Shop','Affiliate offers','Fanvue / subscriber content','Sponsorships','Audience growth']
-const FORMATS=['POV / relatable','Story / confession','GRWM','Day in the life','Reaction','Product / UGC','Photo carousel','Talking-to-camera','Duo interaction']
-const SOURCE_HOSTS=new Set(['youtube.com','m.youtube.com','youtu.be','youtube-nocookie.com','tiktok.com','instagram.com'])
-const sleep=ms=>new Promise(r=>setTimeout(r,ms))
-const clean=v=>String(v??'').trim()
-function parseJson(text){const value=clean(text).replace(/```json|```/gi,'').replace(/<think>[\s\S]*?<\/think>/gi,'').replace(/<analysis>[\s\S]*?<\/analysis>/gi,'').replace(/<reasoning>[\s\S]*?<\/reasoning>/gi,'').replace(/<\|im_end\|>|<\|endoftext\|>/gi,'').trim();try{return JSON.parse(value)}catch{}const start=value.search(/[\[{]/);if(start<0)throw new Error('Cornerstone could not understand the returned creator package.');const open=value[start],close=open==='{'?'}':']';let depth=0,quoted=false,escaped=false;for(let i=start;i<value.length;i++){const c=value[i];if(quoted){if(escaped)escaped=false;else if(c==='\\')escaped=true;else if(c==='"')quoted=false;continue}if(c==='"')quoted=true;else if(c===open)depth++;else if(c===close&&--depth===0)return JSON.parse(value.slice(start,i+1))}throw new Error('Cornerstone returned an incomplete creator package.')}
-async function job(id,setMessage,label){const until=Date.now()+45*60*1000;let last='';while(Date.now()<until){const r=await fetch(`/api/queue-update?action=job_status&id=${encodeURIComponent(id)}`,{credentials:'same-origin',cache:'no-store'});const b=await r.json().catch(()=>({}));if(!r.ok)throw new Error(b.error||'Could not read job status.');if(b.status!==last){last=b.status;setMessage(b.status==='processing'?`${label} is working…`:`${label} is ${b.status}…`)}if(b.status==='completed')return b;if(b.status==='error')throw new Error(b.error_message||`${label} failed.`);await sleep(2500)}throw new Error(`${label} took too long. Check System.`)}
-function normaliseSource(raw){const u=new URL(raw);const host=u.hostname.toLowerCase().replace(/^www\./,'');if(!SOURCE_HOSTS.has(host))throw new Error('Use a public YouTube, TikTok or Instagram URL.');return u.toString()}
+const CREATOR_OPTIONS = [
+  { id: 'cara', name: 'Cara', tone: 'Direct, dry, disciplined' },
+  { id: 'lila', name: 'Lila', tone: 'Warm, observant, understated' },
+  { id: 'cara_lila', name: 'Cara + Lila', tone: 'Contrast, chemistry, two voices' },
+]
+const PLATFORMS = ['TikTok', 'Instagram', 'YouTube', 'Fanvue', 'Multi-platform']
+const OBJECTIVES = ['Content creation', 'TikTok Shop', 'Affiliate offers', 'Fanvue / subscriber content', 'Sponsorships', 'Audience growth']
+const FORMATS = ['POV / relatable', 'Story / confession', 'GRWM', 'Day in the life', 'Reaction', 'Product / UGC', 'Photo carousel', 'Talking-to-camera', 'Duo interaction']
+const SOURCE_HOSTS = new Set(['youtube.com', 'm.youtube.com', 'youtu.be', 'youtube-nocookie.com', 'tiktok.com', 'instagram.com'])
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+const clean = (value) => String(value ?? '').trim()
 
-export default function CreatorStudioWorkspace(){
- const[creator,setCreator]=useState('cara'),[platform,setPlatform]=useState('TikTok'),[objective,setObjective]=useState('Content creation'),[format,setFormat]=useState('POV / relatable'),[direction,setDirection]=useState(''),[url,setUrl]=useState(''),[learning,setLearning]=useState(null),[busy,setBusy]=useState(false),[message,setMessage]=useState(''),[error,setError]=useState(''),[result,setResult]=useState(null)
- useEffect(()=>{supabase.from('track_b_learning_recommendations').select('id,creator_id,format,invariant_pattern,confidence,source_evidence_id').eq('status','active').order('created_at',{ascending:false}).limit(1).maybeSingle().then(({data})=>setLearning(data||null))},[])
- const person=CREATOR_OPTIONS.find(x=>x.id===creator)||CREATOR_OPTIONS[0]
- const packageData=result?.production_package||result
- const concepts=useMemo(()=>packageData?.concepts||packageData?.content_ideas||packageData?.ideas||[],[packageData])
- async function run(){setError('');setResult(null);if(!url.trim()&&!direction.trim())return setError('Give Cornerstone a direction, trend, product or idea to work from.');setBusy(true);setMessage('Preparing creator intelligence…');try{
-   let sourceEvidence=null
-   const{data:u,error:ue}=await supabase.auth.getUser();if(ue||!u?.user)throw new Error('Please sign in again.')
-   if(url.trim()){
-     const sourceUrl=normaliseSource(url.trim());setMessage('Acquiring reference content…')
-     const{data:queued,error:qe}=await supabase.from('local_ai_jobs').insert({owner_id:u.user.id,title:`Creator source · ${person.name} · ${platform}`,job_type:'creator_source_ingestion',model:'mlx-community/Qwen3-8B-4bit',persona_id:creator,system_prompt:'Acquire one public creator reference for local evidence inspection. Never claim inspection before media has been downloaded and analysed.',user_prompt:`Acquire and inspect this public creator reference: ${sourceUrl}`,options:{source_url:sourceUrl,original_url:sourceUrl,research_domain:'TRACK_B_CREATOR_GROWTH',workspace_id:'track_b',creator_platform:platform},status:'queued',production_status:'creator_source_queued'}).select('id').single());if(qe||!queued?.id)throw qe||new Error('Could not queue the creator reference.')
-     const acquired=await job(queued.id,setMessage,'Reference acquisition');const acquiredData=parseJson(acquired.result||'{}');if(!acquiredData.media_job_id)throw new Error('Reference downloaded without creating its inspection job.');const media=await job(acquiredData.media_job_id,setMessage,'Reference inspection');const mediaData=parseJson(media.result||'{}');if(!mediaData.text_analysis_job_id)throw new Error('Reference inspection completed without creator analysis.');const analysis=await job(mediaData.text_analysis_job_id,setMessage,'Reference intelligence');sourceEvidence={acquisition:acquiredData,inspection:mediaData,analysis:parseJson(analysis.result||'{}')}
-   }
-   setMessage('Building the next creator move…')
-   const learningText=learning?`\nLATEST MEASURED LEARNING SIGNAL (direction only):\n${JSON.stringify(learning)}\nUse it to shape the next experiment, not to copy prior work.`:''
-   const prompt=`CREATOR: ${person.name}\nPERSONA_ID: ${creator}\nCREATOR TONE: ${person.tone}\nPLATFORM: ${platform}\nOBJECTIVE: ${objective}\nFORMAT: ${format}\nDIRECTION: ${direction||'Choose the strongest evidence-backed opportunity.'}${learningText}\n${url.trim()?`\nINSPECTED REFERENCE EVIDENCE:\n${JSON.stringify(sourceEvidence)}`:''}\n\nBuild a creator-native package. Protect the selected creator identity and any character/relationship bible. Return: operator brief, why this fits, 8 ranked concepts, 5 hooks, 3 production directions, captions or talking points, CTA options, a 7-day test plan, metrics to watch, and monetisation tests relevant to ${objective}. For TikTok Shop, focus on product-content angles and measurable tests. For Affiliate offers, focus on audience-fit offers and tracked conversion. For Fanvue / subscriber content, keep the strategy appropriate to the creator asset and focused on audience value, retention and conversion. Do not promise earnings or invent performance metrics. Keep evidence and recommendations separate.`
-   const{data:created,error:ce}=await supabase.from('local_ai_jobs').insert({owner_id:u.user.id,title:`Creator strategy · ${person.name} · ${objective}`,job_type:'growth_mode',model:'mlx-community/Qwen3-8B-4bit',persona_id:creator,system_prompt:'You are Cornerstone creator strategy director. Protect creator identity. Build specific, platform-native, evidence-grounded creator growth and monetisation plans. Never invent analytics or promise income. JSON only.',user_prompt:prompt,options:{research:true,max_tokens:6500,temperature:.45,research_domain:'TRACK_B_CREATOR_GROWTH',workspace_id:'track_b',creator_platform:platform,creator_objective:objective,source_analysis:sourceEvidence},status:'queued',production_status:'creator_strategy_queued'}).select('id').single());if(ce||!created?.id)throw ce||new Error('Could not queue the creator strategy.');const finished=await job(created.id,setMessage,'Creator strategy');setResult(parseJson(finished.result||'{}'));setMessage('Creator package ready.')
- }catch(e){setError(e?.message||String(e));setMessage('')}finally{setBusy(false)}}
- return <main className="creator-studio"><style>{`.creator-studio{display:grid;gap:18px;color:var(--text)}.creator-hero,.creator-card,.creator-result{border:1px solid var(--line);background:var(--panel);border-radius:14px}.creator-hero{padding:30px 32px;position:relative;overflow:hidden}.creator-hero:after{content:"";position:absolute;right:-70px;top:-80px;width:260px;height:260px;border:1px solid var(--accent-line);transform:rotate(45deg)}.creator-kicker,.creator-label{font-size:10px;letter-spacing:.16em;text-transform:uppercase;font-weight:800;color:var(--accent)}.creator-hero h1{margin:10px 0 0;font-size:clamp(38px,5.5vw,72px);line-height:.92;letter-spacing:-.06em;max-width:13ch}.creator-hero p{margin:16px 0 0;max-width:720px;color:var(--text-2);font-size:14px;line-height:1.6}.creator-grid{display:grid;grid-template-columns:1.4fr .6fr;gap:18px}.creator-card{padding:22px}.creator-roster{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}.creator-roster button{padding:14px;text-align:left;border:1px solid var(--line-2);background:var(--panel-2);color:var(--text);border-radius:8px;cursor:pointer}.creator-roster button.active{border-color:var(--accent);box-shadow:inset 3px 0 var(--accent)}.creator-roster strong{display:block;font-size:15px}.creator-roster span{display:block;margin-top:5px;color:var(--text-3);font-size:11px;line-height:1.35}.creator-form-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}.creator-form-grid label,.creator-wide{display:grid;gap:6px}.creator-form-grid span,.creator-wide span{font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--text-3)}.creator-form-grid select,.creator-wide input,.creator-wide textarea{width:100%;border:1px solid var(--line-2);background:#0f0f0e;color:var(--text);border-radius:7px;padding:11px 12px;font:inherit;font-size:12px}.creator-wide{margin-top:12px}.creator-wide textarea{min-height:120px;resize:vertical}.creator-learning{margin-top:12px;padding:12px;border-left:3px solid var(--accent);background:var(--accent-soft);display:grid;gap:4px}.creator-learning span{font-size:12px;color:var(--text-2)}.creator-error{margin-top:12px;color:var(--bad);font-size:12px}.creator-actions{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:16px;padding-top:16px;border-top:1px solid var(--line)}.creator-actions span{font-size:11px;color:var(--text-3)}.creator-actions button{min-height:42px;padding:0 17px;border:1px solid transparent;background:var(--accent);color:#1a0f0c;border-radius:6px;font-size:12px;font-weight:800;cursor:pointer}.creator-actions button:disabled{opacity:.45}.creator-side h2{margin:8px 0 0;font-size:42px;letter-spacing:-.05em}.creator-side p{color:var(--text-2);font-size:12px;line-height:1.55}.creator-lanes{display:grid;gap:6px;margin-top:18px}.creator-lanes div{padding:9px 10px;border-left:2px solid var(--line-2);color:var(--text-2);font-size:11px}.creator-result{padding:22px}.creator-result>h2{margin:8px 0 18px;font-size:30px;letter-spacing:-.04em}.creator-result-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.creator-result article{padding:15px;border:1px solid var(--line);background:var(--panel-2)}.creator-result article span{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3);font-weight:800}.creator-result article p{margin:7px 0 0;color:var(--text-2);font-size:12px;line-height:1.5}.creator-list{margin-top:10px;border-top:1px solid var(--line)}.creator-list div{display:grid;grid-template-columns:34px 1fr;gap:10px;padding:12px 0;border-bottom:1px solid var(--line-soft);font-size:12px}.creator-list b{color:var(--accent);font-size:10px}.creator-list span{color:var(--text-2)}@media(max-width:850px){.creator-grid{grid-template-columns:1fr}.creator-roster,.creator-form-grid,.creator-result-grid{grid-template-columns:1fr}.creator-hero{padding:24px}.creator-card{padding:17px}.creator-actions{align-items:stretch;flex-direction:column}.creator-actions button{width:100%}}`}</style>{!result?<><section className="creator-hero"><div className="creator-kicker">CREATOR STUDIO</div><h1>Build the business around the girls, not just the platform.</h1><p>One engine for Cara, Lila and Cara + Lila across TikTok, Instagram, YouTube, Fanvue, affiliates and TikTok Shop. Content is the asset. Monetisation is the test.</p></section><section className="creator-grid"><div className="creator-card"><div className="creator-label">Who is this for?</div><div className="creator-roster">{CREATOR_OPTIONS.map(p=><button key={p.id} className={creator===p.id?'active':''} onClick={()=>setCreator(p.id)}><strong>{p.name}</strong><span>{p.tone}</span></button>)}</div><div className="creator-form-grid"><label><span>Platform</span><select value={platform} onChange={e=>setPlatform(e.target.value)}>{PLATFORMS.map(x=><option key={x}>{x}</option>)}</select></label><label><span>Objective</span><select value={objective} onChange={e=>setObjective(e.target.value)}>{OBJECTIVES.map(x=><option key={x}>{x}</option>)}</select></label><label><span>Format</span><select value={format} onChange={e=>setFormat(e.target.value)}>{FORMATS.map(x=><option key={x}>{x}</option>)}</select></label></div><label className="creator-wide"><span>Reference content (optional)</span><input value={url} onChange={e=>setUrl(e.target.value)} placeholder="YouTube, TikTok or Instagram URL"/></label><label className="creator-wide"><span>What are we trying?</span><textarea value={direction} onChange={e=>setDirection(e.target.value)} placeholder="Product, trend, affiliate offer, Fanvue angle, content idea, story, audience problem…"/></label>{learning?<div className="creator-learning"><strong>Latest learning is available.</strong><span>{learning.invariant_pattern||learning.format||'Measured creator learning will influence the next test.'}</span></div>:null}{error?<div className="creator-error">{error}</div>:null}<div className="creator-actions"><span>{message||'Reference → evidence → creator-native package → test → measure'}</span><button onClick={run} disabled={busy}>{busy?'Working…':'Build creator move →'}</button></div></div><aside className="creator-card creator-side"><div className="creator-label">Selected asset</div><h2>{person.name}</h2><p>{person.tone}. The strategy stays inside this creator's identity rather than defaulting to generic YouTube advice.</p><div className="creator-lanes">{OBJECTIVES.map(x=><div key={x}>{x}</div>)}</div></aside></section></>:null}{result?<section className="creator-result"><div className="creator-label">PACKAGE READY</div><h2>{packageData?.recommended_subject||packageData?.angle||`Next move for ${person.name}`}</h2><div className="creator-result-grid"><article><span>Why it fits</span><p>{result?.operator_brief?.why||packageData?.why_this_should_work||packageData?.why_it_should_work||`Built for ${person.name}, ${platform}, and ${objective}.`}</p></article><article><span>Next action</span><p>{result?.operator_brief?.next_action||'Run the strongest ranked concept as a controlled test.'}</p></article></div>{concepts.length?<div className="creator-list">{concepts.slice(0,8).map((x,i)=><div key={i}><b>{String(i+1).padStart(2,'0')}</b><span>{typeof x==='string'?x:x?.title||x?.concept||JSON.stringify(x)}</span></div>)}</div>:null}</section>:null}</main>
+function parseJson(text) {
+  const value = clean(text)
+    .replace(/```json|```/gi, '')
+    .replace(/<think>[\s\S]*?<\/think>/gi, '')
+    .replace(/<analysis>[\s\S]*?<\/analysis>/gi, '')
+    .replace(/<reasoning>[\s\S]*?<\/reasoning>/gi, '')
+    .replace(/<\|im_end\|>|<\|endoftext\|>/gi, '')
+    .trim()
+  try { return JSON.parse(value) } catch {}
+  const start = value.search(/[\[{]/)
+  if (start < 0) throw new Error('Cornerstone could not understand the returned creator package.')
+  const open = value[start]
+  const close = open === '{' ? '}' : ']'
+  let depth = 0
+  let quoted = false
+  let escaped = false
+  for (let i = start; i < value.length; i += 1) {
+    const c = value[i]
+    if (quoted) {
+      if (escaped) escaped = false
+      else if (c === '\\') escaped = true
+      else if (c === '"') quoted = false
+      continue
+    }
+    if (c === '"') quoted = true
+    else if (c === open) depth += 1
+    else if (c === close && --depth === 0) return JSON.parse(value.slice(start, i + 1))
+  }
+  throw new Error('Cornerstone returned an incomplete creator package.')
+}
+
+async function readJob(id, setMessage, label) {
+  const until = Date.now() + 45 * 60 * 1000
+  let last = ''
+  while (Date.now() < until) {
+    const response = await fetch(`/api/queue-update?action=job_status&id=${encodeURIComponent(id)}`, { credentials: 'same-origin', cache: 'no-store' })
+    const body = await response.json().catch(() => ({}))
+    if (!response.ok) throw new Error(body.error || 'Could not read job status.')
+    if (body.status !== last) {
+      last = body.status
+      setMessage(body.status === 'processing' ? `${label} is working…` : `${label} is ${body.status}…`)
+    }
+    if (body.status === 'completed') return body
+    if (body.status === 'error') throw new Error(body.error_message || `${label} failed.`)
+    await sleep(2500)
+  }
+  throw new Error(`${label} took too long. Check System.`)
+}
+
+function normaliseSource(raw) {
+  const url = new URL(raw)
+  const host = url.hostname.toLowerCase().replace(/^www\./, '')
+  if (!SOURCE_HOSTS.has(host)) throw new Error('Use a public YouTube, TikTok or Instagram URL.')
+  return url.toString()
+}
+
+export default function CreatorStudioWorkspace() {
+  const [creator, setCreator] = useState('cara')
+  const [platform, setPlatform] = useState('TikTok')
+  const [objective, setObjective] = useState('Content creation')
+  const [format, setFormat] = useState('POV / relatable')
+  const [direction, setDirection] = useState('')
+  const [url, setUrl] = useState('')
+  const [learning, setLearning] = useState(null)
+  const [busy, setBusy] = useState(false)
+  const [message, setMessage] = useState('')
+  const [error, setError] = useState('')
+  const [result, setResult] = useState(null)
+
+  useEffect(() => {
+    let alive = true
+    supabase
+      .from('track_b_learning_recommendations')
+      .select('id,creator_id,format,invariant_pattern,confidence,source_evidence_id')
+      .eq('status', 'active')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+      .then(({ data }) => { if (alive) setLearning(data || null) })
+    return () => { alive = false }
+  }, [])
+
+  const person = CREATOR_OPTIONS.find((item) => item.id === creator) || CREATOR_OPTIONS[0]
+  const packageData = result?.production_package || result
+  const concepts = useMemo(() => packageData?.concepts || packageData?.content_ideas || packageData?.ideas || [], [packageData])
+
+  async function run() {
+    setError('')
+    setResult(null)
+    if (!url.trim() && !direction.trim()) {
+      setError('Give Cornerstone a direction, trend, product or idea to work from.')
+      return
+    }
+    setBusy(true)
+    try {
+      const { data: authData, error: authError } = await supabase.auth.getUser()
+      if (authError || !authData?.user) throw new Error('Please sign in again.')
+
+      let sourceEvidence = null
+      if (url.trim()) {
+        const sourceUrl = normaliseSource(url.trim())
+        setMessage('Acquiring reference content…')
+        const { data: queued, error: queueError } = await supabase
+          .from('local_ai_jobs')
+          .insert({
+            owner_id: authData.user.id,
+            title: `Creator source · ${person.name} · ${platform}`,
+            job_type: 'creator_source_ingestion',
+            model: 'mlx-community/Qwen3-8B-4bit',
+            persona_id: creator,
+            system_prompt: 'Acquire one public creator reference for local evidence inspection. Never claim inspection before media has been downloaded and analysed.',
+            user_prompt: `Acquire and inspect this public creator reference: ${sourceUrl}`,
+            options: {
+              source_url: sourceUrl,
+              original_url: sourceUrl,
+              research_domain: 'TRACK_B_CREATOR_GROWTH',
+              workspace_id: 'track_b',
+              creator_platform: platform,
+            },
+            status: 'queued',
+            production_status: 'creator_source_queued',
+          })
+          .select('id')
+          .single()
+        if (queueError || !queued?.id) throw queueError || new Error('Could not queue the creator reference.')
+
+        const acquired = await readJob(queued.id, setMessage, 'Reference acquisition')
+        const acquiredData = parseJson(acquired.result || '{}')
+        if (!acquiredData.media_job_id) throw new Error('Reference downloaded without creating its inspection job.')
+        const media = await readJob(acquiredData.media_job_id, setMessage, 'Reference inspection')
+        const mediaData = parseJson(media.result || '{}')
+        if (!mediaData.text_analysis_job_id) throw new Error('Reference inspection completed without creator analysis.')
+        const analysisJob = await readJob(mediaData.text_analysis_job_id, setMessage, 'Reference intelligence')
+        sourceEvidence = {
+          acquisition: acquiredData,
+          inspection: mediaData,
+          analysis: parseJson(analysisJob.result || '{}'),
+        }
+      }
+
+      setMessage('Building the next creator move…')
+      const learningText = learning
+        ? `\nLATEST MEASURED LEARNING SIGNAL (direction only):\n${JSON.stringify(learning)}\nUse it to shape the next experiment, not to copy prior work.`
+        : ''
+      const prompt = `CREATOR: ${person.name}\nPERSONA_ID: ${creator}\nCREATOR TONE: ${person.tone}\nPLATFORM: ${platform}\nOBJECTIVE: ${objective}\nFORMAT: ${format}\nDIRECTION: ${direction || 'Choose the strongest evidence-backed opportunity.'}${learningText}\n${sourceEvidence ? `\nINSPECTED REFERENCE EVIDENCE:\n${JSON.stringify(sourceEvidence)}` : ''}\n\nBuild a creator-native package. Protect the selected creator identity and any character/relationship bible. Return: operator brief, why this fits, 8 ranked concepts, 5 hooks, 3 production directions, captions or talking points, CTA options, a 7-day test plan, metrics to watch, and monetisation tests relevant to ${objective}. For TikTok Shop, focus on product-content angles and measurable tests. For Affiliate offers, focus on audience-fit offers and tracked conversion. For Fanvue / subscriber content, keep the strategy appropriate to the creator asset and focused on audience value, retention and conversion. Do not promise earnings or invent performance metrics. Keep evidence and recommendations separate.`
+
+      const { data: created, error: createError } = await supabase
+        .from('local_ai_jobs')
+        .insert({
+          owner_id: authData.user.id,
+          title: `Creator strategy · ${person.name} · ${objective}`,
+          job_type: 'growth_mode',
+          model: 'mlx-community/Qwen3-8B-4bit',
+          persona_id: creator,
+          system_prompt: 'You are Cornerstone creator strategy director. Protect creator identity. Build specific, platform-native, evidence-grounded creator growth and monetisation plans. Never invent analytics or promise income. JSON only.',
+          user_prompt: prompt,
+          options: {
+            research: true,
+            max_tokens: 6500,
+            temperature: 0.45,
+            research_domain: 'TRACK_B_CREATOR_GROWTH',
+            workspace_id: 'track_b',
+            creator_platform: platform,
+            creator_objective: objective,
+            source_analysis: sourceEvidence,
+          },
+          status: 'queued',
+          production_status: 'creator_strategy_queued',
+        })
+        .select('id')
+        .single()
+      if (createError || !created?.id) throw createError || new Error('Could not queue the creator strategy.')
+      const finished = await readJob(created.id, setMessage, 'Creator strategy')
+      setResult(parseJson(finished.result || '{}'))
+      setMessage('Creator package ready.')
+    } catch (err) {
+      setError(err?.message || String(err))
+      setMessage('')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <main className="creator-studio">
+      <style>{`
+        .creator-studio{display:grid;gap:18px;color:var(--text)}
+        .creator-hero,.creator-card,.creator-result{border:1px solid var(--line);background:var(--panel);border-radius:14px}
+        .creator-hero{padding:30px 32px;position:relative;overflow:hidden}
+        .creator-hero:after{content:"";position:absolute;right:-70px;top:-80px;width:260px;height:260px;border:1px solid var(--accent-line);transform:rotate(45deg)}
+        .creator-kicker,.creator-label{font-size:10px;letter-spacing:.16em;text-transform:uppercase;font-weight:800;color:var(--accent)}
+        .creator-hero h1{margin:10px 0 0;font-size:clamp(38px,5.5vw,72px);line-height:.92;letter-spacing:-.06em;max-width:13ch}
+        .creator-hero p{margin:16px 0 0;max-width:720px;color:var(--text-2);font-size:14px;line-height:1.6}
+        .creator-grid{display:grid;grid-template-columns:1.4fr .6fr;gap:18px}
+        .creator-card{padding:22px}
+        .creator-roster{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+        .creator-roster button{padding:14px;text-align:left;border:1px solid var(--line-2);background:var(--panel-2);color:var(--text);border-radius:8px;cursor:pointer}
+        .creator-roster button.active{border-color:var(--accent);box-shadow:inset 3px 0 var(--accent)}
+        .creator-roster strong{display:block;font-size:15px}.creator-roster span{display:block;margin-top:5px;color:var(--text-3);font-size:11px;line-height:1.35}
+        .creator-form-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}
+        .creator-form-grid label,.creator-wide{display:grid;gap:6px}.creator-form-grid span,.creator-wide span{font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--text-3)}
+        .creator-form-grid select,.creator-wide input,.creator-wide textarea{width:100%;border:1px solid var(--line-2);background:#0f0f0e;color:var(--text);border-radius:7px;padding:11px 12px;font:inherit;font-size:12px}
+        .creator-wide{margin-top:12px}.creator-wide textarea{min-height:120px;resize:vertical}
+        .creator-learning{margin-top:12px;padding:12px;border-left:3px solid var(--accent);background:var(--accent-soft);display:grid;gap:4px}.creator-learning span{font-size:12px;color:var(--text-2)}
+        .creator-error{margin-top:12px;color:var(--bad);font-size:12px}.creator-actions{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:16px;padding-top:16px;border-top:1px solid var(--line)}
+        .creator-actions span{font-size:11px;color:var(--text-3)}.creator-actions button{min-height:42px;padding:0 17px;border:1px solid transparent;background:var(--accent);color:#1a0f0c;border-radius:6px;font-size:12px;font-weight:800;cursor:pointer}.creator-actions button:disabled{opacity:.45}
+        .creator-side h2{margin:8px 0 0;font-size:42px;letter-spacing:-.05em}.creator-side p{color:var(--text-2);font-size:12px;line-height:1.55}.creator-lanes{display:grid;gap:6px;margin-top:18px}.creator-lanes div{padding:9px 10px;border-left:2px solid var(--line-2);color:var(--text-2);font-size:11px}
+        .creator-result{padding:22px}.creator-result>h2{margin:8px 0 18px;font-size:30px;letter-spacing:-.04em}.creator-result-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.creator-result article{padding:15px;border:1px solid var(--line);background:var(--panel-2)}
+        .creator-result article span{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3);font-weight:800}.creator-result article p{margin:7px 0 0;color:var(--text-2);font-size:12px;line-height:1.5}
+        .creator-list{margin-top:10px;border-top:1px solid var(--line)}.creator-list div{display:grid;grid-template-columns:34px 1fr;gap:10px;padding:12px 0;border-bottom:1px solid var(--line-soft);font-size:12px}.creator-list b{color:var(--accent);font-size:10px}.creator-list span{color:var(--text-2)}
+        @media(max-width:850px){.creator-grid{grid-template-columns:1fr}.creator-roster,.creator-form-grid,.creator-result-grid{grid-template-columns:1fr}.creator-hero{padding:24px}.creator-card{padding:17px}.creator-actions{align-items:stretch;flex-direction:column}.creator-actions button{width:100%}}
+      `}</style>
+      {!result ? <>
+        <section className="creator-hero"><div className="creator-kicker">CREATOR STUDIO</div><h1>Build the business around the girls, not just the platform.</h1><p>One engine for Cara, Lila and Cara + Lila across TikTok, Instagram, YouTube, Fanvue, affiliates and TikTok Shop. Content is the asset. Monetisation is the test.</p></section>
+        <section className="creator-grid"><div className="creator-card"><div className="creator-label">Who is this for?</div><div className="creator-roster">{CREATOR_OPTIONS.map((item)=><button key={item.id} className={creator===item.id?'active':''} onClick={()=>setCreator(item.id)}><strong>{item.name}</strong><span>{item.tone}</span></button>)}</div><div className="creator-form-grid"><label><span>Platform</span><select value={platform} onChange={(e)=>setPlatform(e.target.value)}>{PLATFORMS.map((item)=><option key={item}>{item}</option>)}</select></label><label><span>Objective</span><select value={objective} onChange={(e)=>setObjective(e.target.value)}>{OBJECTIVES.map((item)=><option key={item}>{item}</option>)}</select></label><label><span>Format</span><select value={format} onChange={(e)=>setFormat(e.target.value)}>{FORMATS.map((item)=><option key={item}>{item}</option>)}</select></label></div><label className="creator-wide"><span>Reference content (optional)</span><input value={url} onChange={(e)=>setUrl(e.target.value)} placeholder="YouTube, TikTok or Instagram URL" /></label><label className="creator-wide"><span>What are we trying?</span><textarea value={direction} onChange={(e)=>setDirection(e.target.value)} placeholder="Product, trend, affiliate offer, Fanvue angle, content idea, story, audience problem…" /></label>{learning?<div className="creator-learning"><strong>Latest learning is available.</strong><span>{learning.invariant_pattern||learning.format||'Measured creator learning will influence the next test.'}</span></div>:null}{error?<div className="creator-error">{error}</div>:null}<div className="creator-actions"><span>{message||'Reference → evidence → creator-native package → test → measure'}</span><button onClick={run} disabled={busy}>{busy?'Working…':'Build creator move →'}</button></div></div><aside className="creator-card creator-side"><div className="creator-label">Selected asset</div><h2>{person.name}</h2><p>{person.tone}. The strategy stays inside this creator's identity rather than defaulting to generic YouTube advice.</p><div className="creator-lanes">{OBJECTIVES.map((item)=><div key={item}>{item}</div>)}</div></aside></section>
+      </> : <section className="creator-result"><div className="creator-label">PACKAGE READY</div><h2>{packageData?.recommended_subject||packageData?.angle||`Next move for ${person.name}`}</h2><div className="creator-result-grid"><article><span>Why it fits</span><p>{result?.operator_brief?.why||packageData?.why_this_should_work||packageData?.why_it_should_work||`Built for ${person.name}, ${platform}, and ${objective}.`}</p></article><article><span>Next action</span><p>{result?.operator_brief?.next_action||'Run the strongest ranked concept as a controlled test.'}</p></article></div>{concepts.length?<div className="creator-list">{concepts.slice(0,8).map((item,index)=><div key={index}><b>{String(index+1).padStart(2,'0')}</b><span>{typeof item==='string'?item:item?.title||item?.concept||JSON.stringify(item)}</span></div>)}</div>:null}</section>}
+    </main>
+  )
 }
