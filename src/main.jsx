@@ -1,8 +1,6 @@
 import { StrictMode, Suspense, lazy, Component } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
-import './CornerstoneBrand.css'
-import './CornerstoneDesignReset.css'
 import './CornerstoneSignature.css'
 import CommandHome from './CommandHome.jsx'
 import AuthGate from './AuthGate.jsx'
