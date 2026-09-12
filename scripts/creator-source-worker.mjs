@@ -10,7 +10,8 @@ const BUCKET = process.env.TRACK_B_SOURCE_BUCKET || 'track-b-source-media'
 const POLL_MS = Number(process.env.CREATOR_SOURCE_POLL_MS || 4000)
 const TIMEOUT_MS = Number(process.env.CREATOR_SOURCE_TIMEOUT_MS || 20 * 60 * 1000)
 const MAX_BYTES = Number(process.env.CREATOR_SOURCE_MAX_BYTES || 5 * 1024 * 1024 * 1024)
-const PYTHON = process.env.CREATOR_PYTHON || path.join(process.cwd(), '.venv-caption', 'bin', 'python')
+// Creator and YouTube acquisition share the dedicated source-tools environment.
+const PYTHON = process.env.CREATOR_PYTHON || path.join(process.cwd(), '.venv-source', 'bin', 'python')
 
 if (!SUPABASE_URL || !SERVICE_KEY) {
   console.error('[CREATOR SOURCE] Missing Supabase configuration.')
@@ -33,7 +34,7 @@ function run(command, args, timeoutMs = TIMEOUT_MS) {
     child.on('error', (e) => { clearTimeout(timer); reject(e) })
     child.on('close', (code) => {
       clearTimeout(timer)
-      code === 0 ? resolve({ stdout, stderr }) : reject(new Error(stderr || `${command} exited with code ${code}`))
+      code === 0 ? resolve({ stdout, stderr }) : reject(new Error(stderr || `${command} exited with ${code}`))
     })
   })
 }
@@ -155,7 +156,7 @@ async function process(job) {
     await supabase.from('local_ai_jobs').update({
       status: 'error',
       error_message: message.includes('No module named') || message.includes('yt_dlp')
-        ? 'yt-dlp is not installed in the local creator environment. Run the Cornerstone local setup, then retry.'
+        ? 'yt-dlp is not installed in the local creator environment. Run the Cornerstone local source setup, then retry.'
         : message,
       production_status: 'creator_source_download_error',
     }).eq('id', job.id)
