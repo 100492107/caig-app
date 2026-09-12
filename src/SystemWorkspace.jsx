@@ -16,21 +16,26 @@ export default function SystemWorkspace() {
   const [loading, setLoading] = useState(true)
 
   async function load() {
-    const [heartbeat, jobs] = await Promise.all([
-      supabase.from('local_ai_worker_heartbeat').select('status,last_seen,current_job_type,model,hostname').eq('id', 'qwen').maybeSingle(),
-      supabase.from('local_ai_jobs').select('status').order('created_at', { ascending: false }).limit(100),
-    ])
-    const rows = jobs.data || []
-    setState({
-      lastSeen: heartbeat.data?.last_seen || null,
-      currentJob: heartbeat.data?.current_job_type || null,
-      model: heartbeat.data?.model || null,
-      hostname: heartbeat.data?.hostname || null,
-      jobs: rows.filter((x) => ['queued', 'processing'].includes(String(x.status))).length,
-      errors: rows.filter((x) => ['error', 'failed'].includes(String(x.status))).length,
-      status: heartbeat.data?.status || null,
-    })
-    setLoading(false)
+    try {
+      const [heartbeat, jobs] = await Promise.all([
+        supabase.from('local_ai_worker_heartbeat').select('status,last_seen,current_job_type,model,hostname').eq('id', 'qwen').maybeSingle(),
+        supabase.from('local_ai_jobs').select('status').order('created_at', { ascending: false }).limit(100),
+      ])
+      const rows = (!jobs.error && jobs.data) ? jobs.data : []
+      setState({
+        lastSeen: heartbeat.data?.last_seen || null,
+        currentJob: heartbeat.data?.current_job_type || null,
+        model: heartbeat.data?.model || null,
+        hostname: heartbeat.data?.hostname || null,
+        jobs: rows.filter((x) => ['queued', 'processing'].includes(String(x.status))).length,
+        errors: rows.filter((x) => ['error', 'failed'].includes(String(x.status))).length,
+        status: heartbeat.data?.status || null,
+      })
+    } catch {
+      // Keep last known state; System must not crash the shell
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => {
