@@ -49,7 +49,7 @@ globalThis.fetch = async function contractFetch(input, init = {}) {
     if (!body || !Array.isArray(body.messages)) return previousFetch(input, init);
 
     const text = body.messages.map((m) => String(m?.content || '')).join('\n').toLowerCase();
-    const isTrackB = text.includes('track_b_content_engine') || text.includes('content intelligence') || text.includes('cornerstone_content_engine') || text.includes('workspace: track_b');
+    const isTrackB = text.includes('track_b_content_engine') || text.includes('track_b_creator_growth') || text.includes('content intelligence') || text.includes('creator strategy') || text.includes('cornerstone_content_engine') || text.includes('workspace: track_b');
     if (!isTrackB) return previousFetch(input, init);
 
     const systemIndex = body.messages.findIndex((m) => m?.role === 'system');
