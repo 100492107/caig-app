@@ -10,7 +10,6 @@ const BUCKET = process.env.TRACK_B_SOURCE_BUCKET || 'track-b-source-media'
 const POLL_MS = Number(process.env.YOUTUBE_SOURCE_POLL_MS || 4000)
 const TIMEOUT_MS = Number(process.env.YOUTUBE_SOURCE_TIMEOUT_MS || 20 * 60 * 1000)
 const MAX_BYTES = Number(process.env.YOUTUBE_SOURCE_MAX_BYTES || 5 * 1024 * 1024 * 1024)
-const PYTHON = process.env.YOUTUBE_PYTHON || path.join(process.cwd(), '.venv-source', 'bin', 'python')
 const DENO = process.env.YOUTUBE_DENO || ''
 const COOKIE_BROWSER = String(process.env.YOUTUBE_COOKIES_BROWSER || '').trim()
 
@@ -21,6 +20,42 @@ if (!SUPABASE_URL || !SERVICE_KEY) {
 
 const supabase = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false, autoRefreshToken: false } })
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+
+function commandPath(command) {
+  const result = spawnSync('sh', ['-lc', `command -v ${command}`], { encoding: 'utf8' })
+  return result.status === 0 ? result.stdout.trim() : ''
+}
+
+function resolvePython() {
+  const candidates = [
+    process.env.YOUTUBE_PYTHON,
+    path.join(process.cwd(), '.venv-source', 'bin', 'python'),
+    path.join(process.cwd(), '.venv-caption', 'bin', 'python'),
+    commandPath('python3'),
+  ].filter(Boolean)
+  for (const candidate of candidates) {
+    try { requireFsAccess(candidate); return candidate } catch {}
+  }
+  return candidates[candidates.length - 1] || 'python3'
+}
+
+function requireFsAccess(candidate) {
+  const result = spawnSync(candidate, ['-c', 'import os; assert os.path.exists(__import__("sys").executable)'], { encoding: 'utf8' })
+  if (result.status !== 0) throw new Error('python unavailable')
+}
+
+function nodeRuntime() {
+  const node = commandPath('node')
+  if (!node) return null
+  const version = spawnSync(node, ['-p', 'process.versions.node'], { encoding: 'utf8' }).stdout.trim()
+  return Number(version.split('.')[0]) >= 22 ? { path: node, version } : null
+}
+
+function runtimeArgs() {
+  if (DENO) return ['--js-runtimes', `deno:${DENO}`]
+  const node = nodeRuntime()
+  return node ? ['--js-runtimes', `node:${node.path}`] : []
+}
 
 function run(command, args, timeoutMs = TIMEOUT_MS) {
   return new Promise((resolve, reject) => {
@@ -33,33 +68,25 @@ function run(command, args, timeoutMs = TIMEOUT_MS) {
     }, timeoutMs)
     child.stdout.on('data', (chunk) => { stdout += chunk.toString() })
     child.stderr.on('data', (chunk) => { stderr += chunk.toString() })
-    child.on('error', reject)
+    child.on('error', (error) => { clearTimeout(timer); reject(error) })
     child.on('close', (code) => {
       clearTimeout(timer)
-      if (code === 0) resolve({ stdout, stderr })
-      else reject(new Error(stderr || `${command} exited with code ${code}`))
+      code === 0 ? resolve({ stdout, stderr }) : reject(new Error(stderr || `${command} exited with code ${code}`))
     })
   })
 }
 
-function commandPath(command) {
-  const result = spawnSync('sh', ['-lc', `command -v ${command}`], { encoding: 'utf8' })
-  return result.status === 0 ? result.stdout.trim() : ''
+function sourceId(url) {
+  try {
+    const parsed = new URL(url)
+    if (parsed.hostname.replace(/^www\./, '') === 'youtu.be') return parsed.pathname.replace(/^\//, '').split('/')[0] || 'source'
+    return parsed.searchParams.get('v') || parsed.pathname.split('/').filter(Boolean).pop() || 'source'
+  } catch { return 'source' }
 }
 
-function nodeRuntime() {
-  const node = commandPath('node')
-  if (!node) return null
-  const version = spawnSync(node, ['-p', 'process.versions.node'], { encoding: 'utf8' }).stdout.trim()
-  const major = Number(version.split('.')[0])
-  return major >= 22 ? { kind: 'node', path: node, version } : null
-}
-
-function runtimeArgs() {
-  if (DENO) return ['--js-runtimes', `deno:${DENO}`]
-  const node = nodeRuntime()
-  if (node) return ['--js-runtimes', `node:${node.path}`]
-  return []
+function normaliseUrl(raw) {
+  const value = String(raw || '').trim()
+  try { return new URL(value).toString() } catch { return value }
 }
 
 function baseArgs(outputTemplate) {
@@ -75,21 +102,6 @@ function baseArgs(outputTemplate) {
     '--remote-components', 'ejs:github',
     ...runtimeArgs(),
   ]
-}
-
-function sourceId(url) {
-  try {
-    const parsed = new URL(url)
-    if (parsed.hostname.replace(/^www\./, '') === 'youtu.be') return parsed.pathname.replace(/^\//, '').split('/')[0] || 'source'
-    return parsed.searchParams.get('v') || parsed.pathname.split('/').filter(Boolean).pop() || 'source'
-  } catch {
-    return 'source'
-  }
-}
-
-function normaliseUrl(raw) {
-  const value = String(raw || '').trim()
-  try { return new URL(value).toString() } catch { return value }
 }
 
 function extractorAttempts(url, outputTemplate) {
@@ -110,11 +122,13 @@ function extractorAttempts(url, outputTemplate) {
 }
 
 async function download(url, outputTemplate) {
+  const python = resolvePython()
   let last = ''
   for (const attempt of extractorAttempts(url, outputTemplate)) {
     try {
-      const result = await run(PYTHON, attempt.args)
-      return { ...result, strategy: attempt.name }
+      console.log(`[YOUTUBE] ${sourceId(url)} acquisition strategy=${attempt.name} python=${python}`)
+      const result = await run(python, attempt.args)
+      return { ...result, strategy: attempt.name, python }
     } catch (error) {
       last = `${attempt.name}: ${error instanceof Error ? error.message : String(error)}`
       console.warn(`[YOUTUBE] ${last}`)
@@ -162,21 +176,20 @@ async function process(job) {
       production_status: 'source_queued',
     }).select('id,status').single()
     if (childError) throw childError
-    const result = { status: 'youtube_downloaded', source_url: sourceUrl, source_object_path: objectPath, media_job_id: child.id, media_job_status: child.status, source_id: sourceId(sourceUrl), bytes: stat.size, extraction_strategy: downloadResult.strategy, pipeline: ['youtube_download', 'private_storage', 'media_ingestion', 'transcript', 'vision', 'source_analysis'] }
+    const result = { status: 'youtube_downloaded', source_url: sourceUrl, source_object_path: objectPath, media_job_id: child.id, media_job_status: child.status, source_id: sourceId(sourceUrl), bytes: stat.size, extraction_strategy: downloadResult.strategy, downloader_python: downloadResult.python, pipeline: ['youtube_download', 'private_storage', 'media_ingestion', 'transcript', 'vision', 'source_analysis'] }
     const { error } = await supabase.from('local_ai_jobs').update({ status: 'completed', result: JSON.stringify(result), completed_at: new Date().toISOString(), production_status: 'video_ready', error_message: null }).eq('id', job.id)
     if (error) throw error
     console.log(`[YOUTUBE] completed ${job.id} -> ${child.id} strategy=${downloadResult.strategy}`)
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
-    await supabase.from('local_ai_jobs').update({ status: 'error', error_message: message.includes('No module named') || message.includes('yt_dlp') ? 'yt-dlp is not installed in the dedicated source environment. Run npm run source:setup, then retry.' : message, production_status: 'youtube_download_error' }).eq('id', job.id)
+    await supabase.from('local_ai_jobs').update({ status: 'error', error_message: message.includes('No module named') || message.includes('yt_dlp') ? 'yt-dlp is not installed in the local source environment. Run npm run source:setup, then retry.' : message, production_status: 'youtube_download_error' }).eq('id', job.id)
     console.error(`[YOUTUBE] failed ${job.id}:`, message)
   } finally {
     await fs.rm(tempDir, { recursive: true, force: true }).catch(() => {})
   }
 }
 
-const runtime = DENO ? `deno:${DENO}` : nodeRuntime()?.path ? `node:${nodeRuntime().path}` : 'none'
-console.log(`[YOUTUBE] worker online · python=${PYTHON} · js=${runtime} · bucket=${BUCKET}`)
+console.log(`[YOUTUBE] worker online · bucket=${BUCKET}`)
 for (;;) {
   try {
     const job = await claim()
