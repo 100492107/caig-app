@@ -1,6 +1,6 @@
 import React from 'react'
 import EnterpriseShell from './EnterpriseShell.jsx'
-import CreateWorkspace from './CreateWorkspace.jsx'
+import CreateWorkspace from './CreateWorkspace2.jsx'
 import ProfileChannelsWorkspace from './ProfileChannelsWorkspace.jsx'
 import CanonicalProductionWorkspace from './CanonicalProductionWorkspace.jsx'
 import CanonicalPublishWorkspace from './CanonicalPublishWorkspace.jsx'
@@ -15,15 +15,6 @@ const STAGES = [
   ['publish', 'Publish', 'Schedule what goes live.'],
   ['measurement', 'Learn', 'Record the result. Improve the next one.'],
 ]
-
-const NEXT = {
-  remake: ['creators', 'Voices'],
-  creators: ['profiles', 'Channels'],
-  profiles: ['production', 'Make'],
-  production: ['publish', 'Publish'],
-  publish: ['measurement', 'Learn'],
-  measurement: ['remake', 'Create'],
-}
 
 function stageFor(path) {
   const id = path.match(/^\/content(?:\/([^/]+))?/)?.[1] || 'remake'
@@ -45,7 +36,6 @@ function Workspace({ stage }) {
 export default function ContentWorkspaceShell2() {
   const stage = stageFor(window.location.pathname)
   const item = STAGES.find(([id]) => id === stage) || STAGES[0]
-  const next = NEXT[stage] || NEXT.remake
   const n = STAGES.findIndex(([id]) => id === stage) + 1
 
   return (
@@ -65,10 +55,6 @@ export default function ContentWorkspaceShell2() {
             </a>
           ))}
         </nav>
-
-        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <a className="cs-btn-ghost" href={`/content/${next[0]}`}>Next · {next[1]} →</a>
-        </div>
 
         <Workspace stage={stage} />
       </div>
