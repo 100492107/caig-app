@@ -26,37 +26,37 @@ if [[ "$(uname -m)" != "arm64" ]]; then
   exit 1
 fi
 
-if [[ -z "${SUPABASE_SERVICE_ROLE_KEY:-}" || -z "${VITE_SUPABASE_URL:-${SUPABASE_URL:-}}" ]]; then
-  echo "Missing Supabase environment. Add VITE_SUPABASE_URL (or SUPABASE_URL) and SUPABASE_SERVICE_ROLE_KEY to .env.qwen.local."
+# True only for TEXT models — Vision (VL) on this port is NOT good enough
+text_model_ready() {
+  local body
+  body="$(curl -fsS --max-time 2 "http://${QWEN_HOST}:${QWEN_PORT}/v1/models" 2>/dev/null || true)"
+  if [[ -z "$body" ]]; then return 1; fi
+  if echo "$body" | grep -Eqi 'Qwen2\.5-VL|vision'; then return 1; fi
+  echo "$body" | grep -Eqi 'Qwen3|qwen2\.5-7|Instruct'
+}
+
+if text_model_ready; then
+  echo "Qwen text server already running on ${QWEN_HOST}:${QWEN_PORT}"
+  if [[ -n "${SUPABASE_SERVICE_ROLE_KEY:-}" && -n "${VITE_SUPABASE_URL:-${SUPABASE_URL:-}}" ]]; then
+    exec node scripts/qwen-heartbeat.mjs
+  fi
+  while text_model_ready; do sleep 30; done
+  exit 0
+fi
+
+# If Vision is occupying the text port, free it
+if curl -fsS --max-time 1 "http://${QWEN_HOST}:${QWEN_PORT}/v1/models" >/dev/null 2>&1; then
+  echo "Non-text model is bound to ${QWEN_PORT}. Freeing port for Qwen text…"
+  pkill -f "mlx_vlm.server.*${QWEN_PORT}" 2>/dev/null || true
+  pkill -f "mlx_lm.server.*${QWEN_PORT}" 2>/dev/null || true
+  sleep 1
+fi
+
+if ! .venv-qwen/bin/python -c "import mlx_lm" >/dev/null 2>&1; then
+  echo "mlx-lm is not installed in .venv-qwen. Run: .venv-qwen/bin/python -m pip install -U mlx-lm"
   exit 1
 fi
 
-qwen_endpoint_ready() {
-  curl -fsS --max-time 2 --retry 1 --retry-delay 1 "http://${QWEN_HOST}:${QWEN_PORT}/v1/models" >/dev/null 2>&1
-}
-
-# Give an existing local Qwen server time to answer before ever attempting
-# to bind the port ourselves. This avoids a startup race with an already
-# running MLX server.
-for attempt in {1..8}; do
-  if qwen_endpoint_ready; then
-    echo "Qwen local server already running on ${QWEN_HOST}:${QWEN_PORT} · attaching heartbeat"
-    node scripts/qwen-heartbeat.mjs
-    exit $?
-  fi
-  sleep 1
-done
-
-HB_PID=""
-cleanup() {
-  if [[ -n "$HB_PID" ]]; then
-    kill "$HB_PID" 2>/dev/null || true
-  fi
-}
-trap cleanup EXIT INT TERM
-
-node scripts/qwen-heartbeat.mjs &
-HB_PID=$!
-
-echo "Qwen local server starting on ${QWEN_HOST}:${QWEN_PORT} · heartbeat enabled"
-.venv-qwen/bin/mlx_lm.server --model "$QWEN_MODEL" --host "$QWEN_HOST" --port "$QWEN_PORT"
+echo "Qwen text server starting on ${QWEN_HOST}:${QWEN_PORT} · model=${QWEN_MODEL}"
+echo "First launch can take several minutes while weights load."
+exec .venv-qwen/bin/mlx_lm.server --model "$QWEN_MODEL" --host "$QWEN_HOST" --port "$QWEN_PORT"
