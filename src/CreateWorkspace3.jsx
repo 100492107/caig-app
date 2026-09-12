@@ -55,13 +55,14 @@ function isYoutubeUrl(value) {
 }
 
 async function getJob(id) {
-  const response = await fetch(`/api/queue-update?action=job_status&id=${encodeURIComponent(id)}`, {
-    credentials: 'same-origin',
-    cache: 'no-store',
-  })
-  const body = await response.json().catch(() => ({}))
-  if (!response.ok) throw new Error(body.error || 'Could not read job status.')
-  return body
+  const { data, error } = await supabase
+    .from('local_ai_jobs')
+    .select('id,status,error_message,result,owner_id')
+    .eq('id', id)
+    .maybeSingle()
+  if (error) throw new Error(error.message || 'Could not read job status.')
+  if (!data) throw new Error('Cornerstone could not find this job. Refresh and try again.')
+  return data
 }
 
 async function waitForJob(id, setMessage, label) {
