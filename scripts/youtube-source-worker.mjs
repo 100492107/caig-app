@@ -148,7 +148,7 @@ async function claim() {
   return claimed
 }
 
-async function process(job) {
+async function processJob(job) {
   const sourceUrl = normaliseUrl(job?.options?.source_url)
   if (!sourceUrl) throw new Error('YouTube ingestion job is missing source_url.')
   const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'cornerstone-youtube-'))
@@ -196,7 +196,7 @@ console.log(`[YOUTUBE] worker online · bucket=${BUCKET}`)
 for (;;) {
   try {
     const job = await claim()
-    if (job) await process(job)
+    if (job) await processJob(job)
     else await sleep(POLL_MS)
   } catch (error) {
     console.error('[YOUTUBE] worker loop:', error)
