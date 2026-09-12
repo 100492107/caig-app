@@ -1,0 +1,178 @@
+import fs from 'node:fs/promises'
+import path from 'node:path'
+import os from 'node:os'
+import { spawn } from 'node:child_process'
+import { createClient } from '@supabase/supabase-js'
+
+const SUPABASE_URL = String(process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || '').replace(/\/+$/, '')
+const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
+const BUCKET = process.env.TRACK_B_SOURCE_BUCKET || 'track-b-source-media'
+const POLL_MS = Number(process.env.CREATOR_SOURCE_POLL_MS || 4000)
+const TIMEOUT_MS = Number(process.env.CREATOR_SOURCE_TIMEOUT_MS || 20 * 60 * 1000)
+const MAX_BYTES = Number(process.env.CREATOR_SOURCE_MAX_BYTES || 5 * 1024 * 1024 * 1024)
+const PYTHON = process.env.CREATOR_PYTHON || path.join(process.cwd(), '.venv-caption', 'bin', 'python')
+
+if (!SUPABASE_URL || !SERVICE_KEY) {
+  console.error('[CREATOR SOURCE] Missing Supabase configuration.')
+  process.exit(1)
+}
+
+const supabase = createClient(SUPABASE_URL, SERVICE_KEY, {
+  auth: { persistSession: false, autoRefreshToken: false },
+})
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
+
+function run(command, args, timeoutMs = TIMEOUT_MS) {
+  return new Promise((resolve, reject) => {
+    const child = spawn(command, args, { stdio: ['ignore', 'pipe', 'pipe'] })
+    let stdout = ''
+    let stderr = ''
+    const timer = setTimeout(() => { child.kill('SIGKILL'); reject(new Error(`${command} timed out`)) }, timeoutMs)
+    child.stdout.on('data', (c) => { stdout += c.toString() })
+    child.stderr.on('data', (c) => { stderr += c.toString() })
+    child.on('error', (e) => { clearTimeout(timer); reject(e) })
+    child.on('close', (code) => {
+      clearTimeout(timer)
+      code === 0 ? resolve({ stdout, stderr }) : reject(new Error(stderr || `${command} exited with code ${code}`))
+    })
+  })
+}
+
+function sourceId(url) {
+  try {
+    const parsed = new URL(url)
+    if (parsed.hostname.replace(/^www\./, '') === 'youtu.be') return parsed.pathname.replace(/^\//, '').split('/')[0] || 'source'
+    return parsed.searchParams.get('v') || parsed.pathname.split('/').filter(Boolean).pop() || 'source'
+  } catch {
+    return 'source'
+  }
+}
+
+function extFromUrl(url) {
+  try {
+    const host = new URL(url).hostname.replace(/^www\./, '').toLowerCase()
+    if (host.includes('tiktok')) return 'tiktok'
+    if (host.includes('instagram')) return 'instagram'
+    if (host.includes('youtube') || host === 'youtu.be') return 'youtube'
+  } catch {}
+  return 'creator'
+}
+
+async function claim() {
+  const { data, error } = await supabase
+    .from('local_ai_jobs')
+    .select('*')
+    .eq('job_type', 'creator_source_ingestion')
+    .eq('status', 'queued')
+    .order('created_at', { ascending: true })
+    .limit(1)
+    .maybeSingle()
+  if (error) throw error
+  if (!data) return null
+  const { data: claimed, error: updateError } = await supabase
+    .from('local_ai_jobs')
+    .update({ status: 'processing', started_at: new Date().toISOString(), production_status: 'creator_downloading', error_message: null })
+    .eq('id', data.id)
+    .eq('status', 'queued')
+    .select('*')
+    .maybeSingle()
+  if (updateError) throw updateError
+  return claimed
+}
+
+async function process(job) {
+  const sourceUrl = String(job?.options?.source_url || '').trim()
+  if (!sourceUrl) throw new Error('Creator source job is missing source_url.')
+
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'cornerstone-creator-source-'))
+  const outputTemplate = path.join(tempDir, 'source.%(ext)s')
+
+  try {
+    const { hostname } = new URL(sourceUrl)
+    const supported = ['youtube.com', 'm.youtube.com', 'youtu.be', 'youtube-nocookie.com', 'tiktok.com', 'instagram.com'].some((host) => hostname.replace(/^www\./, '').toLowerCase() === host)
+    if (!supported) throw new Error('Creator source must be a public YouTube, TikTok or Instagram URL.')
+
+    await run(PYTHON, ['-m', 'yt_dlp', '--no-playlist', '--no-part', '--restrict-filenames', '--format', 'bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4]/b', '--merge-output-format', 'mp4', '--max-filesize', String(MAX_BYTES), '--output', outputTemplate, sourceUrl])
+    const files = await fs.readdir(tempDir)
+    const mediaName = files.find((name) => /^source\./.test(name) && /\.(mp4|mkv|webm|mov|m4v)$/i.test(name))
+    if (!mediaName) throw new Error('Creator source download completed without a playable media file.')
+
+    const localPath = path.join(tempDir, mediaName)
+    const stat = await fs.stat(localPath)
+    if (stat.size > MAX_BYTES) throw new Error(`Downloaded creator source exceeds ${Math.round(MAX_BYTES / 1024 / 1024)}MB limit.`)
+
+    const objectPath = `${job.owner_id}/creator/${extFromUrl(sourceUrl)}-${sourceId(sourceUrl)}-${crypto.randomUUID()}.mp4`
+    const file = await fs.readFile(localPath)
+    const { error: uploadError } = await supabase.storage.from(BUCKET).upload(objectPath, file, { contentType: 'video/mp4', upsert: false })
+    if (uploadError) throw uploadError
+
+    const { data: child, error: childError } = await supabase.from('local_ai_jobs').insert({
+      owner_id: job.owner_id,
+      title: `Creator source analysis · ${sourceId(sourceUrl)}`,
+      job_type: 'content_media_ingestion',
+      model: job.model,
+      persona_id: job.persona_id || 'creator',
+      system_prompt: 'Analyse a downloaded creator reference through the Cornerstone media evidence pipeline. Protect creator identity and distinguish observed evidence from inference.',
+      user_prompt: `Inspect this downloaded creator reference from ${sourceUrl}.`,
+      options: {
+        bucket: BUCKET,
+        object_path: objectPath,
+        file_name: `creator-${sourceId(sourceUrl)}.mp4`,
+        content_type: 'video/mp4',
+        original_url: sourceUrl,
+        creator_parent_job_id: job.id,
+        research_domain: 'TRACK_B_CREATOR_GROWTH',
+        workspace_id: 'creator_growth',
+      },
+      status: 'queued',
+      production_status: 'creator_source_queued',
+    }).select('id,status').single()
+    if (childError) throw childError
+
+    const result = {
+      status: 'creator_source_downloaded',
+      source_url: sourceUrl,
+      source_object_path: objectPath,
+      media_job_id: child.id,
+      media_job_status: child.status,
+      source_id: sourceId(sourceUrl),
+      platform: extFromUrl(sourceUrl),
+      bytes: stat.size,
+      pipeline: ['source_download', 'private_storage', 'media_ingestion', 'transcript', 'vision', 'creator_source_analysis'],
+    }
+
+    const { error } = await supabase.from('local_ai_jobs').update({
+      status: 'completed',
+      result: JSON.stringify(result),
+      completed_at: new Date().toISOString(),
+      production_status: 'creator_downloaded_waiting_analysis',
+      error_message: null,
+    }).eq('id', job.id)
+    if (error) throw error
+    console.log(`[CREATOR SOURCE] completed ${job.id} -> ${child.id}`)
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    await supabase.from('local_ai_jobs').update({
+      status: 'error',
+      error_message: message.includes('No module named') || message.includes('yt_dlp')
+        ? 'yt-dlp is not installed in the local creator environment. Run the Cornerstone local setup, then retry.'
+        : message,
+      production_status: 'creator_source_download_error',
+    }).eq('id', job.id)
+    console.error(`[CREATOR SOURCE] failed ${job.id}:`, message)
+  } finally {
+    await fs.rm(tempDir, { recursive: true, force: true }).catch(() => {})
+  }
+}
+
+console.log(`[CREATOR SOURCE] worker online · python=${PYTHON} · bucket=${BUCKET} · YouTube/TikTok/Instagram`)
+for (;;) {
+  try {
+    const job = await claim()
+    if (job) await process(job)
+    else await sleep(POLL_MS)
+  } catch (error) {
+    console.error('[CREATOR SOURCE] worker loop:', error)
+    await sleep(POLL_MS)
+  }
+}
