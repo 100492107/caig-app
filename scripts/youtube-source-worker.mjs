@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import os from 'node:os'
-import { spawn } from 'node:child_process'
+import { spawn, spawnSync } from 'node:child_process'
 import { createClient } from '@supabase/supabase-js'
 
 const SUPABASE_URL = String(process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || '').replace(/\/+$/, '')
@@ -42,23 +42,23 @@ function run(command, args, timeoutMs = TIMEOUT_MS) {
   })
 }
 
-function sourceId(url) {
-  try {
-    const parsed = new URL(url)
-    if (parsed.hostname.replace(/^www\./, '') === 'youtu.be') return parsed.pathname.replace(/^\//, '').split('/')[0] || 'source'
-    return parsed.searchParams.get('v') || parsed.pathname.split('/').filter(Boolean).pop() || 'source'
-  } catch {
-    return 'source'
-  }
+function commandPath(command) {
+  const result = spawnSync('sh', ['-lc', `command -v ${command}`], { encoding: 'utf8' })
+  return result.status === 0 ? result.stdout.trim() : ''
 }
 
-function normaliseUrl(raw) {
-  const value = String(raw || '').trim()
-  try { return new URL(value).toString() } catch { return value }
+function nodeRuntime() {
+  const node = commandPath('node')
+  if (!node) return null
+  const version = spawnSync(node, ['-p', 'process.versions.node'], { encoding: 'utf8' }).stdout.trim()
+  const major = Number(version.split('.')[0])
+  return major >= 22 ? { kind: 'node', path: node, version } : null
 }
 
 function runtimeArgs() {
   if (DENO) return ['--js-runtimes', `deno:${DENO}`]
+  const node = nodeRuntime()
+  if (node) return ['--js-runtimes', `node:${node.path}`]
   return []
 }
 
@@ -75,6 +75,21 @@ function baseArgs(outputTemplate) {
     '--remote-components', 'ejs:github',
     ...runtimeArgs(),
   ]
+}
+
+function sourceId(url) {
+  try {
+    const parsed = new URL(url)
+    if (parsed.hostname.replace(/^www\./, '') === 'youtu.be') return parsed.pathname.replace(/^\//, '').split('/')[0] || 'source'
+    return parsed.searchParams.get('v') || parsed.pathname.split('/').filter(Boolean).pop() || 'source'
+  } catch {
+    return 'source'
+  }
+}
+
+function normaliseUrl(raw) {
+  const value = String(raw || '').trim()
+  try { return new URL(value).toString() } catch { return value }
 }
 
 function extractorAttempts(url, outputTemplate) {
@@ -109,23 +124,10 @@ async function download(url, outputTemplate) {
 }
 
 async function claim() {
-  const { data, error } = await supabase
-    .from('local_ai_jobs')
-    .select('*')
-    .eq('job_type', 'youtube_source_ingestion')
-    .eq('status', 'queued')
-    .order('created_at', { ascending: true })
-    .limit(1)
-    .maybeSingle()
+  const { data, error } = await supabase.from('local_ai_jobs').select('*').eq('job_type', 'youtube_source_ingestion').eq('status', 'queued').order('created_at', { ascending: true }).limit(1).maybeSingle()
   if (error) throw error
   if (!data) return null
-  const { data: claimed, error: updateError } = await supabase
-    .from('local_ai_jobs')
-    .update({ status: 'processing', started_at: new Date().toISOString(), production_status: 'youtube_downloading', error_message: null })
-    .eq('id', data.id)
-    .eq('status', 'queued')
-    .select('*')
-    .maybeSingle()
+  const { data: claimed, error: updateError } = await supabase.from('local_ai_jobs').update({ status: 'processing', started_at: new Date().toISOString(), production_status: 'youtube_downloading', error_message: null }).eq('id', data.id).eq('status', 'queued').select('*').maybeSingle()
   if (updateError) throw updateError
   return claimed
 }
@@ -133,25 +135,20 @@ async function claim() {
 async function process(job) {
   const sourceUrl = normaliseUrl(job?.options?.source_url)
   if (!sourceUrl) throw new Error('YouTube ingestion job is missing source_url.')
-
   const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'cornerstone-youtube-'))
   const outputTemplate = path.join(tempDir, 'source.%(ext)s')
-
   try {
     const downloadResult = await download(sourceUrl, outputTemplate)
     const files = await fs.readdir(tempDir)
     const mediaName = files.find((name) => /^source\./.test(name) && /\.(mp4|mkv|webm|mov|m4v)$/i.test(name))
     if (!mediaName) throw new Error('YouTube download completed without a playable media file.')
-
     const localPath = path.join(tempDir, mediaName)
     const stat = await fs.stat(localPath)
     if (stat.size > MAX_BYTES) throw new Error(`Downloaded source exceeds ${Math.round(MAX_BYTES / 1024 / 1024)}MB limit.`)
-
     const objectPath = `${job.owner_id}/youtube/${sourceId(sourceUrl)}-${crypto.randomUUID()}.mp4`
     const file = await fs.readFile(localPath)
     const { error: uploadError } = await supabase.storage.from(BUCKET).upload(objectPath, file, { contentType: 'video/mp4', upsert: false })
     if (uploadError) throw uploadError
-
     const { data: child, error: childError } = await supabase.from('local_ai_jobs').insert({
       owner_id: job.owner_id,
       title: `Track B source analysis · ${sourceId(sourceUrl)}`,
@@ -160,58 +157,26 @@ async function process(job) {
       persona_id: job.options?.persona_id || 'cornerstone_content_engine',
       system_prompt: 'Analyse a downloaded public YouTube reference through the Cornerstone source-ingestion pipeline. Do not claim inspection until transcript and visual analysis complete.',
       user_prompt: `Inspect the downloaded YouTube reference from ${sourceUrl}.`,
-      options: {
-        bucket: BUCKET,
-        object_path: objectPath,
-        file_name: `youtube-${sourceId(sourceUrl)}.mp4`,
-        content_type: 'video/mp4',
-        original_url: sourceUrl,
-        youtube_parent_job_id: job.id,
-        research_domain: job.options?.research_domain || 'TRACK_B_CONTENT_ENGINE',
-        workspace_id: 'track_b',
-      },
+      options: { bucket: BUCKET, object_path: objectPath, file_name: `youtube-${sourceId(sourceUrl)}.mp4`, content_type: 'video/mp4', original_url: sourceUrl, youtube_parent_job_id: job.id, research_domain: job.options?.research_domain || 'TRACK_B_CONTENT_ENGINE', workspace_id: 'track_b' },
       status: 'queued',
       production_status: 'source_queued',
     }).select('id,status').single()
     if (childError) throw childError
-
-    const result = {
-      status: 'youtube_downloaded',
-      source_url: sourceUrl,
-      source_object_path: objectPath,
-      media_job_id: child.id,
-      media_job_status: child.status,
-      source_id: sourceId(sourceUrl),
-      bytes: stat.size,
-      extraction_strategy: downloadResult.strategy,
-      pipeline: ['youtube_download', 'private_storage', 'media_ingestion', 'transcript', 'vision', 'source_analysis'],
-    }
-
-    const { error } = await supabase.from('local_ai_jobs').update({
-      status: 'completed',
-      result: JSON.stringify(result),
-      completed_at: new Date().toISOString(),
-      production_status: 'video_ready',
-      error_message: null,
-    }).eq('id', job.id)
+    const result = { status: 'youtube_downloaded', source_url: sourceUrl, source_object_path: objectPath, media_job_id: child.id, media_job_status: child.status, source_id: sourceId(sourceUrl), bytes: stat.size, extraction_strategy: downloadResult.strategy, pipeline: ['youtube_download', 'private_storage', 'media_ingestion', 'transcript', 'vision', 'source_analysis'] }
+    const { error } = await supabase.from('local_ai_jobs').update({ status: 'completed', result: JSON.stringify(result), completed_at: new Date().toISOString(), production_status: 'video_ready', error_message: null }).eq('id', job.id)
     if (error) throw error
     console.log(`[YOUTUBE] completed ${job.id} -> ${child.id} strategy=${downloadResult.strategy}`)
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
-    await supabase.from('local_ai_jobs').update({
-      status: 'error',
-      error_message: message.includes('No module named') || message.includes('yt_dlp')
-        ? 'yt-dlp is not installed in the dedicated source environment. Run npm run source:setup, then retry.'
-        : message,
-      production_status: 'youtube_download_error',
-    }).eq('id', job.id)
+    await supabase.from('local_ai_jobs').update({ status: 'error', error_message: message.includes('No module named') || message.includes('yt_dlp') ? 'yt-dlp is not installed in the dedicated source environment. Run npm run source:setup, then retry.' : message, production_status: 'youtube_download_error' }).eq('id', job.id)
     console.error(`[YOUTUBE] failed ${job.id}:`, message)
   } finally {
     await fs.rm(tempDir, { recursive: true, force: true }).catch(() => {})
   }
 }
 
-console.log(`[YOUTUBE] worker online · python=${PYTHON} · bucket=${BUCKET} · resilient extraction fallbacks enabled`)
+const runtime = DENO ? `deno:${DENO}` : nodeRuntime()?.path ? `node:${nodeRuntime().path}` : 'none'
+console.log(`[YOUTUBE] worker online · python=${PYTHON} · js=${runtime} · bucket=${BUCKET}`)
 for (;;) {
   try {
     const job = await claim()
