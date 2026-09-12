@@ -2,6 +2,7 @@ import { StrictMode, Suspense, lazy, Component } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import './CornerstoneSignature.css'
+import './CornerstoneFinal.css'
 import CommandHome from './CommandHome.jsx'
 import AuthGate from './AuthGate.jsx'
 
