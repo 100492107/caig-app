@@ -1,206 +1,61 @@
-import React, { useEffect, useMemo, useState } from 'react'
-import { supabase } from './supabase'
+import React,{useEffect,useMemo,useState} from 'react'
+import {supabase} from './supabase'
 
-const NICHES = ['Gaming', 'History', 'Stories', 'Documentary', 'Business / money', 'Technology', 'Lifestyle', 'Other']
-const clean = (v) => String(v ?? '').trim()
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
+const MODES=[
+ {id:'youtube',label:'YouTube',sub:'Long-form + Shorts',persona:'cornerstone_content_engine'},
+ {id:'cara',label:'Cara',sub:'TikTok · Shop · affiliates · Fanvue · IG',persona:'cara'},
+ {id:'lila',label:'Lila',sub:'TikTok · Shop · affiliates · Fanvue · IG',persona:'lila'},
+ {id:'cara_lila',label:'Cara + Lila',sub:'Two-voice formats + monetisation',persona:'cara_lila'},
+]
+const NICHES=['Gaming','History','Stories','Documentary','Business / money','Technology','Lifestyle','Fashion / beauty','Relationships / lifestyle','Other']
+const PLATFORMS={youtube:['YouTube'],creator:['TikTok','Instagram','Fanvue','Affiliate','TikTok Shop','YouTube','Cross-platform']}
+const OBJECTIVES={youtube:['Find a proven topic','Remake a reference','Build a series','Generate Shorts'],creator:['Content creation','Grow audience','TikTok Shop','Affiliate offer','Fanvue','Brand / sponsorship','Cross-platform campaign']}
+const sleep=ms=>new Promise(r=>setTimeout(r,ms))
+const clean=v=>String(v??'').trim()
+function parseJson(text){const value=clean(text).replace(/```json|```/gi,'').replace(/<think>[\s\S]*?<\/think>/gi,'').replace(/<analysis>[\s\S]*?<\/analysis>/gi,'').replace(/<reasoning>[\s\S]*?<\/reasoning>/gi,'').replace(/<\|im_end\|>|<\|endoftext\|>/gi,'').trim();try{return JSON.parse(value)}catch{}const start=value.search(/[\[{]/);if(start<0)throw new Error('Cornerstone could not understand the returned result.');const open=value[start],close=open==='{'?'}':']';let depth=0,quoted=false,escaped=false;for(let i=start;i<value.length;i++){const c=value[i];if(quoted){if(escaped)escaped=false;else if(c==='\\')escaped=true;else if(c==='"')quoted=false;continue}if(c==='"')quoted=true;else if(c===open)depth++;else if(c===close&&--depth===0)return JSON.parse(value.slice(start,i+1))}throw new Error('Cornerstone returned an incomplete result.')}
+async function jobStatus(id){const r=await fetch(`/api/queue-update?action=job_status&id=${encodeURIComponent(id)}`,{credentials:'same-origin',cache:'no-store'});const b=await r.json().catch(()=>({}));if(!r.ok)throw new Error(b.error||'Could not read job status.');return b}
+async function waitJob(id,setMessage,label){const until=Date.now()+45*60*1000;let last='';while(Date.now()<until){const job=await jobStatus(id);if(job.status!==last){last=job.status;setMessage(job.status==='processing'?`${label} is working…`:job.status==='completed'?`${label} complete.`:`${label} is ${job.status}…`)}if(job.status==='completed')return job;if(job.status==='error')throw new Error(job.error_message||`${label} failed.`);await sleep(2500)}throw new Error(`${label} took too long. Check System.`)}
+function isYoutubeUrl(value){try{const u=new URL(value);const host=u.hostname.toLowerCase().replace(/^www\./,'');return ['youtube.com','m.youtube.com','youtu.be','youtube-nocookie.com'].includes(host)}catch{return false}}
 
-function parseJson(text) {
-  const value = clean(text).replace(/```json|```/gi, '').replace(/<think>[\s\S]*?<\/think>/gi, '').replace(/<analysis>[\s\S]*?<\/analysis>/gi, '').replace(/<reasoning>[\s\S]*?<\/reasoning>/gi, '').replace(/<\|im_end\|>|<\|endoftext\|>/gi, '').trim()
-  try { return JSON.parse(value) } catch {}
-  const start = value.search(/[\[{]/)
-  if (start < 0) throw new Error('Cornerstone could not understand the returned result.')
-  const open = value[start]
-  const close = open === '{' ? '}' : ']'
-  let depth = 0; let quoted = false; let escaped = false
-  for (let i = start; i < value.length; i += 1) {
-    const c = value[i]
-    if (quoted) { if (escaped) escaped = false; else if (c === '\\') escaped = true; else if (c === '"') quoted = false; continue }
-    if (c === '"') quoted = true
-    else if (c === open) depth += 1
-    else if (c === close && --depth === 0) return JSON.parse(value.slice(start, i + 1))
-  }
-  throw new Error('Cornerstone returned an incomplete result.')
+export default function CreateWorkspace3(){
+ const[mode,setMode]=useState('youtube'),[url,setUrl]=useState(''),[niche,setNiche]=useState('Business / money'),[platform,setPlatform]=useState('YouTube'),[objective,setObjective]=useState('Find a proven topic'),[notes,setNotes]=useState(''),[learning,setLearning]=useState(null),[result,setResult]=useState(null),[sourceMeta,setSourceMeta]=useState(null),[busy,setBusy]=useState(false),[message,setMessage]=useState(''),[error,setError]=useState(''),[saved,setSaved]=useState(false)
+ const selectedMode=MODES.find(x=>x.id===mode)||MODES[0]
+ const creatorMode=mode!=='youtube'
+ useEffect(()=>{supabase.from('track_b_learning_recommendations').select('id,format,invariant_pattern,confidence,source_evidence_id').eq('status','active').order('created_at',{ascending:false}).limit(1).maybeSingle().then(({data})=>setLearning(data||null))},[])
+ useEffect(()=>{setPlatform(creatorMode?'TikTok':'YouTube');setObjective(creatorMode?'Content creation':'Find a proven topic')},[mode])
+ const selected=result?.selected_video||result?.production_package||result
+ const scenes=useMemo(()=>result?.scene_directions||result?.scene_options||selected?.scene_directions||selected?.visual_directions||[],[result,selected])
+ const titles=useMemo(()=>selected?.titles||selected?.title_options||[],[selected])
+ const shorts=useMemo(()=>result?.shorts||result?.short_form||[],[result])
+ async function run(){
+  setError('');setResult(null);setSourceMeta(null);setSaved(false)
+  if(!notes.trim()&&!url.trim())return setError(creatorMode?'Give Cornerstone an idea, direction, trend or reference.':'Paste a public YouTube video link.')
+  setBusy(true);setMessage('Checking local intelligence…')
+  try{
+   const{data:hb}=await supabase.from('local_ai_worker_heartbeat').select('status,last_seen').eq('id','qwen').maybeSingle();if(!(hb?.last_seen&&Date.now()-new Date(hb.last_seen).getTime()<90000&&hb.status!=='offline'))throw new Error('Local intelligence is offline. Start the Cornerstone local AI stack.')
+   const{data:userData,error:userError}=await supabase.auth.getUser();if(userError||!userData?.user)throw new Error('Please sign in again.')
+   let inspected=null
+   if(url.trim()&&isYoutubeUrl(url.trim())){
+    setMessage('Acquiring the YouTube source…')
+    const{data:acq,error:acqError}=await supabase.from('local_ai_jobs').insert({owner_id:userData.user.id,title:`YouTube source · ${url.trim()}`,job_type:'youtube_source_ingestion',model:'mlx-community/Qwen3-8B-4bit',persona_id:selectedMode.persona,system_prompt:'Acquire one public YouTube source for local evidence inspection. Never claim analysis before the downloaded media is processed.',user_prompt:`Acquire this single public YouTube source for ${selectedMode.label}: ${url.trim()}`,options:{source_url:url.trim(),original_url:url.trim(),persona_id:selectedMode.persona,research_domain:creatorMode?'TRACK_B_CREATOR_GROWTH':'TRACK_B_CONTENT_ENGINE',workspace_id:'track_b'},status:'queued',production_status:'not_started'}).select('id').single());if(acqError||!acq?.id)throw acqError||new Error('Could not queue the YouTube source.')
+    const acquisition=await waitJob(acq.id,setMessage,'YouTube acquisition');const ar=parseJson(acquisition.result||'{}');if(!ar.media_job_id)throw new Error('The video downloaded, but its inspection job was not created.')
+    const media=await waitJob(ar.media_job_id,setMessage,'Video inspection');const mr=parseJson(media.result||'{}');if(!mr.text_analysis_job_id)throw new Error('Video inspection completed without source analysis.')
+    const analysisJob=await waitJob(mr.text_analysis_job_id,setMessage,'Source intelligence');const analysis=parseJson(analysisJob.result||'{}');inspected={youtube_acquisition:ar,media_inspection:mr,source_analysis:analysis};setSourceMeta(inspected)
+   }
+   setMessage(creatorMode?'Building the creator opportunity…':'Building the original package…')
+   const learningNotes=learning?`\n\nLATEST MEASURED LEARNING SIGNAL (direction only):\n${JSON.stringify(learning)}\nPreserve the invariant mechanism and vary the execution.`:''
+   const target=`TARGET NICHE: ${niche}\nMODE: ${creatorMode?'CREATOR ASSET MODE':'YOUTUBE'}\nCREATOR: ${creatorMode?selectedMode.label:'None'}\nPLATFORM / MONETISATION DESTINATION: ${platform}\nOBJECTIVE: ${objective}\nREFERENCE URL: ${url.trim()||'None'}\nOPERATOR DIRECTION: ${notes.trim()||'Choose the strongest evidence-backed opportunity.'}${learningNotes}`
+   const evidenceBlock=inspected?`\n\nINSPECTED SOURCE EVIDENCE:\n${JSON.stringify(inspected.source_analysis)}`:''
+   const prompt=creatorMode
+    ? `${target}${evidenceBlock}\n\nBuild an original, platform-native package specifically for ${selectedMode.label}. Do not drift back to generic YouTube strategy. Respect the creator bible and voice. Think in terms of content creation, audience growth and monetisation. For TikTok Shop, propose content angles that can naturally demonstrate or contextualise products. For affiliate offers, propose trust-preserving content and measurable CTA tests. For Fanvue, propose appropriate owned-creator content concepts and funnel ideas without inventing audience facts. For Instagram, use platform-native formats. For YouTube, adapt only when relevant. Return a decision layer plus executable package including: why_this_is_opportunity, hook, concept, script_or_talking_points, shot_list, scene_directions, caption, CTA, titles, platform_notes, monetisation_route, offer_tests, content_series, Shorts/reels ideas, publication_sequence, measurement_plan, originality_plan. Separate observed evidence, public signal, inference and creative recommendation. Never invent metrics or audience facts. Return JSON only.`
+    : `${target}${evidenceBlock}\n\nBuild the full original Track B YouTube package. Use the observed mechanism only. Never copy wording, identity, branding, scenes, footage or distinctive packaging. Include operator brief, titles, thumbnails, hook, full script, chapters, visual timeline, scene_directions, Shorts, publication sequence, measurement, originality and monetisation tests. Return JSON only.`
+   const{data:generated,error:queueError}=await supabase.from('local_ai_jobs').insert({owner_id:userData.user.id,title:`${selectedMode.label} package · ${objective}`,job_type:'content_engine',model:'mlx-community/Qwen3-8B-4bit',persona_id:selectedMode.persona,system_prompt:`You are Cornerstone Track B ${creatorMode?'creator growth and monetisation':'content intelligence'} director. ${creatorMode?'Protect the selected creator identity and platform context.':'Build materially original YouTube work from inspected evidence.'}`,user_prompt:prompt,options:{research:true,max_tokens:6500,temperature:0.35,research_domain:creatorMode?'TRACK_B_CREATOR_GROWTH':'TRACK_B_CONTENT_ENGINE',workspace_id:'track_b',source_analysis:inspected||null,platform,objective},status:'queued',production_status:'not_started'}).select('id').single());if(queueError||!generated?.id)throw queueError||new Error('Could not queue the package.')
+   const packageJob=await waitJob(generated.id,setMessage,creatorMode?`${selectedMode.label} package`:'Original package');setResult(parseJson(packageJob.result||'{}'));setMessage('Ready.')
+  }catch(e){setError(e?.message||String(e));setMessage('')}finally{setBusy(false)}
+ }
+ async function save(){if(!selected||saved)return;setBusy(true);setError('');setMessage('Saving to Library…');try{const bestTitle=titles[0]?.title||titles[0]||selected.topic||selected.concept||`${selectedMode.label} package`;const hashtags=Array.isArray(selected.seo?.hashtags)?selected.seo.hashtags.join(' '):(selected.hashtags||'');const{error:saveError}=await supabase.rpc('create_track_b_content_package',{p_title:bestTitle,p_source_url:url.trim()||null,p_source_type:creatorMode?'creator_strategy':'youtube_reference',p_brief:{selected_video:selected,scene_directions:scenes,shorts,source_meta:sourceMeta,creator:selectedMode.label,platform,objective,mode},p_source_evidence:sourceMeta?.source_analysis||result?.reference_analysis||{},p_platform:platform,p_hook:selected.hook_0_5s||selected.hook||'',p_caption:selected.script||selected.caption||'',p_hashtags:hashtags,p_cta:selected.seo?.next_video_cta||selected.cta||'',p_photo_idea:selected.thumbnails?.[0]?.composition||'',p_photo_direction:JSON.stringify(selected.visual_timeline||selected.shot_list||[]),p_post_type:creatorMode?'Creator package':'Long-form + Shorts',p_content_queue_id:`ce-${crypto.randomUUID()}`});if(saveError)throw saveError;setSaved(true);setMessage('Saved. Ready for the next stage.')}catch(e){setError(e?.message||String(e));setMessage('')}finally{setBusy(false)}}
+ if(result)return <main style={styles.page}><div style={styles.kicker}>{creatorMode?`${selectedMode.label.toUpperCase()} · ${platform.toUpperCase()}`:'ORIGINAL PACKAGE'}</div><h1 style={styles.title}>{selected?.topic||selected?.concept||'Opportunity found.'}</h1><p style={styles.lead}>{selected?.angle||selected?.why_this_is_opportunity||selected?.why_this_should_work||'Built from Cornerstone evidence.'}</p><div style={styles.grid}><section style={styles.card}><div style={styles.label}>What Cornerstone found</div><p>{result?.operator_brief?.finding||selected?.why_this_is_opportunity||selected?.why_this_should_work||'Opportunity identified from the supplied context.'}</p></section><section style={styles.card}><div style={styles.label}>Why this matters</div><p>{selected?.why_this_should_work||selected?.why||result?.operator_brief?.why||'The package is built around an explicit audience or monetisation objective.'}</p></section></div>{creatorMode?<section style={styles.card}><div style={styles.label}>Route</div><div style={styles.route}><strong>{selectedMode.label}</strong><span>{platform} · {objective}</span><em>{selected?.monetisation_route||selected?.monetisation||'Monetisation route is defined in the package.'}</em></div></section>:null}{titles.length?<section style={styles.card}><div style={styles.label}>Titles / hooks</div>{titles.slice(0,8).map((x,i)=><div style={styles.item} key={i}>{typeof x==='string'?x:x?.title||x?.text||JSON.stringify(x)}</div>)}</section>:null}{scenes.length?<section style={styles.card}><div style={styles.label}>Possible scenes & creative direction</div>{scenes.slice(0,10).map((x,i)=><div style={styles.item} key={i}>{typeof x==='string'?x:x?.direction||x?.scene||x?.shot||JSON.stringify(x)}</div>)}</section>:null}<div style={styles.actions}><button onClick={()=>setResult(null)} style={styles.secondary}>New analysis</button><button onClick={save} disabled={busy||saved} style={styles.primary}>{saved?'Saved':busy?'Saving…':'Save to Library'}</button></div>{error?<div style={styles.error}>{error}</div>:null}</main>
+ return <main style={styles.page}><div style={styles.kicker}>CONTENT INTELLIGENCE</div><h1 style={styles.title}>{creatorMode?'Build work for the person, platform and money path.':'Give Cornerstone a video worth studying.'}</h1><p style={styles.lead}>{creatorMode?'Cara and Lila are first-class creator assets here. Choose the person, destination and commercial objective. Cornerstone should build the content system around them, not squeeze them into a YouTube-only workflow.':'Cornerstone downloads the YouTube source, listens to it, looks at it, extracts the mechanism and builds something materially original.'}</p><div style={styles.modeRail}>{MODES.map(m=><button key={m.id} onClick={()=>setMode(m.id)} style={{...styles.modeBtn,...(mode===m.id?styles.modeActive:{})}}><strong>{m.label}</strong><span>{m.sub}</span></button>)}</div>{learning?<div style={styles.learning}><strong>Latest learning</strong><span>{learning.invariant_pattern||learning.format||'Measured learning will shape the next package.'}</span></div>:null}<section style={styles.form}>{creatorMode?<div style={styles.row}><label style={styles.field}><span style={styles.label}>Destination</span><select style={styles.input} value={platform} onChange={e=>setPlatform(e.target.value)}>{PLATFORMS.creator.map(x=><option key={x}>{x}</option>)}</select></label><label style={styles.field}><span style={styles.label}>Objective</span><select style={styles.input} value={objective} onChange={e=>setObjective(e.target.value)}>{OBJECTIVES.creator.map(x=><option key={x}>{x}</option>)}</select></label></div>:null}<label style={styles.field}><span style={styles.label}>{creatorMode?'Reference / optional public context':'YouTube video'}</span><input style={styles.input} value={url} onChange={e=>setUrl(e.target.value)} placeholder={creatorMode?'Optional TikTok / Instagram / YouTube link':'https://www.youtube.com/watch?v=…'} /></label><div style={styles.row}><label style={styles.field}><span style={styles.label}>Niche</span><select style={styles.input} value={niche} onChange={e=>setNiche(e.target.value)}>{NICHES.map(x=><option key={x}>{x}</option>)}</select></label><label style={styles.field}><span style={styles.label}>{creatorMode?'What are we trying to make happen?':'Your note'}</span><textarea style={{...styles.input,minHeight:105}} value={notes} onChange={e=>setNotes(e.target.value)} placeholder={creatorMode?'e.g. Find 5 TikTok Shop formats that fit Cara without making her look like an advert.':'Tell Cornerstone what made you stop scrolling.'}/></label></div>{error?<div style={styles.error}>{error}</div>:null}<div style={styles.actions}><div style={styles.progress}>{message|| (creatorMode?`${selectedMode.label} → ${platform} → ${objective} → content → monetisation → measurement`:'YouTube → transcript → vision → mechanism → original package')}</div><button onClick={run} disabled={busy} style={styles.primary}>{busy?'Working…':creatorMode?'Build creator package':'Analyse & build'}</button></div></section></main>
 }
-
-async function jobStatus(id) {
-  const r = await fetch(`/api/queue-update?action=job_status&id=${encodeURIComponent(id)}`, { credentials: 'same-origin', cache: 'no-store' })
-  const body = await r.json().catch(() => ({}))
-  if (!r.ok) throw new Error(body.error || 'Could not read job status.')
-  return body
-}
-
-async function waitJob(id, setMessage, label) {
-  const until = Date.now() + 45 * 60 * 1000
-  let last = ''
-  while (Date.now() < until) {
-    const job = await jobStatus(id)
-    if (job.status !== last) {
-      last = job.status
-      if (job.status === 'processing') setMessage(`${label} is working…`)
-      else if (job.status === 'completed') setMessage(`${label} complete.`)
-      else setMessage(`${label} is ${job.status}…`)
-    }
-    if (job.status === 'completed') return job
-    if (job.status === 'error') throw new Error(job.error_message || `${label} failed.`)
-    await sleep(2500)
-  }
-  throw new Error(`${label} took too long. Check System.`)
-}
-
-export default function CreateWorkspace3() {
-  const [url, setUrl] = useState('')
-  const [niche, setNiche] = useState('Gaming')
-  const [notes, setNotes] = useState('')
-  const [learning, setLearning] = useState(null)
-  const [busy, setBusy] = useState(false)
-  const [message, setMessage] = useState('')
-  const [error, setError] = useState('')
-  const [result, setResult] = useState(null)
-  const [sourceMeta, setSourceMeta] = useState(null)
-  const [saved, setSaved] = useState(false)
-
-  useEffect(() => {
-    let alive = true
-    supabase.from('track_b_learning_recommendations')
-      .select('id,format,invariant_pattern,confidence,source_evidence_id')
-      .eq('status', 'active').order('created_at', { ascending: false }).limit(1).maybeSingle()
-      .then(({ data }) => { if (alive) setLearning(data || null) })
-    return () => { alive = false }
-  }, [])
-
-  const selected = result?.selected_video || result?.production_package || result
-  const scenes = useMemo(() => result?.scene_directions || selected?.scene_directions || selected?.visual_directions || [], [result, selected])
-  const titles = useMemo(() => selected?.titles || selected?.title_options || [], [selected])
-
-  async function run() {
-    setError(''); setResult(null); setSaved(false)
-    if (!url.trim()) return setError('Paste a public YouTube video link.')
-    setBusy(true); setMessage('Checking local intelligence…')
-    try {
-      const { data: hb } = await supabase.from('local_ai_worker_heartbeat').select('status,last_seen').eq('id', 'qwen').maybeSingle()
-      if (!(hb?.last_seen && Date.now() - new Date(hb.last_seen).getTime() < 90000 && hb.status !== 'offline')) throw new Error('Local intelligence is offline. Start the Cornerstone local AI stack.')
-
-      setMessage('Acquiring the video…')
-      const { data: userData, error: userError } = await supabase.auth.getUser()
-      if (userError || !userData?.user) throw new Error('Please sign in again.')
-      const sourceUrl = new URL(url.trim())
-      const host = sourceUrl.hostname.toLowerCase().replace(/^www\./, '')
-      if (!['youtube.com', 'm.youtube.com', 'youtu.be', 'youtube-nocookie.com'].includes(host)) throw new Error('Use a YouTube URL.')
-      const { data: acquisition, error: acquisitionError } = await supabase.from('local_ai_jobs').insert({
-        owner_id: userData.user.id,
-        title: `YouTube source · ${sourceUrl.toString()}`,
-        job_type: 'youtube_source_ingestion',
-        model: 'mlx-community/Qwen3-8B-4bit',
-        persona_id: 'cornerstone_content_engine',
-        system_prompt: 'Acquire one public YouTube source for local evidence inspection. Never claim analysis before the downloaded media is processed.',
-        user_prompt: `Acquire this single public YouTube source: ${sourceUrl.toString()}`,
-        options: { source_url: sourceUrl.toString(), original_url: sourceUrl.toString(), research_domain: 'TRACK_B_CONTENT_ENGINE', workspace_id: 'track_b' },
-        status: 'queued',
-        production_status: 'youtube_source_queued',
-      }).select('id').single()
-      if (acquisitionError || !acquisition?.id) throw acquisitionError || new Error('Could not queue the YouTube source.')
-
-      const acquisitionJob = await waitJob(acquisition.id, setMessage, 'YouTube acquisition')
-      const acquisitionResult = parseJson(acquisitionJob.result || '{}')
-      if (!acquisitionResult.media_job_id) throw new Error('The video downloaded, but its inspection job was not created.')
-
-      const mediaJob = await waitJob(acquisitionResult.media_job_id, setMessage, 'Video inspection')
-      const mediaResult = parseJson(mediaJob.result || '{}')
-      if (!mediaResult.text_analysis_job_id) throw new Error('Video inspection completed without source analysis.')
-
-      const analysisJob = await waitJob(mediaResult.text_analysis_job_id, setMessage, 'Source intelligence')
-      const analysis = parseJson(analysisJob.result || '{}')
-      setSourceMeta({ acquisition: acquisitionResult, media: mediaResult, analysis })
-
-      setMessage('Building the original package…')
-      const learningNotes = learning ? `\n\nLATEST MEASURED LEARNING SIGNAL (direction only):\n${JSON.stringify(learning)}\nPreserve the invariant mechanism and vary the execution.` : ''
-      const { data: generated, error: queueError } = await supabase.from('local_ai_jobs').insert({
-        owner_id: userData.user.id,
-        title: `Content package · ${analysis.topic_interest || sourceUrl.hostname}`,
-        job_type: 'content_engine',
-        model: 'mlx-community/Qwen3-8B-4bit',
-        persona_id: 'cornerstone_content_engine',
-        system_prompt: 'You are Cornerstone Track B content intelligence. Use inspected source evidence to build a materially original package. Never copy distinctive expression.',
-        user_prompt: `TARGET NICHE: ${niche}\nCHANNEL: YouTube\nREFERENCE URL: ${sourceUrl.toString()}\nNOTES: ${notes || 'None'}${learningNotes}\n\nINSPECTED SOURCE EVIDENCE:\n${JSON.stringify(analysis)}\n\nBuild the full original Track B package requested by the Content Engine contract. Include operator brief, titles, thumbnails, hook, full script, chapters, visual timeline, scene_directions, Shorts, publication sequence, measurement, originality and monetisation tests.`,
-        options: { research: true, max_tokens: 6500, temperature: 0.35, research_domain: 'TRACK_B_CONTENT_ENGINE', workspace_id: 'track_b', source_analysis: { youtube_acquisition: acquisitionResult, media_inspection: mediaResult, source_analysis: analysis } },
-        status: 'queued',
-        production_status: 'content_engine_queued',
-      }).select('id').single()
-      if (queueError || !generated?.id) throw queueError || new Error('Could not queue the original package.')
-      const packageJob = await waitJob(generated.id, setMessage, 'Original package')
-      setResult(parseJson(packageJob.result || '{}'))
-      setMessage('Ready.')
-    } catch (e) {
-      setError(e?.message || String(e)); setMessage('')
-    } finally { setBusy(false) }
-  }
-
-  async function save() {
-    if (!selected || saved) return
-    setBusy(true); setError(''); setMessage('Saving to your library…')
-    try {
-      const bestTitle = titles[0]?.title || titles[0] || selected.topic || 'Original package'
-      const hashtags = Array.isArray(selected.seo?.hashtags) ? selected.seo.hashtags.join(' ') : ''
-      const { error: saveError } = await supabase.rpc('create_track_b_content_package', {
-        p_title: bestTitle, p_source_url: url.trim(), p_source_type: 'youtube_reference',
-        p_brief: { selected_video: selected, scene_directions: scenes, shorts: result?.shorts || result?.short_form || [], learning_recommendation: learning, source_meta: sourceMeta },
-        p_source_evidence: sourceMeta?.analysis || {}, p_platform: 'YouTube', p_hook: selected.hook_0_5s || selected.hook || '', p_caption: selected.script || '', p_hashtags: hashtags, p_cta: selected.seo?.next_video_cta || '', p_photo_idea: selected.thumbnails?.[0]?.composition || '', p_photo_direction: JSON.stringify(selected.visual_timeline || []), p_post_type: 'Long-form + Shorts', p_content_queue_id: `ce-${crypto.randomUUID()}`,
-      })
-      if (saveError) throw saveError
-      setSaved(true); setMessage('Saved. Ready for Make.')
-    } catch (e) { setError(e?.message || String(e)); setMessage('') }
-    finally { setBusy(false) }
-  }
-
-  if (result) return <main style={styles.page}>
-    <div style={styles.kicker}>ORIGINAL PACKAGE</div>
-    <h1 style={styles.title}>{selected?.topic || 'Opportunity found.'}</h1>
-    <p style={styles.lead}>{selected?.angle || selected?.why_this_should_work || 'Built from a downloaded and inspected source.'}</p>
-    <div style={styles.grid}>
-      <section style={styles.card}><div style={styles.label}>What Cornerstone found</div><p>{result?.operator_brief?.finding || result?.reference_analysis?.original_reconstruction || selected?.why_this_should_work || 'Source mechanism extracted.'}</p></section>
-      <section style={styles.card}><div style={styles.label}>How we know</div><p>Source downloaded, audio transcribed with Whisper, representative frames inspected with Qwen Vision, then synthesised into source intelligence.</p></section>
-    </div>
-    {titles.length ? <section style={styles.card}><div style={styles.label}>Titles</div>{titles.slice(0, 8).map((x, i) => <div style={styles.item} key={i}>{typeof x === 'string' ? x : x?.title || JSON.stringify(x)}</div>)}</section> : null}
-    {scenes.length ? <section style={styles.card}><div style={styles.label}>Possible scenes & creative direction</div>{scenes.slice(0, 8).map((x, i) => <div style={styles.item} key={i}>{typeof x === 'string' ? x : x?.direction || x?.scene || JSON.stringify(x)}</div>)}</section> : null}
-    <div style={styles.actions}><button onClick={() => { setResult(null); setSourceMeta(null) }} style={styles.secondary}>New analysis</button><button onClick={save} disabled={busy || saved} style={styles.primary}>{saved ? 'Saved' : busy ? 'Saving…' : 'Save to Library'}</button></div>
-    {error ? <div style={styles.error}>{error}</div> : null}
-  </main>
-
-  return <main style={styles.page}>
-    <div style={styles.kicker}>SOURCE INTELLIGENCE</div>
-    <h1 style={styles.title}>Show Cornerstone something worth stealing from.</h1>
-    <p style={styles.lead}>Not the words. Not the creator. The mechanism. Cornerstone downloads the YouTube source, listens to it, looks at it, understands why it works, and builds an original version.</p>
-    {learning ? <div style={styles.learning}><strong>Latest learning</strong><span>{learning.invariant_pattern || learning.format || 'No measured signal yet.'}</span></div> : null}
-    <section style={styles.form}>
-      <label style={styles.field}><span style={styles.label}>YouTube video</span><input style={styles.input} value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://www.youtube.com/watch?v=…" /></label>
-      <div style={styles.row}>
-        <label style={styles.field}><span style={styles.label}>Niche</span><select style={styles.input} value={niche} onChange={(e) => setNiche(e.target.value)}>{NICHES.map((x) => <option key={x}>{x}</option>)}</select></label>
-        <label style={styles.field}><span style={styles.label}>Your note</span><textarea style={{ ...styles.input, minHeight: 100 }} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Optional context for Cornerstone." /></label>
-      </div>
-      {error ? <div style={styles.error}>{error}</div> : null}
-      <div style={styles.actions}><div style={styles.progress}>{message || 'YouTube → transcript → vision → mechanism → original package'}</div><button onClick={run} disabled={busy} style={styles.primary}>{busy ? 'Analysing…' : 'Analyse & build'}</button></div>
-    </section>
-  </main>
-}
-
-const styles = {
-  page: { maxWidth: 1120, margin: '0 auto', padding: '48px 0 100px', color: 'var(--text)' },
-  kicker: { fontSize: 10, fontWeight: 900, letterSpacing: '.18em', color: 'var(--accent)', textTransform: 'uppercase' },
-  title: { margin: '10px 0 0', fontSize: 'clamp(42px, 6vw, 76px)', lineHeight: .9, letterSpacing: '-.06em', maxWidth: '12ch' },
-  lead: { margin: '18px 0 0', maxWidth: 720, fontSize: 15, lineHeight: 1.65, color: 'var(--text-2)' },
-  learning: { marginTop: 26, padding: '14px 16px', borderLeft: '3px solid var(--accent)', background: 'var(--accent-soft)', display: 'grid', gap: 3 },
-  form: { marginTop: 30, padding: 28, border: '1px solid var(--line)', borderRadius: 14, background: 'var(--panel)', display: 'grid', gap: 18 },
-  row: { display: 'grid', gridTemplateColumns: '0.55fr 1.45fr', gap: 14 },
-  field: { display: 'grid', gap: 7 },
-  label: { fontSize: 10, fontWeight: 800, letterSpacing: '.1em', color: 'var(--text-3)', textTransform: 'uppercase' },
-  input: { width: '100%', minHeight: 46, padding: '11px 13px', borderRadius: 8, border: '1px solid var(--line-2)', background: 'var(--panel-2)', color: 'var(--text)', font: 'inherit', outline: 'none' },
-  actions: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap' },
-  progress: { flex: '1 1 300px', color: 'var(--text-3)', fontSize: 12 },
-  primary: { minHeight: 44, padding: '0 18px', border: 0, borderRadius: 8, background: 'var(--accent)', color: '#16120f', fontWeight: 850, cursor: 'pointer' },
-  secondary: { minHeight: 44, padding: '0 18px', border: '1px solid var(--line-2)', borderRadius: 8, background: 'transparent', color: 'var(--text)', fontWeight: 750, cursor: 'pointer' },
-  error: { padding: '12px 14px', borderRadius: 8, border: '1px solid rgba(223,119,112,.32)', background: 'rgba(223,119,112,.1)', color: '#efaaa4', fontSize: 12 },
-  grid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginTop: 28 },
-  card: { padding: 20, border: '1px solid var(--line)', borderRadius: 12, background: 'var(--panel)' },
-  item: { marginTop: 8, padding: '10px 12px', border: '1px solid var(--line)', borderRadius: 8, background: 'var(--panel-2)', fontSize: 13, lineHeight: 1.45 },
-}
+const styles={page:{maxWidth:1120,margin:'0 auto',padding:'46px 0 100px',color:'var(--text)'},kicker:{fontSize:10,fontWeight:900,letterSpacing:'.18em',color:'var(--accent)',textTransform:'uppercase'},title:{margin:'10px 0 0',fontSize:'clamp(42px,6vw,76px)',lineHeight:.9,letterSpacing:'-.06em',maxWidth:'12ch'},lead:{margin:'18px 0 0',maxWidth:760,fontSize:15,lineHeight:1.65,color:'var(--text-2)'},modeRail:{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8,marginTop:26},modeBtn:{padding:'14px 15px',textAlign:'left',border:'1px solid var(--line)',borderRadius:10,background:'var(--panel)',color:'var(--text)',cursor:'pointer'},modeActive:{borderColor:'var(--accent)',background:'var(--accent-soft)'},learning:{marginTop:18,padding:'13px 15px',borderLeft:'3px solid var(--accent)',background:'var(--accent-soft)',display:'grid',gap:3},form:{marginTop:22,padding:25,border:'1px solid var(--line)',borderRadius:14,background:'var(--panel)',display:'grid',gap:17},row:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:13},field:{display:'grid',gap:7},label:{fontSize:10,fontWeight:800,letterSpacing:'.1em',color:'var(--text-3)',textTransform:'uppercase'},input:{width:'100%',minHeight:46,padding:'11px 13px',borderRadius:8,border:'1px solid var(--line-2)',background:'var(--panel-2)',color:'var(--text)',font:'inherit',outline:'none'},actions:{display:'flex',alignItems:'center',justifyContent:'space-between',gap:14,flexWrap:'wrap'},progress:{flex:'1 1 320px',color:'var(--text-3)',fontSize:12},primary:{minHeight:44,padding:'0 18px',border:0,borderRadius:7,background:'var(--accent)',color:'#1a0f0c',fontWeight:800,cursor:'pointer'},secondary:{minHeight:44,padding:'0 18px',border:'1px solid var(--line-2)',borderRadius:7,background:'transparent',color:'var(--text)',fontWeight:700,cursor:'pointer'},error:{padding:'12px 14px',border:'1px solid var(--bad)',borderRadius:8,color:'var(--bad)',background:'rgba(223,119,112,.08)',fontSize:12},grid:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginTop:22},card:{padding:18,border:'1px solid var(--line)',borderRadius:12,background:'var(--panel)'},item:{padding:'11px 12px',marginTop:8,border:'1px solid var(--line)',borderRadius:8,background:'var(--panel-2)',fontSize:12,lineHeight:1.45},route:{marginTop:10,display:'grid',gap:4},routeSpan:{color:'var(--text-3)'},route:{display:'grid',gap:5},route em:{fontStyle:'normal',color:'var(--text-2)',fontSize:12},modeBtnSpan:{display:'block'},modeBtn:{},}
+styles.modeBtn={...styles.modeBtn}
