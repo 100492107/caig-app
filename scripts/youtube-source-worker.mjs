@@ -11,113 +11,17 @@ const POLL_MS = Number(process.env.YOUTUBE_SOURCE_POLL_MS || 4000);
 const TIMEOUT_MS = Number(process.env.YOUTUBE_SOURCE_TIMEOUT_MS || 20 * 60 * 1000);
 const MAX_BYTES = Number(process.env.YOUTUBE_SOURCE_MAX_BYTES || 5 * 1024 * 1024 * 1024);
 const PYTHON = process.env.YOUTUBE_PYTHON || path.join(process.cwd(), '.venv-caption', 'bin', 'python');
+const SOURCE_TYPES = ['youtube_source_ingestion', 'creator_source_ingestion'];
 
-if (!SUPABASE_URL || !SERVICE_KEY) {
-  console.error('[YOUTUBE] Missing Supabase configuration.');
-  process.exit(1);
-}
-
+if (!SUPABASE_URL || !SERVICE_KEY) { console.error('[SOURCE] Missing Supabase configuration.'); process.exit(1); }
 const supabase = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
-function run(command, args, timeoutMs = TIMEOUT_MS) {
-  return new Promise((resolve, reject) => {
-    const child = spawn(command, args, { stdio: ['ignore', 'pipe', 'pipe'] });
-    let stdout = '';
-    let stderr = '';
-    const timer = setTimeout(() => { child.kill('SIGKILL'); reject(new Error(`${command} timed out`)); }, timeoutMs);
-    child.stdout.on('data', (chunk) => { stdout += chunk.toString(); });
-    child.stderr.on('data', (chunk) => { stderr += chunk.toString(); });
-    child.on('error', (error) => { clearTimeout(timer); reject(error); });
-    child.on('close', (code) => { clearTimeout(timer); code === 0 ? resolve({ stdout, stderr }) : reject(new Error(stderr || `${command} exited with code ${code}`)); });
-  });
-}
-
-function sourceId(url) {
-  try {
-    const parsed = new URL(url);
-    if (parsed.hostname.replace(/^www\./, '') === 'youtu.be') return parsed.pathname.replace(/^\//, '').split('/')[0];
-    return parsed.searchParams.get('v') || parsed.pathname.split('/').filter(Boolean).pop() || 'source';
-  } catch { return 'source'; }
-}
-
-async function claim() {
-  const { data, error } = await supabase.from('local_ai_jobs').select('*').eq('job_type', 'youtube_source_ingestion').eq('status', 'queued').order('created_at', { ascending: true }).limit(1).maybeSingle();
-  if (error) throw error;
-  if (!data) return null;
-  const { data: claimed, error: updateError } = await supabase.from('local_ai_jobs').update({ status: 'processing', started_at: new Date().toISOString(), production_status: 'youtube_downloading', error_message: null }).eq('id', data.id).eq('status', 'queued').select('*').maybeSingle();
-  if (updateError) throw updateError;
-  return claimed;
-}
-
-async function existingMediaJob(ownerId, sourceUrl) {
-  const { data, error } = await supabase
-    .from('local_ai_jobs')
-    .select('id,status,options,error_message')
-    .eq('owner_id', ownerId)
-    .eq('job_type', 'content_media_ingestion')
-    .in('status', ['queued', 'processing', 'completed'])
-    .contains('options', { original_url: sourceUrl })
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  if (error) throw error;
-  return data || null;
-}
-
-async function process(job) {
-  const sourceUrl = String(job?.options?.source_url || '').trim();
-  if (!sourceUrl) throw new Error('YouTube ingestion job is missing source_url.');
-
-  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'cornerstone-youtube-'));
-  const outputTemplate = path.join(tempDir, 'source.%(ext)s');
-  try {
-    await run(PYTHON, ['-m', 'yt_dlp', '--no-playlist', '--no-part', '--restrict-filenames', '--format', 'bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4]/b', '--merge-output-format', 'mp4', '--max-filesize', String(MAX_BYTES), '--output', outputTemplate, sourceUrl]);
-    const files = await fs.readdir(tempDir);
-    const mediaName = files.find((name) => /^source\./.test(name) && /\.(mp4|mkv|webm|mov|m4v)$/i.test(name));
-    if (!mediaName) throw new Error('YouTube download completed without a playable media file.');
-    const localPath = path.join(tempDir, mediaName);
-    const stat = await fs.stat(localPath);
-    if (stat.size > MAX_BYTES) throw new Error(`Downloaded source exceeds ${Math.round(MAX_BYTES / 1024 / 1024)}MB limit.`);
-    const objectPath = `${job.owner_id}/youtube/${sourceId(sourceUrl)}-${crypto.randomUUID()}.mp4`;
-    const file = await fs.readFile(localPath);
-    const { error: uploadError } = await supabase.storage.from(BUCKET).upload(objectPath, file, { contentType: 'video/mp4', upsert: false });
-    if (uploadError) throw uploadError;
-
-    const mediaJob = await existingMediaJob(job.owner_id, sourceUrl);
-    let child = mediaJob;
-    if (!child) {
-      const { data, error } = await supabase.from('local_ai_jobs').insert({
-        owner_id: job.owner_id,
-        title: `Track B source analysis · ${sourceId(sourceUrl)}`,
-        job_type: 'content_media_ingestion',
-        model: job.model,
-        persona_id: 'cornerstone_content_engine',
-        system_prompt: 'Analyse a downloaded public YouTube reference through the Cornerstone source-ingestion pipeline. Do not claim inspection until transcript and visual analysis complete.',
-        user_prompt: `Inspect the downloaded YouTube reference from ${sourceUrl}.`,
-        options: { bucket: BUCKET, object_path: objectPath, file_name: `youtube-${sourceId(sourceUrl)}.mp4`, content_type: 'video/mp4', original_url: sourceUrl, youtube_parent_job_id: job.id, research_domain: 'TRACK_B_CONTENT_ENGINE', workspace_id: 'track_b' },
-        status: 'queued',
-        production_status: 'source_queued',
-      }).select('id,status').single();
-      if (error) throw error;
-      child = data;
-    }
-
-    const result = { status: 'youtube_downloaded', source_url: sourceUrl, source_object_path: objectPath, media_job_id: child.id, media_job_status: child.status, source_id: sourceId(sourceUrl), bytes: stat.size, pipeline: ['youtube_download', 'private_storage', 'media_ingestion', 'transcript', 'vision', 'source_analysis'] };
-    const { error } = await supabase.from('local_ai_jobs').update({ status: 'completed', result: JSON.stringify(result), completed_at: new Date().toISOString(), production_status: 'youtube_downloaded_waiting_analysis', error_message: null }).eq('id', job.id);
-    if (error) throw error;
-    console.log(`[YOUTUBE] completed ${job.id} -> ${child.id}`);
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    await supabase.from('local_ai_jobs').update({ status: 'error', error_message: message.includes('No module named') || message.includes('yt_dlp') ? 'yt-dlp is not installed in the local YouTube environment. Run the Cornerstone local setup so yt-dlp is installed, then retry.' : message, production_status: 'youtube_download_error' }).eq('id', job.id);
-    console.error(`[YOUTUBE] failed ${job.id}:`, message);
-  } finally {
-    await fs.rm(tempDir, { recursive: true, force: true }).catch(() => {});
-  }
-}
-
-console.log(`[YOUTUBE] worker online · python=${PYTHON} · bucket=${BUCKET}`);
-for (;;) {
-  try { const job = await claim(); if (job) await process(job); else await sleep(POLL_MS); }
-  catch (error) { console.error('[YOUTUBE] worker loop:', error); await sleep(POLL_MS); }
-}
+function run(command,args,timeoutMs=TIMEOUT_MS){return new Promise((resolve,reject)=>{const child=spawn(command,args,{stdio:['ignore','pipe','pipe']});let stdout='',stderr='';const timer=setTimeout(()=>{child.kill('SIGKILL');reject(new Error(`${command} timed out`))},timeoutMs);child.stdout.on('data',c=>{stdout+=c.toString()});child.stderr.on('data',c=>{stderr+=c.toString()});child.on('error',e=>{clearTimeout(timer);reject(e)});child.on('close',code=>{clearTimeout(timer);code===0?resolve({stdout,stderr}):reject(new Error(stderr||`${command} exited with code ${code}`))})})}
+function sourceId(url){try{const p=new URL(url);if(p.hostname.replace(/^www\./,'')==='youtu.be')return p.pathname.replace(/^\//,'').split('/')[0];return p.searchParams.get('v')||p.pathname.split('/').filter(Boolean).pop()||'source'}catch{return 'source'}}
+function sourceFamily(url){try{const host=new URL(url).hostname.toLowerCase().replace(/^www\./,'');if(host.includes('youtube'))return 'youtube';if(host.includes('tiktok'))return 'tiktok';if(host.includes('instagram'))return 'instagram';return 'creator'}catch{return 'creator'}}
+function folderFor(url){return sourceFamily(url)}
+async function claim(){const{data,error}=await supabase.from('local_ai_jobs').select('*').in('job_type',SOURCE_TYPES).eq('status','queued').order('created_at',{ascending:true}).limit(1).maybeSingle();if(error)throw error;if(!data)return null;const{data:claimed,error:updateError}=await supabase.from('local_ai_jobs').update({status:'processing',started_at:new Date().toISOString(),production_status:'source_downloading',error_message:null}).eq('id',data.id).eq('status','queued').select('*').maybeSingle();if(updateError)throw updateError;return claimed}
+async function existingMediaJob(ownerId,sourceUrl){const{data,error}=await supabase.from('local_ai_jobs').select('id,status,options,error_message,persona_id').eq('owner_id',ownerId).eq('job_type','content_media_ingestion').in('status',['queued','processing','completed']).contains('options',{original_url:sourceUrl}).order('created_at',{ascending:false}).limit(1).maybeSingle();if(error)throw error;return data||null}
+async function process(job){const sourceUrl=String(job?.options?.source_url||'').trim();if(!sourceUrl)throw new Error('Source ingestion job is missing source_url.');const family=sourceFamily(sourceUrl);const tempDir=await fs.mkdtemp(path.join(os.tmpdir(),'cornerstone-source-'));const outputTemplate=path.join(tempDir,'source.%(ext)s');try{await run(PYTHON,['-m','yt_dlp','--no-playlist','--no-part','--restrict-filenames','--format','bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4]/b','--merge-output-format','mp4','--max-filesize',String(MAX_BYTES),'--output',outputTemplate,sourceUrl]);const files=await fs.readdir(tempDir);const mediaName=files.find(name=>/^source\./.test(name)&&/\.(mp4|mkv|webm|mov|m4v)$/i.test(name));if(!mediaName)throw new Error('Download completed without a playable media file.');const localPath=path.join(tempDir,mediaName);const stat=await fs.stat(localPath);if(stat.size>MAX_BYTES)throw new Error(`Downloaded source exceeds ${Math.round(MAX_BYTES/1024/1024)}MB limit.`);const objectPath=`${job.owner_id}/${folderFor(sourceUrl)}/${sourceId(sourceUrl)}-${crypto.randomUUID()}.mp4`;const file=await fs.readFile(localPath);const{error:uploadError}=await supabase.storage.from(BUCKET).upload(objectPath,file,{contentType:'video/mp4',upsert:false});if(uploadError)throw uploadError;const existing=await existingMediaJob(job.owner_id,sourceUrl);let child=existing;if(!child){const{data,error}=await supabase.from('local_ai_jobs').insert({owner_id:job.owner_id,title:`Track B source analysis · ${sourceId(sourceUrl)}`,job_type:'content_media_ingestion',model:job.model,persona_id:job.persona_id||'cornerstone_content_engine',system_prompt:'Analyse a downloaded public content reference through the Cornerstone source-ingestion pipeline. Use transcript and representative visual evidence. Never claim inspection until the media pipeline completes.',user_prompt:`Inspect the downloaded ${family} reference from ${sourceUrl}.`,options:{bucket:BUCKET,object_path:objectPath,file_name:`${family}-${sourceId(sourceUrl)}.mp4`,content_type:'video/mp4',original_url:sourceUrl,source_family:family,parent_job_id:job.id,research_domain:job.options?.research_domain||'TRACK_B_CONTENT_ENGINE',workspace_id:'track_b',creator_platform:job.options?.creator_platform||null},status:'queued',production_status:'source_queued'}).select('id,status').single();if(error)throw error;child=data}
+const result={status:'source_downloaded',source_url:sourceUrl,source_family:family,source_object_path:objectPath,media_job_id:child.id,media_job_status:child.status,source_id:sourceId(sourceUrl),bytes:stat.size,pipeline:['source_download','private_storage','media_ingestion','transcript','vision','source_analysis']};const{error}=await supabase.from('local_ai_jobs').update({status:'completed',result:JSON.stringify(result),completed_at:new Date().toISOString(),production_status:'source_downloaded_waiting_analysis',error_message:null}).eq('id',job.id);if(error)throw error;console.log(`[SOURCE] completed ${job.id} -> ${child.id}`)}catch(error){const message=error instanceof Error?error.message:String(error);await supabase.from('local_ai_jobs').update({status:'error',error_message:message.includes('No module named')||message.includes('yt_dlp')?'yt-dlp is not installed in the local source environment. Run the Cornerstone local setup, then retry.':message,production_status:'source_download_error'}).eq('id',job.id);console.error(`[SOURCE] failed ${job.id}:`,message)}finally{await fs.rm(tempDir,{recursive:true,force:true}).catch(()=>{})}}
+console.log(`[SOURCE] worker online · python=${PYTHON} · bucket=${BUCKET} · types=${SOURCE_TYPES.join(',')}`);for(;;){try{const job=await claim();if(job)await process(job);else await sleep(POLL_MS)}catch(error){console.error('[SOURCE] worker loop:',error);await sleep(POLL_MS)}}
