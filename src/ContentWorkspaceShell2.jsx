@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React from 'react'
 import EnterpriseShell from './EnterpriseShell.jsx'
 import CreateWorkspace from './CreateWorkspace.jsx'
 import ProfileChannelsWorkspace from './ProfileChannelsWorkspace.jsx'
@@ -33,7 +33,7 @@ function stageFor(path) {
 function Workspace({ stage }) {
   switch (stage) {
     case 'remake': return <CreateWorkspace />
-    case 'creators': return <CreatorsStaged stage={0} onAdvance={() => { window.location.href = '/content/profiles' }} />
+    case 'creators': return <CreatorsStaged onAdvance={() => { window.location.href = '/content/profiles' }} />
     case 'profiles': return <ProfileChannelsWorkspace />
     case 'production': return <CanonicalProductionWorkspace />
     case 'publish': return <CanonicalPublishWorkspace />
@@ -43,7 +43,7 @@ function Workspace({ stage }) {
 }
 
 export default function ContentWorkspaceShell2() {
-  const stage = useMemo(() => stageFor(window.location.pathname), [])
+  const stage = stageFor(window.location.pathname)
   const item = STAGES.find(([id]) => id === stage) || STAGES[0]
   const next = NEXT[stage] || NEXT.remake
   const n = STAGES.findIndex(([id]) => id === stage) + 1
