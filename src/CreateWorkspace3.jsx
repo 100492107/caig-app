@@ -261,9 +261,9 @@ export default function CreateWorkspace() {
 
       <header className="cw-head">
         <div className="cw-kicker">Create</div>
-        <h1>Find the mechanism. Build the original.</h1>
+        <h1>Build from evidence.</h1>
         <p className="cw-lead">
-          Paste a public YouTube video and Cornerstone will acquire it locally, transcribe it, inspect representative frames, analyse the mechanism and build an original package. Cara and Lila have their own full creator-business engine under Voices.
+          Turn a winning mechanism into an original package. The point is not more ideas. The point is a piece you can actually put into the market. Cara and Lila have their own creator-business engine under Voices.
         </p>
       </header>
 
