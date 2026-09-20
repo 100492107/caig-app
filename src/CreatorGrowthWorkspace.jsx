@@ -117,7 +117,7 @@ export default function CreatorGrowthWorkspace({ onAdvance } = {}) {
         owner_id: u.id,
         title: `${selected.name} · ${platform} · ${format}`,
         job_type: 'content_engine',
-        model: 'mlx-community/Qwen3-8B-4bit',
+        model: 'mlx-community/Qwen3.5-9B-4bit',
         persona_id: persona,
         system_prompt: 'You are Cornerstone Track B creator-business director. Protect creator identity. Use current public creator research. Build complete publishable work plus monetisation experiments. Human usefulness matters more than JSON volume. Never invent metrics or commercial claims. Return operator-first JSON.',
         user_prompt: prompt,
