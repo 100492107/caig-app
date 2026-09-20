@@ -5,7 +5,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
 PRIMARY_MODEL="mlx-community/Qwen3.5-9B-4bit"
-FALLBACK_MODEL="mlx-community/Qwen3.5-4B-OptiQ-4bit"
+FALLBACK_MODEL="mlx-community/Qwen3.5-4B-4bit"
 
 if [[ "$(uname -s)" != "Darwin" ]]; then
   echo "This Qwen MLX setup targets macOS."
