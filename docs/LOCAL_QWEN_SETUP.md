@@ -91,6 +91,10 @@ npm run caption:whisper:health
 
 Use only the checks supported by the service currently installed.
 
+## Python / MLX runtime
+
+The current Qwen3.5 stack uses Python 3.10+ and the current MLX runtime. The setup script recreates an older Python 3.9 `.venv-qwen` automatically before installing the supported `mlx-lm` and `mlx-vlm` packages.
+
 ## 16 GB Apple Silicon guidance
 
 Run heavy local models deliberately. The application is model-agnostic, so a model can be changed through environment configuration without rewriting the Content Engine.
