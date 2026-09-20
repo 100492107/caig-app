@@ -6,6 +6,7 @@ import EnterpriseShell from './EnterpriseShell.jsx';
 const FAIL=new Set(['error','failed','blocked']);
 const money=v=>new Intl.NumberFormat('en-GB',{style:'currency',currency:'GBP',maximumFractionDigits:0}).format(Number(v||0));
 const clean=v=>String(v||'').replaceAll('_',' ');
+const CREATOR_IMAGES={cara:'https://zvyioxhwdyocaanzcgqf.supabase.co/storage/v1/object/public/cara%20ref/Cara_5.jpg',lila:'https://zvyioxhwdyocaanzcgqf.supabase.co/storage/v1/object/public/lila%20ref/lila_2.jpeg'};
 const age=v=>{
   if(!v)return 'No recent check-in';
   const s=Math.max(0,Math.round((Date.now()-new Date(v).getTime())/1000));
@@ -185,7 +186,7 @@ export default function CommandHome(){
 
       <section className="cs-creators">
         <article className="cs-creator-card">
-          <div className="cs-creator-avatar">CW</div>
+          <div className="cs-creator-avatar"><img src={CREATOR_IMAGES.cara} alt="Cara Whitmore reference" /></div>
           <div>
             <h3>{cara.name}</h3>
             <div className="cs-creator-meta">{cara.coreVerb} · {cara.coreNeed.split('.')[0]}</div>
@@ -194,7 +195,7 @@ export default function CommandHome(){
           </div>
         </article>
         <article className="cs-creator-card">
-          <div className="cs-creator-avatar">LS</div>
+          <div className="cs-creator-avatar"><img src={CREATOR_IMAGES.lila} alt="Lila Sterling reference" /></div>
           <div>
             <h3>{lila.name}</h3>
             <div className="cs-creator-meta">{lila.coreVerb} · {lila.coreNeed.split('.')[0]}</div>
