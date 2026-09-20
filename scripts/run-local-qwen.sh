@@ -11,7 +11,7 @@ if [[ -f .env.qwen.local ]]; then
   set +a
 fi
 
-QWEN_MODEL="${QWEN_MODEL:-mlx-community/Qwen3-8B-4bit}"
+QWEN_MODEL="${QWEN_MODEL:-mlx-community/Qwen3.5-9B-4bit}"
 QWEN_HOST="${QWEN_HOST:-127.0.0.1}"
 QWEN_PORT="${QWEN_PORT:-8000}"
 export QWEN_MODEL QWEN_HOST QWEN_PORT
@@ -31,7 +31,7 @@ text_model_ready() {
   body="$(curl -fsS --max-time 2 "http://${QWEN_HOST}:${QWEN_PORT}/v1/models" 2>/dev/null || true)"
   if [[ -z "$body" ]]; then return 1; fi
   # Success if Qwen3 (or similar text) is listed — VL aliases in the same payload are fine
-  echo "$body" | grep -Eqi 'Qwen3|qwen2\.5-7B'
+  echo "$body" | grep -Eqi 'Qwen3\.5-9B|Qwen3\.5-4B|Qwen3|qwen2\.5-7B'
 }
 
 if text_model_ready; then
