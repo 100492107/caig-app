@@ -12,9 +12,10 @@ if [[ -f .env.qwen.local ]]; then
 fi
 
 QWEN_MODEL="${QWEN_MODEL:-mlx-community/Qwen3.5-9B-4bit}"
+QWEN_FALLBACK_MODEL="${QWEN_FALLBACK_MODEL:-mlx-community/Qwen3.5-4B-OptiQ-4bit}"
 QWEN_HOST="${QWEN_HOST:-127.0.0.1}"
 QWEN_PORT="${QWEN_PORT:-8000}"
-export QWEN_MODEL QWEN_HOST QWEN_PORT
+export QWEN_MODEL QWEN_FALLBACK_MODEL QWEN_HOST QWEN_PORT
 
 if [[ ! -x .venv-qwen/bin/python ]]; then
   echo "Qwen environment not found. Run ./scripts/setup-local-qwen.sh first."
@@ -59,5 +60,15 @@ if ! .venv-qwen/bin/python -c "import mlx_lm" >/dev/null 2>&1; then
 fi
 
 echo "Qwen text server starting on ${QWEN_HOST}:${QWEN_PORT} · model=${QWEN_MODEL}"
-echo "First launch can take several minutes while weights load."
-exec .venv-qwen/bin/mlx_lm.server --model "$QWEN_MODEL" --host "$QWEN_HOST" --port "$QWEN_PORT"
+echo "Primary launch can take several minutes while weights load."
+set +e
+.venv-qwen/bin/mlx_lm.server --model "$QWEN_MODEL" --host "$QWEN_HOST" --port "$QWEN_PORT"
+STATUS=$?
+set -e
+
+if [[ "$STATUS" != "0" && "$STATUS" != "130" && "$STATUS" != "143" && "$QWEN_MODEL" != "$QWEN_FALLBACK_MODEL" ]]; then
+  echo "Primary Qwen model exited with status ${STATUS}. Retrying with fallback: ${QWEN_FALLBACK_MODEL}"
+  exec .venv-qwen/bin/mlx_lm.server --model "$QWEN_FALLBACK_MODEL" --host "$QWEN_HOST" --port "$QWEN_PORT"
+fi
+
+exit "$STATUS"
