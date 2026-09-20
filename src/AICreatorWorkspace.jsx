@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { supabase } from "./supabase";
 
-const MODEL = "mlx-community/Qwen3-8B-4bit";
+const MODEL = "mlx-community/Qwen3.5-9B-4bit";
 const PEOPLE = [
   { id: "cara", name: "Cara", note: "Direct, dry, disciplined, British" },
   { id: "lila", name: "Lila", note: "Measured, warm, observant, understated" },
