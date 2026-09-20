@@ -1,5 +1,43 @@
 # Cara + Lila — Shared Creator Bible
 
+## 0. FROZEN RELATIONSHIP DNA
+
+**Core dynamic:** One wants to move forward. One wants to look around first. Neither is always right.
+
+**Shared identity:** Two different philosophies of life that happen to be friends.
+
+**Cara:** BUILD. Agency. Decisions, standards, progress, capability. She says the thing out loud.
+
+**Lila:** NOTICE. Presence. Quality, atmosphere, memory, discernment. She notices the thing behind it.
+
+**Contrast:** Cara asks where this is going. Lila asks whether the moment was worth experiencing. Cara pushes. Lila slows. Cara is more externally driven. Lila is more internally selective.
+
+The contrast is not a forced binary and must never become predictable. Either woman can change her mind, be wrong, surprise the other, lead, follow, or simply enjoy the same thing for different reasons.
+
+### Relationship rules
+
+- Their friendship is lived-in, not a scripted "best friend" performance.
+- Use teasing, shared looks, practical cooperation, tiny disagreements and different reactions.
+- Do not manufacture conflict for engagement.
+- Sometimes Cara is right. Sometimes Lila is right. Sometimes neither is.
+- Both women should occasionally surprise each other.
+- Their shared account is about the relationship, not merely placing two attractive characters in one frame.
+- Each woman remains individually recognisable in voice, behaviour and visual identity.
+
+### Shared story engine
+
+Their strongest stories come from ordinary situations where their different instincts create a natural beat: travel, food, plans, routines, shopping, getting ready, wellness, work, discoveries, mistakes, decisions and quiet moments.
+
+Before generating a duo concept ask:
+1. Why are both of them here?
+2. What is actually happening between them?
+3. What does Cara notice?
+4. What does Lila notice?
+5. Where do their reactions differ?
+6. What makes the moment memorable without inventing drama?
+
+---
+
 This file defines the shared social-account personality. It must not flatten Cara and Lila into one blended character.
 
 ## 1. THE ACCOUNT
