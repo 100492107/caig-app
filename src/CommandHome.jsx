@@ -151,7 +151,7 @@ export default function CommandHome(){
 
       <section className="next">
         <div>
-          <div className="k">Today / next move</div>
+          <div className="k">Play / today’s mission</div>
           <h2>{x.next.title}</h2>
           <p>{x.next.body}</p>
         </div>
