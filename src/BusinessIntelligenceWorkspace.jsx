@@ -98,7 +98,7 @@ export default function BusinessIntelligenceWorkspace(){
       <div className="bi-head-meta"><b>{loading?'Refreshing…':date(business?.snapshot_date)}</b><span>Latest business snapshot</span><small>{verifiedDocs} verified documents · {missingDocs} checklist gaps</small></div>
     </header>
 
-    <nav className="bi-tabs">{[['overview','Overview'],['financial','Financial'],['audience','Audience'],['operations','Operations'],['documents','Documents'],['validation','Validation']].map(([id,label])=><button key={id} className={tab===id?'active':''} onClick={()=>setTab(id)}>{label}</button>)}</nav>
+    <nav className="bi-tabs">{[['overview','Overview'],['financial','Financial'],['audience','Audience'],['operations','Operations'],['documents','Documents'],['validation','Validation']].map(([id,label])=><button key={id} className={tab===id?'active':''} onClick={()=>setTab(id)}>{label}</button>)}<a href="/business/capture">Capture</a><a href="/business/case-study">Case Study</a></nav>
 
     {error&&<div className="bi-error">{error}</div>}
 
@@ -112,7 +112,7 @@ export default function BusinessIntelligenceWorkspace(){
     </section>}
 
     {tab==='financial'&&<section>
-      <div className="bi-section-title"><div><div className="bi-k">Financial health</div><h2>Profitability, cash and unit economics</h2></div><button className="bi-primary" onClick={()=>setTab('documents')}>Add source document</button></div>
+      <div className="bi-section-title"><div><div className="bi-k">Financial health</div><h2>Profitability, cash and unit economics</h2></div><div style={{display:'flex',gap:7,flexWrap:'wrap'}}><a className="bi-primary" href="/business/capture">Capture metrics</a><button className="bi-primary" onClick={()=>setTab('documents')}>Add source document</button></div></div>
       <div className="bi-kpis">{kpis.slice(0,8).map(([a,b,c])=><article key={a}><span>{a}</span><strong>{b}</strong><small>{c}</small></article>)}</div>
       <div className="bi-grid2"><article className="bi-panel"><div className="bi-panel-head"><b>Latest financial snapshot</b><span>{business?date(business.snapshot_date):'No verified snapshot'}</span></div><div className="bi-table">{[['Revenue',money(business?.revenue)],['COGS',money(business?.cogs)],['Operating expenses',money(business?.operating_expenses)],['Cash balance',money(business?.cash_balance)],['Receivables',money(business?.receivables)],['Debt',money(business?.debt)],['Current assets',money(business?.current_assets)],['Current liabilities',money(business?.current_liabilities)]].map(r=><div key={r[0]}><span>{r[0]}</span><b>{r[1]}</b></div>)}</div></article><article className="bi-panel"><div className="bi-panel-head"><b>Customer economics</b><span>Only shown when source data exists</span></div><div className="bi-table">{[['CAC',money(business?.cac)],['LTV',money(business?.ltv)],['Churn',pct(business?.churn_rate)],['Customers',num(business?.customer_count)],['New customers',num(business?.new_customers)],['DSO',business?.dso_days==null?'—':Number(business.dso_days).toFixed(1)+' days'],['Revenue / employee',business?.employee_count&&business?.revenue?money(Number(business.revenue)/Number(business.employee_count)):'—'],['Employees',num(business?.employee_count)]].map(r=><div key={r[0]}><span>{r[0]}</span><b>{r[1]}</b></div>)}</div></article></div>
     </section>}
