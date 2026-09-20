@@ -100,7 +100,7 @@ button.cs-btn-ghost:hover,.ghost:hover,.ce-secondary:hover,.ch-mini:hover,.sys-c
 .cs-loop-step span{display:block;margin-top:5px;color:var(--cs-os-subtle);font-size:9px;line-height:1.35}
 .cs-creators{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
 .cs-creator-card{display:grid;grid-template-columns:52px 1fr;gap:12px;padding:16px;border:1px solid var(--cs-os-line);border-radius:16px;background:var(--cs-os-panel)}
-.cs-creator-avatar{width:52px;height:52px;border-radius:15px;display:grid;place-items:center;background:#181d25;border:1px solid var(--cs-os-line2);color:var(--cs-os-accent);font-weight:900;font-size:16px}
+.cs-creator-avatar{width:58px;height:70px;border-radius:15px;overflow:hidden;display:grid;place-items:center;background:#181d25;border:1px solid var(--cs-os-line2);color:var(--cs-os-accent);font-weight:900;font-size:16px}.cs-creator-avatar img{width:100%;height:100%;object-fit:cover;display:block}
 .cs-creator-card h3{font-size:17px;letter-spacing:-.03em}
 .cs-creator-meta{margin-top:3px;color:var(--cs-os-subtle);font-size:9px;letter-spacing:.12em;text-transform:uppercase}
 .cs-creator-soul{margin-top:8px;color:var(--cs-os-muted);font-size:10px;line-height:1.5}
@@ -109,9 +109,9 @@ button.cs-btn-ghost:hover,.ghost:hover,.ce-secondary:hover,.ch-mini:hover,.sys-c
 .creator-engine h1{font-family:var(--display)!important;font-size:clamp(38px,5vw,66px)!important;font-weight:550!important;max-width:15ch!important}
 .ce-lead{max-width:760px!important;color:var(--cs-os-muted)!important;font-size:13px!important}
 .ce-roster{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:9px!important}
-.ce-roster button{padding:15px!important;border-radius:14px!important;border:1px solid var(--cs-os-line)!important;background:var(--cs-os-panel)!important}
+.ce-roster button{padding:11px!important;border-radius:14px!important;border:1px solid var(--cs-os-line)!important;background:var(--cs-os-panel)!important;display:grid!important;grid-template-columns:42px 1fr!important;grid-template-rows:auto auto!important;column-gap:10px!important;align-items:center!important}.ce-roster-image{width:42px!important;height:56px!important;object-fit:cover!important;border-radius:10px!important;grid-row:1/3!important;border:1px solid var(--cs-os-line2)!important}.ce-roster-pair{width:42px!important;height:56px!important;display:grid!important;grid-template-columns:1fr 1fr!important;gap:2px!important;grid-row:1/3!important;overflow:hidden!important;border-radius:10px!important}.ce-roster-pair img{width:100%!important;height:100%!important;object-fit:cover!important;min-width:0!important}
 .ce-roster button.active{background:var(--cs-os-accent-soft)!important;border-color:rgba(216,195,158,.26)!important;box-shadow:inset 3px 0 0 var(--cs-os-accent)!important}
-.ce-roster b{font-size:20px!important}.ce-roster span{color:var(--cs-os-muted)!important;font-size:10px!important}
+.ce-roster b{font-size:17px!important}.ce-roster span{color:var(--cs-os-muted)!important;font-size:9px!important}
 .ce-objectives{gap:7px!important}
 .ce-objectives button{padding:12px!important;border-radius:11px!important;border-color:var(--cs-os-line)!important;background:var(--cs-os-panel)!important}
 .ce-objectives button.active{background:var(--cs-os-accent-soft)!important;border-color:rgba(216,195,158,.23)!important}
@@ -120,7 +120,7 @@ button.cs-btn-ghost:hover,.ghost:hover,.ce-secondary:hover,.ch-mini:hover,.sys-c
 .ce-grid article,.ce-section{background:var(--cs-os-panel)!important;border-color:var(--cs-os-line)!important;border-radius:13px!important}
 .ce-grid{gap:9px!important}.ce-section{margin-top:9px!important}.ce-two{gap:9px!important}
 .ce-dna{display:grid;grid-template-columns:1.1fr .9fr;gap:9px;margin:12px 0}
-.ce-dna-card{padding:15px;background:var(--cs-os-panel)!important;border:1px solid var(--cs-os-line)!important;border-radius:14px}
+.ce-dna-card{padding:17px;background:var(--cs-os-panel)!important;border:1px solid var(--cs-os-line)!important;border-radius:14px}
 .ce-dna-card strong{display:block;font-size:15px}.ce-dna-card small{display:block;margin-top:4px;color:var(--cs-os-subtle);font-size:9px;letter-spacing:.12em;text-transform:uppercase}
 .ce-dna-card p{margin-top:8px;color:var(--cs-os-muted);font-size:10px;line-height:1.5}.ce-dna-quote{color:#d9d4c9!important;font-family:var(--display)!important;font-size:17px!important;line-height:1.15!important}
 .ce-dna-list{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px}
