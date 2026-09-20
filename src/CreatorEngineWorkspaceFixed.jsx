@@ -64,6 +64,7 @@ export default function CreatorEngineWorkspaceFixed() {
 
   const person = PEOPLE.find((p) => p[0] === persona) || PEOPLE[0]
   const job = JOBS.find((j) => j[0] === jobType) || JOBS[0]
+  const dna = creatorDnaFor(persona)
 
   async function loadRecent() {
     const { data } = await supabase.from('local_ai_jobs').select('id,title,status,created_at,persona_id,options').eq('owner_id', (await supabase.auth.getUser()).data.user?.id || '').eq('job_type', 'growth_mode').order('created_at', { ascending: false }).limit(30)
@@ -106,14 +107,66 @@ export default function CreatorEngineWorkspaceFixed() {
   return <main className="creator-engine">
     <style>{STYLE}</style>
     {!result ? <>
-      <div className="ce-kicker">CREATOR BUSINESS ENGINE</div><h1>Build the girls into businesses.</h1>
-      <p className="ce-lead">One operating layer for Cara and Lila across content, TikTok Shop, affiliates, Fanvue and audience growth. Choose what the work is supposed to do, then make the next experiment.</p>
-      <section className="ce-roster">{PEOPLE.map((p) => <button key={p[0]} className={persona === p[0] ? 'active' : ''} onClick={() => setPersona(p[0])}><b>{p[1]}</b><span>{p[2]}</span></button>)}</section>
+      <header>
+        <div className="ce-kicker">VOICES / CREATOR LAB</div>
+        <h1>Build a creator people can recognise.</h1>
+        <p className="ce-lead">Cara and Lila are not prompts. They are owned characters with different instincts, voices and story engines. This is where you decide what a creator business is testing next.</p>
+      </header>
+
+      <section className="ce-roster" aria-label="Owned creators">
+        {PEOPLE.map((p) => <button key={p[0]} className={persona === p[0] ? 'active' : ''} onClick={() => setPersona(p[0])}>
+          <b>{p[1]}</b><span>{p[2]}</span>
+        </button>)}
+      </section>
+
+      <section className="ce-dna" aria-label="Creator identity">
+        <article className="ce-dna-card">
+          <small>{dna.coreVerb || 'Creator identity'} · core need</small>
+          <strong>{dna.coreNeed || dna.coreDynamic || 'Distinct creator identity'}</strong>
+          <p className="ce-dna-quote">“{dna.soul || dna.sharedSoul || dna.signatureQuestion || ''}”</p>
+          <div className="ce-dna-list">
+            <div><b>Audience fantasy</b><span>{dna.audienceFantasy || dna.signatureQuestion}</span></div>
+            <div><b>Story engine</b><span>{dna.storyEngine || dna.contentEngine || dna.relationshipRules?.[0] || ''}</span></div>
+          </div>
+        </article>
+        <article className="ce-dna-card">
+          <small>{persona === 'cara_lila' ? 'Relationship DNA' : 'Behavioural source of truth'}</small>
+          <strong>{dna.socialRole || dna.coreDynamic || dna.signatureQuestion}</strong>
+          <p>{dna.narrativeArc || dna.contentEngine || 'The character should make decisions from her own worldview, not from a generic influencer template.'}</p>
+          <div className="ce-dna-list">
+            <div><b>{persona === 'cara_lila' ? 'Contrast' : 'Signature question'}</b><span>{persona === 'cara_lila' ? (dna.contrast || []).slice(0,2).join(' · ') : dna.signatureQuestion}</span></div>
+            <div><b>Audience feeling</b><span>{dna.audienceFantasy || 'A creator people recognise without being told who she is.'}</span></div>
+          </div>
+        </article>
+      </section>
+
+      <div className="ce-kicker">01 / MISSION</div>
       <section className="ce-objectives">{JOBS.map((j) => <button key={j[0]} className={jobType === j[0] ? 'active' : ''} onClick={() => setJobType(j[0])}><b>{j[1]}</b><span>{j[2]}</span></button>)}</section>
-      <section className="ce-form"><div className="ce-row"><label>Platform<select value={platform} onChange={(e) => setPlatform(e.target.value)}>{PLATFORMS.map((x) => <option key={x}>{x}</option>)}</select></label><label>Format<select value={format} onChange={(e) => setFormat(e.target.value)}>{FORMATS.map((x) => <option key={x}>{x}</option>)}</select></label></div><label>Reference / signal URL<input value={reference} onChange={(e) => setReference(e.target.value)} placeholder="TikTok, Instagram, YouTube, product, offer or content reference" /></label>{(jobType === 'tiktok_shop' || jobType === 'affiliate') ? <label>Product / offer<input value={offer} onChange={(e) => setOffer(e.target.value)} placeholder="What product or offer are you testing?" /></label> : null}<label>What are you trying?<textarea value={direction} onChange={(e) => setDirection(e.target.value)} placeholder="Trend, product, story, content idea, offer, series, conversion problem, test…" /></label>{error ? <div className="ce-error">{error}</div> : null}<div className="ce-actions"><span>{message || `${person[1]} · ${job[1]} · ${platform}`}</span><button onClick={build} disabled={busy} className="ce-primary">{busy ? 'Building…' : 'Build creator strategy →'}</button></div></section>
-      <section className="ce-recent"><b>Recent {person[1]} work</b>{recent.filter((x) => x.persona_id === persona).slice(0, 8).map((x) => <div key={x.id}><strong>{x.title}</strong><span>{x.status} · {new Date(x.created_at).toLocaleDateString('en-GB')}</span></div>)}</section>
+
+      <section className="ce-form">
+        <div className="ce-row">
+          <label>Platform<select value={platform} onChange={(e) => setPlatform(e.target.value)}>{PLATFORMS.map((x) => <option key={x}>{x}</option>)}</select></label>
+          <label>Format<select value={format} onChange={(e) => setFormat(e.target.value)}>{FORMATS.map((x) => <option key={x}>{x}</option>)}</select></label>
+        </div>
+        <label>Signal / reference<input value={reference} onChange={(e) => setReference(e.target.value)} placeholder="Winning post, trend, product, offer, story or content reference" /></label>
+        {(jobType === 'tiktok_shop' || jobType === 'affiliate') ? <label>Offer / product<input value={offer} onChange={(e) => setOffer(e.target.value)} placeholder="What commercial test are you considering?" /></label> : null}
+        <label>Operator direction<textarea value={direction} onChange={(e) => setDirection(e.target.value)} placeholder="What are you trying to learn, test or make happen?" /></label>
+        {error ? <div className="ce-error">{error}</div> : null}
+        <div className="ce-actions">
+          <span>{message || (person[1]+' · '+job[1]+' · '+platform)}</span>
+          <button onClick={build} disabled={busy} className="ce-primary">{busy ? 'Building…' : 'Run the mission →'}</button>
+        </div>
+      </section>
+
+      <section className="ce-recent"><b>Recent work · {person[1]}</b>{recent.filter((x) => x.persona_id === persona).slice(0, 8).map((x) => <div key={x.id}><strong>{x.title}</strong><span>{x.status} · {new Date(x.created_at).toLocaleDateString('en-GB')}</span></div>)}</section>
     </> : <>
-      <div className="ce-kicker">{person[1].toUpperCase()} · {job[1].toUpperCase()}</div><h1>{pack.series || brief.recommended_subject || job[1]}</h1><p className="ce-lead">{brief.recommended_angle || brief.finding || pack.concept || 'Creator experiment ready.'}</p>
+      <div className="ce-kicker">{person[1].toUpperCase()} · {job[1].toUpperCase()} · RESULT</div>
+      <h1>{pack.series || brief.recommended_subject || job[1]}</h1>
+      <p className="ce-lead">{brief.recommended_angle || brief.finding || pack.concept || 'Creator experiment ready.'}</p>
+      <section className="ce-dna">
+        <article className="ce-dna-card"><small>Character choice</small><strong>{dna.coreVerb || 'Creator identity'}</strong><p>{dna.signatureQuestion || dna.coreDynamic || ''}</p></article>
+        <article className="ce-dna-card"><small>Next handoff</small><strong>Make → Publish → Learn</strong><p>The strategy is the decision layer. Take the approved concept into Make, then bring the market result back into Learn.</p></article>
+      </section>
       <div className="ce-grid"><article><span>What Cornerstone found</span><b>{brief.finding || 'Opportunity identified.'}</b></article><article><span>Mechanism</span><b>{brief.mechanism || 'Creator-native mechanism.'}</b></article><article><span>Next action</span><b>{brief.next_action || 'Run the first test.'}</b></article><article><span>Money route</span><b>{result?.monetisation?.route || job[1]}</b></article></div>
       {list(result?.creator_research).length ? <section className="ce-section"><span>Evidence & comparable patterns</span>{list(result.creator_research).map((x, i) => <div key={i}>{renderItem(x)}</div>)}</section> : null}
       {list(pack.titles).length ? <section className="ce-section"><span>Titles / headlines</span>{list(pack.titles, 8).map((x, i) => <div key={i}>{renderItem(x)}</div>)}</section> : null}
