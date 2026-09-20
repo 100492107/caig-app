@@ -62,10 +62,10 @@ async function readState(){
   };
   else if(caseStudyUpdates.length===0) next={
     title:'Start the public case study',
-    body:'Record the starting point before the numbers get interesting. The case study should preserve the baseline, gaps, experiments and decisions as they happen.',
+    body:'Record the starting point before the numbers get interesting. Preserve the baseline, gaps, experiments and decisions as they happen.',
     href:'/business/case-study',cta:'Open Case Study',reason:'No weekly operating record exists yet.'
   };
-  if(failed.length) next={
+  else if(published.length&&evidence.length===0) next={
     title:'Close the first loop',
     body:'Something reached the market. Record what actually happened so the system can learn instead of guessing.',
     href:'/content/measurement',cta:'Record result',reason:'Published work has no measured result yet.'
