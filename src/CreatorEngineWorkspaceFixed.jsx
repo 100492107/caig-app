@@ -14,6 +14,7 @@ const JOBS = [
   ['fanvue', 'Fanvue', 'Owned-creator positioning, cadence and conversion.'],
   ['growth', 'Audience growth', 'Hooks, formats and recurring series.'],
 ]
+const CREATOR_IMAGES = { cara: 'https://zvyioxhwdyocaanzcgqf.supabase.co/storage/v1/object/public/cara%20ref/Cara_5.jpg', lila: 'https://zvyioxhwdyocaanzcgqf.supabase.co/storage/v1/object/public/lila%20ref/lila_2.jpeg' }
 const PLATFORMS = ['TikTok', 'Instagram', 'YouTube Shorts', 'TikTok + Instagram', 'Multi-platform']
 const FORMATS = ['Personal moment', 'POV / relatable', 'Quick take', 'Micro-story', 'GRWM', 'Day in the life', 'Photo slideshow', 'Reaction', 'Product-led demo', 'Story + recommendation']
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
@@ -115,6 +116,7 @@ export default function CreatorEngineWorkspaceFixed() {
 
       <section className="ce-roster" aria-label="Owned creators">
         {PEOPLE.map((p) => <button key={p[0]} className={persona === p[0] ? 'active' : ''} onClick={() => setPersona(p[0])}>
+          {p[0] === 'cara_lila' ? <div className="ce-roster-pair"><img src={CREATOR_IMAGES.cara} alt="" /><img src={CREATOR_IMAGES.lila} alt="" /></div> : <img className="ce-roster-image" src={CREATOR_IMAGES[p[0]]} alt={p[1]+' reference'} />}
           <b>{p[1]}</b><span>{p[2]}</span>
         </button>)}
       </section>
