@@ -8,7 +8,7 @@ Cornerstone uses a hybrid architecture. The hosted application handles UI, routi
 
 | Service | Address | Model | Role |
 |---|---|---|---|
-| Text Qwen | `http://127.0.0.1:8000` | `mlx-community/Qwen3-8B-4bit` | reasoning, research synthesis, content planning and generation |
+| Text Qwen | `http://127.0.0.1:8000` | `mlx-community/Qwen3.5-9B-4bit` | reasoning, research synthesis, content planning and generation |
 | Vision Qwen | `http://127.0.0.1:8001` | `mlx-community/Qwen2.5-VL-3B-Instruct-4bit` | visual understanding / scene verification |
 | New Life coach | separate local worker | project-specific | New Life personal operating system |
 
