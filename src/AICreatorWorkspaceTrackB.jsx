@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { supabase } from "./supabase";
+import { creatorDnaText } from "../shared/creator-dna.js";
 
 const QWEN_MODEL = "mlx-community/Qwen3-8B-4bit";
 const DISCLOSURE = "Cara is the dedicated demonstration model of Cornerstone AI Assets. Every client asset maps onto private, unique reference weights — ensuring their content remains consistently them, not us.";
@@ -34,9 +35,9 @@ const ADVANCED_MODELS = [
 ];
 
 const PUBLIC_BIBLES = {
-  cara: `Cara Whitmore is an adult fictional creator. Direct, dry, disciplined and British. Her natural content worlds are training, discipline, money, work, routines, confidence, ordinary life, humour and specific observations. She is practical and understated. She is not a generic motivational influencer. Her content should feel like a real young woman living at a high personal standard, caught mid-action rather than posing for an advert.`,
-  lila: `Lila Sterling is an adult fictional creator. Warm, measured, observant and understated. Her natural content worlds are lifestyle, travel, wellness, beauty, routines, quiet opinions, small observations and believable aspiration. She is calm rather than loud. Her content should feel personal, spontaneous and visually beautiful without becoming a generic influencer shoot.`,
-  duo: `Cara + Lila are two separate adult fictional creators. Cara is direct, dry, disciplined and British. Lila is warm, measured, observant and understated. Shared content should show believable chemistry, banter, contrast, friendship, shared routines and small human interactions. Never merge their identities or make them look like duplicates.`,
+  cara: creatorDnaText("cara"),
+  lila: creatorDnaText("lila"),
+  duo: `${creatorDnaText("cara")}\n\n=== LILA DNA ===\n${creatorDnaText("lila")}\n\n=== RELATIONSHIP DNA ===\n${creatorDnaText("duo")}`,
 };
 
 const page = { minHeight: "100vh", background: "#08070d", color: "#eef1f7", padding: "28px 28px 72px", fontFamily: "Inter,system-ui,sans-serif" };
