@@ -6,7 +6,7 @@ const input = { width: "100%", boxSizing: "border-box", background: "#151822", c
 const button = { border: "1px solid #303648", background: "#151924", color: "#eef1f7", borderRadius: 9, padding: "10px 14px", fontWeight: 800, cursor: "pointer" };
 const primary = { ...button, borderColor: "#d4af37", background: "rgba(212,175,55,.14)", color: "#f7d77b" };
 const danger = { ...button, borderColor: "#6b3131", background: "rgba(160,60,60,.1)", color: "#ffb0b0" };
-const MODEL = "mlx-community/Qwen3-8B-4bit";
+const MODEL = "mlx-community/Qwen3.5-9B-4bit";
 
 const DEFAULT_SYSTEM = `You are the local creative director and video prompt writer for CornerstoneAIAssets.
 Write production-grade, human, platform-native output. Avoid generic AI phrasing, hustle-bro language, fabricated claims and empty adjectives.
