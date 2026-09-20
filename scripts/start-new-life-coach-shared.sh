@@ -19,6 +19,6 @@ set +a
 
 # Force the shared CAIG/New Life model service; application data remains isolated.
 export QWEN_URL="http://127.0.0.1:8000"
-export QWEN_MODEL="mlx-community/Qwen3-8B-4bit"
+export QWEN_MODEL="mlx-community/Qwen3.5-9B-4bit"
 
 exec node new-life-coach-worker.mjs
