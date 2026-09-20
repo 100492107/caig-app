@@ -58,7 +58,7 @@ chmod +x scripts/qwen-worker.mjs scripts/run-local-qwen.sh
 
 echo "Local Qwen MLX stack upgraded."
 echo "Primary: $PRIMARY_MODEL (~5.95 GB download)."
-echo "Fallback: $FALLBACK_MODEL (~2.9 GB download)."
+echo "Fallback: $FALLBACK_MODEL (~3.06 GB download)."
 echo "1) Ensure .env.qwen.local has VITE_SUPABASE_URL (or SUPABASE_URL) and SUPABASE_SERVICE_ROLE_KEY"
 echo "2) Terminal A: source .env.qwen.local && bash scripts/run-local-qwen.sh"
 echo "3) Terminal B: bash scripts/start-local-ai-stack.sh"
