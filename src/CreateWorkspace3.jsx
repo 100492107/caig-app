@@ -223,7 +223,7 @@ export default function CreateWorkspace() {
           owner_id: auth.user.id,
           title: `Original package · ${niche}`,
           job_type: 'content_engine',
-          model: 'mlx-community/Qwen3-8B-4bit',
+          model: 'mlx-community/Qwen3.5-9B-4bit',
           persona_id: 'cornerstone_content_engine',
           system_prompt:
             'You are Cornerstone Content Engine. Build original packages from source mechanisms. Never copy wording, identity, branding, scenes or distinctive packaging. Return operator-first JSON.',
