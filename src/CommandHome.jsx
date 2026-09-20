@@ -15,7 +15,7 @@ const age=v=>{
 };
 
 async function readState(){
-  const [p,j,pu,e,h,l,bm,sm]=await Promise.all([
+  const [p,j,pu,e,h,l,bm,sm,cs]=await Promise.all([
     supabase.from('track_b_content_projects').select('id,title,status,updated_at,created_at').order('updated_at',{ascending:false}).limit(200),
     supabase.from('track_b_production_jobs').select('id,project_id,mode,status,updated_at,created_at').order('updated_at',{ascending:false}).limit(200),
     supabase.from('track_b_publications').select('id,project_id,title,platform,status,scheduled_at,published_at,updated_at,created_at').order('updated_at',{ascending:false}).limit(200),
@@ -23,10 +23,11 @@ async function readState(){
     supabase.from('local_ai_worker_heartbeat').select('status,last_seen,current_job_type').eq('id','qwen').maybeSingle(),
     supabase.from('track_b_learning_recommendations').select('id,recommendation_type,format,invariant_pattern,confidence,status,source_evidence_id,created_at').eq('status','active').order('created_at',{ascending:false}).limit(20),
     supabase.from('cornerstone_metric_snapshots').select('scope,platform,audience_followers,subscribers,paid_subscribers,revenue,captured_at,verified').order('snapshot_date',{ascending:false}).limit(200),
-    supabase.from('subscriber_memory').select('id,lifetime_spend,platform').limit(1000)
+    supabase.from('subscriber_memory').select('id,lifetime_spend,platform').limit(1000),
+    supabase.from('cornerstone_case_study_updates').select('id').order('week_ending',{ascending:false}).limit(1)
   ]);
-  for(const r of [p,j,pu,e,h,l,bm,sm]) if(r.error) throw r.error;
-  const projects=p.data||[],jobs=j.data||[],pubs=pu.data||[],evidence=e.data||[],hb=h.data||{},learning=l.data||[],metricSnapshots=bm.data||[],subscriberRows=sm.data||[];
+  for(const r of [p,j,pu,e,h,l,bm,sm,cs]) if(r.error) throw r.error;
+  const projects=p.data||[],jobs=j.data||[],pubs=pu.data||[],evidence=e.data||[],hb=h.data||{},learning=l.data||[],metricSnapshots=bm.data||[],subscriberRows=sm.data||[],caseStudyUpdates=cs.data||[];
   const fresh=Boolean(hb.last_seen&&Date.now()-new Date(hb.last_seen).getTime()<90000);
   const online=fresh&&String(hb.status||'').toLowerCase()!=='offline';
   const failed=[...jobs.filter(x=>FAIL.has(String(x.status))),...pubs.filter(x=>FAIL.has(String(x.status)))];
@@ -59,7 +60,12 @@ async function readState(){
     body:'The local intelligence worker has not checked in recently. New analysis is not ready to run reliably.',
     href:'/system',cta:'Check System',reason:'Cornerstone cannot build on evidence while intelligence is offline.'
   };
-  else if(published.length&&evidence.length===0) next={
+  else if(caseStudyUpdates.length===0) next={
+    title:'Start the public case study',
+    body:'Record the starting point before the numbers get interesting. The case study should preserve the baseline, gaps, experiments and decisions as they happen.',
+    href:'/business/case-study',cta:'Open Case Study',reason:'No weekly operating record exists yet.'
+  };
+  if(failed.length) next={
     title:'Close the first loop',
     body:'Something reached the market. Record what actually happened so the system can learn instead of guessing.',
     href:'/content/measurement',cta:'Record result',reason:'Published work has no measured result yet.'
@@ -101,7 +107,7 @@ async function readState(){
     winners:winners.length,online,lastSeen:hb.last_seen,currentJob:hb.current_job_type,
     failed:failed.length,queued:jobs.filter(x=>x.status==='queued').length,
     processing:jobs.filter(x=>x.status==='processing').length,recent,next,learning,
-    closedLoops:evidence.length,loop,currentIndex:firstOpen<0?5:firstOpen
+    closedLoops:evidence.length,caseStudyUpdates:caseStudyUpdates.length,loop,currentIndex:firstOpen<0?5:firstOpen
   };
 }
 
