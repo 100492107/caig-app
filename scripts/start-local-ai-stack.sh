@@ -25,7 +25,7 @@ STATE_DIR="$ROOT/.local-ai-runtime"
 LOG_DIR="$STATE_DIR/logs"
 mkdir -p "$LOG_DIR"
 
-export QWEN_MODEL="${QWEN_MODEL:-mlx-community/Qwen3-8B-4bit}"
+export QWEN_MODEL="${QWEN_MODEL:-mlx-community/Qwen3.5-9B-4bit}"
 export QWEN_HOST="${QWEN_HOST:-127.0.0.1}"
 export QWEN_PORT="${QWEN_PORT:-8000}"
 export QWEN_VISION_MODEL="${QWEN_VISION_MODEL:-mlx-community/Qwen2.5-VL-3B-Instruct-4bit}"
@@ -39,7 +39,7 @@ port_ready() { local host="$1" port="$2"; curl -fsS --max-time 2 "http://${host}
 text_qwen_ready() {
   local body
   body="$(curl -fsS --max-time 2 "http://${QWEN_HOST}:${QWEN_PORT}/v1/models" 2>/dev/null || true)"
-  [[ -n "$body" ]] && echo "$body" | grep -Eqi 'Qwen3|qwen2\.5-7B|Qwen2\.5-3B-Instruct[^-]'
+  [[ -n "$body" ]] && echo "$body" | grep -Eqi 'Qwen3\.5-9B|Qwen3\.5-4B|Qwen3|qwen2\.5-7B|Qwen2\.5-3B-Instruct[^-]'
 }
 vision_ready() {
   local body
