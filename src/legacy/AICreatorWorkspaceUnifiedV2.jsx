@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { supabase } from "./supabase";
 import "./creativeWorkspace.css";
 
-const QWEN_MODEL = "mlx-community/Qwen3-8B-4bit";
+const QWEN_MODEL = "mlx-community/Qwen3.5-9B-4bit";
 const DISCLOSURE = "Cara is the dedicated demonstration model of Cornerstone AI Assets. Every client asset maps onto private, unique reference weights — ensuring their content remains consistently them, not us.";
 
 const PEOPLE = [
