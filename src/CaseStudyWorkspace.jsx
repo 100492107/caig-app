@@ -82,3 +82,4 @@ export default function CaseStudyWorkspace(){
    </article>
   </main>
  </EnterpriseShell>
+}
