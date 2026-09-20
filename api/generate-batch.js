@@ -3,6 +3,7 @@
 // browser can save to queue in real-time regardless of screen state.
 
 import { CARA_IDENTITY_LOCK, getPersonaVisual } from "./cara-config.js";
+import { creatorDnaText } from "../shared/creator-dna.js";
 
 // Persona files inlined — Vercel serverless has no runtime filesystem access.
 // Update these strings when persona files change.
@@ -673,11 +674,17 @@ ${PERSONA_FILES.cara?.persona || ""}
 CARA VOICE:
 ${PERSONA_FILES.cara?.voice || ""}
 
+CARA FROZEN CREATOR DNA:
+${creatorDnaText("cara")}
+
 LILA PUBLIC PERSONA:
 ${PERSONA_FILES.lila?.persona || ""}
 
 LILA VOICE:
 ${PERSONA_FILES.lila?.voice || ""}
+
+LILA FROZEN CREATOR DNA:
+${creatorDnaText("lila")}
 
 === THIS POST'S CAST ===
 ${cast.toUpperCase()}: ${profile.profile}
@@ -760,11 +767,17 @@ function generatePost(apiKey, persona, platform, pillar, postIndex, usedHooks, i
 ${activePersonaText ? `=== WHO YOU ARE ===\n${activePersonaText}\n` : `CHARACTER: ${persona.char}`}
 ${activeVoiceText ? `=== YOUR VOICE ===\n${activeVoiceText}\n` : `VOICE: ${persona.voice}`}
 
+=== FROZEN CREATOR DNA ===
+${creatorDnaText(persona.id)}
+
 === HOW SHE SHOULD SOUND RIGHT NOW ===
 ${mood ? mood.instruction : "Write in whatever register genuinely fits — but with real personality, not a composed default."}
 This mood should be obvious in the writing. Do not default back to composed/put-together if the mood says otherwise.
 
 PERSONALITY ENFORCEMENT (non-negotiable for both tracks):
+- Treat the FROZEN CREATOR DNA as the psychological source of truth. Do not collapse it into surface adjectives.
+- Before choosing a content angle, determine what this character would actually NOTICE, WANT, REFUSE, CHOOSE or FIND RIDICULOUS about the situation.
+- The character's worldview and contradictions must shape the decision, not merely the wording.
 MONEY MODE (Track B):
 - Fanvue/grid content is the turnstile. Real revenue is messages, tips, unlocks — especially in the first 48 hours after someone subscribes.
 - Captions must feel like a real person who might reply in DMs, not a brochure. Soft open door, never hard sell.
