@@ -70,7 +70,7 @@ async function queueCaption({ persona, platform, file, prompt }) {
   const { data, error } = await supabase.from("local_ai_jobs").insert({
     title: `Caption · ${persona} · ${platform} · ${file.name}`,
     job_type: "caption_writer",
-    model: "mlx-community/Qwen3-8B-4bit",
+    model: "mlx-community/Qwen3.5-9B-4bit",
     persona_id: persona === "duo" ? "cara_lila" : persona,
     system_prompt: "You are Qwen, the local social caption strategist for CornerstoneAIAssets. The supplied image facts are authoritative. Never invent visual facts or performance numbers. Return JSON only.",
     user_prompt: prompt,
