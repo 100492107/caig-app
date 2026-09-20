@@ -31,8 +31,9 @@ text_model_ready() {
   local body
   body="$(curl -fsS --max-time 2 "http://${QWEN_HOST}:${QWEN_PORT}/v1/models" 2>/dev/null || true)"
   if [[ -z "$body" ]]; then return 1; fi
-  # Success if Qwen3 (or similar text) is listed — VL aliases in the same payload are fine
-  echo "$body" | grep -Eqi 'Qwen3\.5-9B|Qwen3\.5-4B|Qwen3|qwen2\.5-7B'
+  # Only treat the requested primary or fallback model as healthy.
+  echo "$body" | grep -Fqi "$QWEN_MODEL" && return 0
+  echo "$body" | grep -Fqi "$QWEN_FALLBACK_MODEL"
 }
 
 if text_model_ready; then
@@ -46,13 +47,10 @@ fi
 
 if curl -fsS --max-time 1 "http://${QWEN_HOST}:${QWEN_PORT}/v1/models" >/dev/null 2>&1; then
   body="$(curl -fsS --max-time 2 "http://${QWEN_HOST}:${QWEN_PORT}/v1/models" 2>/dev/null || true)"
-  if echo "$body" | grep -Eqi 'VL' && ! echo "$body" | grep -Eqi 'Qwen3'; then
-    echo "Non-text model is bound to ${QWEN_PORT}. Freeing port for Qwen text…"
-    pkill -f "mlx_vlm.server.*${QWEN_PORT}" 2>/dev/null || true
-    pkill -f "mlx_lm.server.*${QWEN_PORT}" 2>/dev/null || true
-    sleep 1
-  fi
-fi
+  echo "Qwen endpoint is occupied by a different model. Replacing it with \${QWEN_MODEL}…"
+  pkill -f "mlx_vlm.server.*\${QWEN_PORT}" 2>/dev/null || true
+  pkill -f "mlx_lm.server.*\${QWEN_PORT}" 2>/dev/null || true
+  sleep 1fi
 
 if ! .venv-qwen/bin/python -c "import mlx_lm" >/dev/null 2>&1; then
   echo "mlx-lm is not installed in .venv-qwen. Run: .venv-qwen/bin/python -m pip install -U mlx-lm"
