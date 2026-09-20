@@ -84,7 +84,7 @@ export default function CreatorEngineWorkspaceFixed() {
         owner_id: auth.user.id,
         title: `${person[1]} · ${job[1]} · ${platform}`,
         job_type: 'growth_mode',
-        model: 'mlx-community/Qwen3-8B-4bit',
+        model: 'mlx-community/Qwen3.5-9B-4bit',
         persona_id: persona,
         system_prompt: `You are Cornerstone's creator growth director. Research domain: TRACK_B_CREATOR_GROWTH. Persona is ${persona}. Objective is ${jobType}. Platform is ${platform}. Protect creator identity and use the relevant character bible.\n\nFROZEN CREATOR DNA:\n${creatorDnaText(persona)}\n\nCHARACTER REASONING RULE: Do not reduce the creator to surface adjectives. Let the worldview, contradictions, social role and narrative arc drive the strategy.`,
         user_prompt: prompt,
