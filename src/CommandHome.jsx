@@ -103,7 +103,7 @@ async function readState(){
   const firstOpen=loop.findIndex(x=>!x[2]);
 
   return {
-    revenue:revenue+snapshotRevenue,measuredRevenue:revenue,snapshotRevenue,followers,subscribers,paidSubscribers,subscriberSpend,packages:projects.length,inMotion:production.length+scheduled.length,published:published.length,
+    revenue:latestBusiness?Number(latestBusiness.revenue||0):revenue,measuredRevenue:revenue,snapshotRevenue,followers,subscribers,paidSubscribers,subscriberSpend,packages:projects.length,inMotion:production.length+scheduled.length,published:published.length,
     winners:winners.length,online,lastSeen:hb.last_seen,currentJob:hb.current_job_type,
     failed:failed.length,queued:jobs.filter(x=>x.status==='queued').length,
     processing:jobs.filter(x=>x.status==='processing').length,recent,next,learning,
@@ -154,7 +154,7 @@ export default function CommandHome(){
         <div className="return">
           <b>{money(x.revenue)}</b>
           <span>Revenue recorded / latest snapshot</span>
-          <small style={{display:'block',marginTop:8,color:'var(--cs-os-subtle)',fontSize:9}}>Evidence {money(x.measuredRevenue)} · Accounting snapshot {money(x.snapshotRevenue)}</small>
+          <small style={{display:'block',marginTop:8,color:'var(--cs-os-subtle)',fontSize:9}}>Performance evidence {money(x.measuredRevenue)} · Business snapshot {money(x.snapshotRevenue)}</small>
         </div>
       </section>
 
