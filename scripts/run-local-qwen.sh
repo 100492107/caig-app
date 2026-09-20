@@ -12,7 +12,7 @@ if [[ -f .env.qwen.local ]]; then
 fi
 
 QWEN_MODEL="${QWEN_MODEL:-mlx-community/Qwen3.5-9B-4bit}"
-QWEN_FALLBACK_MODEL="${QWEN_FALLBACK_MODEL:-mlx-community/Qwen3.5-4B-OptiQ-4bit}"
+QWEN_FALLBACK_MODEL="${QWEN_FALLBACK_MODEL:-mlx-community/Qwen3.5-4B-4bit}"
 QWEN_HOST="${QWEN_HOST:-127.0.0.1}"
 QWEN_PORT="${QWEN_PORT:-8000}"
 # 8002 was a retired legacy text endpoint; migrate it automatically.
