@@ -46,8 +46,9 @@ QWEN_IDLE_MS=3000
 EOF
   echo "Created .env.qwen.local — add your Supabase URL and service-role key."
 else
-  # Upgrade only the old Cornerstone default. Preserve deliberate operator overrides.
+  # Migrate only known legacy defaults. Preserve deliberate operator overrides.
   sed -i '' 's#mlx-community/Qwen3-8B-4bit#mlx-community/Qwen3.5-9B-4bit#g' "$ROOT/.env.qwen.local"
+  sed -i '' 's#127\.0\.0\.1:8002#127.0.0.1:8000#g' "$ROOT/.env.qwen.local"
   if ! grep -q '^QWEN_FALLBACK_MODEL=' "$ROOT/.env.qwen.local"; then
     printf '\nQWEN_FALLBACK_MODEL=%s\n' "$FALLBACK_MODEL" >> "$ROOT/.env.qwen.local"
   fi
