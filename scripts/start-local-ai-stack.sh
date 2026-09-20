@@ -93,7 +93,7 @@ else
 fi
 
 if [[ -n "${SUPABASE_SERVICE_ROLE_KEY:-}" && -n "${VITE_SUPABASE_URL:-${SUPABASE_URL:-}}" ]]; then
-  if ! is_running "scripts/qwen-heartbeat.mjs"; then start_bg "qwen-heartbeat" "scripts/qwen-heartbeat.mjs" "qwen-heartbeat.log" env QWEN_MODEL="$QWEN_MODEL" QWEN_URL="http://${QWEN_HOST}:${QWEN_PORT}" "$NODE_BIN" "$ROOT/scripts/qwen-heartbeat.mjs"; fi
+  restart_bg "qwen-heartbeat" "scripts/qwen-heartbeat.mjs" "qwen-heartbeat.log" env QWEN_MODEL="$QWEN_MODEL" QWEN_URL="http://${QWEN_HOST}:${QWEN_PORT}" "$NODE_BIN" "$ROOT/scripts/qwen-heartbeat.mjs"
 else
   echo "[LOCAL AI] heartbeat skipped: Supabase worker credentials not loaded"
 fi
