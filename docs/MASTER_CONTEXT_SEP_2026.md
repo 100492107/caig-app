@@ -110,7 +110,7 @@ The app must optimise for evidence and output, not for feature count. Client Del
 Known current configuration:
 
 - Text Qwen server: `http://127.0.0.1:8000`
-- Text model: `mlx-community/Qwen3-8B-4bit`
+- Text model: `mlx-community/Qwen3.5-9B-4bit`
 - Vision Qwen server: `http://127.0.0.1:8001`
 - Vision model: `mlx-community/Qwen2.5-VL-3B-Instruct-4bit`
 - Local worker project: `~/Business/caig-local-worker`
