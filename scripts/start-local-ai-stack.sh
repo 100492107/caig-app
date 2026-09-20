@@ -39,7 +39,9 @@ port_ready() { local host="$1" port="$2"; curl -fsS --max-time 2 "http://${host}
 text_qwen_ready() {
   local body
   body="$(curl -fsS --max-time 2 "http://${QWEN_HOST}:${QWEN_PORT}/v1/models" 2>/dev/null || true)"
-  [[ -n "$body" ]] && echo "$body" | grep -Eqi 'Qwen3\.5-9B|Qwen3\.5-4B|Qwen3|qwen2\.5-7B|Qwen2\.5-3B-Instruct[^-]'
+  [[ -n "$body" ]] || return 1
+  echo "$body" | grep -Fqi "$QWEN_MODEL" && return 0
+  echo "$body" | grep -Fqi "$QWEN_FALLBACK_MODEL"
 }
 vision_ready() {
   local body
@@ -77,12 +79,9 @@ if text_qwen_ready; then
   echo "[LOCAL AI] Qwen text already online on ${QWEN_HOST}:${QWEN_PORT}"
 else
   if port_ready "$QWEN_HOST" "$QWEN_PORT"; then
-    echo "[LOCAL AI] port ${QWEN_PORT} is up but Qwen3 text model not listed. Freeing port…"
-    pkill -f "mlx_vlm.server.*${QWEN_PORT}" 2>/dev/null || true
-    body="$(curl -fsS --max-time 2 "http://${QWEN_HOST}:${QWEN_PORT}/v1/models" 2>/dev/null || true)"
-    if echo "$body" | grep -Eqi 'VL' && ! echo "$body" | grep -Eqi 'Qwen3'; then
-      pkill -f "mlx_lm.server.*${QWEN_PORT}" 2>/dev/null || true
-    fi
+    echo "[LOCAL AI] port \${QWEN_PORT} is up but the requested Qwen3.5 model is not listed. Freeing port…"
+    pkill -f "mlx_vlm.server.*\${QWEN_PORT}" 2>/dev/null || true
+    pkill -f "mlx_lm.server.*\${QWEN_PORT}" 2>/dev/null || true
     sleep 1
   fi
   if ! text_qwen_ready; then
