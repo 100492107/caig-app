@@ -29,6 +29,8 @@ export QWEN_MODEL="${QWEN_MODEL:-mlx-community/Qwen3.5-9B-4bit}"
 export QWEN_FALLBACK_MODEL="${QWEN_FALLBACK_MODEL:-mlx-community/Qwen3.5-4B-OptiQ-4bit}"
 export QWEN_HOST="${QWEN_HOST:-127.0.0.1}"
 export QWEN_PORT="${QWEN_PORT:-8000}"
+# 8002 was a retired legacy text endpoint; always migrate it to the canonical 8000.
+if [[ "$QWEN_PORT" == "8002" ]]; then export QWEN_PORT="8000"; fi
 export QWEN_VISION_MODEL="${QWEN_VISION_MODEL:-mlx-community/Qwen2.5-VL-3B-Instruct-4bit}"
 export QWEN_VISION_HOST="${QWEN_VISION_HOST:-127.0.0.1}"
 export QWEN_VISION_PORT="${QWEN_VISION_PORT:-8001}"
@@ -80,9 +82,9 @@ if text_qwen_ready; then
   echo "[LOCAL AI] Qwen text already online on ${QWEN_HOST}:${QWEN_PORT}"
 else
   if port_ready "$QWEN_HOST" "$QWEN_PORT"; then
-    echo "[LOCAL AI] port \${QWEN_PORT} is up but the requested Qwen3.5 model is not listed. Freeing port…"
-    pkill -f "mlx_vlm.server.*\${QWEN_PORT}" 2>/dev/null || true
-    pkill -f "mlx_lm.server.*\${QWEN_PORT}" 2>/dev/null || true
+    echo "[LOCAL AI] port ${QWEN_PORT} is up but the requested Qwen3.5 model is not listed. Freeing port…"
+    pkill -f "mlx_vlm.server.*${QWEN_PORT}" 2>/dev/null || true
+    pkill -f "mlx_lm.server.*${QWEN_PORT}" 2>/dev/null || true
     sleep 1
   fi
   if ! text_qwen_ready; then
