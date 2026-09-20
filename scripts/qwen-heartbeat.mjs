@@ -5,7 +5,7 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = String(process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || '').replace(/\/+$/, '');
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const qwenUrl = String(process.env.QWEN_URL || 'http://127.0.0.1:8002').replace(/\/$/, '');
-const model = process.env.QWEN_MODEL || 'mlx-community/Qwen3-8B-4bit';
+const model = process.env.QWEN_MODEL || 'mlx-community/Qwen3.5-9B-4bit';
 const intervalMs = Number(process.env.QWEN_HEARTBEAT_MS || 5000);
 
 if (!supabaseUrl || !serviceKey) {
