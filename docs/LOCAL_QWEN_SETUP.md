@@ -9,7 +9,7 @@ Cornerstone uses the Mac as the local intelligence and media-processing layer. T
 
 Default local model:
 
-`mlx-community/Qwen3-8B-4bit`
+`mlx-community/Qwen3.5-9B-4bit`
 
 Endpoint:
 
