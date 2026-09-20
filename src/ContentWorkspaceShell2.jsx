@@ -8,12 +8,12 @@ import CanonicalPublishWorkspace from './CanonicalPublishWorkspace.jsx'
 import CanonicalMeasureWorkspace from './CanonicalMeasureWorkspace.jsx'
 
 const STAGES = [
-  ['remake', 'Create', 'Start from a winning reference or a clear idea.'],
-  ['creators', 'Voices', 'Run Cara and Lila as owned creator businesses across every platform.'],
-  ['profiles', 'Channels', 'Where it ships and earns.'],
-  ['production', 'Make', 'Turn the package into media.'],
-  ['publish', 'Publish', 'Schedule what goes live.'],
-  ['measurement', 'Learn', 'Record the result. Improve the next one.'],
+  ['remake', 'Build', 'Start from evidence. Turn a winning mechanism into an original package.'],
+  ['creators', 'Voices', 'Run Cara and Lila as distinct owned creator businesses, not generic personas.'],
+  ['profiles', 'Channels', 'Decide where each asset lives, grows and earns.'],
+  ['production', 'Make', 'Turn the package into finished media.'],
+  ['publish', 'Publish', 'Put the right work into the market.'],
+  ['measurement', 'Learn', 'Record the result. Turn evidence into the next move.'],
 ]
 
 function stageFor(path) {
@@ -37,11 +37,28 @@ export default function ContentWorkspaceShell2() {
   const stage = stageFor(window.location.pathname)
   const item = STAGES.find(([id]) => id === stage) || STAGES[0]
   const n = STAGES.findIndex(([id]) => id === stage) + 1
-  return <EnterpriseShell active="content" eyebrow={`Create · ${item[1]}`}>
-    <div className="cs-page">
-      <header className="cs-page-head"><div className="eyebrow">Step {n} of 6</div><h1>{item[1]}</h1><p>{item[2]}</p></header>
-      <nav className="cs-flow" aria-label="Workflow">{STAGES.map(([id, label]) => <a key={id} href={`/content/${id}`} className={stage === id ? 'is-active' : ''}><i />{label}</a>)}</nav>
-      <Workspace stage={stage} />
-    </div>
-  </EnterpriseShell>
+
+  return (
+    <EnterpriseShell active={stage === 'creators' ? 'voices' : stage} eyebrow={item[1]}>
+      <div className="cs-page">
+        <header className="cs-page-head">
+          <div className="eyebrow">The creator loop · Step {n} of 6</div>
+          <h1>{item[1]}</h1>
+          <p>{item[2]}</p>
+        </header>
+
+        <nav className="cs-flow" aria-label="Creator business loop">
+          {STAGES.map(([id, label, desc], index) => (
+            <a key={id} href={`/content/${id}`} className={stage === id ? 'is-active' : ''}>
+              <i />
+              <span>{String(index + 1).padStart(2, '0')} · {label}</span>
+              <small>{desc}</small>
+            </a>
+          ))}
+        </nav>
+
+        <Workspace stage={stage} />
+      </div>
+    </EnterpriseShell>
+  )
 }
