@@ -5,7 +5,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
 PRIMARY_MODEL="mlx-community/Qwen3.5-9B-4bit"
-FALLBACK_MODEL="mlx-community/Qwen3.5-4B-MLX-4bit"
+FALLBACK_MODEL="mlx-community/Qwen3.5-4B-OptiQ-4bit"
 
 if [[ "$(uname -s)" != "Darwin" ]]; then
   echo "This Qwen MLX setup targets macOS."
@@ -31,7 +31,7 @@ fi
 VENV="$ROOT/.venv-qwen"
 python3 -m venv "$VENV"
 "$VENV/bin/python" -m pip install --upgrade pip
-"$VENV/bin/python" -m pip install --upgrade mlx-lm mlx-vlm
+"$VENV/bin/python" -m pip install --upgrade mlx-lm
 
 if [[ ! -f "$ROOT/.env.qwen.local" ]]; then
   cat > "$ROOT/.env.qwen.local" <<EOF
