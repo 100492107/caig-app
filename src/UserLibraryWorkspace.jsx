@@ -48,7 +48,7 @@ export default function UserLibraryWorkspace() {
         <header className="cs-page-head">
           <div className="eyebrow">Archive</div>
           <h1>Intelligence library</h1>
-          <p>Completed and recent jobs. Use this to inspect outputs — Create is where new work starts.</p>
+          <p>Outputs, source intelligence and recent work. Library is the memory of the machine; new decisions start in the loop.</p>
         </header>
 
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -69,7 +69,7 @@ export default function UserLibraryWorkspace() {
           {error ? <div style={{ color: 'var(--bad)', padding: 16 }}>{error}</div> : null}
           {!rows.length && !error ? (
             <div style={{ padding: 20, color: 'var(--text-3)' }}>
-              No jobs yet. <a href="/content/remake" style={{ color: 'var(--text)', fontWeight: 600 }}>Create something</a>.
+              No operating history yet. <a href="/content/remake" style={{ color: 'var(--text)', fontWeight: 600 }}>Create something</a>.
             </div>
           ) : null}
           {rows.map((job) => {
