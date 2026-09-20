@@ -1,62 +1,249 @@
 import React,{useEffect,useState} from 'react';
 import {supabase} from './supabase';
+import {creatorDnaFor} from '../shared/creator-dna.js';
 import EnterpriseShell from './EnterpriseShell.jsx';
 
 const FAIL=new Set(['error','failed','blocked']);
 const money=v=>new Intl.NumberFormat('en-GB',{style:'currency',currency:'GBP',maximumFractionDigits:0}).format(Number(v||0));
 const clean=v=>String(v||'').replaceAll('_',' ');
-const age=v=>{if(!v)return 'No recent check-in';const s=Math.max(0,Math.round((Date.now()-new Date(v).getTime())/1000));return s<60?`${s}s ago`:`${Math.round(s/60)}m ago`};
+const age=v=>{
+  if(!v)return 'No recent check-in';
+  const s=Math.max(0,Math.round((Date.now()-new Date(v).getTime())/1000));
+  return s<60 ? s+'s ago' : Math.round(s/60)+'m ago';
+};
+
 async function readState(){
- const [p,j,pu,e,h,l]=await Promise.all([
-  supabase.from('track_b_content_projects').select('id,title,status,updated_at,created_at').order('updated_at',{ascending:false}).limit(200),
-  supabase.from('track_b_production_jobs').select('id,project_id,mode,status,updated_at,created_at').order('updated_at',{ascending:false}).limit(200),
-  supabase.from('track_b_publications').select('id,project_id,title,platform,status,scheduled_at,published_at,updated_at,created_at').order('updated_at',{ascending:false}).limit(200),
-  supabase.from('track_b_performance_evidence').select('id,title,revenue,winner,publication_id,operator_note,created_at').order('created_at',{ascending:false}).limit(200),
-  supabase.from('local_ai_worker_heartbeat').select('status,last_seen,current_job_type').eq('id','qwen').maybeSingle(),
-  supabase.from('track_b_learning_recommendations').select('id,recommendation_type,format,invariant_pattern,confidence,status,source_evidence_id,created_at').eq('status','active').order('created_at',{ascending:false}).limit(20)
- ]); for(const r of [p,j,pu,e,h,l])if(r.error)throw r.error;
- const projects=p.data||[],jobs=j.data||[],pubs=pu.data||[],evidence=e.data||[],hb=h.data||{},learning=l.data||[];
- const fresh=Boolean(hb.last_seen&&Date.now()-new Date(hb.last_seen).getTime()<90000),online=fresh&&String(hb.status||'').toLowerCase()!=='offline';
- const failed=[...jobs.filter(x=>FAIL.has(String(x.status))),...pubs.filter(x=>FAIL.has(String(x.status)))];
- const production=jobs.filter(x=>['queued','processing','review','in_production'].includes(String(x.status)));
- const scheduled=pubs.filter(x=>x.status==='scheduled');
- const published=pubs.filter(x=>['published','live'].includes(String(x.status)));
- const winners=evidence.filter(x=>x.winner===true);
- const revenue=evidence.reduce((n,x)=>n+Number(x.revenue||0),0);
- let next={title:'Create your first piece',body:'Give Cornerstone one strong reference. It will find the idea inside it and build something original you can make.',href:'/content/remake',cta:'Create something',reason:'Nothing has been measured yet.'};
- if(failed.length)next={title:'One thing needs attention',body:`${failed.length} item${failed.length===1?' is':'s are'} blocked. Clear it before adding more work.`,href:'/system',cta:'Fix it',reason:'A current workflow is stopped.'};
- else if(!online)next={title:'Bring Cornerstone online',body:'The intelligence worker has not checked in recently, so new analysis cannot run reliably.',href:'/system',cta:'Open system',reason:'Intelligence is currently unavailable.'};
- else if(published.length&&evidence.length===0)next={title:'Tell Cornerstone what happened',body:'A piece reached the market. Add the result so Cornerstone can make the next recommendation from reality.',href:'/content/measurement',cta:'Add the result',reason:'Published work has no measured outcome yet.'};
- else if(winners.length)next={title:'Make the next one better',body:`${winners.length} proven winner${winners.length===1?'':'s'} can now shape the next original piece.`,href:'/content/remake',cta:'Use the learning',reason:'A winner is ready to compound.'};
- else if(production.length)next={title:'Finish what is already moving',body:`${production.length} piece${production.length===1?' is':'s are'} in progress. Completing current work creates the next chance to learn.`,href:'/content/production',cta:'Continue',reason:'Work is already in motion.'};
- const recent=[...evidence.map(x=>({kind:x.winner?'Winner':'Result',title:x.title||'Performance result',when:x.created_at,href:'/content/measurement'})),...pubs.map(x=>({kind:['published','live'].includes(x.status)?'Published':'Scheduled',title:x.title||'Publication',when:x.published_at||x.scheduled_at||x.updated_at,href:'/content/publish'})),...projects.map(x=>({kind:'Created',title:x.title||'Piece',when:x.updated_at||x.created_at,href:'/content/remake'}))].sort((a,b)=>new Date(b.when)-new Date(a.when)).slice(0,6);
- return {revenue,packages:projects.length,inMotion:production.length+scheduled.length,published:published.length,winners:winners.length,online,lastSeen:hb.last_seen,currentJob:hb.current_job_type,failed:failed.length,queued:jobs.filter(x=>x.status==='queued').length,processing:jobs.filter(x=>x.status==='processing').length,recent,next,learning};
+  const [p,j,pu,e,h,l]=await Promise.all([
+    supabase.from('track_b_content_projects').select('id,title,status,updated_at,created_at').order('updated_at',{ascending:false}).limit(200),
+    supabase.from('track_b_production_jobs').select('id,project_id,mode,status,updated_at,created_at').order('updated_at',{ascending:false}).limit(200),
+    supabase.from('track_b_publications').select('id,project_id,title,platform,status,scheduled_at,published_at,updated_at,created_at').order('updated_at',{ascending:false}).limit(200),
+    supabase.from('track_b_performance_evidence').select('id,title,revenue,winner,publication_id,operator_note,created_at').order('created_at',{ascending:false}).limit(200),
+    supabase.from('local_ai_worker_heartbeat').select('status,last_seen,current_job_type').eq('id','qwen').maybeSingle(),
+    supabase.from('track_b_learning_recommendations').select('id,recommendation_type,format,invariant_pattern,confidence,status,source_evidence_id,created_at').eq('status','active').order('created_at',{ascending:false}).limit(20)
+  ]);
+  for(const r of [p,j,pu,e,h,l]) if(r.error) throw r.error;
+  const projects=p.data||[],jobs=j.data||[],pubs=pu.data||[],evidence=e.data||[],hb=h.data||{},learning=l.data||[];
+  const fresh=Boolean(hb.last_seen&&Date.now()-new Date(hb.last_seen).getTime()<90000);
+  const online=fresh&&String(hb.status||'').toLowerCase()!=='offline';
+  const failed=[...jobs.filter(x=>FAIL.has(String(x.status))),...pubs.filter(x=>FAIL.has(String(x.status)))];
+  const production=jobs.filter(x=>['queued','processing','review','in_production'].includes(String(x.status)));
+  const scheduled=pubs.filter(x=>x.status==='scheduled');
+  const published=pubs.filter(x=>['published','live'].includes(String(x.status)));
+  const winners=evidence.filter(x=>x.winner===true);
+  const revenue=evidence.reduce((n,x)=>n+Number(x.revenue||0),0);
+
+  let next={
+    title:'Run the first Build',
+    body:'Give Cornerstone one strong reference. It will inspect the signal, extract the mechanism and build an original package.',
+    href:'/content/remake',cta:'Start Build',reason:'No closed loop yet.'
+  };
+  if(failed.length) next={
+    title:'Clear the current blocker',
+    body:failed.length+' item'+(failed.length===1?' is':'s are')+' stopped. Fix the bottleneck before adding more work.',
+    href:'/system',cta:'Open System',reason:'A live workflow needs attention.'
+  };
+  else if(!online) next={
+    title:'Bring intelligence online',
+    body:'The local intelligence worker has not checked in recently. New analysis is not ready to run reliably.',
+    href:'/system',cta:'Check System',reason:'Cornerstone cannot build on evidence while intelligence is offline.'
+  };
+  else if(published.length&&evidence.length===0) next={
+    title:'Close the first loop',
+    body:'Something reached the market. Record what actually happened so the system can learn instead of guessing.',
+    href:'/content/measurement',cta:'Record result',reason:'Published work has no measured result yet.'
+  };
+  else if(learning.length) next={
+    title:'Compound what already worked',
+    body:'A reusable learning rule exists. Use it to build the next original rather than starting from zero.',
+    href:'/content/remake',cta:'Build from learning',reason:learning.length+' active learning rule'+(learning.length===1?'':'s')+' available.'
+  };
+  else if(production.length) next={
+    title:'Finish what is already moving',
+    body:production.length+' piece'+(production.length===1?' is':'s are')+' in motion. Finish current work before creating more.',
+    href:'/content/production',cta:'Continue',reason:'Work already exists in production.'
+  };
+  else if(projects.length) next={
+    title:'Put the package into production',
+    body:'A saved package exists. Turn it into finished media, then let the market tell you what deserves to repeat.',
+    href:'/content/production',cta:'Make it',reason:'Build is complete; Make is next.'
+  };
+
+  const recent=[...evidence.map(x=>({kind:x.winner?'Winner':'Result',title:x.title||'Performance result',when:x.created_at,href:'/content/measurement'})),
+    ...pubs.map(x=>({kind:['published','live'].includes(x.status)?'Published':'Scheduled',title:x.title||'Publication',when:x.published_at||x.scheduled_at||x.updated_at,href:'/content/publish'})),
+    ...projects.map(x=>({kind:'Built',title:x.title||'Piece',when:x.updated_at||x.created_at,href:'/content/remake'}))]
+    .filter(x=>x.when).sort((a,b)=>new Date(b.when)-new Date(a.when)).slice(0,6);
+
+  const makeDone=jobs.some(x=>['completed','review','in_production'].includes(String(x.status)))||pubs.length>0;
+  const loop=[
+    ['01','Evidence',Boolean(projects.length||jobs.length||pubs.length),'Signals in the system','/content/remake'],
+    ['02','Build',Boolean(projects.length),'Original package exists','/content/remake'],
+    ['03','Make',makeDone,'Finished work or production','/content/production'],
+    ['04','Publish',Boolean(published.length),'In the market','/content/publish'],
+    ['05','Learn',Boolean(evidence.length),'Measured evidence','/content/measurement'],
+    ['06','Compound',Boolean(learning.length),'Learning feeds the next build','/content/remake'],
+  ];
+  const firstOpen=loop.findIndex(x=>!x[2]);
+
+  return {
+    revenue,packages:projects.length,inMotion:production.length+scheduled.length,published:published.length,
+    winners:winners.length,online,lastSeen:hb.last_seen,currentJob:hb.current_job_type,
+    failed:failed.length,queued:jobs.filter(x=>x.status==='queued').length,
+    processing:jobs.filter(x=>x.status==='processing').length,recent,next,learning,
+    closedLoops:evidence.length,loop,currentIndex:firstOpen<0?5:firstOpen
+  };
 }
+
 export default function CommandHome(){
- const[s,setS]=useState(null),[error,setError]=useState('');
- useEffect(()=>{let live=true;const load=()=>readState().then(v=>live&&(setS(v),setError(''))).catch(e=>live&&setError(e?.message||String(e)));load();const t=setInterval(load,10000);return()=>{live=false;clearInterval(t)}},[]);
- const x=s||{revenue:0,packages:0,inMotion:0,published:0,winners:0,online:false,lastSeen:null,currentJob:null,failed:0,queued:0,processing:0,recent:[],learning:[],next:{title:'Preparing your brief',body:'Cornerstone is checking what has changed.',href:'/system',cta:'Open system',reason:'Reading current state.'}};
- const latest=x.learning?.[0];
- return <EnterpriseShell active="command"><main className="home"><style>{`
- .home{max-width:1160px;margin:0 auto;padding:3px 0 74px;color:var(--text)}
- .hero{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(210px,.65fr);gap:34px;align-items:end;padding:10px 0 34px;border-bottom:1px solid var(--border)}
- .k{font-size:9px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--track-b)}
- .hero h1{margin:11px 0 0;font-family:var(--display);font-size:clamp(44px,6.3vw,76px);font-weight:500;line-height:.94;letter-spacing:-.055em;max-width:12ch}
- .hero p{margin:14px 0 0;max-width:620px;color:var(--text-muted);font-size:13px;line-height:1.65}.presence{display:flex;align-items:center;gap:8px;margin-top:19px;color:var(--text-subtle);font-size:10px}.dot{width:7px;height:7px;border-radius:50%;background:var(--success)}.dot.off{background:var(--danger)}
- .return{text-align:right}.return b{display:block;font-size:51px;line-height:.86;font-weight:600;letter-spacing:-.065em}.return span{display:block;margin-top:8px;color:var(--text-subtle);font-size:8px;letter-spacing:.13em;text-transform:uppercase}
- .metrics{display:grid;grid-template-columns:repeat(4,1fr);margin:15px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}.metric{padding:15px 17px;border-left:1px solid var(--border)}.metric:first-child{border-left:0;padding-left:0}.metric b{font-size:28px}.metric span{display:block;margin-top:5px;color:var(--text-subtle);font-size:8px;letter-spacing:.11em;text-transform:uppercase}
- .next{display:grid;grid-template-columns:minmax(0,1fr) 205px;gap:24px;padding:25px 0 28px;border-bottom:1px solid var(--border)}.next h2{margin:8px 0 0;font-family:var(--display);font-size:clamp(31px,4.3vw,51px);font-weight:500;line-height:.98;letter-spacing:-.05em;max-width:18ch}.next p{margin-top:9px;color:var(--text-muted);font-size:12px;line-height:1.6;max-width:720px}.next-side{display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-end;text-align:right}.primary{display:inline-flex;align-items:center;justify-content:center;min-height:43px;padding:0 15px;background:#eee9dd;color:#171614;border-radius:9px;text-decoration:none;font-size:10px;font-weight:900}.next-side small{margin-top:9px;color:var(--text-subtle);font-size:9px;line-height:1.45;max-width:24ch}
- .grid{display:grid;grid-template-columns:1.08fr .92fr;gap:14px;margin-top:15px}.panel{border:1px solid var(--border);border-radius:15px;background:var(--surface);overflow:hidden}.panel-head{display:flex;justify-content:space-between;align-items:center;padding:16px 17px;border-bottom:1px solid var(--border)}.panel-head strong{font-size:13px}.panel-head span{font-size:8px;color:var(--text-subtle);text-transform:uppercase;letter-spacing:.11em}.row{display:grid;grid-template-columns:1fr auto;gap:14px;padding:13px 17px;border-bottom:1px solid var(--border)}.row:last-child{border-bottom:0}.row strong{display:block;font-size:10px}.row span{display:block;margin-top:4px;font-size:9px;color:var(--text-muted)}.row a{align-self:center;color:var(--text);font-size:9px;font-weight:850;text-decoration:none}.empty{padding:18px;color:var(--text-muted);font-size:10px}
- .learn{padding:17px}.badge{display:inline-flex;padding:5px 8px;border-radius:999px;background:rgba(208,193,164,.09);border:1px solid rgba(208,193,164,.18);color:#d9ccb1;font-size:8px;font-weight:850;letter-spacing:.09em;text-transform:uppercase}.learn h3{margin:12px 0 0;font-family:var(--display);font-size:27px;font-weight:500;line-height:1.03;letter-spacing:-.04em}.learn p{margin-top:8px;color:var(--text-muted);font-size:10px;line-height:1.55}.learn-actions{display:flex;gap:7px;margin-top:16px}.ghost{display:inline-flex;align-items:center;justify-content:center;min-height:37px;padding:0 12px;border:1px solid var(--border);border-radius:9px;background:var(--surface-2);color:var(--text);text-decoration:none;font-size:9px;font-weight:850}.micro{display:grid;grid-template-columns:1fr 1fr;margin-top:17px;padding-top:13px;border-top:1px solid var(--border)}.micro div+div{padding-left:14px;border-left:1px solid var(--border)}.micro b{font-size:18px}.micro span{display:block;margin-top:3px;color:var(--text-subtle);font-size:8px;text-transform:uppercase;letter-spacing:.1em}.footer{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;margin-top:15px;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}.foot{padding:12px 13px}.foot b{font-size:9px}.foot span{display:block;margin-top:4px;color:var(--text-subtle);font-size:8px}.error{margin-top:12px;color:#e2b0b0;font-size:9px}
- @media(max-width:850px){.hero,.next,.grid{grid-template-columns:1fr}.return,.next-side{align-items:flex-start;text-align:left}.metrics{grid-template-columns:1fr 1fr}.footer{grid-template-columns:1fr 1fr}.metric:nth-child(3){border-left:0}}
- @media(max-width:560px){.hero h1{font-size:43px}.metrics{margin-top:12px}.metric{padding:13px}.metric b{font-size:23px}.next{padding:20px 0 23px}.grid{gap:10px}}
- `}</style>
- <section className="hero"><div><div className="k">Your studio</div><h1>{x.packages?'Here is what happened while you were away.':'Let’s get your first piece moving.'}</h1><p>{x.packages?'Cornerstone watches the work, learns from the result and turns useful signals into the next move.':'Start with one strong reference. Cornerstone finds the idea inside it, builds something original and helps you learn from what happens next.'}</p><div className="presence"><i className={`dot${x.online?'':' off'}`} />{x.online?'Intelligence ready':'Intelligence offline'} · {age(x.lastSeen)}{x.currentJob?` · ${clean(x.currentJob)}`:''}</div></div><div className="return"><b>{money(x.revenue)}</b><span>Measured content return</span></div></section>
- <section className="metrics"><div className="metric"><b>{x.packages}</b><span>Pieces created</span></div><div className="metric"><b>{x.inMotion}</b><span>In progress</span></div><div className="metric"><b>{x.published}</b><span>In market</span></div><div className="metric"><b>{x.winners}</b><span>Proven winners</span></div></section>
- <section className="next"><div><div className="k">Your next move</div><h2>{x.next.title}</h2><p>{x.next.body}</p></div><div className="next-side"><a className="primary" href={x.next.href}>{x.next.cta} →</a><small>{x.next.reason}</small></div></section>
- <section className="grid"><div className="panel"><div className="panel-head"><strong>What changed</strong><span>Latest</span></div>{x.recent.length?x.recent.map((r,i)=><div className="row" key={i}><div><strong>{r.title}</strong><span>{r.kind} · {new Date(r.when).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</span></div><a href={r.href}>Open</a></div>):<div className="empty">Your operating history will appear here once the first piece is created.</div>}</div>
- <div className="panel"><div className="panel-head"><strong>What Cornerstone is learning</strong><span>Feeds creation</span></div><div className="learn">{latest?<><span className="badge">{latest.recommendation_type} · {latest.confidence}</span><h3>{latest.invariant_pattern||latest.format||'A repeatable creative pattern'}</h3><p>This recommendation comes from measured performance and is ready to shape the next original piece.</p><div className="learn-actions"><a className="primary" style={{margin:0}} href="/content/remake">Use this learning →</a><a className="ghost" href="/content/measurement">See result</a></div></>:<><span className="badge">Waiting for evidence</span><h3>Nothing proven yet.</h3><p>Once something reaches the market and you record the result, Cornerstone will turn it into reusable learning.</p><div className="learn-actions"><a className="primary" style={{margin:0}} href="/content/remake">Create the first piece →</a></div></>}<div className="micro"><div><b>{x.queued}</b><span>Queued</span></div><div><b>{x.processing}</b><span>Working now</span></div></div></div></div></section>
- <section className="footer"><div className="foot"><b>{x.online?'Ready':'Offline'}</b><span>Intelligence</span></div><div className="foot"><b>{x.failed}</b><span>Needs attention</span></div><div className="foot"><b>{x.published}</b><span>In market</span></div><div className="foot"><b>{x.winners}</b><span>Can compound</span></div></section>
- {error?<div className="error">Could not refresh the workspace: {error}</div>:null}
- </main></EnterpriseShell>;
+  const[s,setS]=useState(null),[error,setError]=useState('');
+  useEffect(()=>{
+    let live=true;
+    const load=()=>readState().then(v=>{if(live){setS(v);setError('')}}).catch(e=>{if(live)setError(e?.message||String(e))});
+    load();
+    const t=setInterval(load,10000);
+    return()=>{live=false;clearInterval(t)};
+  },[]);
+
+  const x=s||{
+    revenue:0,packages:0,inMotion:0,published:0,winners:0,online:false,lastSeen:null,currentJob:null,
+    failed:0,queued:0,processing:0,recent:[],learning:[],closedLoops:0,currentIndex:0,
+    loop:[
+      ['01','Evidence',false,'Signals in the system','/content/remake'],
+      ['02','Build',false,'Original package exists','/content/remake'],
+      ['03','Make',false,'Finished work or production','/content/production'],
+      ['04','Publish',false,'In the market','/content/publish'],
+      ['05','Learn',false,'Measured evidence','/content/measurement'],
+      ['06','Compound',false,'Learning feeds the next build','/content/remake']
+    ],
+    next:{title:'Preparing your brief',body:'Cornerstone is checking what has changed.',href:'/system',cta:'Open System',reason:'Reading current state.'}
+  };
+
+  const cara=creatorDnaFor('cara');
+  const lila=creatorDnaFor('lila');
+  const current=x.loop[x.currentIndex]||x.loop[0];
+
+  return <EnterpriseShell active="command" eyebrow="Command">
+    <main className="home">
+      <section className="hero">
+        <div>
+          <div className="k">Command / Creator OS</div>
+          <h1>{x.packages?'You are building an owned media system.':'Build the first loop.'}</h1>
+          <p>Turn proven attention into original work, put it in the market, capture the result, and let evidence decide what happens next. Cara and Lila are owned creator assets inside the machine.</p>
+          <div className="presence">
+            <i className={'dot'+(x.online?'':' off')} />
+            {x.online?'Intelligence ready':'Intelligence offline'} · {age(x.lastSeen)}{x.currentJob?' · '+clean(x.currentJob):''}
+          </div>
+        </div>
+        <div className="return">
+          <b>{money(x.revenue)}</b>
+          <span>Measured media return</span>
+        </div>
+      </section>
+
+      <section className="metrics">
+        <div className="metric"><b>{x.packages}</b><span>Packages built</span></div>
+        <div className="metric"><b>{x.inMotion}</b><span>In motion</span></div>
+        <div className="metric"><b>{x.published}</b><span>In market</span></div>
+        <div className="metric"><b>{x.winners}</b><span>Proven winners</span></div>
+        <div className="metric"><b>{x.closedLoops}</b><span>Closed loops</span></div>
+        <div className="metric"><b>{x.learning.length}</b><span>Learning rules</span></div>
+      </section>
+
+      <section className="next">
+        <div>
+          <div className="k">Today / next move</div>
+          <h2>{x.next.title}</h2>
+          <p>{x.next.body}</p>
+        </div>
+        <div className="next-side">
+          <a className="primary" href={x.next.href}>{x.next.cta} →</a>
+          <small>{x.next.reason}</small>
+        </div>
+      </section>
+
+      <section className="cs-command-loop">
+        <div className="cs-command-card">
+          <div className="cs-command-k">The machine</div>
+          <h2>Evidence becomes an asset only when it closes a loop.</h2>
+          <p>The numbers below are state, not gamification. A stage turns green only when Cornerstone has real evidence that the stage happened.</p>
+          <div className="cs-loop">
+            {x.loop.map((step,i)=>(
+              <a key={step[0]} href={step[4]} className={'cs-loop-step '+(step[2]?'is-done ':'')+(i===x.currentIndex?'is-current':'')}>
+                <b>{step[0]}</b>
+                <strong>{step[1]}</strong>
+                <span>{step[2]?'Done':i===x.currentIndex?'Next':'Not yet'} · {step[3]}</span>
+              </a>
+            ))}
+          </div>
+        </div>
+        <div className="cs-command-card">
+          <div className="cs-command-k">The rule</div>
+          <h2>Do not add another idea just because the last one is unfinished.</h2>
+          <p>Cornerstone prioritises blockers, current work, market results and proven learning before creating more backlog.</p>
+          <a className="ghost" style={{marginTop:15}} href="/content/remake">Open Build →</a>
+        </div>
+      </section>
+
+      <section className="cs-creators">
+        <article className="cs-creator-card">
+          <div className="cs-creator-avatar">CW</div>
+          <div>
+            <h3>{cara.name}</h3>
+            <div className="cs-creator-meta">{cara.coreVerb} · {cara.coreNeed.split('.')[0]}</div>
+            <div className="cs-creator-soul">“{cara.soul}”</div>
+            <a className="cs-creator-link" href="/content/creators">Open Cara →</a>
+          </div>
+        </article>
+        <article className="cs-creator-card">
+          <div className="cs-creator-avatar">LS</div>
+          <div>
+            <h3>{lila.name}</h3>
+            <div className="cs-creator-meta">{lila.coreVerb} · {lila.coreNeed.split('.')[0]}</div>
+            <div className="cs-creator-soul">“{lila.soul}”</div>
+            <a className="cs-creator-link" href="/content/creators">Open Lila →</a>
+          </div>
+        </article>
+      </section>
+
+      <section className="grid">
+        <div className="panel">
+          <div className="panel-head"><strong>What changed</strong><span>Latest evidence</span></div>
+          {x.recent.length?x.recent.map((r,i)=><div className="row" key={i}>
+            <div><strong>{r.title}</strong><span>{r.kind} · {new Date(r.when).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</span></div>
+            <a href={r.href}>Open</a>
+          </div>):<div className="empty">Your operating history appears here as the first pieces move through the loop.</div>}
+        </div>
+        <div className="panel">
+          <div className="panel-head"><strong>What Cornerstone is learning</strong><span>Feeds the next build</span></div>
+          <div className="learn">
+            {x.learning?.[0]?<>
+              <span className="badge">{x.learning[0].recommendation_type} · {x.learning[0].confidence}</span>
+              <h3>{x.learning[0].invariant_pattern||x.learning[0].format||'A repeatable creative pattern'}</h3>
+              <p>This recommendation came from measured performance and can influence the next original package.</p>
+              <div className="learn-actions">
+                <a className="primary" href="/content/remake">Use learning →</a>
+                <a className="ghost" href="/content/measurement">See result</a>
+              </div>
+            </>:<>
+              <span className="badge">Waiting for evidence</span>
+              <h3>Nothing proven yet.</h3>
+              <p>One published result with a measured outcome is enough to start turning experience into reusable knowledge.</p>
+              <div className="learn-actions"><a className="primary" href="/content/remake">Create first proof →</a></div>
+            </>}
+            <div className="micro">
+              <div><b>{x.queued}</b><span>Queued</span></div>
+              <div><b>{x.processing}</b><span>Working now</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="footer">
+        <div className="foot"><b>{x.online?'Ready':'Offline'}</b><span>Intelligence</span></div>
+        <div className="foot"><b>{x.failed}</b><span>Needs attention</span></div>
+        <div className="foot"><b>{x.closedLoops}</b><span>Closed loops</span></div>
+        <div className="foot"><b>{x.winners}</b><span>Can compound</span></div>
+      </section>
+      {error?<div className="error">Could not refresh the command view: {error}</div>:null}
+    </main>
+  </EnterpriseShell>;
 }
