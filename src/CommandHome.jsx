@@ -6,6 +6,7 @@ import EnterpriseShell from './EnterpriseShell.jsx';
 const FAIL=new Set(['error','failed','blocked']);
 const money=v=>new Intl.NumberFormat('en-GB',{style:'currency',currency:'GBP',maximumFractionDigits:0}).format(Number(v||0));
 const clean=v=>String(v||'').replaceAll('_',' ');
+const num=v=>new Intl.NumberFormat('en-GB',{maximumFractionDigits:0}).format(Number(v||0));
 const CREATOR_IMAGES={cara:'https://zvyioxhwdyocaanzcgqf.supabase.co/storage/v1/object/public/cara%20ref/Cara_5.jpg',lila:'https://zvyioxhwdyocaanzcgqf.supabase.co/storage/v1/object/public/lila%20ref/lila_2.jpeg'};
 const age=v=>{
   if(!v)return 'No recent check-in';
@@ -14,16 +15,18 @@ const age=v=>{
 };
 
 async function readState(){
-  const [p,j,pu,e,h,l]=await Promise.all([
+  const [p,j,pu,e,h,l,bm,sm]=await Promise.all([
     supabase.from('track_b_content_projects').select('id,title,status,updated_at,created_at').order('updated_at',{ascending:false}).limit(200),
     supabase.from('track_b_production_jobs').select('id,project_id,mode,status,updated_at,created_at').order('updated_at',{ascending:false}).limit(200),
     supabase.from('track_b_publications').select('id,project_id,title,platform,status,scheduled_at,published_at,updated_at,created_at').order('updated_at',{ascending:false}).limit(200),
     supabase.from('track_b_performance_evidence').select('id,title,revenue,winner,publication_id,operator_note,created_at').order('created_at',{ascending:false}).limit(200),
     supabase.from('local_ai_worker_heartbeat').select('status,last_seen,current_job_type').eq('id','qwen').maybeSingle(),
-    supabase.from('track_b_learning_recommendations').select('id,recommendation_type,format,invariant_pattern,confidence,status,source_evidence_id,created_at').eq('status','active').order('created_at',{ascending:false}).limit(20)
+    supabase.from('track_b_learning_recommendations').select('id,recommendation_type,format,invariant_pattern,confidence,status,source_evidence_id,created_at').eq('status','active').order('created_at',{ascending:false}).limit(20),
+    supabase.from('cornerstone_metric_snapshots').select('scope,platform,audience_followers,subscribers,paid_subscribers,revenue,captured_at,verified').order('snapshot_date',{ascending:false}).limit(200),
+    supabase.from('subscriber_memory').select('id,lifetime_spend,platform').limit(1000)
   ]);
-  for(const r of [p,j,pu,e,h,l]) if(r.error) throw r.error;
-  const projects=p.data||[],jobs=j.data||[],pubs=pu.data||[],evidence=e.data||[],hb=h.data||{},learning=l.data||[];
+  for(const r of [p,j,pu,e,h,l,bm,sm]) if(r.error) throw r.error;
+  const projects=p.data||[],jobs=j.data||[],pubs=pu.data||[],evidence=e.data||[],hb=h.data||{},learning=l.data||[],metricSnapshots=bm.data||[],subscriberRows=sm.data||[];
   const fresh=Boolean(hb.last_seen&&Date.now()-new Date(hb.last_seen).getTime()<90000);
   const online=fresh&&String(hb.status||'').toLowerCase()!=='offline';
   const failed=[...jobs.filter(x=>FAIL.has(String(x.status))),...pubs.filter(x=>FAIL.has(String(x.status)))];
@@ -32,6 +35,14 @@ async function readState(){
   const published=pubs.filter(x=>['published','live'].includes(String(x.status)));
   const winners=evidence.filter(x=>x.winner===true);
   const revenue=evidence.reduce((n,x)=>n+Number(x.revenue||0),0);
+  const latestMetric=(scope,platform=null)=>metricSnapshots.find(x=>x.scope===scope&&(platform?x.platform===platform:true));
+  const latestBusiness=latestMetric('business');
+  const platformMetrics=[...new Set(metricSnapshots.filter(x=>x.scope==='platform').map(x=>x.platform).filter(Boolean))].map(platform=>latestMetric('platform',platform)).filter(Boolean);
+  const followers=platformMetrics.reduce((n,x)=>n+Number(x.audience_followers||0),0);
+  const subscribers=platformMetrics.reduce((n,x)=>n+Number(x.subscribers||0),0);
+  const paidSubscribers=platformMetrics.reduce((n,x)=>n+Number(x.paid_subscribers||0),0);
+  const snapshotRevenue=latestBusiness?.revenue==null?0:Number(latestBusiness.revenue);
+  const subscriberSpend=subscriberRows.reduce((n,x)=>n+Number(x.lifetime_spend||0),0);
 
   let next={
     title:'Run the first Build',
@@ -86,7 +97,7 @@ async function readState(){
   const firstOpen=loop.findIndex(x=>!x[2]);
 
   return {
-    revenue,packages:projects.length,inMotion:production.length+scheduled.length,published:published.length,
+    revenue:revenue+snapshotRevenue,measuredRevenue:revenue,snapshotRevenue,followers,subscribers,paidSubscribers,subscriberSpend,packages:projects.length,inMotion:production.length+scheduled.length,published:published.length,
     winners:winners.length,online,lastSeen:hb.last_seen,currentJob:hb.current_job_type,
     failed:failed.length,queued:jobs.filter(x=>x.status==='queued').length,
     processing:jobs.filter(x=>x.status==='processing').length,recent,next,learning,
@@ -105,7 +116,7 @@ export default function CommandHome(){
   },[]);
 
   const x=s||{
-    revenue:0,packages:0,inMotion:0,published:0,winners:0,online:false,lastSeen:null,currentJob:null,
+    revenue:0,measuredRevenue:0,snapshotRevenue:0,followers:0,subscribers:0,paidSubscribers:0,subscriberSpend:0,packages:0,inMotion:0,published:0,winners:0,online:false,lastSeen:null,currentJob:null,
     failed:0,queued:0,processing:0,recent:[],learning:[],closedLoops:0,currentIndex:0,
     loop:[
       ['01','Evidence',false,'Signals in the system','/content/remake'],
@@ -136,7 +147,8 @@ export default function CommandHome(){
         </div>
         <div className="return">
           <b>{money(x.revenue)}</b>
-          <span>Measured media return</span>
+          <span>Revenue recorded / latest snapshot</span>
+          <small style={{display:'block',marginTop:8,color:'var(--cs-os-subtle)',fontSize:9}}>Evidence {money(x.measuredRevenue)} · Accounting snapshot {money(x.snapshotRevenue)}</small>
         </div>
       </section>
 
@@ -145,6 +157,9 @@ export default function CommandHome(){
         <div className="metric"><b>{x.inMotion}</b><span>In motion</span></div>
         <div className="metric"><b>{x.published}</b><span>In market</span></div>
         <div className="metric"><b>{x.winners}</b><span>Proven winners</span></div>
+        <div className="metric"><b>{num(x.followers)}</b><span>Followers recorded</span></div>
+        <div className="metric"><b>{num(x.subscribers)}</b><span>Subscribers recorded</span></div>
+        <div className="metric"><b>{num(x.paidSubscribers)}</b><span>Paid subscribers</span></div>
         <div className="metric"><b>{x.closedLoops}</b><span>Closed loops</span></div>
         <div className="metric"><b>{x.learning.length}</b><span>Learning rules</span></div>
       </section>
