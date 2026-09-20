@@ -163,7 +163,7 @@ COPY QUALITY:
       const { data: queued, error } = await supabase.from("local_ai_jobs").insert({
         title: `Caption Writer · ${creatorProfile.name} · ${files.length || 1} photo${files.length === 1 ? "" : "s"} · ${platformProfile.name}`,
         job_type: "social_caption_intelligence",
-        model: "mlx-community/Qwen3-8B-4bit",
+        model: "mlx-community/Qwen3.5-9B-4bit",
         persona_id: creator,
         system_prompt: system,
         user_prompt: `${prompt}\n\nPHOTO FACTS FROM LOCAL FILES:\n${JSON.stringify(photoFacts)}`,
