@@ -62,7 +62,7 @@ export default function CreatorStudioWorkspace({onAdvance}={}){
    if(source){
     setMessage('Acquiring the creator reference…')
     const {data:sourceJob,error:sourceError}=await supabase.from('local_ai_jobs').insert({
-     owner_id:u.id,title:`${selected.name} reference · ${platform}`,job_type:'creator_source_ingestion',model:'mlx-community/Qwen3-8B-4bit',persona_id:creator,
+     owner_id:u.id,title:`${selected.name} reference · ${platform}`,job_type:'creator_source_ingestion',model:'mlx-community/Qwen3.5-9B-4bit',persona_id:creator,
      system_prompt:`Acquire one public reference for ${selected.name}. Download it for local transcript and visual inspection. Never claim inspection before the media pipeline completes.`,
      user_prompt:`Acquire and inspect this public ${platform} creator reference for ${selected.name}: ${source}`,
      options:{source_url:source,original_url:source,research_domain:'TRACK_B_CREATOR_GROWTH',workspace_id:'creator_growth',creator_id:creator,platform,objective},status:'queued',production_status:'creator_source_queued'
@@ -99,7 +99,7 @@ export default function CreatorStudioWorkspace({onAdvance}={}){
    ].join('\n')
 
    const {data:job,error:jobError}=await supabase.from('local_ai_jobs').insert({
-    owner_id:u.id,title:`${selected.name} · ${platform} · ${objective}`,job_type:'content_engine',model:'mlx-community/Qwen3-8B-4bit',persona_id:creator,
+    owner_id:u.id,title:`${selected.name} · ${platform} · ${objective}`,job_type:'content_engine',model:'mlx-community/Qwen3.5-9B-4bit',persona_id:creator,
     system_prompt:`You are Cornerstone's creator-business director for ${selected.name}. Protect creator identity and build platform-native work. Use current creator-growth research and inspect supplied source evidence where available. Never invent metrics or commercial claims. Never generate explicit sexual content.`,
     user_prompt:prompt,
     options:{research:true,max_tokens:6500,temperature:.42,research_domain:'TRACK_B_CREATOR_GROWTH',workspace_id:'creator_growth',creator_id:creator,platform,objective,format,reference_url:source||null,source_analysis:sourceEvidence},
