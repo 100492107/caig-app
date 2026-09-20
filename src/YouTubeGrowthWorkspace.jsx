@@ -42,7 +42,7 @@ async function queueQwen({ title, systemPrompt, userPrompt }) {
   const { data, error } = await supabase.from("local_ai_jobs").insert({
     title,
     job_type: "youtube_growth",
-    model: "mlx-community/Qwen3-8B-4bit",
+    model: "mlx-community/Qwen3.5-9B-4bit",
     persona_id: "youtube_system",
     system_prompt: systemPrompt,
     user_prompt: userPrompt,
