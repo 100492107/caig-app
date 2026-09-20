@@ -160,3 +160,22 @@ button.cs-btn-ghost:hover,.ghost:hover,.ce-secondary:hover,.ch-mini:hover,.sys-c
 @media(max-width:520px){
   .cs-loop{grid-template-columns:1fr 1fr!important}.cs-page-head h1{font-size:32px!important}
 }
+
+.system-workspace{padding-top:4px!important}
+.sys-grid{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:9px!important;margin-top:14px!important}
+.sys-card{min-height:125px!important;padding:16px!important}
+.sys-card strong{font-size:22px!important;letter-spacing:-.04em!important}
+.sys-card span{display:block!important;margin-top:5px!important;color:var(--cs-os-muted)!important;font-size:9px!important;letter-spacing:.1em!important;text-transform:uppercase!important}
+.sys-card small{display:block!important;margin-top:16px!important;color:var(--cs-os-subtle)!important;font-size:9px!important;line-height:1.4!important}
+.sys-ok{color:var(--cs-os-success)!important}.sys-bad{color:var(--cs-os-danger)!important}
+.sys-list{display:grid!important;margin-top:4px!important;border:1px solid var(--cs-os-line)!important;border-radius:12px!important;overflow:hidden!important}
+.sys-row{display:flex!important;justify-content:space-between!important;align-items:center!important;gap:14px!important;padding:13px 14px!important;border-bottom:1px solid var(--cs-os-line)!important;background:var(--cs-os-panel2)!important}
+.sys-row:last-child{border-bottom:0!important}
+.sys-row span{color:var(--cs-os-subtle)!important;font-size:9px!important;letter-spacing:.1em!important;text-transform:uppercase!important}
+.sys-row strong{color:var(--cs-os-muted)!important;font-size:10px!important;font-weight:650!important;text-align:right!important}
+.sys-command{display:flex!important;gap:8px!important;margin-top:12px!important}
+.library .cs-panel{margin-top:14px!important;background:var(--cs-os-panel)!important;border:1px solid var(--cs-os-line)!important;border-radius:16px!important;overflow:hidden!important}
+.library .cs-panel>div{border-color:var(--cs-os-line)!important;background:transparent!important}
+.library .cs-panel button{min-height:38px!important}
+@media(max-width:900px){.sys-grid{grid-template-columns:1fr 1fr!important}}
+@media(max-width:560px){.sys-grid{grid-template-columns:1fr!important}.sys-row{align-items:flex-start;flex-direction:column!important}.sys-row strong{text-align:left!important}.sys-command{flex-direction:column!important}}
