@@ -98,7 +98,7 @@ async function queueQwen({ title: jobTitle, persona, systemPrompt, userPrompt })
   const { data, error } = await supabase.from("local_ai_jobs").insert({
     title: jobTitle,
     job_type: "commerce_test",
-    model: "mlx-community/Qwen3-8B-4bit",
+    model: "mlx-community/Qwen3.5-9B-4bit",
     persona_id: persona,
     system_prompt: systemPrompt,
     user_prompt: userPrompt,
