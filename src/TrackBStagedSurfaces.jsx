@@ -47,7 +47,7 @@ export function CreatorsStaged({onAdvance}={}){
     if(!['youtube.com','m.youtube.com','youtu.be','youtube-nocookie.com','tiktok.com','instagram.com'].includes(host))throw new Error('Reference must be a public YouTube, TikTok or Instagram URL.')
     setMessage('Acquiring the creator reference…')
     const{data:sourceJob,error:sourceError}=await supabase.from('local_ai_jobs').insert({
-      owner_id:user.id,title:`Creator source · ${selected.name} · ${platform}`,job_type:'creator_source_ingestion',model:'mlx-community/Qwen3-8B-4bit',persona_id:persona,
+      owner_id:user.id,title:`Creator source · ${selected.name} · ${platform}`,job_type:'creator_source_ingestion',model:'mlx-community/Qwen3.5-9B-4bit',persona_id:persona,
       system_prompt:'Acquire one public creator reference for local media inspection. Protect creator identity. Never claim source analysis before transcript and visual analysis complete.',
       user_prompt:`Acquire and inspect this public ${platform} reference for ${selected.name}: ${sourceUrl.toString()}`,
       options:{source_url:sourceUrl.toString(),original_url:sourceUrl.toString(),platform,creator_id:persona,research_domain:'TRACK_B_CREATOR_GROWTH',workspace_id:'track_b'},
@@ -87,7 +87,7 @@ export function CreatorsStaged({onAdvance}={}){
    ].join('\n')+sourceBlock
 
    const{data:created,error}=await supabase.from('local_ai_jobs').insert({
-    owner_id:user.id,title:`${selected.name} · ${platform} · ${format}`,job_type:'growth_mode',model:'mlx-community/Qwen3-8B-4bit',persona_id:persona,
+    owner_id:user.id,title:`${selected.name} · ${platform} · ${format}`,job_type:'growth_mode',model:'mlx-community/Qwen3.5-9B-4bit',persona_id:persona,
     system_prompt:'You are Cornerstone Track B creator growth director. Preserve creator identity, platform context and commercial objective. Use current public evidence. Build concrete content experiments. Never invent metrics, audience reactions, product facts or revenue. Return operator-useful JSON.',
     user_prompt:prompt,
     options:{research:true,max_tokens:6500,temperature:.42,research_domain:'TRACK_B_CREATOR_GROWTH',workspace_id:'track_b',creator_id:persona,platform,objective,format,monetisation,reference_url:referenceUrl.trim()||null,source_analysis:sourceEvidence},
