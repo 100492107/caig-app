@@ -9,6 +9,8 @@ import './CornerstoneOS.css'
 import './BusinessIntelligence.css'
 import CommandHome from './CommandHome.jsx'
 import BusinessIntelligenceWorkspace from './BusinessIntelligenceWorkspace.jsx'
+import BusinessCaptureWorkspace from './BusinessCaptureWorkspace.jsx'
+import CaseStudyWorkspace from './CaseStudyWorkspace.jsx'
 import AuthGate from './AuthGate.jsx'
 
 const ContentWorkspaceShell = lazy(() => import('./ContentWorkspaceShell2.jsx'))
@@ -38,6 +40,8 @@ class ErrorBoundary extends Component {
 function Route(){
   if(path==='/'||path==='/command')return <CommandHome/>
   if(path==='/business')return <BusinessIntelligenceWorkspace/>
+  if(path==='/business/capture')return <BusinessCaptureWorkspace/>
+  if(path==='/business/case-study')return <CaseStudyWorkspace/>
   if(path==='/content'||path.startsWith('/content/'))return <ContentWorkspaceShell/>
   if(path==='/system'||path==='/ceo')return <SystemWorkspace/>
   if(path==='/generations')return <UserLibraryWorkspace/>
