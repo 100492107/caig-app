@@ -52,7 +52,7 @@ export default function SystemWorkspace() {
         <header className="cs-page-head">
           <div className="eyebrow">Constraints</div>
           <h1>What can stop the engine</h1>
-          <p>Local AI, queue health, and blockers. Fix these, then return to Home or Create.</p>
+          <p>Intelligence, queue health and blockers. Fix the constraint, then return to the loop.</p>
         </header>
 
         <div className="sys-grid">
@@ -89,8 +89,8 @@ export default function SystemWorkspace() {
             <div className="sys-row"><span>Queue</span><strong>{state.errors ? 'Needs attention' : state.jobs ? 'Moving' : 'Idle'}</strong></div>
           </div>
           <div className="sys-command">
-            <a className="primary" href="/">Back to Home →</a>
-            <a href="/content/remake">Open Create →</a>
+            <a className="primary" href="/">Back to Command →</a>
+            <a href="/content/remake">Open Build →</a>
           </div>
         </section>
       </div>
