@@ -113,7 +113,7 @@ export default function CreatorEngineWorkspace() {
           owner_id: user.user.id,
           title: `${selectedPersona.name} · ${selectedObjective[1]} · ${platform}`,
           job_type: 'growth_mode',
-          model: 'mlx-community/Qwen3-8B-4bit',
+          model: 'mlx-community/Qwen3.5-9B-4bit',
           persona_id: persona,
           system_prompt: `You are Cornerstone's creator growth director. Research domain: TRACK_B_CREATOR_GROWTH. Persona is ${persona}. Protect the creator identity and use the selected monetisation objective as the job boundary. Return evidence-grounded JSON.`,
           user_prompt: prompt,
