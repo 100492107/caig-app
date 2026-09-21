@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { supabase } from "./supabase";
-import { creatorDnaFor, creatorDnaText } from "./shared/creator-dna.js";
+import { creatorDnaFor, creatorDnaText } from "../shared/creator-dna.js";
 
 const MODEL = "mlx-community/Qwen3.5-9B-4bit";
 const PEOPLE = ["cara","lila","cara_lila"].map(id => {
