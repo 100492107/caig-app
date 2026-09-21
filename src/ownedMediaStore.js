@@ -1,4 +1,5 @@
 import { supabase } from "./supabase";
+import { creatorDnaFor } from "../shared/creator-dna.js";
 
 const PROFILES_KEY = "caig_owned_profiles_v1";
 const EARNINGS_KEY = "caig_owned_earnings_v1";
@@ -7,28 +8,43 @@ const TABLE = "user_owned_media";
 export const DEFAULT_PROFILES = [
   {
     id: "cara",
-    name: "Cara",
-    type: "Creator persona",
-    role: "Owned face · British, direct, dry",
+    name: "Cara Whitmore",
+    type: "Owned creator",
+    role: "BUILD · Agency",
+    canonical_dna: creatorDnaFor("cara"),
     platforms: [
       { network: "Instagram", handle: "", url: "", status: "planned" },
       { network: "TikTok", handle: "", url: "", status: "planned" },
       { network: "Fanvue", handle: "", url: "", status: "planned" },
       { network: "X", handle: "", url: "", status: "planned" },
     ],
-    notes: "Monetise via Fanvue / affiliate once posting is consistent.",
+    notes: "Audience fantasy: My life is becoming more intentional. Story engine: decisions and consequences.",
   },
   {
     id: "lila",
-    name: "Lila",
-    type: "Creator persona",
-    role: "Owned face · warm, measured, understated",
+    name: "Lila Sterling",
+    type: "Owned creator",
+    role: "NOTICE · Presence",
+    canonical_dna: creatorDnaFor("lila"),
     platforms: [
       { network: "Instagram", handle: "", url: "", status: "planned" },
       { network: "TikTok", handle: "", url: "", status: "planned" },
       { network: "Fanvue", handle: "", url: "", status: "planned" },
     ],
-    notes: "Pair with Cara or run softer lifestyle angles.",
+    notes: "Audience fantasy: I want my everyday life to feel a little more like this. Story engine: places, people and small discoveries.",
+  },
+  {
+    id: "cara_lila",
+    name: "Cara + Lila",
+    type: "Owned creator duo",
+    role: "BUILD + NOTICE · Contrast",
+    canonical_dna: creatorDnaFor("duo"),
+    platforms: [
+      { network: "Instagram", handle: "", url: "", status: "planned" },
+      { network: "TikTok", handle: "", url: "", status: "planned" },
+      { network: "YouTube Shorts", handle: "", url: "", status: "planned" },
+    ],
+    notes: "One wants to move forward. One wants to look around first. Neither is always right.",
   },
   {
     id: "youtube_main",
@@ -39,18 +55,18 @@ export const DEFAULT_PROFILES = [
       { network: "YouTube", handle: "", url: "", status: "planned" },
       { network: "YouTube Shorts", handle: "", url: "", status: "planned" },
     ],
-    notes: "Content Engine packages ship here first.",
+    notes: "Cornerstone Content Engine packages.",
   },
   {
     id: "tiktok_brand",
     name: "Brand TikTok",
     type: "Short-form",
-    role: "Clips from Multiply",
+    role: "Shorts derivatives and tests",
     platforms: [
       { network: "TikTok", handle: "", url: "", status: "planned" },
       { network: "Instagram Reels", handle: "", url: "", status: "planned" },
     ],
-    notes: "Shorts derivatives and tests.",
+    notes: "Cornerstone-owned commercial experiments.",
   },
 ];
 
