@@ -6,6 +6,7 @@ import ProfileChannelsWorkspace from './ProfileChannelsWorkspace.jsx'
 import CanonicalProductionWorkspace from './CanonicalProductionWorkspace.jsx'
 import CanonicalPublishWorkspace from './CanonicalPublishWorkspace.jsx'
 import CanonicalMeasureWorkspace from './CanonicalMeasureWorkspace.jsx'
+import CreatorDnaDossier from './CreatorDnaDossier.jsx'
 
 const STAGES = [
   ['remake', 'Build', 'Start from evidence. Turn a winning mechanism into an original package.'],
@@ -56,6 +57,13 @@ export default function ContentWorkspaceShell2() {
             </a>
           ))}
         </nav>
+
+        <section className="cs-loop-context">
+          <div><span className="cs-loop-context-k">Owned creator system</span><strong>Cara + Lila run on one canonical intelligence layer.</strong></div>
+          <div className="cs-loop-context-right"><span>IDENTITY</span><b>Frozen</b><span>GENERATION</span><b>DNA-first</b></div>
+        </section>
+
+        {stage === 'creators' ? <CreatorDnaDossier /> : null}
 
         <Workspace stage={stage} />
       </div>
