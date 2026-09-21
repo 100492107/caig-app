@@ -1,12 +1,13 @@
 import React, { useMemo, useState } from "react";
 import { supabase } from "./supabase";
+import { creatorDnaFor, creatorDnaText } from "./shared/creator-dna.js";
 
 const MODEL = "mlx-community/Qwen3.5-9B-4bit";
-const PEOPLE = [
-  { id: "cara", name: "Cara", desc: "Direct, dry, disciplined, British." },
-  { id: "lila", name: "Lila", desc: "Warm, measured, observant, understated." },
-  { id: "cara_lila", name: "Cara + Lila", desc: "Two distinct voices, chemistry and contrast." },
-];
+const PEOPLE = ["cara","lila","cara_lila"].map(id => {
+  const dna = creatorDnaFor(id);
+  return { id, name: dna.name, desc: id === "cara_lila" ? dna.coreDynamic : dna.coreNeed };
+});
+
 const OBJECTIVES = ["Sell", "Discover", "Test Hook", "Build Demand"];
 const FORMATS = [
   ["problem_solution", "Problem / Solution", "Pain → discovery → demonstration → payoff"],
@@ -19,10 +20,11 @@ const FORMATS = [
   ["comparison", "Comparison", "Useful A/B or old-way vs new-way contrast"],
 ];
 const BIBLES = {
-  cara: "Cara is an adult fictional British creator. Direct, dry, disciplined and practical. Public Cara is never a salesperson. Products appear because she is doing something, solving something or reacting to something. Language is concrete and understated.",
-  lila: "Lila is an adult fictional creator. Warm, measured, observant and understated. She is beauty/lifestyle oriented but dislikes hype, forced praise and obvious selling. Products belong inside realistic routines, discoveries and small observations.",
-  cara_lila: "Cara and Lila are separate adult fictional creators. Cara reacts faster and challenges things. Lila observes first and is more precise. Commerce content should use chemistry and contrast rather than merged voices or duplicated reactions.",
+  cara: creatorDnaText("cara"),
+  lila: creatorDnaText("lila"),
+  cara_lila: creatorDnaText("cara") + "\n\n=== LILA DNA ===\n" + creatorDnaText("lila") + "\n\n=== RELATIONSHIP DNA ===\n" + creatorDnaText("duo"),
 };
+
 const ADAPTATIONS = [
   "adapt the emotional mechanism, never another creator's wording or identity",
   "flip a proven framing when the opposite angle creates tension",
