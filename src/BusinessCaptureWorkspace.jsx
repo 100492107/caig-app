@@ -1,6 +1,7 @@
 import React,{useEffect,useState} from 'react';
 import {supabase} from './supabase';
 import EnterpriseShell from './EnterpriseShell.jsx';
+import { creatorDnaFor } from '../shared/creator-dna.js';
 
 const N=v=>v===''||v==null?'':Number(v);
 const fields=[
@@ -10,6 +11,7 @@ const fields=[
   ['cac','CAC'],['ltv','LTV'],['employee_count','Employees'],['dso_days','DSO days']
 ];
 const pfields=[['audience_followers','Followers'],['subscribers','Subscribers'],['paid_subscribers','Paid subscribers'],['views','Views'],['reach','Reach'],['clicks','Clicks'],['conversions','Conversions'],['revenue','Revenue']];
+const CREATOR_OPTIONS=['cara','lila','cara_lila'].map(id=>({id,dna:creatorDnaFor(id)}));
 
 export default function BusinessCaptureWorkspace(){
  const [mode,setMode]=useState('platform');
@@ -27,10 +29,9 @@ export default function BusinessCaptureWorkspace(){
  const [error,setError]=useState('');
 
  useEffect(()=>{
-   Promise.all([
-     supabase.from('track_b_publications').select('id,title,platform').order('created_at',{ascending:false}).limit(100),
-     supabase.from('creators').select('name,handle').order('name')
-   ]).then(([p,c])=>{setPubs(p.data||[]);setCreators(c.data||[])});
+   supabase.from('track_b_publications').select('id,title,platform').order('created_at',{ascending:false}).limit(100)
+     .then(({data})=>setPubs(data||[]));
+   setCreators(CREATOR_OPTIONS.map(({id,dna})=>({id,name:dna.name})));
  },[]);
 
  const set=(k,v)=>setVals({...vals,[k]:v});
@@ -84,7 +85,7 @@ export default function BusinessCaptureWorkspace(){
     <div className="bi-panel-head"><b>Asset experiment</b><span>Published work should have a hypothesis</span></div>
     <div className="bi-capture-form">
       <label><span>Publication</span><select value={exp.publication_id} onChange={e=>setExp({...exp,publication_id:e.target.value})}><option value="">Link after publishing</option>{pubs.map(p=><option key={p.id} value={p.id}>{p.title||'Untitled'} · {p.platform}</option>)}</select></label>
-      <label><span>Creator</span><select value={exp.creator_id} onChange={e=>setExp({...exp,creator_id:e.target.value})}><option value="">Not set</option>{creators.map(c=><option key={c.name} value={String(c.name).toLowerCase().replaceAll(' ','_')}>{c.name}</option>)}</select></label>
+      <label><span>Creator</span><select value={exp.creator_id} onChange={e=>setExp({...exp,creator_id:e.target.value})}><option value="">Not set</option>{creators.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
       <label><span>Platform</span><input value={exp.platform} onChange={e=>setExp({...exp,platform:e.target.value})}/></label>
       <label><span>Primary metric</span><input value={exp.primary_metric} onChange={e=>setExp({...exp,primary_metric:e.target.value})}/></label>
       <label style={{gridColumn:'1/-1'}}><span>Hypothesis</span><textarea value={exp.hypothesis} onChange={e=>setExp({...exp,hypothesis:e.target.value})} placeholder="Because X, we expect Y to improve on this platform."></textarea></label>
