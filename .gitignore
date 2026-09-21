@@ -34,3 +34,10 @@ supabase/.temp/
 # Local Netlify folder
 .netlify
 .vercel
+
+# Local Cornerstone AI runtimes
+.local-ai-runtime/
+.venv-qwen/
+.venv-qwen-vision/
+.venv-caption/
+.venv-source/

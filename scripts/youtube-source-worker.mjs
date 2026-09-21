@@ -97,7 +97,7 @@ function baseArgs(outputTemplate) {
     '--no-playlist',
     '--no-part',
     '--restrict-filenames',
-    '--format', 'bv*+ba/b',
+    '--format', 'bv*[height<=360]+ba/b[height<=360]',
     '--merge-output-format', 'mp4',
     '--max-filesize', String(MAX_BYTES),
     '--output', outputTemplate,
