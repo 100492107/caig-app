@@ -6,6 +6,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { buildPrompt } from "./generate-submit.js";
 import { CARA_REFS, FAL_EDIT_QUEUE_URL, FAL_EDIT_REQUESTS_BASE, GROK_RESOLUTION, refsForSubmit, getPersonaVisual } from "./cara-config.js";
+import { creatorDnaFor, creatorDnaText } from "../shared/creator-dna.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL || "https://zvyioxhwdyocaanzcgqf.supabase.co",
@@ -17,13 +18,14 @@ const supabase = createClient(
 // This is only a lightweight fallback summary — generate-batch.js loads the
 // full persona by persona.id === "cara" and uses that instead, so this object
 // rarely drives the actual system prompt. Keep the age and tone in sync anyway.
+const CARA_DNA = creatorDnaFor("cara");
 const CARA_PERSONA = {
   id: "cara",
-  name: "Cara Whitmore",
-  niche: "Mindset · Money · Discipline · Proof",
-  // Lightweight summary — full Fanvue persona + voice lives in generate-batch.js
-  char: "19. British. Didn't come from money — built everything through discipline, standards, and a refusal to stay average. Trains most days because discipline in one area bleeds into every other area. Faith sits quietly underneath. Genuinely funny in a dry, deadpan way — talks trash to herself in the gym mirror, competitive over things that don't matter, treats a cheat meal like a main character moment. Understands leverage and attention better than she lets on. Never explains the mechanics — just is what the mechanics produced.",
-  voice: "Direct, a little blunt, occasionally sharp — never cruel. Confidence, not arrogance. Talks TO people, not at them. Proof over promises. British. 19. Tough-love, not hustle-bro shouting. Short sentences. One capitalised word maximum for real emphasis. Has real range — funny and blunt one day, quietly proud the next, tired-but-honest another — never the same mood twice in a row.",
+  name: CARA_DNA.name,
+  niche: CARA_DNA.contentTerritories.slice(0, 5).join(" · "),
+  char: creatorDnaText("cara"),
+  voice: CARA_DNA.language?.rhythm || "Short, precise conversational British English with dry turns.",
+  canonical_dna: CARA_DNA,
 };
 
 const FANVUE_PLATFORM = {
