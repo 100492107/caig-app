@@ -1,11 +1,8 @@
 import React,{useEffect,useMemo,useState} from 'react'
 import {supabase} from './supabase'
+import {creatorDnaFor, creatorDnaText} from '../shared/creator-dna.js'
 
-const CREATORS=[
-  {id:'cara',name:'Cara',tone:'Direct, dry, disciplined'},
-  {id:'lila',name:'Lila',tone:'Warm, observant, understated'},
-  {id:'cara_lila',name:'Cara + Lila',tone:'Contrast, chemistry, two voices'},
-]
+const CREATORS=['cara','lila','cara_lila'].map(id=>{const dna=creatorDnaFor(id);return {id,name:dna.name,tone:dna.coreVerb+' · '+(id==='cara_lila'?dna.coreDynamic:dna.coreNeed)}})
 const PLATFORMS=['TikTok','Instagram','YouTube','Fanvue','Multi-platform']
 const OBJECTIVES=['Content creation','TikTok Shop','Affiliate offers','Fanvue / subscriber content','Sponsorships','Audience growth']
 const FORMATS=['POV / relatable','Story / confession','GRWM','Day in the life','Reaction','Product / UGC','Photo carousel','Talking-to-camera','Duo interaction']
@@ -79,6 +76,7 @@ export default function CreatorStudioWorkspace({onAdvance}={}){
    setMessage('Building the creator package…')
    const prompt=[
     `CREATOR: ${selected.name}`,
+    `CANONICAL DNA: ${creatorDnaText(creator)}`,
     `PERSONA_ID: ${creator}`,
     `PLATFORM: ${platform}`,
     `OBJECTIVE: ${objective}`,
