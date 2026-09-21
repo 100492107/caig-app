@@ -75,7 +75,19 @@ function emptyEarnings() {
 }
 
 function normalizeProfiles(value) {
-  return Array.isArray(value) && value.length ? value : DEFAULT_PROFILES;
+  const rows = Array.isArray(value) && value.length ? value : DEFAULT_PROFILES;
+  return rows.map((row) => {
+    const id = String(row?.id || '').toLowerCase();
+    if (!['cara', 'lila', 'cara_lila'].includes(id)) return row;
+    const dnaId = id === 'cara_lila' ? 'duo' : id;
+    const dna = creatorDnaFor(dnaId);
+    return {
+      ...row,
+      name: dna.name,
+      type: id === 'cara_lila' ? 'Owned creator duo' : 'Owned creator',
+      canonical_dna: dna,
+    };
+  });
 }
 
 function normalizeEarnings(value) {
