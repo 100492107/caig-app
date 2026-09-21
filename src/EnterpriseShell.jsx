@@ -17,14 +17,6 @@ const NAV_GROUPS = [
 ]
 
 const NAV = NAV_GROUPS.flatMap(group => group.items)
-  { id: 'command', label: 'Command', href: '/', key: '⌘1' },
-  { id: 'business', label: 'Business', href: '/business', key: '⌘2' },
-  { id: 'content', label: 'Build', href: '/content/remake', key: '⌘3' },
-  { id: 'voices', label: 'Voices', href: '/content/creators', key: '⌘4' },
-  { id: 'production', label: 'Make', href: '/content/production', key: '⌘5' },
-  { id: 'publish', label: 'Publish', href: '/content/publish', key: '⌘6' },
-  { id: 'measurement', label: 'Learn', href: '/content/measurement', key: '⌘7' },
-]
 
 const UTILITY = [
   { id: 'library', label: 'Library', href: '/generations' },
