@@ -1,12 +1,13 @@
 import React, { useMemo, useState } from "react";
 import { supabase } from "./supabase";
+import { creatorDnaFor, creatorDnaText } from "../shared/creator-dna.js";
 
 const MODEL = "mlx-community/Qwen3.5-9B-4bit";
-const PEOPLE = [
-  { id: "cara", name: "Cara", badge: "DIRECT / DRY", desc: "British, disciplined, funny, practical." },
-  { id: "lila", name: "Lila", badge: "QUIET / OBSERVANT", desc: "Measured, warm, understated, visual." },
-  { id: "cara_lila", name: "Cara + Lila", badge: "CHEMISTRY / CONTRAST", desc: "Two separate voices, genuine dynamic." },
-];
+const PEOPLE = ["cara","lila","cara_lila"].map(id => {
+  const dna = creatorDnaFor(id === "cara_lila" ? "duo" : id);
+  return { id, name: dna.name, badge: id === "cara" ? "BUILD" : id === "lila" ? "NOTICE" : "TOGETHER", desc: id === "cara_lila" ? dna.coreDynamic : dna.coreNeed };
+});
+
 const FORMATS = [
   ["personal_moment", "Personal moment"], ["pov", "POV / relatable"], ["quick_take", "Quick take"], ["story", "Micro-story"],
   ["grwm", "GRWM"], ["day_in_life", "Day in the life"], ["slideshow", "Photo slideshow"], ["reaction", "Reaction"],
@@ -17,10 +18,11 @@ const SERIES = {
   cara_lila: ["Cara Says / Lila Says", "One Thinks It's Brilliant, One Thinks It's Stupid", "We Both Tried It", "Things We Completely Disagree On", "Get Ready Together", "Who Knows The Other Better?", "One Has A Plan, The Other Ruins It", "Two Reactions To The Same Thing", "We Went Out For One Thing", "Travel Day Problems"],
 };
 const AUDIENCE = {
-  cara: "Women who want discipline without misery, confidence without performance, realistic routines, blunt observations and earned progress.",
-  lila: "Women who like calm aspiration with usefulness underneath: beauty, lifestyle filtering, understated taste and small discoveries.",
-  cara_lila: "Viewers who enjoy relationship dynamics, anticipation of disagreement, distinct reactions and unfolding moments.",
+  cara: creatorDnaFor("cara").audienceFantasy,
+  lila: creatorDnaFor("lila").audienceFantasy,
+  cara_lila: "Viewers who enjoy two distinct ways of experiencing the same life: contrast, chemistry, teasing and shared discoveries.",
 };
+
 const ADAPTATIONS = [
   "flip a proven framing when the opposite angle creates tension",
   "use curiosity-gap reveals only when the reveal is specific",
@@ -29,10 +31,11 @@ const ADAPTATIONS = [
   "borrow challenge, ranking, comparison and storytime structures from other categories when the emotion matches",
 ];
 const BIBLES = {
-  cara: "Cara is an adult fictional British creator. Direct, dry, disciplined, practical and warm underneath the edge. She can be tired, awkward, competitive, quietly proud, sentimental, amused or wrong. Worlds include training, routines, style, work, money choices, confidence, travel, friendship, small luxuries and ordinary chaos.",
-  lila: "Lila is an adult fictional creator. Warm, measured, observant and understated. She notices light, rooms, texture, places and small changes in routine. She dislikes forced hype and obvious engagement bait. Worlds include beauty, skincare, haircare, travel, style, wellness, calm ambition and nostalgia.",
-  cara_lila: "Cara and Lila are separate adult fictional creators. Cara reacts faster and challenges things. Lila observes first and is more precise. Duo content is about chemistry, teasing, disagreement, cooperation and distinct reactions. Never merge their identities.",
+  cara: creatorDnaText("cara"),
+  lila: creatorDnaText("lila"),
+  cara_lila: creatorDnaText("cara") + "\n\n=== LILA DNA ===\n" + creatorDnaText("lila") + "\n\n=== RELATIONSHIP DNA ===\n" + creatorDnaText("duo"),
 };
+
 const styles = {
   page: { minHeight: "100vh", background: "radial-gradient(circle at 10% 0%,rgba(212,175,55,.08),transparent 28%),#090b10", color: "#fff" },
   shell: { maxWidth: 1400, margin: "0 auto", padding: "28px 28px 80px" },
