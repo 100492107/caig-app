@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { supabase } from "./supabase";
+import { creatorDnaFor, creatorDnaText } from "../shared/creator-dna.js";
 
 const CARD = { background: "#0e1118", border: "1px solid #252b3b", borderRadius: 18, padding: 18 };
 const INPUT = { width: "100%", boxSizing: "border-box", background: "#10131c", color: "#eef1f7", border: "1px solid #2a3042", borderRadius: 10, padding: "10px 12px" };
@@ -7,9 +8,9 @@ const BUTTON = { background: "#141924", color: "#eef1f7", border: "1px solid #30
 const PRIMARY = { ...BUTTON, background: "#d4af37", color: "#08090d", borderColor: "#d4af37", fontWeight: 950 };
 
 const CREATORS = {
-  cara: { name: "Cara", voice: "Direct, dry, disciplined, British. Specific, sharp, self-aware. Confidence without performance." },
-  lila: { name: "Lila", voice: "Measured, warm, observant, understated. Short sentences. Calm, intimate, quietly confident." },
-  cara_lila: { name: "Cara + Lila", voice: "Two distinct women with natural chemistry. Contrast, teasing, shared moments and earned 'we'. Never blend them." },
+  cara: { name: creatorDnaFor("cara").name, voice: creatorDnaFor("cara").language.rhythm },
+  lila: { name: creatorDnaFor("lila").name, voice: creatorDnaFor("lila").language.rhythm },
+  cara_lila: { name: creatorDnaFor("duo").name, voice: "Two distinct voices. Cara builds and says the blunt thing; Lila notices and selects carefully. Preserve both minds." },
 };
 
 const PLATFORMS = {
@@ -134,7 +135,7 @@ export default function CaptionIntelligence() {
       const photoFacts = files.length ? await extractPhotoFacts(files) : [];
       setMessage("Stage 2/3 · researching the last 7 days across TikTok, Instagram and Reddit…");
 
-      const prompt = `CAPTION TASK\nCREATOR: ${creatorProfile.name}\nVOICE: ${creatorProfile.voice}\nPLATFORM: ${platformProfile.name}\nFUNNEL: ${platformProfile.objective}\nPRIMARY JOB: ${objective}\nFANVUE OFFER: ${fanvueOffer}\nUSER CONTEXT: ${context || "none"}\n\nPHOTO FACTS:\n${JSON.stringify(photoFacts)}\n\nUse the LIVE RESEARCH PACK added by the local worker. This is a fresh runtime research pass. Do not use old CAIG Trend Radar output as evidence.\n\nReturn JSON only:\n{\"strategy\":\"\",\"trendDecision\":\"USE|ADAPT|IGNORE\",\"trendDecisionReason\":\"\",\"confidence\":\"high|medium|low\",\"currentSignals\":[{\"source\":\"\",\"published\":\"\",\"platform\":\"\",\"signal\":\"\",\"evidenceLevel\":\"\"}],\"captions\":[{\"label\":\"Curiosity\",\"text\":\"\",\"goal\":\"\",\"cta\":\"\"},{\"label\":\"Personality\",\"text\":\"\",\"goal\":\"\",\"cta\":\"\"},{\"label\":\"Conversation\",\"text\":\"\",\"goal\":\"\",\"cta\":\"\"},{\"label\":\"Profile curiosity\",\"text\":\"\",\"goal\":\"\",\"cta\":\"\"},{\"label\":\"Conversion\",\"text\":\"\",\"goal\":\"\",\"cta\":\"\"}],\"recommended\":\"\",\"reason\":\"\",\"testPlan\":\"\"}`;
+      const prompt = `CANONICAL CREATOR DNA:\n${creatorDnaText(creator)}\n\nCAPTION TASK\nCREATOR: ${creatorProfile.name}\nVOICE: ${creatorProfile.voice}\nPLATFORM: ${platformProfile.name}\nFUNNEL: ${platformProfile.objective}\nPRIMARY JOB: ${objective}\nFANVUE OFFER: ${fanvueOffer}\nUSER CONTEXT: ${context || "none"}\n\nPHOTO FACTS:\n${JSON.stringify(photoFacts)}\n\nUse the LIVE RESEARCH PACK added by the local worker. This is a fresh runtime research pass. Do not use old CAIG Trend Radar output as evidence.\n\nReturn JSON only:\n{\"strategy\":\"\",\"trendDecision\":\"USE|ADAPT|IGNORE\",\"trendDecisionReason\":\"\",\"confidence\":\"high|medium|low\",\"currentSignals\":[{\"source\":\"\",\"published\":\"\",\"platform\":\"\",\"signal\":\"\",\"evidenceLevel\":\"\"}],\"captions\":[{\"label\":\"Curiosity\",\"text\":\"\",\"goal\":\"\",\"cta\":\"\"},{\"label\":\"Personality\",\"text\":\"\",\"goal\":\"\",\"cta\":\"\"},{\"label\":\"Conversation\",\"text\":\"\",\"goal\":\"\",\"cta\":\"\"},{\"label\":\"Profile curiosity\",\"text\":\"\",\"goal\":\"\",\"cta\":\"\"},{\"label\":\"Conversion\",\"text\":\"\",\"goal\":\"\",\"cta\":\"\"}],\"recommended\":\"\",\"reason\":\"\",\"testPlan\":\"\"}`;
 
       const system = `You are the Social Caption Intelligence Director for Cornerstone AI Assets. You are judged by whether the operator can paste the result immediately and whether the strategy is genuinely useful.
 
