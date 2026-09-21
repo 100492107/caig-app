@@ -1,0 +1,637 @@
+/* Cornerstone executive layer — consistency, hierarchy and product-grade spacing. */
+
+:root {
+  --cs-exec-bg: #070809;
+  --cs-exec-surface: rgba(18, 20, 24, .82);
+  --cs-exec-surface-2: rgba(23, 26, 31, .82);
+  --cs-exec-line: rgba(255,255,255,.075);
+  --cs-exec-line-strong: rgba(255,255,255,.13);
+  --cs-exec-text: #f1f1f3;
+  --cs-exec-muted: #a0a4ad;
+  --cs-exec-subtle: #707580;
+  --cs-exec-accent: #df8a62;
+  --cs-exec-accent-soft: rgba(223,138,98,.10);
+  --cs-exec-green: #63d396;
+}
+
+html { background: var(--cs-exec-bg); }
+body {
+  background:
+    radial-gradient(900px 500px at 14% -10%, rgba(223,138,98,.08), transparent 55%),
+    radial-gradient(700px 500px at 95% 12%, rgba(255,255,255,.025), transparent 55%),
+    var(--cs-exec-bg) !important;
+}
+
+.cs-app {
+  grid-template-columns: 248px minmax(0,1fr) !important;
+  min-height: 100svh;
+  background: transparent;
+}
+
+.cs-rail {
+  padding: 18px 14px !important;
+  border-right: 1px solid var(--cs-exec-line) !important;
+  background: rgba(7,8,9,.82) !important;
+  backdrop-filter: blur(20px);
+}
+
+.cs-brand {
+  padding: 6px 8px 22px !important;
+  margin-bottom: 8px !important;
+}
+
+.cs-brand-mark {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 9px !important;
+  background: linear-gradient(145deg,#f4f1ea,#cfc6b9) !important;
+  color: #111 !important;
+  box-shadow: 0 8px 24px rgba(0,0,0,.25);
+}
+
+.cs-brand-text strong { font-size: 13px !important; font-weight: 700 !important; }
+.cs-brand-text span { font-size: 10px !important; letter-spacing: .01em; }
+
+.cs-rail-nav {
+  gap: 3px !important;
+  margin-top: 4px;
+}
+
+.cs-rail-link {
+  min-height: 40px !important;
+  padding: 0 11px !important;
+  border-radius: 10px !important;
+  font-size: 12px !important;
+  color: #9297a1 !important;
+}
+
+.cs-rail-link:hover {
+  background: rgba(255,255,255,.045) !important;
+  color: #e8e8eb !important;
+}
+
+.cs-rail-link.is-active {
+  background: linear-gradient(90deg, rgba(223,138,98,.12), rgba(223,138,98,.03)) !important;
+  border: 1px solid rgba(223,138,98,.16);
+  color: #f4f2ef !important;
+}
+
+.cs-rail-link.is-active:before {
+  content: '';
+  width: 4px;
+  height: 18px;
+  margin-right: 6px;
+  border-radius: 999px;
+  background: var(--cs-exec-accent);
+}
+
+.cs-rail-link kbd {
+  color: #555a63 !important;
+  font-size: 9px !important;
+}
+
+.cs-rail-foot {
+  padding-top: 15px !important;
+  border-top: 1px solid var(--cs-exec-line) !important;
+}
+
+.cs-stage { min-width: 0; }
+.cs-stage-bar {
+  min-height: 52px !important;
+  padding: 0 28px !important;
+  border-bottom: 1px solid var(--cs-exec-line) !important;
+  background: rgba(7,8,9,.72) !important;
+  backdrop-filter: blur(18px);
+}
+
+.cs-stage-bar .label {
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: #aeb2ba !important;
+}
+
+.cs-stage-bar .meta {
+  font-size: 10px !important;
+  letter-spacing: .02em;
+  color: #5f646e !important;
+}
+
+.cs-stage-body {
+  width: min(1240px,100%) !important;
+  padding: 34px 32px 72px !important;
+}
+
+.cs-page { gap: 22px !important; }
+.cs-page-head {
+  gap: 10px !important;
+  padding-bottom: 22px !important;
+  border-bottom-color: var(--cs-exec-line) !important;
+}
+
+.cs-page-head .eyebrow {
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  letter-spacing: .12em !important;
+  color: #6e737c !important;
+}
+
+.cs-page-head h1 {
+  font-size: clamp(34px,4.5vw,52px) !important;
+  font-weight: 650 !important;
+  letter-spacing: -.055em !important;
+}
+
+.cs-page-head p {
+  max-width: 64ch !important;
+  font-size: 13px !important;
+  line-height: 1.65 !important;
+  color: #9a9ea8 !important;
+}
+
+.cs-flow {
+  grid-template-columns: repeat(6,minmax(0,1fr)) !important;
+  gap: 7px !important;
+}
+
+.cs-flow a {
+  min-height: 92px;
+  padding: 12px !important;
+  border-radius: 12px !important;
+  border-color: var(--cs-exec-line) !important;
+  background: rgba(16,18,21,.66) !important;
+  transition: transform .16s ease,border-color .16s ease,background .16s ease !important;
+}
+
+.cs-flow a:hover { transform: translateY(-1px); border-color: var(--cs-exec-line-strong) !important; }
+.cs-flow a.is-active {
+  border-color: rgba(223,138,98,.30) !important;
+  background: var(--cs-exec-accent-soft) !important;
+}
+.cs-flow a i { background: rgba(255,255,255,.08) !important; }
+.cs-flow a.is-active i { background: var(--cs-exec-accent) !important; }
+.cs-flow a span { font-weight: 650; }
+.cs-flow a small { color: #777c86; font-size: 9px; line-height: 1.45; }
+
+button, .cs-btn, .cs-btn-ghost, a.primary, a.ghost {
+  border-radius: 10px !important;
+}
+
+input, select, textarea {
+  border-radius: 10px !important;
+  border-color: rgba(255,255,255,.10) !important;
+  background: rgba(23,26,31,.82) !important;
+}
+
+button:hover { transform: translateY(-1px); }
+button:active { transform: translateY(0); }
+
+.cs-command-loop, .cs-creators {
+  gap: 12px !important;
+}
+
+.cs-command-card, .cs-creator-card, .panel, .bi-panel, .bi-health > div,
+.bi-status, .ch-card, .cw-box, .pw-card, .pub-board, .pm-card {
+  border-color: var(--cs-exec-line) !important;
+  box-shadow: 0 12px 40px rgba(0,0,0,.10);
+}
+
+.cs-command-card, .cs-creator-card {
+  background: linear-gradient(180deg,rgba(20,22,26,.88),rgba(14,16,19,.88)) !important;
+}
+
+.cs-command-k, .bi-k, .pub-eyebrow, .pw-eyebrow, .pm-k, .ch-k, .cw-kicker {
+  color: var(--cs-exec-accent) !important;
+}
+
+.cs-creators {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+}
+
+.cs-creator-card {
+  min-height: 154px;
+  border-radius: 16px !important;
+  padding: 16px !important;
+}
+
+.cs-creator-avatar img {
+  border-radius: 12px !important;
+  object-position: center;
+}
+
+.home {
+  max-width: none !important;
+}
+
+.home .hero {
+  grid-template-columns: minmax(0,1fr) 260px !important;
+  gap: 34px !important;
+  padding: 8px 0 30px !important;
+}
+
+.home .hero h1 {
+  max-width: 12ch !important;
+  font-size: clamp(42px,6vw,72px) !important;
+  letter-spacing: -.065em !important;
+  line-height: .92 !important;
+}
+
+.home .hero p { max-width: 62ch !important; }
+.home .metrics {
+  grid-template-columns: repeat(3,1fr) !important;
+  gap: 1px !important;
+  background: var(--cs-exec-line) !important;
+  border-color: var(--cs-exec-line) !important;
+  border-radius: 16px !important;
+}
+.home .metric {
+  min-height: 82px;
+  padding: 16px 17px !important;
+  background: rgba(16,18,21,.82) !important;
+}
+.home .metric b { font-size: 24px !important; }
+.home .next {
+  padding: 22px !important;
+  border-radius: 16px !important;
+  background:
+    radial-gradient(420px 180px at 0 0,rgba(223,138,98,.12),transparent 68%),
+    rgba(17,19,23,.9) !important;
+}
+.home .grid {
+  grid-template-columns: 1fr 1fr !important;
+  gap: 12px !important;
+}
+.home .panel { border-radius: 16px !important; }
+.home .footer { grid-template-columns: repeat(4,1fr) !important; border-radius: 14px !important; }
+
+.dna-dossier {
+  display: grid;
+  gap: 14px;
+  padding: 20px;
+  border: 1px solid var(--cs-exec-line);
+  border-radius: 20px;
+  background: linear-gradient(180deg,rgba(17,19,23,.94),rgba(11,13,16,.94));
+  box-shadow: 0 22px 70px rgba(0,0,0,.16);
+}
+
+.dna-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding-bottom: 17px;
+  border-bottom: 1px solid var(--cs-exec-line);
+}
+
+.dna-kicker {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: #7a7f88;
+}
+
+.dna-header h2 {
+  margin-top: 7px;
+  max-width: 25ch;
+  font-size: 24px;
+  letter-spacing: -.045em;
+}
+
+.dna-header p {
+  margin-top: 7px;
+  max-width: 72ch;
+  font-size: 11px;
+  color: #8f949e;
+  line-height: 1.55;
+}
+
+.dna-lock {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 10px;
+  border: 1px solid rgba(99,211,150,.18);
+  border-radius: 999px;
+  background: rgba(99,211,150,.05);
+  color: #a7cdb6;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.dna-lock-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--cs-exec-green);
+  box-shadow: 0 0 0 3px rgba(99,211,150,.08);
+}
+
+.dna-tabs {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 6px;
+}
+
+.dna-tabs button {
+  display: grid;
+  gap: 3px;
+  min-height: 48px;
+  padding: 9px 11px;
+  border: 1px solid var(--cs-exec-line);
+  border-radius: 11px;
+  background: rgba(20,22,26,.72);
+  color: #8f949d;
+  text-align: left;
+}
+
+.dna-tabs button.is-active {
+  border-color: rgba(223,138,98,.28);
+  background: rgba(223,138,98,.09);
+  color: #f0ede9;
+}
+
+.dna-tabs button span { font-size: 11px; font-weight: 700; }
+.dna-tabs button small { font-size: 8px; letter-spacing: .09em; text-transform: uppercase; color: #6b7079; }
+
+.dna-hero, .dna-duo-hero {
+  display: grid;
+  grid-template-columns: 190px minmax(0,1fr);
+  gap: 18px;
+  padding: 14px;
+  border: 1px solid var(--cs-exec-line);
+  border-radius: 16px;
+  background: rgba(13,15,18,.86);
+}
+
+.dna-portrait {
+  width: 100%;
+  aspect-ratio: 4/5;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #0b0c0e;
+}
+
+.dna-portrait img, .dna-duo-images img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.dna-hero-copy {
+  display: grid;
+  align-content: center;
+  gap: 10px;
+}
+
+.dna-hero-copy h3, .dna-duo-hero h3 {
+  font-size: clamp(24px,3vw,38px);
+  letter-spacing: -.06em;
+  max-width: 19ch;
+}
+
+.dna-hero-copy p, .dna-duo-hero p {
+  max-width: 62ch;
+  font-size: 12px;
+  color: #8f949e;
+  line-height: 1.65;
+}
+
+.dna-hero-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.dna-hero-meta span {
+  padding: 10px 11px;
+  border: 1px solid var(--cs-exec-line);
+  border-radius: 10px;
+  background: rgba(19,21,25,.65);
+  font-size: 10px;
+  color: #999da5;
+}
+
+.dna-hero-meta b {
+  display: block;
+  margin-bottom: 4px;
+  color: #666b74;
+  font-size: 8px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.dna-facts {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 7px;
+}
+
+.dna-fact {
+  min-width: 0;
+  padding: 11px 12px;
+  border: 1px solid var(--cs-exec-line);
+  border-radius: 11px;
+  background: rgba(19,21,25,.68);
+}
+
+.dna-fact-wide { grid-column: 1 / -1; }
+
+.dna-label {
+  margin-bottom: 5px;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: #626771;
+}
+
+.dna-value {
+  font-size: 11px;
+  line-height: 1.55;
+  color: #c6c9cf;
+}
+
+.dna-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.dna-section {
+  padding: 12px;
+  border: 1px solid var(--cs-exec-line);
+  border-radius: 13px;
+  background: rgba(19,21,25,.58);
+}
+
+.dna-section-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+
+.dna-section-head strong {
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.dna-section-head span {
+  font-size: 8px;
+  color: #626771;
+}
+
+.dna-list {
+  display: grid;
+  gap: 5px;
+}
+
+.dna-list > span {
+  display: block;
+  padding-left: 11px;
+  position: relative;
+  font-size: 10px;
+  color: #9ea2aa;
+  line-height: 1.5;
+}
+
+.dna-list > span:before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: .58em;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #5f646d;
+}
+
+.dna-empty { color: #666b74; font-size: 10px; }
+
+.dna-details {
+  border: 1px solid var(--cs-exec-line);
+  border-radius: 13px;
+  background: rgba(15,17,20,.58);
+  overflow: hidden;
+}
+
+.dna-details summary {
+  padding: 12px 13px;
+  cursor: pointer;
+  list-style: none;
+  color: #a4a8b0;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.dna-details summary::-webkit-details-marker { display: none; }
+
+.dna-details summary:after {
+  content: '+';
+  float: right;
+  color: #626771;
+}
+
+.dna-details[open] summary:after { content: '−'; }
+
+.dna-details > .dna-list,
+.dna-details-grid {
+  padding: 0 13px 13px;
+}
+
+.dna-details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+}
+
+.dna-mini-card {
+  padding: 13px;
+  border: 1px solid var(--cs-exec-line);
+  border-radius: 14px;
+  background: rgba(18,20,24,.65);
+}
+
+.dna-mini-top {
+  display: grid;
+  grid-template-columns: 58px 1fr;
+  gap: 10px;
+  align-items: center;
+}
+
+.dna-mini-top img {
+  width: 58px;
+  height: 70px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.dna-mini-top h3 { margin-top: 3px; font-size: 16px; }
+.dna-mini-top p { margin-top: 4px; font-size: 10px; color: #8d929b; line-height: 1.45; }
+
+.dna-mini-grid {
+  display: grid;
+  gap: 7px;
+  margin-top: 10px;
+}
+
+.dna-duo-images {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  width: 190px;
+  aspect-ratio: 4/5;
+}
+
+.dna-duo-images img {
+  border-radius: 11px;
+}
+
+@media (max-width: 1050px) {
+  .cs-app { grid-template-columns: 210px minmax(0,1fr) !important; }
+  .cs-flow { grid-template-columns: repeat(3,minmax(0,1fr)) !important; }
+  .home .hero { grid-template-columns: 1fr !important; }
+}
+
+@media (max-width: 900px) {
+  .cs-app { grid-template-columns: 1fr !important; }
+  .cs-rail {
+    position: sticky !important;
+    top: 0;
+    z-index: 60;
+    height: auto !important;
+    padding: 9px 12px !important;
+    display: flex !important;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 8px;
+  }
+  .cs-brand { padding: 0 !important; margin: 0 !important; }
+  .cs-brand-text { display: none; }
+  .cs-rail-nav { display: flex !important; flex: 1; overflow: auto; margin: 0 !important; }
+  .cs-rail-link { flex: 0 0 auto; min-height: 36px !important; padding: 0 10px !important; }
+  .cs-rail-link kbd { display: none; }
+  .cs-rail-foot { display: none; }
+  .cs-stage-bar { padding: 0 16px !important; }
+  .cs-stage-body { padding: 22px 16px 52px !important; }
+  .cs-flow { grid-template-columns: repeat(2,minmax(0,1fr)) !important; }
+  .cs-creators, .home .grid { grid-template-columns: 1fr !important; }
+  .dna-hero, .dna-duo-hero { grid-template-columns: 1fr; }
+  .dna-portrait { width: 150px; }
+  .dna-duo-images { width: 150px; }
+}
+
+@media (max-width: 620px) {
+  .cs-flow, .dna-tabs, .dna-grid, .dna-facts, .dna-details-grid, .dna-hero-meta {
+    grid-template-columns: 1fr !important;
+  }
+  .home .metrics { grid-template-columns: 1fr 1fr !important; }
+  .home .footer { grid-template-columns: 1fr 1fr !important; }
+  .dna-fact-wide { grid-column: auto; }
+}
