@@ -212,6 +212,8 @@ export default function CommandHome(){
             <h3>{cara.name}</h3>
             <div className="cs-creator-meta">{cara.coreVerb} · {cara.coreNeed.split('.')[0]}</div>
             <div className="cs-creator-soul">“{cara.soul}”</div>
+            <div className="cs-creator-question">“{cara.signatureQuestion}”</div>
+            <div className="cs-creator-fantasy">{cara.audienceFantasy}</div>
             <a className="cs-creator-link" href="/content/creators">Open Cara →</a>
           </div>
         </article>
@@ -221,6 +223,8 @@ export default function CommandHome(){
             <h3>{lila.name}</h3>
             <div className="cs-creator-meta">{lila.coreVerb} · {lila.coreNeed.split('.')[0]}</div>
             <div className="cs-creator-soul">“{lila.soul}”</div>
+            <div className="cs-creator-question">“{lila.signatureQuestion}”</div>
+            <div className="cs-creator-fantasy">{lila.audienceFantasy}</div>
             <a className="cs-creator-link" href="/content/creators">Open Lila →</a>
           </div>
         </article>
