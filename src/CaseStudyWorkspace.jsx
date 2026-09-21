@@ -1,6 +1,7 @@
 import React,{useEffect,useMemo,useState} from 'react';
 import {supabase} from './supabase';
 import EnterpriseShell from './EnterpriseShell.jsx';
+import { creatorDnaFor } from '../shared/creator-dna.js';
 
 const money=v=>v==null?'—':new Intl.NumberFormat('en-GB',{style:'currency',currency:'GBP',maximumFractionDigits:0}).format(Number(v||0));
 const num=v=>v==null?'—':new Intl.NumberFormat('en-GB',{maximumFractionDigits:0}).format(Number(v||0));
@@ -46,6 +47,10 @@ export default function CaseStudyWorkspace(){
     <div className="bi-head-meta"><b>{updates.length} weeks</b><span>Documented</span><small>{updates.filter(x=>x.published).length} public · {updates.filter(x=>!x.published).length} private drafts</small></div>
    </header>
    <div className="bi-tabs"><a href="/business">Business overview</a><a href="/business/capture">Capture</a><a className="active" href="/business/case-study">Case Study</a></div>
+   <section className="cs-case-identity">
+    <div><span>CANONICAL CREATOR SYSTEM</span><strong>{creatorDnaFor('cara').name} + {creatorDnaFor('lila').name}</strong></div>
+    <p>{creatorDnaFor('duo').coreDynamic} Every case-study entry records what the system actually learned from running them.</p>
+   </section>
    {error&&<div className="bi-error">{error}</div>}{message&&<div className="bi-success">{message}</div>}
 
    <section className="bi-health">
