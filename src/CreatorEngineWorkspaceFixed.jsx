@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { supabase } from './supabase'
 import { creatorDnaFor, creatorDnaText } from '../shared/creator-dna.js'
 import { aspectFromVision, generateCreatorImage } from './imageGeneration/qwenImageClient.js'
+import { sceneDirectionSystemBlock, VISION_JSON_COMPLETION_CHECK } from '../shared/scene-direction-knowledge.js'
 
 const PEOPLE = [
   ['cara', 'Cara', 'Build · agency · earned progress'],
@@ -66,10 +67,19 @@ export default function CreatorEngineWorkspaceFixed() {
   const [recent, setRecent] = useState([])
   const [generatedImages, setGeneratedImages] = useState({})
   const [imageBusy, setImageBusy] = useState(null)
+  const [visualReferencePack, setVisualReferencePack] = useState(null)
 
   const person = PEOPLE.find((p) => p[0] === persona) || PEOPLE[0]
   const job = JOBS.find((j) => j[0] === jobType) || JOBS[0]
   const dna = creatorDnaFor(persona)
+
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem('cornerstone_visual_reference_pack')
+      const parsed = raw ? JSON.parse(raw) : null
+      if (parsed && Array.isArray(parsed.images) && parsed.images.length) setVisualReferencePack(parsed)
+    } catch {}
+  }, [])
 
   async function loadRecent() {
     const { data } = await supabase.from('local_ai_jobs').select('id,title,status,created_at,persona_id,options').eq('owner_id', (await supabase.auth.getUser()).data.user?.id || '').eq('job_type', 'growth_mode').order('created_at', { ascending: false }).limit(30)
@@ -111,6 +121,7 @@ export default function CreatorEngineWorkspaceFixed() {
         visionJson: vision,
         flowPrompt: flow,
         aspectRatio: aspectFromVision(vision),
+        references: (visualReferencePack?.images || []).slice(0, 8),
         postId: 'voices-' + persona + '-shot-' + (item?.shot || index + 1),
       })
       setGeneratedImages((current) => ({ ...current, [index]: data }))
@@ -130,7 +141,7 @@ export default function CreatorEngineWorkspaceFixed() {
       const { data: auth, error: authError } = await supabase.auth.getUser()
       if (authError || !auth?.user) throw new Error('Please sign in again.')
       const source = reference.trim() ? `REFERENCE / SIGNAL URL: ${reference.trim()}` : 'REFERENCE / SIGNAL URL: None'
-      const prompt = `CREATOR: ${person[1]}\nPERSONA_ID: ${persona}\nPLATFORM: ${platform}\nOBJECTIVE: ${job[1]}\nOBJECTIVE_DETAIL: ${job[2]}\nFORMAT: ${format}\nOFFER / PRODUCT: ${offer.trim() || 'None'}\n${source}\nOPERATOR_DIRECTION: ${direction.trim() || 'Choose the strongest current opportunity.'}\n\nYou are Cornerstone Track B Creator Growth. Protect the selected creator identity and use existing character source-of-truth context. Build useful, platform-native work rather than generic ideas.\n\nFROZEN CREATOR DNA:\n${creatorDnaText(persona)}\n\nMASTER IMAGE REFERENCE AVAILABLE: ${persona === 'cara' ? 'Cara master/reference image is already stored in Cornerstone and must be used as the visual identity anchor in Flow Labs.' : persona === 'lila' ? 'Lila master/reference image is already stored in Cornerstone and must be used as the visual identity anchor in Flow Labs.' : 'Both Cara and Lila master/reference images are already stored in Cornerstone and must be used as distinct visual identity anchors in Flow Labs.'}\n\nCHARACTER REASONING RULE:\nDo not reduce the selected creator to surface adjectives. Before proposing content, determine what this character would notice, want, refuse, choose, find ridiculous, or remember in the situation. Let worldview, contradictions, social role and narrative arc determine the recommendation. For duo mode, preserve both minds and use their contrast rather than blending them.\n\nContent creation: create a repeatable series, specific concept, hook set, spoken script, shot list, scene directions, caption and derivatives.\nTikTok Shop: develop product-led content tests, demonstration structure, trust/proof moments, natural purchase timing and CTA tests. Never invent product claims, discounts, commissions, reviews or results.\nAffiliate: develop trust-first recommendation content, problem-solution fit, disclosure, click path, CTA and offer tests. Never invent commissions, prices, product facts, reviews or results.\nFanvue: develop appropriate owned-creator positioning, public-to-paid content ladder, cadence, conversion and retention ideas. Do not invent audience behaviour, subscribers or revenue.\nGrowth: develop recurring series, hook systems, audience recognition and retention loops.\n\nNever invent follower counts, views, sales, earnings, testimonials, audience reactions, private analytics or commercial facts. Separate observed evidence, public signals, inference and creative recommendation.
+      const visualBoardContext = visualReferencePack ? `\n\nACTIVE VISUAL REFERENCE BOARD: ${visualReferencePack.name || 'Visual reference board'}\nUse the supplied board images as structure references only. Preserve the selected creator identity. Board purpose: ${visualReferencePack.purpose || 'mixed'}.\nREFERENCE RECIPES:\n${JSON.stringify((visualReferencePack.references || []).map((x) => ({ source: x.source, category: x.category, title: x.title, recipe: x.recipe, analysis: x.analysis })).slice(0, 8)).slice(0, 18000)}\n` : ''\n      const prompt = `CREATOR: ${person[1]}\nPERSONA_ID: ${persona}\nPLATFORM: ${platform}\nOBJECTIVE: ${job[1]}\nOBJECTIVE_DETAIL: ${job[2]}\nFORMAT: ${format}\nOFFER / PRODUCT: ${offer.trim() || 'None'}\n${source}\nOPERATOR_DIRECTION: ${direction.trim() || 'Choose the strongest current opportunity.'}\n\nYou are Cornerstone Track B Creator Growth. Protect the selected creator identity and use existing character source-of-truth context. Build useful, platform-native work rather than generic ideas.\n\nFROZEN CREATOR DNA:\n${creatorDnaText(persona)}\n\n${visualBoardContext}\n\nMASTER IMAGE REFERENCE AVAILABLE: ${persona === 'cara' ? 'Cara master/reference image is already stored in Cornerstone and must be used as the visual identity anchor in Flow Labs.' : persona === 'lila' ? 'Lila master/reference image is already stored in Cornerstone and must be used as the visual identity anchor in Flow Labs.' : 'Both Cara and Lila master/reference images are already stored in Cornerstone and must be used as distinct visual identity anchors in Flow Labs.'}\n\nCHARACTER REASONING RULE:\nDo not reduce the selected creator to surface adjectives. Before proposing content, determine what this character would notice, want, refuse, choose, find ridiculous, or remember in the situation. Let worldview, contradictions, social role and narrative arc determine the recommendation. For duo mode, preserve both minds and use their contrast rather than blending them.\n\nContent creation: create a repeatable series, specific concept, hook set, spoken script, shot list, scene directions, caption and derivatives.\nTikTok Shop: develop product-led content tests, demonstration structure, trust/proof moments, natural purchase timing and CTA tests. Never invent product claims, discounts, commissions, reviews or results.\nAffiliate: develop trust-first recommendation content, problem-solution fit, disclosure, click path, CTA and offer tests. Never invent commissions, prices, product facts, reviews or results.\nFanvue: develop appropriate owned-creator positioning, public-to-paid content ladder, cadence, conversion and retention ideas. Do not invent audience behaviour, subscribers or revenue.\nGrowth: develop recurring series, hook systems, audience recognition and retention loops.\n\nNever invent follower counts, views, sales, earnings, testimonials, audience reactions, private analytics or commercial facts. Separate observed evidence, public signals, inference and creative recommendation.
 
 ALL HUMAN-FACING COPY RULE:
 - Write every non-JSON human-facing field in clear British English.
@@ -432,6 +443,8 @@ RETURN JSON ONLY: {"operator_brief":{"finding":"","evidence_status":"observed|su
         <h1>Build a creator people can recognise.</h1>
         <p className="ce-lead">Cara and Lila are not prompts. They are owned characters with different instincts, voices and story engines. This is where you decide what a creator business is testing next.</p>
       </header>
+
+      {visualReferencePack ? <div className="ce-dna" style={{ marginTop: 16 }}><article className="ce-dna-card"><small>ACTIVE VISUAL BOARD</small><strong>{visualReferencePack.name}</strong><p>Applying {visualReferencePack.images.length} public reference image{visualReferencePack.images.length === 1 ? '' : 's'} as wardrobe / pose / scene structure only. Identity remains canonical.</p><button onClick={() => { sessionStorage.removeItem('cornerstone_visual_reference_pack'); setVisualReferencePack(null) }}>Clear board</button></article></div> : null}
 
       <section className="ce-roster" aria-label="Owned creators">
         {PEOPLE.map((p) => <button key={p[0]} className={persona === p[0] ? 'active' : ''} onClick={() => setPersona(p[0])}>
