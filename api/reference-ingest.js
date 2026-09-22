@@ -31,6 +31,39 @@ function getMeta(html, key) {
   return "";
 }
 
+async function persistReferenceImage(imageUrl, ownerId) {
+  if (!imageUrl) return { url: null, storagePath: null, error: null };
+  try {
+    const response = await fetch(imageUrl, {
+      redirect: "follow",
+      headers: { "User-Agent": "CornerstoneAI/1.0 reference-board image", Accept: "image/avif,image/webp,image/jpeg,image/png,*/*" },
+      signal: AbortSignal.timeout(12000)
+    });
+    if (!response.ok) throw new Error("Image source returned " + response.status + ".");
+    const contentType = response.headers.get("content-type") || "image/jpeg";
+    if (!contentType.toLowerCase().startsWith("image/")) throw new Error("Source preview is not an image.");
+    const buffer = Buffer.from(await response.arrayBuffer());
+    if (buffer.length > 10 * 1024 * 1024) throw new Error("Reference image is larger than 10 MB.");
+    const bucket = "visual-reference-assets";
+    await fetch(SUPABASE_URL + "/storage/v1/bucket", {
+      method: "POST",
+      headers: { apikey: SUPABASE_SERVICE_ROLE_KEY, Authorization: "Bearer " + SUPABASE_SERVICE_ROLE_KEY, "Content-Type": "application/json" },
+      body: JSON.stringify({ id: bucket, name: bucket, public: true })
+    }).catch(() => {});
+    const ext = /png/i.test(contentType) ? "png" : /webp/i.test(contentType) ? "webp" : "jpg";
+    const storagePath = ownerId + "/" + crypto.randomUUID() + "." + ext;
+    const upload = await fetch(SUPABASE_URL + "/storage/v1/object/" + bucket + "/" + storagePath, {
+      method: "POST",
+      headers: { apikey: SUPABASE_SERVICE_ROLE_KEY, Authorization: "Bearer " + SUPABASE_SERVICE_ROLE_KEY, "Content-Type": contentType, "x-upsert": "true" },
+      body: buffer
+    });
+    if (!upload.ok) throw new Error("Reference image upload failed (" + upload.status + ").");
+    return { url: SUPABASE_URL + "/storage/v1/object/public/" + bucket + "/" + storagePath, storagePath, error: null };
+  } catch (error) {
+    return { url: null, storagePath: null, error: error && error.message ? error.message : String(error) };
+  }
+}
+
 function categoryHint(text) {
   const value = String(text || "").toLowerCase();
   if (/mirror|selfie|pose|posing|walking|standing|seated|sitting|grwm|outfit check/.test(value)) return "pose";
@@ -74,7 +107,9 @@ export default async function handler(req, res) {
     if (!type.includes("text/html")) return res.status(415).json({ error: "The source is not an HTML page.", source_platform: source });
 
     const html = (await upstream.text()).slice(0, 1000000);
-    const imageUrl = clean(body.image_url || getMeta(html, "og:image") || getMeta(html, "twitter:image"));
+    const sourceImageUrl = clean(body.image_url || getMeta(html, "og:image") || getMeta(html, "twitter:image"));
+    const storedImage = await persistReferenceImage(sourceImageUrl, auth.data.user.id);
+    const imageUrl = storedImage.url || sourceImageUrl;
     const title = clean(body.title || getMeta(html, "og:title") || getMeta(html, "twitter:title"));
     const description = clean(body.description || getMeta(html, "og:description") || getMeta(html, "description"));
     const canonical = clean(getMeta(html, "og:url") || upstream.url || pageUrl);
@@ -106,6 +141,9 @@ export default async function handler(req, res) {
         title: title || null,
         description: description || null,
         image_url: imageUrl || null,
+        storage_path: storedImage.storagePath || null,
+        source_image_url: sourceImageUrl || null,
+        image_persistence_error: storedImage.error || null,
         retrieved_at: new Date().toISOString()
       },
       recipe,
