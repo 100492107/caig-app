@@ -1,10 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { supabase } from './supabase'
+import { creatorDnaFor, creatorDnaText } from '../shared/creator-dna.js'
 
+const CANONICAL_DNA={cara:creatorDnaFor('cara'),lila:creatorDnaFor('lila'),duo:creatorDnaFor('duo')}
 const PERSONAS=[
- {id:'cara',name:'Cara',tone:'Direct, dry, disciplined',tag:'Sharper takes'},
- {id:'lila',name:'Lila',tone:'Warm, observant, understated',tag:'Quietly personal'},
- {id:'cara_lila',name:'Cara + Lila',tone:'Contrast, chemistry, two voices',tag:'Built for interaction'},
+ {id:'cara',name:CANONICAL_DNA.cara.name,tone:CANONICAL_DNA.cara.soul,tag:CANONICAL_DNA.cara.coreVerb},
+ {id:'lila',name:CANONICAL_DNA.lila.name,tone:CANONICAL_DNA.lila.soul,tag:CANONICAL_DNA.lila.coreVerb},
+ {id:'cara_lila',name:CANONICAL_DNA.duo.name||'Cara + Lila',tone:CANONICAL_DNA.duo.soul,tag:CANONICAL_DNA.duo.coreVerb||'Shared creator system'},
 ]
 const PLATFORMS=['TikTok','Instagram','YouTube','TikTok Shop','Affiliate','Fanvue']
 const OBJECTIVES=['Create content','Grow audience','Test monetisation','Drive clicks / sales','Build a repeatable series']
@@ -44,9 +46,9 @@ export default function CreatorGrowthWorkspaceFinal({onAdvance}={}){
  }
 
  async function build(){setBusy(true);setError('');setMessage('Starting creator intelligence…');setResult(null);try{const u=await getUser();const source=await inspectReference(u);setMessage('Building the creator experiment…');const prompt=[
-  `CREATOR: ${selected.name}`,`PERSONA_ID: ${persona}`,`PLATFORM: ${platform}`,`OBJECTIVE: ${objective}`,`FORMAT: ${format}`,`PRODUCT / OFFER: ${offer.trim()||'None'}`,`REFERENCE URL: ${referenceUrl.trim()||'None'}`,`DIRECTION: ${direction.trim()||'Choose the strongest evidence-backed opportunity.'}`,'',
+  `CREATOR: ${selected.name}`,`CANONICAL CREATOR DNA:\n${creatorDnaText(persona === 'cara_lila' ? 'duo' : persona)}`,`PERSONA_ID: ${persona}`,`PLATFORM: ${platform}`,`OBJECTIVE: ${objective}`,`FORMAT: ${format}`,`PRODUCT / OFFER: ${offer.trim()||'None'}`,`REFERENCE URL: ${referenceUrl.trim()||'None'}`,`DIRECTION: ${direction.trim()||'Choose the strongest evidence-backed opportunity.'}`,'',
   'This is a creator-business decision, not a generic idea request.',
-  'Use the selected creator bible as hard identity context.',
+  'Use the supplied canonical creator DNA as hard identity context. Do not reduce the creator to an adjective-only preset.',
   'Use current public creator research where available. Never invent follower counts, views, sales, comments, audience reactions, prices, commissions, product facts or revenue.',
   source?`INSPECTED REFERENCE EVIDENCE:\n${JSON.stringify(source.analysis)}\nThe reference is research only. Abstract the mechanism. Do not copy wording, creator identity, branding, scenes, footage or distinctive execution.`:'No reference was supplied. Work from creator context and current public evidence.',
   `PLATFORM STRATEGY: ${platform==='TikTok'?'first-frame hook, native pacing, retention loop and repeatability.':platform==='Instagram'?'Reels/carousels, shareability, profile intent and visual identity.':platform==='YouTube'?'standalone depth, stronger narrative and Shorts derivatives.':platform==='TikTok Shop'?'useful product-led content with a natural purchase moment and compliant claims.':platform==='Affiliate'?'trust-first recommendation content with a natural click path and disclosure.':'creator-safe paid-content teasers with a clear reason to subscribe.'}`,
@@ -59,7 +61,7 @@ export default function CreatorGrowthWorkspaceFinal({onAdvance}={}){
   'Fanvue: keep content appropriate to the owned creator asset. Make the paid value proposition clear without inventing audience behaviour or revenue.',
   'Return JSON only.',
  ].join('\n')
- const{data,error:e}=await supabase.from('local_ai_jobs').insert({owner_id:u.id,title:`${selected.name} · ${platform} · ${format}`,job_type:'content_engine',model:'mlx-community/Qwen3.5-9B-4bit',persona_id:persona,system_prompt:'You are Cornerstone Track B Creator Growth Director. Protect creator identity. Build complete, publishable, platform-native creator work and measurable monetisation experiments. Never invent facts or metrics. Return operator-first JSON.',user_prompt:prompt,options:{research:true,max_tokens:6500,temperature:.42,research_domain:'TRACK_B_CREATOR_GROWTH',workspace_id:'creator_growth',creator_id:persona,platform,objective,format,reference_url:referenceUrl.trim()||null,offer:offer.trim()||null,source_evidence:source},status:'queued',production_status:'creator_package_queued'}).select('id').single();if(e||!data?.id)throw e||new Error('Could not queue creator package.');const completed=await waitJob(data.id,setMessage,'Creator experiment');setResult(parse(completed.result));setMessage('Creator experiment ready.');await load()}catch(e){setError(e?.message||String(e));setMessage('')}finally{setBusy(false)}}
+ const{data,error:e}=await supabase.from('local_ai_jobs').insert({owner_id:u.id,title:`${selected.name} · ${platform} · ${format}`,job_type:'content_engine',model:'mlx-community/Qwen3.5-9B-4bit',persona_id:persona,system_prompt:'You are Cornerstone Track B Creator Growth Director. Protect creator identity. Use the supplied canonical creator DNA as the identity source of truth. Build complete, publishable, platform-native creator work and measurable monetisation experiments. Never invent facts or metrics. Return operator-first JSON.',user_prompt:prompt,options:{research:true,max_tokens:6500,temperature:.42,research_domain:'TRACK_B_CREATOR_GROWTH',workspace_id:'creator_growth',creator_id:persona,platform,objective,format,reference_url:referenceUrl.trim()||null,offer:offer.trim()||null,source_evidence:source},status:'queued',production_status:'creator_package_queued'}).select('id').single();if(e||!data?.id)throw e||new Error('Could not queue creator package.');const completed=await waitJob(data.id,setMessage,'Creator experiment');setResult(parse(completed.result));setMessage('Creator experiment ready.');await load()}catch(e){setError(e?.message||String(e));setMessage('')}finally{setBusy(false)}}
 
  return <main className="cg-final"><style>{`
  .cg-final{color:var(--text)}.cg-head{padding:8px 0 28px;border-bottom:1px solid var(--border)}.cg-kicker{font-size:10px;font-weight:900;letter-spacing:.16em;text-transform:uppercase;color:var(--accent)}.cg-title{margin:8px 0 0;font-size:clamp(40px,5.6vw,72px);line-height:.92;letter-spacing:-.06em;max-width:900px}.cg-copy{margin:13px 0 0;max-width:800px;color:var(--text-muted);font-size:14px;line-height:1.65}
