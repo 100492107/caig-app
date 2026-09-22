@@ -8,6 +8,7 @@
 // Returns { publicUrl, slideIndex }
 
 import { generateQwenImageServer } from "../shared/qwen-image-provider.js";
+import { createClient } from "@supabase/supabase-js";
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -69,7 +70,7 @@ function creatorSlug(personaName) {
   return "cara";
 }
 
-async function registerAsset({ publicUrl, storagePath, requestId, postId, slideIndex, personaName, metadata }) {
+async function registerAsset({ publicUrl, storagePath, requestId, postId, slideIndex, personaName, metadata, ownerId }) {
   try {
     const workspaceId = await resolveWorkspace();
     if (!workspaceId) return;
@@ -78,6 +79,7 @@ async function registerAsset({ publicUrl, storagePath, requestId, postId, slideI
       method: "POST",
       body: JSON.stringify({
         workspace_id: workspaceId,
+        owner_id: ownerId || null,
         asset_type: "image",
         name: `${personaName || "Generated"} · ${postId || requestId || "image"}${typeof slideIndex === "number" ? ` · slide ${slideIndex + 1}` : ""}`,
         provider: metadata?.provider || "creative_engine",
@@ -130,6 +132,11 @@ export default async function handler(req, res) {
   if (body.mode === "qwen" || body.provider === "qwen-image-2.1") {
     const accessToken = String(req.headers.authorization || "").replace(/^Bearer\s+/i, "").trim();
     if (!accessToken) return res.status(401).json({ error: "Sign in is required to generate images." });
+    const authClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
+    const auth = await authClient.auth.getUser(accessToken);
+    if (auth.error || !auth.data.user) return res.status(401).json({ error: "Session is invalid or expired." });
+    const ownerId = auth.data.user.id;
+    const postId = body.postId || null;
 
     const personaId = String(body.personaId || body.persona_id || "cara").toLowerCase();
     const allowed = new Set(["cara", "lila", "cara_lila", "duo", "cara&lila"]);
@@ -144,6 +151,7 @@ export default async function handler(req, res) {
         aspectRatio: body.aspectRatio || "9:16",
         seed: body.seed,
         randomizeSeed: body.randomizeSeed == null ? true : Boolean(body.randomizeSeed),
+        references: Array.isArray(body.references) ? body.references.slice(0, 8) : [],
       });
       const imgRes = await fetch(generated.sourceUrl, { signal: AbortSignal.timeout(45000) });
       if (!imgRes.ok) throw new Error("Generated image fetch failed: " + imgRes.status);
@@ -151,7 +159,7 @@ export default async function handler(req, res) {
       const contentType = imgRes.headers.get("content-type") || "image/png";
       const extension = /jpe?g/i.test(contentType) ? "jpg" : "png";
       const creator = canonicalPersona === "cara_lila" ? "cara-lila" : canonicalPersona;
-      const path = "qwen2.1/" + creator + "/" + String(body.ownerId || "authenticated") + "/" + String(postId || ("qwen-" + Date.now())) + "-" + Date.now() + "." + extension;
+      const path = "qwen2.1/" + creator + "/" + ownerId + "/" + String(postId || ("qwen-" + Date.now())) + "-" + Date.now() + "." + extension;
       const upRes = await fetch(SUPABASE_URL + "/storage/v1/object/" + BUCKET + "/" + path, {
         method: "POST",
         headers: {
@@ -171,6 +179,7 @@ export default async function handler(req, res) {
         postId,
         slideIndex: body.slideIndex,
         personaName: canonicalPersona === "cara_lila" ? "Cara + Lila" : canonicalPersona === "cara" ? "Cara" : "Lila",
+        ownerId,
         metadata: {
           provider: "qwen-image-2.1",
           provider_space: "Qwen/Qwen-Image-2.1",
