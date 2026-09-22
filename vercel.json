@@ -20,6 +20,9 @@
     },
     "api/store-image.js": {
       "maxDuration": 300
+    },
+    "api/reference-ingest.js": {
+      "maxDuration": 30
     }
   },
   "crons": [
