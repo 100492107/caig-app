@@ -226,7 +226,6 @@ Keep the content suggestive but non-explicit. The relationship and access are th
       voice: `Personal, playful, intimate and understated. Cara brings dry humour and directness. Lila brings calm and observation. Together they use natural banter, teasing and shared references. Never generic. Never crude.`
     }
   },
-  },
 };
 
 // Required disclosure — per Cornerstone AI Enterprises blueprint (B1), appended
