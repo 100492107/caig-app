@@ -57,10 +57,16 @@ async function resolveWorkspace() {
 
 function referenceSourcePlatform(value) {
   try {
-    const host = new URL(value).hostname.toLowerCase().replace(/^www\./, "");
+    const parsed = new URL(value);
+    const host = parsed.hostname.toLowerCase().replace(/^www\./, "");
+    const pathName = parsed.pathname.toLowerCase();
     if (host === "pin.it" || host.endsWith("pinterest.com")) return "pinterest";
     if (host.includes("vinted.")) return "vinted";
     if (host.endsWith("depop.com")) return "depop";
+    if (host === "temu.com" || host.endsWith(".temu.com")) return "temu";
+    if (host === "alibaba.com" || host.endsWith(".alibaba.com")) return "alibaba";
+    if (host === "shop.tiktok.com" || (host.endsWith("tiktok.com") && /\\/shop\\//.test(pathName))) return "tiktok_shop";
+    if (host.endsWith("tiktok.com") || host === "ads.tiktok.com") return "tiktok";
   } catch {}
   return "other";
 }
@@ -92,7 +98,7 @@ function referenceCategoryHint(text) {
   return "mixed";
 }
 
-async function persistReferenceImage(imageUrl, ownerId) {
+async function persistReferenceImage(imageUrl, ownerId, bucket = "visual-reference-assets") {
   if (!imageUrl) return { url: null, storagePath: null, error: null };
   try {
     const response = await fetch(imageUrl, {
@@ -105,7 +111,6 @@ async function persistReferenceImage(imageUrl, ownerId) {
     if (!contentType.toLowerCase().startsWith("image/")) throw new Error("Source preview is not an image.");
     const buffer = Buffer.from(await response.arrayBuffer());
     if (buffer.length > 10 * 1024 * 1024) throw new Error("Reference image is larger than 10 MB.");
-    const bucket = "visual-reference-assets";
     await fetch(SUPABASE_URL + "/storage/v1/bucket", {
       method: "POST",
       headers: { apikey: SUPABASE_SERVICE_KEY, Authorization: "Bearer " + SUPABASE_SERVICE_KEY, "Content-Type": "application/json" },
@@ -123,6 +128,183 @@ async function persistReferenceImage(imageUrl, ownerId) {
   } catch (error) {
     return { url: null, storagePath: null, error: error?.message || String(error) };
   }
+}
+
+function jsonLdProducts(html) {
+  const blocks = [];
+  const re = /<script[^>]*type=["']application\\/ld\\+json["'][^>]*>([\\s\\S]*?)<\\/script>/gi;
+  let match;
+  while ((match = re.exec(String(html || ""))) && blocks.length < 12) {
+    try {
+      const parsed = JSON.parse(match[1].trim());
+      const push = (value) => Array.isArray(value) ? value.forEach(push) : (value && typeof value === "object" ? blocks.push(value) : null);
+      push(parsed);
+    } catch {}
+  }
+  return blocks.flatMap((item) => {
+    if (item["@graph"] && Array.isArray(item["@graph"])) return item["@graph"].filter(Boolean);
+    return [item];
+  });
+}
+
+function firstProductJson(html) {
+  return jsonLdProducts(html).find((item) => String(item?.["@type"] || "").toLowerCase() === "product" || item?.name && (item?.offers || item?.brand));
+}
+
+function productOfferValue(offers) {
+  const offer = Array.isArray(offers) ? offers.find(Boolean) : offers;
+  if (!offer || typeof offer !== "object") return {};
+  const price = Number(offer.price ?? offer.lowPrice ?? offer.highPrice);
+  return {
+    price_amount: Number.isFinite(price) ? price : null,
+    price_currency: referenceClean(offer.priceCurrency || ""),
+    availability: referenceClean(offer.availability || "").replace(/^https?:\\/\\/schema.org\\//, "")
+  };
+}
+
+function numberFromText(html, patterns) {
+  for (const pattern of patterns) {
+    const match = String(html || "").match(pattern);
+    if (!match) continue;
+    const value = Number(String(match[1]).replace(/[^0-9.]/g, ""));
+    if (Number.isFinite(value)) return value;
+  }
+  return null;
+}
+
+async function handleCommerceIngest(body, ownerId) {
+  const pageUrl = String(body.url || "").trim();
+  if (!pageUrl) throw new Error("A public source URL is required.");
+  let parsed;
+  try { parsed = new URL(pageUrl); } catch { throw new Error("That URL is not valid."); }
+  if (!/^https?:$/.test(parsed.protocol)) throw new Error("Only HTTP(S) URLs are supported.");
+  const source = referenceSourcePlatform(pageUrl);
+  const host = parsed.hostname.toLowerCase().replace(/^www\\./, "");
+  const allowedHost =
+    host === "temu.com" || host.endsWith(".temu.com") ||
+    host === "alibaba.com" || host.endsWith(".alibaba.com") ||
+    host === "shop.tiktok.com" || host.endsWith("tiktok.com") ||
+    host === "pin.it" || host.endsWith("pinterest.com") ||
+    host.includes("vinted.") || host.endsWith("depop.com");
+  if (!allowedHost) throw new Error("Commerce ingestion supports TikTok Shop, TikTok, Temu, Alibaba, Pinterest, Vinted and Depop public URLs.");
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 12000);
+  try {
+    const upstream = await fetch(pageUrl, {
+      redirect: "follow",
+      headers: { "User-Agent": "CornerstoneAI/1.0 commerce-intelligence metadata fetch", Accept: "text/html,application/xhtml+xml;q=0.9,*/*;q=0.8" },
+      signal: controller.signal
+    });
+    if (!upstream.ok) throw new Error("Source page returned " + upstream.status + ".");
+    const type = upstream.headers.get("content-type") || "";
+    if (!type.includes("text/html")) throw new Error("The source is not an HTML page.");
+    const html = (await upstream.text()).slice(0, 1200000);
+    const sourceImageUrl = referenceClean(body.image_url || referenceMeta(html, "og:image") || referenceMeta(html, "twitter:image"));
+    const storedImage = await persistReferenceImage(sourceImageUrl, ownerId, "commerce-assets");
+    const imageUrl = storedImage.url || sourceImageUrl;
+    const title = referenceClean(body.title || referenceMeta(html, "og:title") || referenceMeta(html, "twitter:title"));
+    const description = referenceClean(body.description || referenceMeta(html, "og:description") || referenceMeta(html, "description"));
+    const canonicalUrl = referenceClean(referenceMeta(html, "og:url") || upstream.url || pageUrl);
+    const product = firstProductJson(html);
+    const offer = productOfferValue(product?.offers);
+    const rating = Number(product?.aggregateRating?.ratingValue);
+    const reviewCount = Number(product?.aggregateRating?.reviewCount || product?.aggregateRating?.ratingCount);
+    const sourceProductId = referenceClean(product?.sku || product?.productID || "");
+    const brand = referenceClean(typeof product?.brand === "object" ? product.brand?.name : product?.brand);
+    const soldCount = numberFromText(html, [/([0-9][0-9,.]*)\\s*(?:sold|sales)/i, /(?:sold|sales)\\s*[:\\-]?\\s*([0-9][0-9,.]*)/i]);
+    const metricValue = source === "tiktok" && /creativecenter|trends|hashtag|inspiration/i.test(pageUrl)
+      ? numberFromText(html, /([0-9][0-9,.]*)\\s*(?:posts|views)/i)
+      : null;
+    const signalType = source === "tiktok" ? "trend" : (source === "pinterest" || source === "vinted" || source === "depop" ? "visual" : "product");
+    const category = referenceCategoryHint(title + " " + description);
+    const tags = [source, signalType, category].filter(Boolean);
+    const affiliateRoute =
+      source === "temu" ? "temu_affiliate_candidate" :
+      source === "tiktok_shop" ? "tiktok_shop_candidate" :
+      source === "alibaba" ? "supplier_research" :
+      null;
+    return {
+      ok: true,
+      owner_id: ownerId,
+      source_platform: source,
+      signal_type: signalType,
+      source_url: pageUrl,
+      canonical_url: canonicalUrl,
+      image_url: imageUrl || null,
+      title: title || (product?.name ? referenceClean(product.name) : null),
+      description: description || (product?.description ? referenceClean(product.description) : null),
+      product_id: sourceProductId || null,
+      shop_name: source === "tiktok_shop" ? referenceClean(product?.seller?.name || product?.offers?.seller?.name || "") || null : null,
+      brand: brand || null,
+      price_amount: offer.price_amount,
+      price_currency: offer.price_currency || null,
+      availability: offer.availability || null,
+      rating: Number.isFinite(rating) ? rating : null,
+      review_count: Number.isFinite(reviewCount) ? reviewCount : null,
+      sold_count: Number.isFinite(soldCount) ? soldCount : null,
+      metric_name: metricValue != null ? "public_metric" : null,
+      metric_value: metricValue,
+      metric_window: /period=([0-9]+)/i.test(pageUrl) ? (pageUrl.match(/period=([0-9]+)/i)?.[1] + "d") : null,
+      trend_direction: null,
+      category,
+      tags,
+      affiliate_route: affiliateRoute,
+      evidence_confidence: product || metricValue != null ? "high" : "medium",
+      structured_data: {
+        source,
+        signal_type: signalType,
+        requested_url: pageUrl,
+        resolved_url: upstream.url || pageUrl,
+        title: title || null,
+        description: description || null,
+        source_image_url: sourceImageUrl || null,
+        storage_path: storedImage.storagePath || null,
+        image_persistence_error: storedImage.error || null,
+        product_jsonld: product || null,
+        retrieved_at: new Date().toISOString()
+      }
+    };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function discoverTikTokShopProducts(body, ownerId) {
+  const accessToken = String(process.env.TIKTOK_RESEARCH_ACCESS_TOKEN || "").trim();
+  if (!accessToken) throw new Error("TikTok Shop Research API is not configured. Add TIKTOK_RESEARCH_ACCESS_TOKEN to the server environment.");
+  const shopId = String(body.shop_id || "").trim();
+  if (!shopId) throw new Error("shop_id is required.");
+  const fields = "product_id,product_sold_count,product_description,product_price,product_review_count,product_name,product_rating_1_count,product_rating_2_count,product_rating_3_count,product_rating_4_count,product_rating_5_count";
+  const response = await fetch("https://open.tiktokapis.com/v2/research/tts/product/?fields=" + encodeURIComponent(fields), {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: "Bearer " + accessToken },
+    body: JSON.stringify({ shop_id: Number(shopId), page_start: 1, page_size: 10 })
+  });
+  const json = await response.json().catch(() => ({}));
+  if (!response.ok || json?.error?.code) throw new Error("TikTok Shop Research API failed: " + JSON.stringify(json?.error || { status: response.status }));
+  const products = Array.isArray(json?.data) ? json.data : (Array.isArray(json?.data?.products) ? json.data.products : []);
+  return products.map((item) => {
+    const ratingCounts = [1,2,3,4,5].map((n) => Number(item?.["product_rating_" + n + "_count"] || 0));
+    const totalRatings = ratingCounts.reduce((a,b) => a+b, 0);
+    const rating = totalRatings ? ratingCounts.reduce((sum, count, i) => sum + count * (i + 1), 0) / totalRatings : null;
+    const priceList = Array.isArray(item?.product_price) ? item.product_price : [];
+    const firstPrice = priceList.find((p) => Number.isFinite(Number(p?.sale_price ?? p?.price ?? p)));
+    const priceAmount = firstPrice ? Number(firstPrice?.sale_price ?? firstPrice?.price ?? firstPrice) : null;
+    return {
+      product_id: item.product_id,
+      product_name: item.product_name,
+      product_description: item.product_description,
+      product_sold_count: item.product_sold_count,
+      product_review_count: item.product_review_count,
+      rating: Number.isFinite(rating) ? Number(rating.toFixed(2)) : null,
+      price_amount: Number.isFinite(priceAmount) ? priceAmount : null,
+      price_currency: "EUR",
+      source_url: "https://shop.tiktok.com/",
+      image_url: null,
+      shop_name: null,
+      category: "mixed"
+    };
+  });
 }
 
 async function handleReferenceIngest(body, ownerId) {
@@ -264,6 +446,20 @@ export default async function handler(req, res) {
     body = JSON.parse(Buffer.concat(chunks).toString());
   } catch {
     return res.status(400).json({ error: "Invalid JSON" });
+  }
+
+  if (body.mode === "commerce_ingest" || body.mode === "tiktok_shop_discover") {
+    const accessToken = String(req.headers.authorization || "").replace(/^Bearer\\s+/i, "").trim();
+    if (!accessToken) return res.status(401).json({ error: "Sign in is required." });
+    const authClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
+    const auth = await authClient.auth.getUser(accessToken);
+    if (auth.error || !auth.data.user) return res.status(401).json({ error: "Session is invalid or expired." });
+    try {
+      if (body.mode === "tiktok_shop_discover") return res.status(200).json({ ok: true, source_platform: "tiktok_shop", signal_type: "product", products: await discoverTikTokShopProducts(body, auth.data.user.id) });
+      return res.status(200).json(await handleCommerceIngest(body, auth.data.user.id));
+    } catch (error) {
+      return res.status(502).json({ error: error?.name === "AbortError" ? "Source page timed out." : (error?.message || "Could not read that commerce source.") });
+    }
   }
 
   if (body.mode === "reference_ingest") {
