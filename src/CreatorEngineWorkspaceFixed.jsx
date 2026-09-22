@@ -69,6 +69,7 @@ export default function CreatorEngineWorkspaceFixed() {
   const [imageBusy, setImageBusy] = useState(null)
   const [visualReferencePack, setVisualReferencePack] = useState(null)
   const [visualReferenceRecipe, setVisualReferenceRecipe] = useState(null)
+  const [commerceContext, setCommerceContext] = useState(null)
 
   const person = PEOPLE.find((p) => p[0] === persona) || PEOPLE[0]
   const job = JOBS.find((j) => j[0] === jobType) || JOBS[0]
@@ -82,6 +83,9 @@ export default function CreatorEngineWorkspaceFixed() {
       const recipeRaw = sessionStorage.getItem('cornerstone_visual_reference_recipe')
       const recipe = recipeRaw ? JSON.parse(recipeRaw) : null
       if (recipe?.recipe?.looks?.length) setVisualReferenceRecipe(recipe)
+      const commerceRaw = sessionStorage.getItem('cornerstone_commerce_context')
+      const commerce = commerceRaw ? JSON.parse(commerceRaw) : null
+      if (commerce?.title) setCommerceContext(commerce)
     } catch {}
   }, [])
 
@@ -138,6 +142,21 @@ export default function CreatorEngineWorkspaceFixed() {
     }
   }
 
+
+  const commerceContextText = commerceContext ? [
+    'ACTIVE COMMERCE OPPORTUNITY: ' + (commerceContext.title || 'Untitled opportunity'),
+    'Trend signal: ' + (commerceContext.trend || 'Not supplied'),
+    'Product angle: ' + (commerceContext.product_angle || 'Not supplied'),
+    'Aesthetic angle: ' + (commerceContext.aesthetic_angle || 'Not supplied'),
+    'Content concept: ' + (commerceContext.content_concept || 'Not supplied'),
+    'Monetisation route: ' + (commerceContext.monetisation_route || 'Not supplied'),
+    'Monetisation test: ' + (commerceContext.monetisation_test || 'Not supplied'),
+    'KPI: ' + (commerceContext.kpi || 'Not supplied'),
+    'Winner rule: ' + (commerceContext.winner_rule || 'Not supplied'),
+    'CTA: ' + (commerceContext.cta || 'Not supplied'),
+    'Evidence context: ' + JSON.stringify((commerceContext.signals || []).slice(0, 8)).slice(0, 14000),
+    'Treat imported commerce data as evidence, not as guaranteed claims. Do not invent prices, commissions, availability, reviews, sales or platform eligibility.'
+  ].join('\n') : 'NO ACTIVE COMMERCE OPPORTUNITY';
 
   async function build() {
     setBusy(true); setError(''); setResult(null); setMessage('Building creator strategy…')
@@ -426,6 +445,7 @@ RETURN JSON ONLY: {"operator_brief":{"finding":"","evidence_status":"observed|su
           'CHARACTER REASONING RULE: Do not reduce the creator to surface adjectives. Let the worldview, contradictions, social role and narrative arc drive the strategy.',
           sceneDirectionSystemBlock(persona),
           VISION_JSON_COMPLETION_CHECK,
+          commerceContext ? commerceContextText : '',
           visualReferenceRecipe ? [
             'ACTIVE VISUAL RECIPE: ' + (visualReferenceRecipe.name || 'Generated look system'),
             'Use this recipe as structured wardrobe / pose / environment inspiration. Preserve canonical creator identity and original execution.',
@@ -464,6 +484,8 @@ RETURN JSON ONLY: {"operator_brief":{"finding":"","evidence_status":"observed|su
         <h1>Build a creator people can recognise.</h1>
         <p className="ce-lead">Cara and Lila are not prompts. They are owned characters with different instincts, voices and story engines. This is where you decide what a creator business is testing next.</p>
       </header>
+
+{commerceContext ? <div className="ce-dna" style={{ marginTop: 16 }}><article className="ce-dna-card"><small>ACTIVE COMMERCE OPPORTUNITY</small><strong>{commerceContext.title}</strong><p>{commerceContext.trend || 'Trend evidence'} → {commerceContext.product_angle || 'product angle'} → {commerceContext.monetisation_route || 'monetisation test'}</p><button onClick={() => { sessionStorage.removeItem('cornerstone_commerce_context'); sessionStorage.removeItem('cornerstone_creator_opportunity'); setCommerceContext(null) }}>Clear commerce brief</button></article></div> : null}
 
 {visualReferencePack ? <div className="ce-dna" style={{ marginTop: 16 }}><article className="ce-dna-card"><small>ACTIVE VISUAL BOARD</small><strong>{visualReferencePack.name}</strong><p>Applying {visualReferencePack.images.length} public reference image{visualReferencePack.images.length === 1 ? '' : 's'} as wardrobe / pose / scene structure only. Identity remains canonical.</p>{visualReferenceRecipe ? <small style={{display:'block',marginTop:8}}>Recipe: {visualReferenceRecipe.name}</small> : null}<button onClick={() => { sessionStorage.removeItem('cornerstone_visual_reference_pack'); sessionStorage.removeItem('cornerstone_visual_reference_recipe'); setVisualReferencePack(null); setVisualReferenceRecipe(null) }}>Clear board</button></article></div> : null}
 
