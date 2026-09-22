@@ -79,6 +79,20 @@ function isYoutubeUrl(value) {
   }
 }
 
+function readActiveMechanism() {
+  if (typeof window === 'undefined') return null
+  const raw = sessionStorage.getItem('cornerstone_active_mechanism')
+  if (!raw) return null
+  try {
+    const parsed = JSON.parse(raw)
+    if (typeof parsed === 'string') return { mechanism: parsed }
+    if (parsed && typeof parsed === 'object') return parsed
+    return null
+  } catch {
+    return { mechanism: raw }
+  }
+}
+
 async function getJob(id) {
   const { data, error } = await supabase
     .from('local_ai_jobs')
@@ -109,6 +123,7 @@ async function waitForJob(id, setMessage, label) {
 export default function CreateWorkspace() {
   const [url, setUrl] = useState('')
   const [notes, setNotes] = useState('')
+  const [activeMechanism, setActiveMechanism] = useState(null)
   const [niche, setNiche] = useState('Technology')
   const [learning, setLearning] = useState(null)
   const [result, setResult] = useState(null)
@@ -117,6 +132,10 @@ export default function CreateWorkspace() {
   const [error, setError] = useState('')
 
   useEffect(() => {
+    const mechanism = readActiveMechanism()
+    setActiveMechanism(mechanism)
+    if (mechanism?.mechanism) setNotes((prev) => prev || mechanism.mechanism)
+
     supabase
       .from('track_b_learning_recommendations')
       .select('id,recommendation_type,hook_type,format,invariant_pattern,confidence,source_evidence_id')
@@ -257,7 +276,7 @@ export default function CreateWorkspace() {
 
   return (
     <main className="create-workspace">
-      <style>{` .create-workspace{color:var(--text)} .cw-head{padding:8px 0 28px;border-bottom:1px solid var(--border)} .cw-kicker{font-size:10px;font-weight:900;letter-spacing:.16em;color:var(--accent)} .cw-head h1{margin:8px 0 0;font-size:clamp(42px,5.8vw,76px);line-height:.9;letter-spacing:-.06em;max-width:900px} .cw-lead{margin:16px 0 0;max-width:780px;color:var(--text-muted);font-size:14px;line-height:1.65} .cw-box{margin-top:22px;padding:22px;border:1px solid var(--border);border-radius:12px;background:var(--surface);display:grid;gap:14px} .cw-row{display:grid;grid-template-columns:1fr 1fr;gap:12px} .cw-field{display:grid;gap:7px}.cw-field span{font-size:9px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--text-subtle)} .cw-input{width:100%;padding:11px 12px;border:1px solid var(--border-strong);border-radius:8px;background:var(--panel-2);color:var(--text);font:inherit;font-size:12px}.cw-textarea{min-height:105px;resize:vertical}.cw-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.cw-progress{flex:1 1 320px;color:var(--text-muted);font-size:10px}.cw-btn{min-height:44px;padding:0 16px;border:0;border-radius:8px;background:var(--accent);color:#1a0f0c;font-size:11px;font-weight:900;cursor:pointer}.cw-btn:disabled{opacity:.45}.cw-error{padding:11px 12px;border:1px solid var(--bad);border-radius:8px;background:rgba(223,119,112,.08);color:var(--bad);font-size:11px}.cw-creator{margin-top:14px;padding:18px;border:1px solid var(--accent-line);border-radius:12px;background:var(--accent-soft)}.cw-creator b{display:block;font-size:12px}.cw-creator span{display:block;margin-top:5px;color:var(--text-2);font-size:11px;line-height:1.5}.cw-result{margin-top:14px;display:grid;gap:11px}.cw-result-main{padding:18px;border:1px solid var(--accent-line);border-radius:12px;background:var(--accent-soft)}.cw-result-main h2{margin:7px 0 0;font-size:28px;letter-spacing:-.04em}.cw-result-main p{margin:8px 0 0;color:var(--text-2);font-size:12px;line-height:1.5}.cw-card{padding:16px;border:1px solid var(--border);border-radius:11px;background:var(--surface)}.cw-label{font-size:9px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:var(--text-subtle)}.cw-item{margin-top:8px;padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--panel-2);font-size:11px;line-height:1.45}@media(max-width:800px){.cw-row{grid-template-columns:1fr}}`}</style>
+      <style>{` .create-workspace{color:var(--text)} .cw-head{padding:8px 0 28px;border-bottom:1px solid var(--border)} .cw-kicker{font-size:10px;font-weight:900;letter-spacing:.16em;color:var(--accent)} .cw-head h1{margin:8px 0 0;font-size:clamp(42px,5.8vw,76px);line-height:.9;letter-spacing:-.06em;max-width:900px} .cw-lead{margin:16px 0 0;max-width:780px;color:var(--text-muted);font-size:14px;line-height:1.65} .cw-mechanism{margin-top:14px;padding:11px 13px;border:1px solid var(--accent-line);border-radius:10px;background:var(--accent-soft);font-size:11px;color:var(--text-2);display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}.cw-mechanism a{color:var(--accent);font-weight:800} .cw-box{margin-top:22px;padding:22px;border:1px solid var(--border);border-radius:12px;background:var(--surface);display:grid;gap:14px} .cw-row{display:grid;grid-template-columns:1fr 1fr;gap:12px} .cw-field{display:grid;gap:7px}.cw-field span{font-size:9px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--text-subtle)} .cw-input{width:100%;padding:11px 12px;border:1px solid var(--border-strong);border-radius:8px;background:var(--panel-2);color:var(--text);font:inherit;font-size:12px}.cw-textarea{min-height:105px;resize:vertical}.cw-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.cw-progress{flex:1 1 320px;color:var(--text-muted);font-size:10px}.cw-btn{min-height:44px;padding:0 16px;border:0;border-radius:8px;background:var(--accent);color:#1a0f0c;font-size:11px;font-weight:900;cursor:pointer}.cw-btn:disabled{opacity:.45}.cw-error{padding:11px 12px;border:1px solid var(--bad);border-radius:8px;background:rgba(223,119,112,.08);color:var(--bad);font-size:11px}.cw-creator{margin-top:14px;padding:18px;border:1px solid var(--accent-line);border-radius:12px;background:var(--accent-soft)}.cw-creator b{display:block;font-size:12px}.cw-creator span{display:block;margin-top:5px;color:var(--text-2);font-size:11px;line-height:1.5}.cw-result{margin-top:14px;display:grid;gap:11px}.cw-result-main{padding:18px;border:1px solid var(--accent-line);border-radius:12px;background:var(--accent-soft)}.cw-result-main h2{margin:7px 0 0;font-size:28px;letter-spacing:-.04em}.cw-result-main p{margin:8px 0 0;color:var(--text-2);font-size:12px;line-height:1.5}.cw-card{padding:16px;border:1px solid var(--border);border-radius:11px;background:var(--surface)}.cw-label{font-size:9px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:var(--text-subtle)}.cw-item{margin-top:8px;padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--panel-2);font-size:11px;line-height:1.45}@media(max-width:800px){.cw-row{grid-template-columns:1fr}}`}</style>
 
       <header className="cw-head">
         <div className="cw-kicker">Create</div>
@@ -266,6 +285,13 @@ export default function CreateWorkspace() {
           Turn a winning mechanism into an original package. The point is not more ideas. The point is a piece you can actually put into the market. Cara and Lila have their own creator-business engine under Voices.
         </p>
       </header>
+
+      {activeMechanism?.mechanism ? (
+        <div className="cw-mechanism">
+          <span>Loaded mechanism from Research: {activeMechanism.mechanism}</span>
+          <a href="/research">Back to Research</a>
+        </div>
+      ) : null}
 
       <div className="cw-creator">
         <b>Cara + Lila are not lost.</b>

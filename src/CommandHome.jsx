@@ -55,9 +55,9 @@ async function readState(){
   const paidSubscribers=platformMetrics.reduce((n,x)=>n+Number(x.paid_subscribers||0),0);
   const snapshotRevenue=latestBusiness?.revenue==null?0:Number(latestBusiness.revenue);
   let next={
-    title:'Run the first Build',
-    body:'Give Cornerstone one strong reference. It will inspect the signal, extract the mechanism and build an original package.',
-    href:'/content/remake',cta:'Start Build',reason:'No closed loop yet.'
+    title:'Start with research capture',
+    body:'Capture outlier signals and strip topic to mechanism before Build. Evidence first, then original execution.',
+    href:'/research',cta:'Open Research',reason:'No closed loop yet.'
   };
   if(failed.length) next={
     title:'Clear the current blocker',
