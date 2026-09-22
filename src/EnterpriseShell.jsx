@@ -8,11 +8,12 @@ const NAV_GROUPS = [
     { id: 'business', label: 'Business', href: '/business', key: '02' },
   ]},
   { label: 'Creator loop', items: [
-    { id: 'content', label: 'Build', href: '/content/remake', key: '03' },
-    { id: 'voices', label: 'Voices', href: '/content/creators', key: '04' },
-    { id: 'production', label: 'Make', href: '/content/production', key: '05' },
-    { id: 'publish', label: 'Publish', href: '/content/publish', key: '06' },
-    { id: 'measurement', label: 'Learn', href: '/content/measurement', key: '07' },
+    { id: 'research', label: 'Research', href: '/research', key: '03' },
+    { id: 'content', label: 'Build', href: '/content/remake', key: '04' },
+    { id: 'voices', label: 'Voices', href: '/content/creators', key: '05' },
+    { id: 'production', label: 'Make', href: '/content/production', key: '06' },
+    { id: 'publish', label: 'Publish', href: '/content/publish', key: '07' },
+    { id: 'measurement', label: 'Learn', href: '/content/measurement', key: '08' },
   ]},
 ]
 
@@ -27,7 +28,7 @@ export default function EnterpriseShell({ active = 'command', children, eyebrow 
   const resolved = {
     remake: 'content', creators: 'voices', profiles: 'voices', production: 'production',
     publish: 'publish', measurement: 'measurement', content: 'content', command: 'command',
-    business: 'business', library: 'library', system: 'system',
+    business: 'business', research: 'research', library: 'library', system: 'system',
   }[active] || active
   return (
     <div className="cs-app">

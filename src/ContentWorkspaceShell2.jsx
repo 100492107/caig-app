@@ -9,6 +9,7 @@ import CanonicalMeasureWorkspace from './CanonicalMeasureWorkspace.jsx'
 import CreatorDnaDossier from './CreatorDnaDossier.jsx'
 
 const STAGES = [
+  ['research', 'Research', 'Capture outlier signals. Strip topic. Keep the attention mechanism.'],
   ['remake', 'Build', 'Start from evidence. Turn a winning mechanism into an original package.'],
   ['creators', 'Voices', 'Run Cara and Lila as distinct owned creator businesses, not generic personas.'],
   ['profiles', 'Channels', 'Decide where each asset lives, grows and earns.'],
@@ -24,6 +25,11 @@ function stageFor(path) {
 
 function Workspace({ stage }) {
   switch (stage) {
+    case 'research':
+      if (typeof window !== 'undefined' && window.location.pathname.startsWith('/content/research')) {
+        window.location.replace('/research')
+      }
+      return null
     case 'remake': return <CreateWorkspace />
     case 'creators': return <CreatorGrowthWorkspace />
     case 'profiles': return <ProfileChannelsWorkspace />
@@ -38,19 +44,20 @@ export default function ContentWorkspaceShell2() {
   const stage = stageFor(window.location.pathname)
   const item = STAGES.find(([id]) => id === stage) || STAGES[0]
   const n = STAGES.findIndex(([id]) => id === stage) + 1
+  const shellActive = stage === 'creators' ? 'voices' : stage === 'remake' ? 'content' : stage
 
   return (
-    <EnterpriseShell active={stage === 'creators' ? 'voices' : stage} eyebrow={item[1]}>
+    <EnterpriseShell active={shellActive} eyebrow={item[1]}>
       <div className="cs-page">
         <header className="cs-page-head">
-          <div className="eyebrow">The creator loop · Step {n} of 6</div>
+          <div className="eyebrow">The creator loop · Step {n} of {STAGES.length}</div>
           <h1>{item[1]}</h1>
           <p>{item[2]}</p>
         </header>
 
         <nav className="cs-flow" aria-label="Creator business loop">
           {STAGES.map(([id, label, desc], index) => (
-            <a key={id} href={`/content/${id}`} className={stage === id ? 'is-active' : ''}>
+            <a key={id} href={id === 'research' ? '/research' : `/content/${id}`} className={stage === id ? 'is-active' : ''}>
               <i />
               <span>{String(index + 1).padStart(2, '0')} · {label}</span>
               <small>{desc}</small>
