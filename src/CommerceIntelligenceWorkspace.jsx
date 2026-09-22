@@ -241,6 +241,7 @@ export default function CommerceIntelligenceWorkspace() {
       }));
       const { data: research } = await supabase.from("cornerstone_research_signals").select("id,platform,source_url,source_creator,observed_metric_name,observed_metric_value,topic,mechanism,confidence,niche,status").eq("owner_id", user.id).order("created_at", { ascending: false }).limit(16);
       const { data: refs } = await supabase.from("cornerstone_visual_references").select("id,source_platform,title,category,tags,analysis,recipe").eq("owner_id", user.id).order("created_at", { ascending: false }).limit(16);
+      const { data: previousTests } = await supabase.from("cornerstone_commerce_tests").select("creator_id,platform,monetisation_route,status,impressions,views,clicks,conversions,revenue,commission,notes").eq("owner_id", user.id).order("created_at", { ascending: false }).limit(16);
       const prompt = [
         "CORNERSTONE COMMERCE INTELLIGENCE",
         "Create a portfolio of 6 original creator-commerce opportunities for the selected creator.",
@@ -258,6 +259,9 @@ export default function CommerceIntelligenceWorkspace() {
         JSON.stringify(research || []).slice(0, 18000),
         "VISUAL REFERENCES:",
         JSON.stringify(refs || []).slice(0, 18000),
+        "PREVIOUS COMMERCE TEST OUTCOMES:",
+        JSON.stringify(previousTests || []).slice(0, 18000),
+        "Use observed prior outcomes as learning context. Do not convert them into claims about future performance.",
       ].join("\n");
       const { data: job, error: queueError } = await supabase.from("local_ai_jobs").insert({
         owner_id: user.id,
@@ -303,11 +307,82 @@ export default function CommerceIntelligenceWorkspace() {
       const { data, error: saveError } = await supabase.from("cornerstone_commerce_opportunities").insert(rows).select("*");
       if (saveError) throw saveError;
       setOpportunities((current) => [...(data || []), ...current]);
-      setMessage((data?.length || 0) + " commerce opportunities created.");
+      const plannedTests = (data || []).map((opportunity) => ({
+        owner_id: user.id,
+        opportunity_id: opportunity.id,
+        creator_id: opportunity.creator_id || creator,
+        platform: String(opportunity.monetisation_route || "").toLowerCase().includes("tiktok") ? "TikTok" : "multi-platform",
+        monetisation_route: opportunity.monetisation_route || "commerce",
+        source_signal_ids: opportunity.signal_ids || [],
+        cta: opportunity.cta || "Use the tracked offer link.",
+        kpi: opportunity.kpi || "Clicks → conversion → net revenue",
+        winner_rule: opportunity.winner_rule || "Repeat the mechanism only after observed evidence.",
+        status: "planned",
+        metadata: { opportunity_title: opportunity.title, content_prompt: opportunity.content_prompt || null }
+      }));
+      if (plannedTests.length) {
+        const { data: insertedTests, error: testsError } = await supabase.from("cornerstone_commerce_tests").insert(plannedTests).select("*");
+        if (testsError) throw testsError;
+        setTests((current) => [...(insertedTests || []), ...current]);
+      }
+      setMessage((data?.length || 0) + " opportunities created and " + plannedTests.length + " monetisation tests planned.");
     } catch (generationError) {
       setError(generationError?.message || String(generationError));
     } finally {
       setGenerating(false);
+    }
+  }
+
+  async function recordTestOutcome(test) {
+    setError("");
+    setMessage("");
+    const clicks = Number(window.prompt("Clicks recorded", test.clicks ?? "") || 0);
+    const conversions = Number(window.prompt("Conversions / sales recorded", test.conversions ?? "") || 0);
+    const revenue = Number(window.prompt("Revenue recorded (leave 0 if unknown)", test.revenue ?? "") || 0);
+    const commission = Number(window.prompt("Commission recorded (leave 0 if unknown)", test.commission ?? "") || 0);
+    const views = Number(window.prompt("Views / impressions recorded (leave 0 if unknown)", test.views ?? test.impressions ?? "") || 0);
+    if ([clicks, conversions, revenue, commission, views].some((v) => !Number.isFinite(v) || v < 0)) {
+      setError("Outcome values must be zero or positive numbers.");
+      return;
+    }
+    try {
+      const user = await currentUser();
+      const { data: updated, error: updateError } = await supabase.from("cornerstone_commerce_tests").update({
+        views: views || null,
+        impressions: views || null,
+        clicks: clicks || null,
+        conversions: conversions || null,
+        revenue: revenue || null,
+        commission: commission || null,
+        status: "complete",
+        completed_at: new Date().toISOString(),
+        notes: "Outcome recorded by operator."
+      }).eq("id", test.id).eq("owner_id", user.id).select("*").single();
+      if (updateError) throw updateError;
+      const clickRate = views > 0 ? clicks / views : null;
+      const conversionRate = clicks > 0 ? conversions / clicks : null;
+      const mechanism = "Commerce test outcome · " + (test.monetisation_route || "commerce");
+      await supabase.from("cornerstone_research_signals").insert({
+        owner_id: user.id,
+        source_url: test.content_url || test.tracking_url || null,
+        platform: test.platform || null,
+        source_creator: test.creator_id || creator,
+        creator_baseline_views: null,
+        observed_metric_name: "commission",
+        observed_metric_value: commission || null,
+        outlier_rationale: "Observed operator-entered commerce test outcome. Rates: click-through " + (clickRate == null ? "unknown" : (clickRate * 100).toFixed(2) + "%") + ", conversion " + (conversionRate == null ? "unknown" : (conversionRate * 100).toFixed(2) + "%") + ".",
+        topic: test.metadata?.opportunity_title || null,
+        mechanism,
+        confidence: "medium",
+        niche: "Track B Commerce",
+        status: "used",
+        notes: JSON.stringify({ test_id: test.id, views, clicks, conversions, revenue, commission, click_rate: clickRate, conversion_rate: conversionRate }),
+        captured_at: new Date().toISOString().slice(0, 10)
+      }).catch(() => null);
+      setTests((current) => current.map((row) => row.id === test.id ? updated : row));
+      setMessage("Outcome recorded and fed back into the evidence layer.");
+    } catch (outcomeError) {
+      setError(outcomeError?.message || String(outcomeError));
     }
   }
 
@@ -464,7 +539,7 @@ export default function CommerceIntelligenceWorkspace() {
 
         <section className="commerce-panel commerce-tests">
           <div className="commerce-panel-head"><div><strong>Monetisation tests</strong><span>Observed outcomes close the loop</span></div><span>{tests.length} planned / recorded</span></div>
-          {tests.length ? <div className="commerce-test-list">{tests.slice(0, 12).map((item) => <div className="commerce-test" key={item.id}><div><b>{item.monetisation_route}</b><span>{item.creator_id} · {item.status}</span></div><div><span>Clicks {item.clicks ?? "—"}</span><span>Conversions {item.conversions ?? "—"}</span><span>Revenue {item.revenue ?? "—"}</span></div></div>)}</div> : <div className="commerce-empty">No tests planned yet.</div>}
+          {tests.length ? <div className="commerce-test-list">{tests.slice(0, 12).map((item) => <div className="commerce-test" key={item.id}><div><b>{item.monetisation_route}</b><span>{item.creator_id} · {item.status}</span></div><div><span>Clicks {item.clicks ?? "—"}</span><span>Conversions {item.conversions ?? "—"}</span><span>Revenue {item.revenue ?? "—"}</span><button className="cs-btn-ghost" onClick={() => recordTestOutcome(item)}>{item.status === "complete" ? "Update outcome" : "Record outcome"}</button></div></div>)}</div> : <div className="commerce-empty">No tests planned yet.</div>}
         </section>
 
         <div className="commerce-disclaimer">Source discipline: Cornerstone records public evidence and operator-entered data. TikTok Shop API access is optional and requires approved credentials. Temu, Alibaba and TikTok Shop affiliate/commerce eligibility is not inferred from a product URL. Always use the applicable platform terms and disclosures.</div>
