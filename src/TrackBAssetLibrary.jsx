@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { supabase } from './supabase';
+import { creatorDnaFor, creatorDnaText } from '../shared/creator-dna.js';
 
 const shell = { minHeight: '100vh', background: '#08070d', color: '#eef1f7', padding: '28px 32px 72px', fontFamily: 'Inter, system-ui, sans-serif' };
 const card = { background: '#0e1017', border: '1px solid #252a39', borderRadius: 16, padding: 18 };
@@ -22,8 +23,8 @@ const REFERENCES = {
 };
 
 const CHARACTER_DEFAULTS = {
-  Cara: { description: 'Dedicated CornerstoneAIAssets demonstration creator. Direct, dry, disciplined, British.', style_profile: { tone: 'direct, dry, disciplined, British', visual: 'natural social/editorial realism' } },
-  Lila: { description: 'Dedicated CornerstoneAIAssets demonstration creator. Measured, warm, observant, understated.', style_profile: { tone: 'measured, warm, observant, understated', visual: 'natural social/editorial realism' } },
+  Cara: { canonicalId: 'cara', dna: creatorDnaFor('cara') },
+  Lila: { canonicalId: 'lila', dna: creatorDnaFor('lila') },
 };
 
 function listify(v) {
@@ -62,7 +63,7 @@ export default function TrackBAssetLibraryV2() {
       if (error) throw error;
       if (existing) { out.push(existing); continue; }
       const seed = CHARACTER_DEFAULTS[name];
-      const created = await supabase.from('track_b_characters').insert({ workspace_id: ws.id, name, description: seed.description, style_profile: seed.style_profile, voice_profile: { status: 'reference_required' } }).select('*').single();
+      const created = await supabase.from('track_b_characters').insert({ workspace_id: ws.id, name, description: seed.dna.soul, style_profile: { tone: seed.dna.language.rhythm, visual: 'natural social/editorial realism' }, voice_profile: { status: 'reference_required', canonical_creator_id: seed.canonicalId, canonical_dna: creatorDnaText(seed.canonicalId) }, metadata: { canonical: true, canonical_creator_id: seed.canonicalId } }).select('*').single();
       if (created.error) throw created.error;
       out.push(created.data);
     }
