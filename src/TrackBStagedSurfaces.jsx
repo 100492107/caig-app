@@ -1,10 +1,12 @@
 import React,{useEffect,useMemo,useState} from 'react'
 import {supabase} from './supabase'
+import {creatorDnaFor,creatorDnaText} from '../shared/creator-dna.js'
 
+const CANONICAL_DNA={cara:creatorDnaFor('cara'),lila:creatorDnaFor('lila'),duo:creatorDnaFor('duo')}
 const PERSONAS=[
-  {id:'cara',name:'Cara',tone:'Direct, dry, disciplined',tag:'Sharper takes'},
-  {id:'lila',name:'Lila',tone:'Warm, observant, understated',tag:'Quietly personal'},
-  {id:'cara_lila',name:'Cara + Lila',tone:'Contrast, chemistry, two voices',tag:'Built for interaction'},
+  {id:'cara',name:CANONICAL_DNA.cara.name,tone:CANONICAL_DNA.cara.soul,tag:CANONICAL_DNA.cara.coreVerb},
+  {id:'lila',name:CANONICAL_DNA.lila.name,tone:CANONICAL_DNA.lila.soul,tag:CANONICAL_DNA.lila.coreVerb},
+  {id:'cara_lila',name:CANONICAL_DNA.duo.name||'Cara + Lila',tone:CANONICAL_DNA.duo.soul,tag:CANONICAL_DNA.duo.coreVerb||'Shared creator system'},
 ]
 const PLATFORMS=['TikTok','Instagram','YouTube','Fanvue']
 const OBJECTIVES=['Grow audience','Create content','Test monetisation','Drive clicks / sales','Build a repeatable series']
@@ -66,6 +68,7 @@ export function CreatorsStaged({onAdvance}={}){
 
    setMessage('Researching and building the creator package…')
    const sourceBlock=sourceEvidence?`\n\nINSPECTED SOURCE EVIDENCE\n${JSON.stringify(sourceEvidence)}\n\nUse this as mechanism evidence only. Never copy exact wording, identity, branding, scenes, footage, thumbnail or distinctive execution.`:''
+   const dna=creatorDnaText(persona==='cara_lila'?'duo':persona)
    const prompt=[
     `CREATOR: ${selected.name}`,
     `PLATFORM: ${platform}`,
@@ -75,6 +78,9 @@ export function CreatorsStaged({onAdvance}={}){
     `REFERENCE URL: ${referenceUrl.trim()||'None'}`,
     `DIRECTION: ${direction.trim()||'Choose the strongest evidence-supported opportunity for this creator.'}`,
     '',
+    'CANONICAL CREATOR DNA:',
+    dna,
+    'Use this canonical DNA as hard identity context. Do not reduce the creator to an adjective-only preset.',
     'Build a practical, platform-native package for this owned creator asset.',
     'Use the creator bible as hard identity context.',
     'Include ranked concepts, strongest hook, opening beat, outline, shot list, spoken lines where appropriate, caption, CTA, visual direction, repurposing plan, KPI, monetisation route, monetisation test and next experiment.',
@@ -88,7 +94,7 @@ export function CreatorsStaged({onAdvance}={}){
 
    const{data:created,error}=await supabase.from('local_ai_jobs').insert({
     owner_id:user.id,title:`${selected.name} · ${platform} · ${format}`,job_type:'growth_mode',model:'mlx-community/Qwen3.5-9B-4bit',persona_id:persona,
-    system_prompt:'You are Cornerstone Track B creator growth director. Preserve creator identity, platform context and commercial objective. Use current public evidence. Build concrete content experiments. Never invent metrics, audience reactions, product facts or revenue. Return operator-useful JSON.',
+    system_prompt:'You are Cornerstone Track B creator growth director. Preserve creator identity, platform context and commercial objective. Use the supplied canonical creator DNA as the identity source of truth. Use current public evidence. Build concrete content experiments. Never invent metrics, audience reactions, product facts or revenue. Return operator-useful JSON.',
     user_prompt:prompt,
     options:{research:true,max_tokens:6500,temperature:.42,research_domain:'TRACK_B_CREATOR_GROWTH',workspace_id:'track_b',creator_id:persona,platform,objective,format,monetisation,reference_url:referenceUrl.trim()||null,source_analysis:sourceEvidence},
     status:'queued',production_status:'creator_package_queued'
