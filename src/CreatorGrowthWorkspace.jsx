@@ -1,10 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { supabase } from './supabase'
+import { creatorDnaFor, creatorDnaText } from '../shared/creator-dna.js'
 
+const CANONICAL_DNA = { cara: creatorDnaFor('cara'), lila: creatorDnaFor('lila'), duo: creatorDnaFor('duo') }
 const PERSONAS = [
-  { id: 'cara', name: 'Cara', tone: 'Direct, dry, disciplined', tag: 'Sharper takes' },
-  { id: 'lila', name: 'Lila', tone: 'Warm, observant, understated', tag: 'Quietly personal' },
-  { id: 'cara_lila', name: 'Cara + Lila', tone: 'Contrast, chemistry, two voices', tag: 'Built for interaction' },
+  { id: 'cara', name: CANONICAL_DNA.cara.name, tone: CANONICAL_DNA.cara.soul, tag: CANONICAL_DNA.cara.coreVerb },
+  { id: 'lila', name: CANONICAL_DNA.lila.name, tone: CANONICAL_DNA.lila.soul, tag: CANONICAL_DNA.lila.coreVerb },
+  { id: 'cara_lila', name: CANONICAL_DNA.duo.name || 'Cara + Lila', tone: CANONICAL_DNA.duo.soul, tag: CANONICAL_DNA.duo.coreVerb || 'Shared creator system' },
 ]
 const PLATFORMS = ['TikTok', 'Instagram', 'YouTube', 'TikTok Shop', 'Affiliate', 'Fanvue']
 const OBJECTIVES = ['Create content', 'Grow audience', 'Test monetisation', 'Drive clicks / sales', 'Build a repeatable series']
@@ -90,6 +92,7 @@ export default function CreatorGrowthWorkspace({ onAdvance } = {}) {
       const u = await user()
       const prompt = [
         `CREATOR: ${selected.name}`,
+        `CANONICAL CREATOR DNA:\n${creatorDnaText(persona === 'cara_lila' ? 'duo' : persona)}`,
         `PLATFORM: ${platform}`,
         `OBJECTIVE: ${objective}`,
         `FORMAT: ${format}`,
@@ -119,7 +122,7 @@ export default function CreatorGrowthWorkspace({ onAdvance } = {}) {
         job_type: 'content_engine',
         model: 'mlx-community/Qwen3.5-9B-4bit',
         persona_id: persona,
-        system_prompt: 'You are Cornerstone Track B creator-business director. Protect creator identity. Use current public creator research. Build complete publishable work plus monetisation experiments. Human usefulness matters more than JSON volume. Never invent metrics or commercial claims. Return operator-first JSON.',
+        system_prompt: 'You are Cornerstone Track B creator-business director. Protect creator identity. Use the supplied canonical creator DNA as the identity source of truth. Use current public creator research. Build complete publishable work plus monetisation experiments. Human usefulness matters more than JSON volume. Never invent metrics or commercial claims. Return operator-first JSON.',
         user_prompt: prompt,
         options: {
           research: true,
