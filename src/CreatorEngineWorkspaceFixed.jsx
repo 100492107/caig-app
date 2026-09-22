@@ -68,6 +68,7 @@ export default function CreatorEngineWorkspaceFixed() {
   const [generatedImages, setGeneratedImages] = useState({})
   const [imageBusy, setImageBusy] = useState(null)
   const [visualReferencePack, setVisualReferencePack] = useState(null)
+  const [visualReferenceRecipe, setVisualReferenceRecipe] = useState(null)
 
   const person = PEOPLE.find((p) => p[0] === persona) || PEOPLE[0]
   const job = JOBS.find((j) => j[0] === jobType) || JOBS[0]
@@ -78,6 +79,9 @@ export default function CreatorEngineWorkspaceFixed() {
       const raw = sessionStorage.getItem('cornerstone_visual_reference_pack')
       const parsed = raw ? JSON.parse(raw) : null
       if (parsed && Array.isArray(parsed.images) && parsed.images.length) setVisualReferencePack(parsed)
+      const recipeRaw = sessionStorage.getItem('cornerstone_visual_reference_recipe')
+      const recipe = recipeRaw ? JSON.parse(recipeRaw) : null
+      if (recipe?.recipe?.looks?.length) setVisualReferenceRecipe(recipe)
     } catch {}
   }, [])
 
@@ -422,6 +426,11 @@ RETURN JSON ONLY: {"operator_brief":{"finding":"","evidence_status":"observed|su
           'CHARACTER REASONING RULE: Do not reduce the creator to surface adjectives. Let the worldview, contradictions, social role and narrative arc drive the strategy.',
           sceneDirectionSystemBlock(persona),
           VISION_JSON_COMPLETION_CHECK,
+          visualReferenceRecipe ? [
+            'ACTIVE VISUAL RECIPE: ' + (visualReferenceRecipe.name || 'Generated look system'),
+            'Use this recipe as structured wardrobe / pose / environment inspiration. Preserve canonical creator identity and original execution.',
+            JSON.stringify(visualReferenceRecipe.recipe || {}).slice(0, 18000),
+          ].join('\n') : '',
           visualReferencePack ? [
             'ACTIVE VISUAL REFERENCE BOARD: ' + (visualReferencePack.name || 'Visual reference board'),
             'Use the supplied board images as structure references only. Preserve the selected creator identity.',
@@ -456,7 +465,7 @@ RETURN JSON ONLY: {"operator_brief":{"finding":"","evidence_status":"observed|su
         <p className="ce-lead">Cara and Lila are not prompts. They are owned characters with different instincts, voices and story engines. This is where you decide what a creator business is testing next.</p>
       </header>
 
-      {visualReferencePack ? <div className="ce-dna" style={{ marginTop: 16 }}><article className="ce-dna-card"><small>ACTIVE VISUAL BOARD</small><strong>{visualReferencePack.name}</strong><p>Applying {visualReferencePack.images.length} public reference image{visualReferencePack.images.length === 1 ? '' : 's'} as wardrobe / pose / scene structure only. Identity remains canonical.</p><button onClick={() => { sessionStorage.removeItem('cornerstone_visual_reference_pack'); setVisualReferencePack(null) }}>Clear board</button></article></div> : null}
+{visualReferencePack ? <div className="ce-dna" style={{ marginTop: 16 }}><article className="ce-dna-card"><small>ACTIVE VISUAL BOARD</small><strong>{visualReferencePack.name}</strong><p>Applying {visualReferencePack.images.length} public reference image{visualReferencePack.images.length === 1 ? '' : 's'} as wardrobe / pose / scene structure only. Identity remains canonical.</p>{visualReferenceRecipe ? <small style={{display:'block',marginTop:8}}>Recipe: {visualReferenceRecipe.name}</small> : null}<button onClick={() => { sessionStorage.removeItem('cornerstone_visual_reference_pack'); sessionStorage.removeItem('cornerstone_visual_reference_recipe'); setVisualReferencePack(null); setVisualReferenceRecipe(null) }}>Clear board</button></article></div> : null}
 
       <section className="ce-roster" aria-label="Owned creators">
         {PEOPLE.map((p) => <button key={p[0]} className={persona === p[0] ? 'active' : ''} onClick={() => setPersona(p[0])}>
