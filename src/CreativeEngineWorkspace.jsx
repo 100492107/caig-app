@@ -1,11 +1,17 @@
 import React, { useMemo, useState } from "react";
 import { supabase } from "./supabase";
+import { creatorDnaFor, creatorDnaText } from "../shared/creator-dna.js";
 import "./creativeWorkspace.css";
 
+const CANONICAL_DNA = {
+  cara: creatorDnaFor("cara"),
+  lila: creatorDnaFor("lila"),
+  duo: creatorDnaFor("duo"),
+};
 const PEOPLE = [
-  { id: "cara", name: "Cara", note: "Direct · dry · disciplined · British" },
-  { id: "lila", name: "Lila", note: "Measured · warm · observant · understated" },
-  { id: "cara_lila", name: "Cara + Lila", note: "Contrast · chemistry · shared moments" },
+  { id: "cara", name: CANONICAL_DNA.cara.name, note: CANONICAL_DNA.cara.soul },
+  { id: "lila", name: CANONICAL_DNA.lila.name, note: CANONICAL_DNA.lila.soul },
+  { id: "cara_lila", name: CANONICAL_DNA.duo.name || "Cara + Lila", note: CANONICAL_DNA.duo.soul },
 ];
 
 const PLATFORMS = ["Instagram Reels", "TikTok", "Facebook Reels", "YouTube Shorts", "Instagram", "Facebook", "YouTube"];
@@ -125,7 +131,8 @@ export default function CreativeEngineWorkspace() {
     try {
       const peopleLabel = people.map(id => PEOPLE.find(p => p.id === id)?.name).join(", ");
       const purposeLabel = PURPOSES.find(x => x[0] === purpose)?.[1] || purpose;
-      const system = `You are the senior creative strategist inside Cornerstone AI Group. Create a board of distinct hypotheses before any production happens. The goal is to help an executive choose what to make. Never return generic AI-UGC filler. Cara is direct, dry, disciplined and British. Lila is measured, warm, observant and understated. Cara + Lila means two separate personalities with real contrast and chemistry. If a product is supplied, never invent claims or features. Match the selected platform and purpose. Return JSON only.`;
+      const dna = people.map(id => creatorDnaText(id === "cara_lila" ? "duo" : id)).join("\n\n");
+      const system = `You are the senior creative strategist inside Cornerstone AI Group. Create a board of distinct hypotheses before any production happens. The goal is to help an executive choose what to make. Never return generic AI-UGC filler. Use the selected creator's CANONICAL CREATOR DNA below as the identity source of truth. Never replace it with an adjective-only persona. If a product is supplied, never invent claims or features. Match the selected platform and purpose. Return JSON only.\n\nCANONICAL CREATOR DNA\n${dna}`;
       const user = `BRIEF\nDestination account: ${destinationName}\nPeople: ${peopleLabel}\nProduct: ${productName || "None"}\nProduct URL: ${productUrl || "None"}\nPlatform: ${platform}\nPurpose: ${purposeLabel}\nHooks I like: ${formatLabel(HOOKS, hookIds)}\nAngles I like: ${formatLabel(ANGLES, angleIds)}\nFormats I like: ${formatLabel(FORMATS, formatIds)}\nExtra idea: ${seed || "None"}\n\nReturn exactly {"hypotheses":[...]} with 6 objects. Each object must contain: id, title, hook, angle, format, creator, why_it_might_work, visual_opening, caption_direction, cta, variation_prompt. At least 4 concepts must differ in psychological mechanism, not merely wording. If Cara + Lila is selected, at least 2 should use the duo and at least 1 should feature only one of them.`;
       const out = parseJson(await askGemini(system, user));
       setHypotheses(Array.isArray(out.hypotheses) ? out.hypotheses : []);
