@@ -1,10 +1,16 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { supabase } from "./supabase";
+import { creatorDnaFor, creatorDnaText } from "../shared/creator-dna.js";
 
+const CANONICAL_DNA = {
+  cara: creatorDnaFor("cara"),
+  lila: creatorDnaFor("lila"),
+  duo: creatorDnaFor("duo"),
+};
 const PERSONAS = {
-  cara: { name: "Cara", note: "Direct, dry, disciplined, British. Confident without shouting." },
-  lila: { name: "Lila", note: "Measured, warm, observant, understated. Quiet confidence." },
-  duo: { name: "Cara + Lila", note: "Two distinct women. Natural chemistry, contrast, shared moments. Never blend their voices." },
+  cara: { name: CANONICAL_DNA.cara.name, note: CANONICAL_DNA.cara.soul },
+  lila: { name: CANONICAL_DNA.lila.name, note: CANONICAL_DNA.lila.soul },
+  duo: { name: CANONICAL_DNA.duo.name || "Cara + Lila", note: CANONICAL_DNA.duo.soul },
 };
 
 const PLATFORMS = [
@@ -45,9 +51,10 @@ function readFileDataUrl(file) {
 
 function promptFor({ platform, persona, evidence, imageDescription, context }) {
   const creator = PERSONAS[persona] || PERSONAS.duo;
+  const dna = creatorDnaText(persona === "duo" ? "duo" : persona);
   const destination = PLATFORMS.find((item) => item.id === platform) || PLATFORMS[0];
   const fanvue = platform === "fanvue";
-  return `PLATFORM: ${destination.name}\nOBJECTIVE: ${destination.objective}\nCREATOR: ${creator.name}\nCREATOR VOICE: ${creator.note}\n\nCURRENT EVIDENCE:\n${evidence || "No current evidence supplied. Do not invent performance numbers."}\n\nIMAGE FACTS:\n${imageDescription}\n\nCONTEXT:\n${context || "None supplied."}\n\nWrite captions for this exact image. Match only what the image supports. Do not invent location, outfit, time, people, actions or backstory. Avoid generic AI influencer language. ${fanvue ? "For Fanvue, use curiosity, personality and exclusivity without explicit sexual content." : "For public social, optimise for attention, interaction and profile visits first."}\n\nReturn JSON only:\n{\"recommended\":\"\",\"alternatives\":[\"\",\"\",\"\"],\"angle\":\"\",\"cta\":\"\",\"why_this_angle\":\"\",\"test_note\":\"\"}`;
+  return `PLATFORM: ${destination.name}\nOBJECTIVE: ${destination.objective}\nCREATOR: ${creator.name}\nCREATOR VOICE: ${creator.note}\n\nCANONICAL CREATOR DNA:\n${dna}\n\nCURRENT EVIDENCE:\n${evidence || "No current evidence supplied. Do not invent performance numbers."}\n\nIMAGE FACTS:\n${imageDescription}\n\nCONTEXT:\n${context || "None supplied."}\n\nWrite captions for this exact image. Match only what the image supports. Do not invent location, outfit, time, people, actions or backstory. Avoid generic AI influencer language. ${fanvue ? "For Fanvue, use curiosity, personality and exclusivity without explicit sexual content." : "For public social, optimise for attention, interaction and profile visits first."}\n\nReturn JSON only:\n{\"recommended\":\"\",\"alternatives\":[\"\",\"\",\"\"],\"angle\":\"\",\"cta\":\"\",\"why_this_angle\":\"\",\"test_note\":\"\"}`;
 }
 
 async function analyseImage(dataUrl, mimeType) {
