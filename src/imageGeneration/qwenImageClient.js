@@ -33,10 +33,12 @@ export async function generateCreatorImage({
   const { supabase } = await import("../supabase");
   const { data } = await supabase.auth.getSession();
   const token = data?.session?.access_token;
-  const response = await fetch("/api/qwen-image", {
+  const response = await fetch("/api/store-image", {
     method: "POST",
     headers: { "Content-Type": "application/json", ...(token ? { Authorization: "Bearer " + token } : {}) },
     body: JSON.stringify({
+      mode: "qwen",
+      provider: "qwen-image-2.1",
       personaId: creator,
       visionJson,
       flowPrompt: flowPrompt || promptFromVision(visionJson),
