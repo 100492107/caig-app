@@ -132,6 +132,9 @@ async function handleReferenceIngest(body, ownerId) {
   try { parsed = new URL(pageUrl); } catch { throw new Error("That URL is not valid."); }
   if (!/^https?:$/.test(parsed.protocol)) throw new Error("Only HTTP(S) URLs are supported.");
   const source = referenceSourcePlatform(pageUrl);
+  const host = parsed.hostname.toLowerCase().replace(/^www\./, "");
+  const allowedHost = host === "pin.it" || host.endsWith("pinterest.com") || host.includes("vinted.") || host.endsWith("depop.com");
+  if (!allowedHost) throw new Error("Reference ingestion currently supports Pinterest, Vinted and Depop URLs only.");
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 12000);
   try {
