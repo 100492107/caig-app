@@ -15,7 +15,7 @@ const JOBS = [
   ['fanvue', 'Fanvue', 'Owned-creator positioning, cadence and conversion.'],
   ['growth', 'Audience growth', 'Hooks, formats and recurring series.'],
 ]
-const CREATOR_IMAGES = { cara: 'https://zvyioxhwdyocaanzcgqf.supabase.co/storage/v1/object/public/cara%20ref/Cara_5.jpg', lila: 'https://zvyioxhwdyocaanzcgqf.supabase.co/storage/v1/object/public/lila%20ref/lila_10.jpeg' }
+const CREATOR_IMAGES = { cara: 'https://zvyioxhwdyocaanzcgqf.supabase.co/storage/v1/object/public/cara%20ref/Cara_5.jpg', lila: 'https://zvyioxhwdyocaanzcgqf.supabase.co/storage/v1/object/public/lila%20ref/lila_12.jpeg' }
 const PLATFORMS = ['TikTok', 'Instagram', 'YouTube Shorts', 'TikTok + Instagram', 'Multi-platform']
 const FORMATS = ['Personal moment', 'POV / relatable', 'Quick take', 'Micro-story', 'GRWM', 'Day in the life', 'Photo slideshow', 'Reaction', 'Product-led demo', 'Story + recommendation']
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
