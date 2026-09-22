@@ -26,7 +26,7 @@ export default function UserLibraryWorkspace() {
       try {
         const { data, error: qe } = await supabase
           .from('local_ai_jobs')
-          .select('id,job_type,status,result,created_at,updated_at,persona_id')
+          .select('id,job_type,status,result,created_at,persona_id')
           .order('created_at', { ascending: false })
           .limit(80)
         if (qe) throw qe
