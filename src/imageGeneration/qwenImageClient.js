@@ -42,7 +42,7 @@ export async function generateCreatorImage({
       personaId: creator,
       visionJson,
       flowPrompt: flowPrompt || promptFromVision(visionJson),
-      references: Array.isArray(references) && references.length ? references.slice(0, 10) : undefined,
+      references: Array.isArray(references) && references.length ? references.slice(0, 8) : undefined,
       aspectRatio: aspectRatio || aspectFromVision(visionJson),
       seed,
       randomizeSeed,
