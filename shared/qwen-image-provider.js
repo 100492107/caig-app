@@ -105,6 +105,7 @@ export async function generateQwenImageServer({
   aspectRatio = "9:16",
   seed = 42,
   randomizeSeed = true,
+  references = [],
 }) {
   const [width, height] = QWEN_IMAGE_SIZES[aspectRatio] || QWEN_IMAGE_SIZES["9:16"];
   const visual = getPersonaVisual(personaId);
@@ -113,7 +114,8 @@ export async function generateQwenImageServer({
     Array.isArray(visionJson?.negative_prompt) ? visionJson.negative_prompt.join(", ") : text(visionJson?.negative_prompt),
     visual.negative,
   ].filter(Boolean).join(", ");
-  const refs = visual.refs.slice(0, 10);
+  const extraRefs = Array.isArray(references) ? references.filter((url) => /^https?:\/\//i.test(String(url || ""))).map((url) => String(url).trim()) : [];
+  const refs = [...visual.refs, ...extraRefs].filter((url, index, list) => url && list.indexOf(url) === index).slice(0, 10);
   const submit = await fetch(SPACE_URL + "/gradio_api/call/generate_with_enhance", {
     method: "POST",
     headers: authHeaders({ "Content-Type": "application/json", "x-gradio-user": "api" }),
