@@ -65,7 +65,7 @@ function referenceSourcePlatform(value) {
     if (host.endsWith("depop.com")) return "depop";
     if (host === "temu.com" || host.endsWith(".temu.com")) return "temu";
     if (host === "alibaba.com" || host.endsWith(".alibaba.com")) return "alibaba";
-    if (host === "shop.tiktok.com" || (host.endsWith("tiktok.com") && /\\/shop\\//.test(pathName))) return "tiktok_shop";
+    if (host === "shop.tiktok.com" || (host.endsWith("tiktok.com") && pathName.includes("/shop/"))) return "tiktok_shop";
     if (host.endsWith("tiktok.com") || host === "ads.tiktok.com") return "tiktok";
   } catch {}
   return "other";
