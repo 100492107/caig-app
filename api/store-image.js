@@ -1,8 +1,13 @@
 // api/store-image.js
-// Downloads a fal.ai image, stores it permanently in Supabase Storage,
+// Stores generated images in Supabase Storage.
+// Existing mode: falUrl + requestId.
+// Qwen mode: provider=qwen-image-2.1, generated through the hosted Space.
+// Keeping both modes in one Vercel Function avoids exceeding Hobby's function limit.
 // and registers the generated asset in the Track B asset library.
 // POST { falUrl, requestId, postId, slideIndex?, personaName?, metadata? }
 // Returns { publicUrl, slideIndex }
+
+import { generateQwenImageServer } from "../shared/qwen-image-provider.js";
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -75,7 +80,7 @@ async function registerAsset({ publicUrl, storagePath, requestId, postId, slideI
         workspace_id: workspaceId,
         asset_type: "image",
         name: `${personaName || "Generated"} · ${postId || requestId || "image"}${typeof slideIndex === "number" ? ` · slide ${slideIndex + 1}` : ""}`,
-        provider: "creative_engine",
+        provider: metadata?.provider || "creative_engine",
         source_url: publicUrl,
         storage_path: storagePath,
         public_url: publicUrl,
@@ -120,6 +125,82 @@ export default async function handler(req, res) {
     body = JSON.parse(Buffer.concat(chunks).toString());
   } catch {
     return res.status(400).json({ error: "Invalid JSON" });
+  }
+
+  if (body.mode === "qwen" || body.provider === "qwen-image-2.1") {
+    const accessToken = String(req.headers.authorization || "").replace(/^Bearer\s+/i, "").trim();
+    if (!accessToken) return res.status(401).json({ error: "Sign in is required to generate images." });
+
+    const personaId = String(body.personaId || body.persona_id || "cara").toLowerCase();
+    const allowed = new Set(["cara", "lila", "cara_lila", "duo", "cara&lila"]);
+    if (!allowed.has(personaId)) return res.status(400).json({ error: "Unknown creator identity." });
+    const canonicalPersona = personaId === "duo" || personaId === "cara&lila" ? "cara_lila" : personaId;
+
+    try {
+      const generated = await generateQwenImageServer({
+        personaId: canonicalPersona,
+        visionJson: body.visionJson && typeof body.visionJson === "object" ? body.visionJson : null,
+        flowPrompt: body.flowPrompt || "",
+        aspectRatio: body.aspectRatio || "9:16",
+        seed: body.seed,
+        randomizeSeed: body.randomizeSeed == null ? true : Boolean(body.randomizeSeed),
+      });
+      const imgRes = await fetch(generated.sourceUrl, { signal: AbortSignal.timeout(45000) });
+      if (!imgRes.ok) throw new Error("Generated image fetch failed: " + imgRes.status);
+      const blob = await imgRes.arrayBuffer();
+      const contentType = imgRes.headers.get("content-type") || "image/png";
+      const extension = /jpe?g/i.test(contentType) ? "jpg" : "png";
+      const creator = canonicalPersona === "cara_lila" ? "cara-lila" : canonicalPersona;
+      const path = "qwen2.1/" + creator + "/" + String(body.ownerId || "authenticated") + "/" + String(postId || ("qwen-" + Date.now())) + "-" + Date.now() + "." + extension;
+      const upRes = await fetch(SUPABASE_URL + "/storage/v1/object/" + BUCKET + "/" + path, {
+        method: "POST",
+        headers: {
+          apikey: SUPABASE_SERVICE_KEY,
+          Authorization: "Bearer " + SUPABASE_SERVICE_KEY,
+          "Content-Type": contentType,
+          "x-upsert": "true",
+        },
+        body: blob,
+      });
+      if (!upRes.ok) throw new Error("Upload failed (" + upRes.status + "): " + (await upRes.text()).slice(0, 300));
+      const publicUrl = SUPABASE_URL + "/storage/v1/object/public/" + BUCKET + "/" + path;
+      await registerAsset({
+        publicUrl,
+        storagePath: path,
+        requestId: generated.requestId,
+        postId,
+        slideIndex: body.slideIndex,
+        personaName: canonicalPersona === "cara_lila" ? "Cara + Lila" : canonicalPersona === "cara" ? "Cara" : "Lila",
+        metadata: {
+          provider: "qwen-image-2.1",
+          provider_space: "Qwen/Qwen-Image-2.1",
+          aspect_ratio: body.aspectRatio || "9:16",
+          width: generated.width,
+          height: generated.height,
+          seed: generated.seed,
+          reference_count: generated.referenceCount,
+          vision_json: body.visionJson || null,
+          flow_prompt: body.flowPrompt || "",
+        },
+      });
+      return res.status(200).json({
+        ok: true,
+        provider: "qwen-image-2.1",
+        model: "Qwen-Image-2.1",
+        space: "Qwen/Qwen-Image-2.1",
+        requestId: generated.requestId,
+        publicUrl,
+        imageUrl: publicUrl,
+        storagePath: path,
+        aspectRatio: body.aspectRatio || "9:16",
+        width: generated.width,
+        height: generated.height,
+        seed: generated.seed,
+      });
+    } catch (e) {
+      console.error("[store-image:qwen] failed:", e.message);
+      return res.status(502).json({ error: e.message, provider: "qwen-image-2.1" });
+    }
   }
 
   const { falUrl, requestId, postId, slideIndex, personaName, metadata } = body;
