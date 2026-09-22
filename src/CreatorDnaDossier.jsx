@@ -3,7 +3,7 @@ import { creatorDnaFor } from '../shared/creator-dna.js'
 
 const IMAGE_REFERENCES = {
   cara: 'https://zvyioxhwdyocaanzcgqf.supabase.co/storage/v1/object/public/cara%20ref/Cara_5.jpg',
-  lila: 'https://zvyioxhwdyocaanzcgqf.supabase.co/storage/v1/object/public/lila%20ref/lila_2.jpeg',
+  lila: 'https://zvyioxhwdyocaanzcgqf.supabase.co/storage/v1/object/public/lila%20ref/lila_10.jpeg',
 }
 
 const TABS = [
