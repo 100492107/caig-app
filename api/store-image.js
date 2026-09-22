@@ -55,6 +55,140 @@ async function resolveWorkspace() {
   return created?.[0]?.id || null;
 }
 
+function referenceSourcePlatform(value) {
+  try {
+    const host = new URL(value).hostname.toLowerCase().replace(/^www\./, "");
+    if (host === "pin.it" || host.endsWith("pinterest.com")) return "pinterest";
+    if (host.includes("vinted.")) return "vinted";
+    if (host.endsWith("depop.com")) return "depop";
+  } catch {}
+  return "other";
+}
+
+function referenceClean(value) {
+  return String(value || "").replace(/\s+/g, " ").trim();
+}
+
+function referenceMeta(html, key) {
+  const patterns = [
+    new RegExp('<meta[^>]+property=["\\\']' + key + '["\\\'][^>]+content=["\\\']([^"\\\']+)["\\\'][^>]*>', "i"),
+    new RegExp('<meta[^>]+content=["\\\']([^"\\\']+)["\\\'][^>]+property=["\\\']' + key + '["\\\'][^>]*>', "i"),
+    new RegExp('<meta[^>]+name=["\\\']' + key + '["\\\'][^>]+content=["\\\']([^"\\\']+)["\\\'][^>]*>', "i"),
+    new RegExp('<meta[^>]+content=["\\\']([^"\\\']+)["\\\'][^>]+name=["\\\']' + key + '["\\\'][^>]*>', "i")
+  ];
+  for (const re of patterns) {
+    const match = String(html || "").match(re);
+    if (match && match[1]) return referenceClean(match[1]);
+  }
+  return "";
+}
+
+function referenceCategoryHint(text) {
+  const value = String(text || "").toLowerCase();
+  if (/mirror|selfie|pose|posing|walking|standing|seated|sitting|grwm|outfit check/.test(value)) return "pose";
+  if (/dress|jean|denim|coat|jacket|blazer|skirt|trouser|shirt|top|knit|hoodie|cardigan|boot|sneaker|loafer|bag|leather|silk|cotton|wool/.test(value)) return "wardrobe";
+  if (/cafe|kitchen|bedroom|hotel|street|gym|beach|terrace|desk|office|travel|restaurant|bathroom/.test(value)) return "scene";
+  if (/earring|necklace|bracelet|watch|ring|sunglasses|belt|scarf/.test(value)) return "accessory";
+  return "mixed";
+}
+
+async function persistReferenceImage(imageUrl, ownerId) {
+  if (!imageUrl) return { url: null, storagePath: null, error: null };
+  try {
+    const response = await fetch(imageUrl, {
+      redirect: "follow",
+      headers: { "User-Agent": "CornerstoneAI/1.0 reference-board image", Accept: "image/avif,image/webp,image/jpeg,image/png,*/*" },
+      signal: AbortSignal.timeout(12000)
+    });
+    if (!response.ok) throw new Error("Image source returned " + response.status + ".");
+    const contentType = response.headers.get("content-type") || "image/jpeg";
+    if (!contentType.toLowerCase().startsWith("image/")) throw new Error("Source preview is not an image.");
+    const buffer = Buffer.from(await response.arrayBuffer());
+    if (buffer.length > 10 * 1024 * 1024) throw new Error("Reference image is larger than 10 MB.");
+    const bucket = "visual-reference-assets";
+    await fetch(SUPABASE_URL + "/storage/v1/bucket", {
+      method: "POST",
+      headers: { apikey: SUPABASE_SERVICE_KEY, Authorization: "Bearer " + SUPABASE_SERVICE_KEY, "Content-Type": "application/json" },
+      body: JSON.stringify({ id: bucket, name: bucket, public: true })
+    }).catch(() => {});
+    const extension = /png/i.test(contentType) ? "png" : /webp/i.test(contentType) ? "webp" : "jpg";
+    const storagePath = ownerId + "/" + crypto.randomUUID() + "." + extension;
+    const upload = await fetch(SUPABASE_URL + "/storage/v1/object/" + bucket + "/" + storagePath, {
+      method: "POST",
+      headers: { apikey: SUPABASE_SERVICE_KEY, Authorization: "Bearer " + SUPABASE_SERVICE_KEY, "Content-Type": contentType, "x-upsert": "true" },
+      body: buffer
+    });
+    if (!upload.ok) throw new Error("Reference image upload failed (" + upload.status + ").");
+    return { url: SUPABASE_URL + "/storage/v1/object/public/" + bucket + "/" + storagePath, storagePath, error: null };
+  } catch (error) {
+    return { url: null, storagePath: null, error: error?.message || String(error) };
+  }
+}
+
+async function handleReferenceIngest(body, ownerId) {
+  const pageUrl = String(body.url || "").trim();
+  if (!pageUrl) throw new Error("A public source URL is required.");
+  let parsed;
+  try { parsed = new URL(pageUrl); } catch { throw new Error("That URL is not valid."); }
+  if (!/^https?:$/.test(parsed.protocol)) throw new Error("Only HTTP(S) URLs are supported.");
+  const source = referenceSourcePlatform(pageUrl);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 12000);
+  try {
+    const upstream = await fetch(pageUrl, {
+      redirect: "follow",
+      headers: { "User-Agent": "CornerstoneAI/1.0 reference-board metadata fetch", Accept: "text/html,application/xhtml+xml;q=0.9,*/*;q=0.8" },
+      signal: controller.signal
+    });
+    if (!upstream.ok) throw new Error("Source page returned " + upstream.status + ".");
+    const type = upstream.headers.get("content-type") || "";
+    if (!type.includes("text/html")) throw new Error("The source is not an HTML page.");
+    const html = (await upstream.text()).slice(0, 1000000);
+    const sourceImageUrl = referenceClean(body.image_url || referenceMeta(html, "og:image") || referenceMeta(html, "twitter:image"));
+    const storedImage = await persistReferenceImage(sourceImageUrl, ownerId);
+    const imageUrl = storedImage.url || sourceImageUrl;
+    const title = referenceClean(body.title || referenceMeta(html, "og:title") || referenceMeta(html, "twitter:title"));
+    const description = referenceClean(body.description || referenceMeta(html, "og:description") || referenceMeta(html, "description"));
+    const canonicalUrl = referenceClean(referenceMeta(html, "og:url") || upstream.url || pageUrl);
+    const category = referenceCategoryHint(title + " " + description);
+    const recipe = {
+      category,
+      source,
+      inspiration_mode: "structure_only",
+      wardrobe: { silhouette: "", garments: [], materials: [], colours: [], fit: "", details: "" },
+      pose: { family: "", geometry: "", crop: "", gaze: "", hands: "" },
+      environment: { setting: "", lived_in_details: [], lighting: "" },
+      composition: { camera_height: "", perspective: "", framing: "", subject_position: "" },
+      instruction: "Use this reference for visual structure only. Preserve the selected Cornerstone creator identity and create an original scene."
+    };
+    return {
+      ok: true,
+      owner_id: ownerId,
+      source_platform: source,
+      source_url: pageUrl,
+      canonical_url: canonicalUrl,
+      image_url: imageUrl || null,
+      title: title || null,
+      description: description || null,
+      structured_data: {
+        source,
+        requested_url: pageUrl,
+        resolved_url: upstream.url || pageUrl,
+        title: title || null,
+        description: description || null,
+        source_image_url: sourceImageUrl || null,
+        storage_path: storedImage.storagePath || null,
+        image_persistence_error: storedImage.error || null,
+        retrieved_at: new Date().toISOString()
+      },
+      recipe,
+      can_analyse_image: Boolean(imageUrl)
+    };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 function characterNames(personaName) {
   const value = String(personaName || "").toLowerCase();
   if (value.includes("cara + lila") || value.includes("cara and lila") || value.includes("cara_lila")) return ["Cara", "Lila"];
@@ -127,6 +261,19 @@ export default async function handler(req, res) {
     body = JSON.parse(Buffer.concat(chunks).toString());
   } catch {
     return res.status(400).json({ error: "Invalid JSON" });
+  }
+
+  if (body.mode === "reference_ingest") {
+    const accessToken = String(req.headers.authorization || "").replace(/^Bearer\s+/i, "").trim();
+    if (!accessToken) return res.status(401).json({ error: "Sign in is required." });
+    const authClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
+    const auth = await authClient.auth.getUser(accessToken);
+    if (auth.error || !auth.data.user) return res.status(401).json({ error: "Session is invalid or expired." });
+    try {
+      return res.status(200).json(await handleReferenceIngest(body, auth.data.user.id));
+    } catch (error) {
+      return res.status(502).json({ error: error?.name === "AbortError" ? "Source page timed out." : (error?.message || "Could not read that public reference.") });
+    }
   }
 
   if (body.mode === "qwen" || body.provider === "qwen-image-2.1") {
