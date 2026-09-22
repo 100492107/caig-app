@@ -739,7 +739,7 @@ Return ONLY JSON:
   return parseJSON(callGemini(apiKey, system, user, 3000));
 }
 
-function generatePost(apiKey, persona, platform, pillar, postIndex, usedHooks, ideaSeed, fanvueMode, cachedTrends, mood, weekArc, previousBeat) {
+async function generatePost(apiKey, persona, platform, pillar, postIndex, usedHooks, ideaSeed, fanvueMode, cachedTrends, mood, weekArc, previousBeat) {
   if (!fanvueMode && persona.id === "cara_lila") {
     return generateDuoPublicPost(apiKey, platform, pillar, postIndex, usedHooks, ideaSeed, cachedTrends, mood, weekArc, previousBeat);
   }
