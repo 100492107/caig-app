@@ -250,7 +250,7 @@ export default function CommerceIntelligenceWorkspace() {
         "Every opportunity must connect trend/demand + product angle + visual treatment + content concept + monetisation test.",
         "Use only facts explicitly present in the input. Never invent price, sales, commission, reviews, product claims, audience response or platform eligibility.",
         "Treat Alibaba as supplier/product research unless the input explicitly provides an affiliate route. Treat Temu affiliate as a candidate route, not a guaranteed commission. Treat TikTok Shop as a candidate commerce route subject to account/market eligibility.",
-        "Return JSON only with {"opportunities":[...]} where each item has:",
+        "Return JSON only with an opportunities array where each item has:",
         '{"title":"","summary":"","signal_ids":[],"trend":"","product_angle":"","aesthetic_angle":"","hook":"","content_concept":"","format":"","visual_direction":{"shot":"","wardrobe":"","pose":"","scene":"","composition":""},"content_prompt":"","monetisation_route":"","monetisation_test":"","cta":"","kpi":"","winner_rule":"","evidence_confidence":""}',
         "SELECTED CREATOR: " + creator,
         "COMMERCE SIGNALS:",
