@@ -14,4 +14,10 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Syntax check server and worker JavaScript
+        run: |
+          for file in api/*.js shared/*.js scripts/*.mjs; do
+            node --check "$file"
+          done
+          bash -n scripts/start-local-ai-stack.sh
       - run: npm run build
