@@ -142,4 +142,4 @@ else
 fi
 
 echo "[LOCAL AI] shared stack requested"
-echo "[LOCAL AI] Qwen: ${QWEN_HOST}:${QWEN_PORT} · Vision: ${QWEN_VISION_HOST}:${QWEN_VISION_PORT} · Track B max tokens: ${QWEN_FAST_MAX_TOKENS} · Source acquisition: YouTube + creator platforms"
+echo "[LOCAL AI] Qwen: ${QWEN_HOST}:${QWEN_PORT} · Vision: ${QWEN_VISION_HOST}:${QWEN_VISION_PORT} · Commerce intelligence: enabled · Track B max tokens: ${QWEN_FAST_MAX_TOKENS} · Source acquisition: YouTube + creator platforms"
