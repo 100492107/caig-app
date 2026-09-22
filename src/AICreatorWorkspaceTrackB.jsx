@@ -236,6 +236,7 @@ export default function AICreatorWorkspaceTrackB() {
   const [brief, setBrief] = useState("");
   const [items, setItems] = useState([]);
   const [visualReferencePack, setVisualReferencePack] = useState(null);
+  const [commerceContext, setCommerceContext] = useState(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [advancedModel, setAdvancedModel] = useState("seedance");
@@ -256,6 +257,9 @@ export default function AICreatorWorkspaceTrackB() {
       const raw = sessionStorage.getItem("cornerstone_visual_reference_pack");
       const parsed = raw ? JSON.parse(raw) : null;
       if (parsed?.images?.length) setVisualReferencePack(parsed);
+      const commerceRaw = sessionStorage.getItem("cornerstone_commerce_context");
+      const commerce = commerceRaw ? JSON.parse(commerceRaw) : null;
+      if (commerce?.title) setCommerceContext(commerce);
     } catch {}
   }, []);
 
@@ -264,8 +268,20 @@ export default function AICreatorWorkspaceTrackB() {
     contentType === "social" ? `PLATFORM: ${platform}\nGOAL: ${goal}` : "",
     contentType === "fanvue" ? `FANVUE PURPOSE: ${fanvuePurpose}\nFANVUE VISUAL DIRECTION: ${FANVUE_PURPOSES.find((x) => x[0] === fanvuePurpose)?.[1]}` : "",
     contentType === "carousel" ? `CAROUSEL STRUCTURE: ${carouselStructure}. Build 5–7 slides. On-image captions must be concise and swipe-worthy.` : "",
+    commerceContext ? [
+      "ACTIVE COMMERCE OPPORTUNITY: " + (commerceContext.title || "Untitled opportunity"),
+      "Trend: " + (commerceContext.trend || "Not supplied"),
+      "Product angle: " + (commerceContext.product_angle || "Not supplied"),
+      "Aesthetic angle: " + (commerceContext.aesthetic_angle || "Not supplied"),
+      "Content concept: " + (commerceContext.content_concept || "Not supplied"),
+      "Monetisation route: " + (commerceContext.monetisation_route || "Not supplied"),
+      "Monetisation test: " + (commerceContext.monetisation_test || "Not supplied"),
+      "KPI: " + (commerceContext.kpi || "Not supplied"),
+      "Winner rule: " + (commerceContext.winner_rule || "Not supplied"),
+      "CTA: " + (commerceContext.cta || "Not supplied")
+    ].join("\n") : "",
     brief.trim() ? `OPTIONAL USER DIRECTION: ${brief.trim()}` : "OPTIONAL USER DIRECTION: none — choose the strongest coherent idea from the persona bible yourself.",
-  ].filter(Boolean).join("\n"), [contentType, platform, goal, fanvuePurpose, carouselStructure, brief]);
+  ].filter(Boolean).join("\n"), [contentType, platform, goal, fanvuePurpose, carouselStructure, brief, commerceContext]);
 
   async function generateContent() {
     setBusy(true);
@@ -313,6 +329,7 @@ export default function AICreatorWorkspaceTrackB() {
           human_audit: audit,
           carousel_slides: Array.isArray(final.carousel_slides) ? final.carousel_slides : [],
           fanvuePurpose: contentType === "fanvue" ? fanvuePurpose : null,
+          commerce_context: commerceContext || null,
         }),
       };
 
@@ -338,6 +355,7 @@ export default function AICreatorWorkspaceTrackB() {
         item.caption ? "Content context: " + item.caption : "",
         notes.video_prompt ? "Visual direction: " + notes.video_prompt : "",
         visualReferencePack ? "Use the active Cornerstone visual reference board for wardrobe, pose, environment and composition structure only. Preserve canonical creator identity." : "",
+        commerceContext ? "ACTIVE COMMERCE CONTEXT: " + JSON.stringify(commerceContext).slice(0, 12000) : "",
       ].filter(Boolean).join("\n\n");
       const data = await generateCreatorImage({
         creator: item.persona_id === "duo" ? "cara_lila" : (item.persona_id || "cara"),
@@ -455,7 +473,8 @@ export default function AICreatorWorkspaceTrackB() {
         <div style={{ marginBottom: 20 }}>
           <div style={{ fontSize: 10, letterSpacing: ".18em", textTransform: "uppercase", color: "#d9a43c", fontWeight: 800 }}>CornerstoneAIAssets · Track B</div>
           <h1 style={{ margin: "6px 0 4px", fontSize: 34, letterSpacing: "-.05em" }}>AI Creator</h1>
-          <p style={{ ...muted, maxWidth: 760 }}>One connected creator workflow: character → idea → human quality check → review → image → captioned carousel → simple reel → advanced reel.</p>
+          <p style={{ ...muted, maxWidth: 760 }}>One connected creator workflow: character → idea → commerce context → human quality check → review → image → captioned carousel → simple reel → advanced reel.</p>
+          {commerceContext ? <div style={{ marginTop: 12, padding: "12px 14px", border: "1px solid rgba(212,175,55,.28)", borderRadius: 12, background: "rgba(212,175,55,.08)" }}><div style={{ fontSize: 10, letterSpacing: ".12em", textTransform: "uppercase", color: "#f7d77b", fontWeight: 900 }}>Active Commerce Opportunity</div><div style={{ marginTop: 5, fontSize: 14, fontWeight: 900 }}>{commerceContext.title}</div><div style={{ color: "#838ca0", marginTop: 4, fontSize: 12 }}>{commerceContext.monetisation_route || "commerce"} · {commerceContext.kpi || "KPI pending"}</div></div> : null}
         </div>
 
         <section style={card}>
