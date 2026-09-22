@@ -7,7 +7,7 @@ const FAIL=new Set(['error','failed','blocked']);
 const money=v=>new Intl.NumberFormat('en-GB',{style:'currency',currency:'GBP',maximumFractionDigits:0}).format(Number(v||0));
 const clean=v=>String(v||'').replaceAll('_',' ');
 const num=v=>new Intl.NumberFormat('en-GB',{maximumFractionDigits:0}).format(Number(v||0));
-const CREATOR_IMAGES={cara:'https://zvyioxhwdyocaanzcgqf.supabase.co/storage/v1/object/public/cara%20ref/Cara_5.jpg',lila:'https://zvyioxhwdyocaanzcgqf.supabase.co/storage/v1/object/public/lila%20ref/lila_2.jpeg'};
+const CREATOR_IMAGES={cara:'https://zvyioxhwdyocaanzcgqf.supabase.co/storage/v1/object/public/cara%20ref/Cara_5.jpg',lila:'https://zvyioxhwdyocaanzcgqf.supabase.co/storage/v1/object/public/lila%20ref/lila_10.jpeg'};
 const age=v=>{
   if(!v)return 'No recent check-in';
   const s=Math.max(0,Math.round((Date.now()-new Date(v).getTime())/1000));
