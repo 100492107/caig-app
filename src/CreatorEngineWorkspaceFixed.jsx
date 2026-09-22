@@ -85,7 +85,10 @@ export default function CreatorEngineWorkspaceFixed() {
       if (recipe?.recipe?.looks?.length) setVisualReferenceRecipe(recipe)
       const commerceRaw = sessionStorage.getItem('cornerstone_commerce_context')
       const commerce = commerceRaw ? JSON.parse(commerceRaw) : null
-      if (commerce?.title) setCommerceContext(commerce)
+      if (commerce?.title) {
+        setCommerceContext(commerce)
+        if (['cara', 'lila', 'cara_lila'].includes(commerce.creator)) setPersona(commerce.creator)
+      }
     } catch {}
   }, [])
 
@@ -142,6 +145,14 @@ export default function CreatorEngineWorkspaceFixed() {
     }
   }
 
+
+  const visualBoardContext = visualReferencePack ? [
+    'ACTIVE VISUAL REFERENCE BOARD: ' + (visualReferencePack.name || 'Visual Reference Board'),
+    'Board purpose: ' + (visualReferencePack.purpose || 'mixed'),
+    'Use the supplied reference images as wardrobe, pose, environment and composition structure only.',
+    'Never copy identity, face, branding or distinctive execution.',
+    'Reference count: ' + ((visualReferencePack.images || []).length)
+  ].join('\\n') : 'NO ACTIVE VISUAL REFERENCE BOARD';
 
   const commerceContextText = commerceContext ? [
     'ACTIVE COMMERCE OPPORTUNITY: ' + (commerceContext.title || 'Untitled opportunity'),
