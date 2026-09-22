@@ -170,16 +170,13 @@ export default function ReferenceBoardWorkspace() {
       if (!url.trim()) throw new Error("Paste a Pinterest, Vinted, Depop or public reference URL.");
       const { data: session } = await supabase.auth.getSession();
       const token = session?.session?.access_token;
-      const response = await fetch("/api/reference-ingest", {
+      const response = await fetch("/api/store-image", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           ...(token ? { Authorization: "Bearer " + token } : {}),
         },
-        body: JSON.stringify({
-          url: url.trim(),
-          image_url: imageUrl.trim() || null,
-        }),
+        body: JSON.stringify({ mode: "reference_ingest", url: url.trim(), image_url: imageUrl.trim() || null }),
       });
       const result = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(result.error || "Could not read source.");
