@@ -31,20 +31,19 @@ const DOCS=[
 function Status({ok}){return <span className={'bi-status '+(ok?'ok':'')}>{ok?'Verified':'Needs evidence'}</span>}
 
 export default function BusinessIntelligenceWorkspace(){
- const [tab,setTab]=useState('overview'),[metrics,setMetrics]=useState([]),[docs,setDocs]=useState([]),[evidence,setEvidence]=useState([]),[pubs,setPubs]=useState([]),[subs,setSubs]=useState([]),[creators,setCreators]=useState([]),[loading,setLoading]=useState(true),[error,setError]=useState(''),[uploading,setUploading]=useState(false),[selectedDoc,setSelectedDoc]=useState(null);
+ const [tab,setTab]=useState('overview'),[metrics,setMetrics]=useState([]),[docs,setDocs]=useState([]),[evidence,setEvidence]=useState([]),[pubs,setPubs]=useState([]),[loading,setLoading]=useState(true),[error,setError]=useState(''),[uploading,setUploading]=useState(false),[selectedDoc,setSelectedDoc]=useState(null);
 
  async function load(){
    setLoading(true);
+   setError('');
    const rs=await Promise.all([
      supabase.from('cornerstone_metric_snapshots').select('*').order('snapshot_date',{ascending:false}).limit(500),
      supabase.from('cornerstone_documents').select('*').order('updated_at',{ascending:false}).limit(500),
      supabase.from('track_b_performance_evidence').select('*').order('created_at',{ascending:false}).limit(500),
-     supabase.from('track_b_publications').select('*').order('published_at',{ascending:false}).limit(500),
-     supabase.from('subscriber_memory').select('id,persona_id,platform,lifetime_spend,created_at,updated_at').order('updated_at',{ascending:false}).limit(500),
-     supabase.from('creators').select('name,handle,platform,follower_count,is_active').order('name')
+     supabase.from('track_b_publications').select('*').order('published_at',{ascending:false}).limit(500)
    ]);
    const bad=rs.find(r=>r.error); if(bad){setError(bad.error.message);setLoading(false);return}
-   setMetrics(rs[0].data||[]);setDocs(rs[1].data||[]);setEvidence(rs[2].data||[]);setPubs(rs[3].data||[]);setSubs(rs[4].data||[]);setCreators(rs[5].data||[]);setLoading(false);
+   setMetrics(rs[0].data||[]);setDocs(rs[1].data||[]);setEvidence(rs[2].data||[]);setPubs(rs[3].data||[]);setLoading(false);
  }
  useEffect(()=>{load()},[]);
 
@@ -106,7 +105,7 @@ export default function BusinessIntelligenceWorkspace(){
       <div className="bi-kpis">{kpis.map(([a,b,c])=><article key={a}><span>{a}</span><strong>{b}</strong><small>{c}</small></article>)}</div>
       <div className="bi-grid2">
        <article className="bi-panel"><div className="bi-panel-head"><b>Money in</b><span>Measured evidence + verified snapshots</span></div><div className="bi-big">{money(measuredRevenue+Number(business?.revenue||0))}</div><p className="bi-muted">Performance evidence: {money(measuredRevenue)} · Latest business snapshot: {money(business?.revenue)}</p><div className="bi-rule">Revenue is only treated as verified when it has a source. Platform performance and accounting revenue stay separate until reconciled.</div></article>
-       <article className="bi-panel"><div className="bi-panel-head"><b>Audience</b><span>Latest recorded platform state</span></div><div className="bi-audience-grid"><div><strong>{num(totalFollowers)}</strong><span>Followers</span></div><div><strong>{num(totalSubs)}</strong><span>Subscribers</span></div><div><strong>{num(paidSubs)}</strong><span>Paid subscribers</span></div><div><strong>{money(subs.reduce((n,x)=>n+Number(x.lifetime_spend||0),0))}</strong><span>Subscriber spend</span></div></div><a className="bi-link" onClick={()=>setTab('audience')}>Open audience ledger →</a></article>
+       <article className="bi-panel"><div className="bi-panel-head"><b>Audience</b><span>Latest recorded platform state</span></div><div className="bi-audience-grid"><div><strong>{num(totalFollowers)}</strong><span>Followers</span></div><div><strong>{num(totalSubs)}</strong><span>Subscribers</span></div><div><strong>{num(paidSubs)}</strong><span>Paid subscribers</span></div><div><strong>—</strong><span>Private subscriber spend</span></div></div><a className="bi-link" onClick={()=>setTab('audience')}>Open audience ledger →</a></article>
       </div>
       <article className="bi-panel"><div className="bi-panel-head"><b>Evidence health</b><span>Is the business documented?</span></div><div className="bi-health"><div><strong>{verifiedDocs}</strong><span>Verified docs</span></div><div><strong>{docs.length}</strong><span>Uploaded / requested</span></div><div><strong>{missingDocs}</strong><span>Checklist gaps</span></div><div><strong>{evidence.length}</strong><span>Performance records</span></div><div><strong>{pubs.filter(x=>x.published_at).length}</strong><span>Published records</span></div></div></article>
     </section>}
