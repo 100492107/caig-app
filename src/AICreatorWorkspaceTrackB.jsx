@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { supabase } from "./supabase";
 import { creatorDnaFor, creatorDnaText } from "../shared/creator-dna.js";
+import { generateCreatorImage } from "./imageGeneration/qwenImageClient.js";
 
 const QWEN_MODEL = "mlx-community/Qwen3.5-9B-4bit";
 const DISCLOSURE = "Cara is the dedicated demonstration model of Cornerstone AI Assets. Every client asset maps onto private, unique reference weights — ensuring their content remains consistently them, not us.";
@@ -234,6 +235,7 @@ export default function AICreatorWorkspaceTrackB() {
   const [carouselStructure, setCarouselStructure] = useState("Story / conflict");
   const [brief, setBrief] = useState("");
   const [items, setItems] = useState([]);
+  const [visualReferencePack, setVisualReferencePack] = useState(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [advancedModel, setAdvancedModel] = useState("seedance");
@@ -247,6 +249,14 @@ export default function AICreatorWorkspaceTrackB() {
       const { data } = await supabase.from("content_queue").select("id,persona_id,persona_name,platform,status,caption,image_url,image_urls,video_url,content_label,hook,cta,notes,created_at,post_type").like("content_label", "%AI Creator%").order("created_at", { ascending: false }).limit(50);
       if (data) setItems(data.map((row) => ({ ...row, stage: row.video_url ? "video_ready" : row.image_url ? "image_ready" : "review" })));
     })();
+  }, []);
+
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem("cornerstone_visual_reference_pack");
+      const parsed = raw ? JSON.parse(raw) : null;
+      if (parsed?.images?.length) setVisualReferencePack(parsed);
+    } catch {}
   }, []);
 
   const context = useMemo(() => [
@@ -320,29 +330,28 @@ export default function AICreatorWorkspaceTrackB() {
 
   async function generateImage(item, promptOverride = null) {
     setBusy(true);
-    setMessage(`Generating ${item.persona_name}'s image…`);
+    setMessage(`Generating ${item.persona_name}'s image with Qwen Image 2.1…`);
     try {
       const notes = notesFor(item);
-      const response = await fetch("/api/generate-submit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          imagePrompt: promptOverride || item.image_prompt || item.photo_direction,
-          photo_idea: promptOverride || item.photo_idea,
-          hook: item.hook,
-          caption: item.caption,
-          photoDirection: notes.video_prompt || item.photo_direction,
-          personaId: item.persona_id,
-        }),
+      const prompt = [
+        promptOverride || item.image_prompt || item.photo_direction || item.photo_idea || "",
+        item.caption ? "Content context: " + item.caption : "",
+        notes.video_prompt ? "Visual direction: " + notes.video_prompt : "",
+        visualReferencePack ? "Use the active Cornerstone visual reference board for wardrobe, pose, environment and composition structure only. Preserve canonical creator identity." : "",
+      ].filter(Boolean).join("\n\n");
+      const data = await generateCreatorImage({
+        creator: item.persona_id === "duo" ? "cara_lila" : (item.persona_id || "cara"),
+        flowPrompt: prompt,
+        references: (visualReferencePack?.images || []).slice(0, 8),
+        postId: "trackb-" + item.id,
       });
-      const request = await response.json();
-      if (!response.ok) throw new Error(request?.detail || request?.error || "Image generation failed");
-      const imageUrl = await waitImage(request, setMessage);
+      const imageUrl = data?.imageUrl || data?.publicUrl;
+      if (!imageUrl) throw new Error("Qwen Image 2.1 returned no stored image URL.");
       const update = { image_url: imageUrl, image_urls: [imageUrl], status: "draft" };
       const { error } = await supabase.from("content_queue").update(update).eq("id", item.id);
       if (error) throw error;
       setItems((current) => current.map((x) => x.id === item.id ? { ...x, ...update, stage: "image_ready" } : x));
-      setMessage("Image ready. The original stays here; you can download it or make a Reel from the same image.");
+      setMessage("Image ready. Qwen Image 2.1 is now the active creator image path.");
       return imageUrl;
     } catch (error) {
       setMessage(error.message || String(error));
