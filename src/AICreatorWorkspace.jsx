@@ -1,11 +1,13 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { supabase } from "./supabase";
+import { creatorDnaFor, creatorDnaText } from "../shared/creator-dna.js";
 
 const MODEL = "mlx-community/Qwen3.5-9B-4bit";
+const CANONICAL_DNA = { cara: creatorDnaFor("cara"), lila: creatorDnaFor("lila"), duo: creatorDnaFor("duo") };
 const PEOPLE = [
-  { id: "cara", name: "Cara", note: "Direct, dry, disciplined, British" },
-  { id: "lila", name: "Lila", note: "Measured, warm, observant, understated" },
-  { id: "cara_lila", name: "Cara + Lila", note: "Contrast, chemistry, natural interaction" },
+  { id: "cara", name: CANONICAL_DNA.cara.name, note: CANONICAL_DNA.cara.soul },
+  { id: "lila", name: CANONICAL_DNA.lila.name, note: CANONICAL_DNA.lila.soul },
+  { id: "cara_lila", name: CANONICAL_DNA.duo.name || "Cara + Lila", note: CANONICAL_DNA.duo.soul },
   { id: "cornerstone", name: "Cornerstone AI Group", note: "Automotive / B2B brand voice" },
 ];
 
@@ -35,7 +37,7 @@ async function queueQwen({ title, personaId, userPrompt }) {
     job_type: "content_package",
     model: MODEL,
     persona_id: personaId,
-    system_prompt: `You are the local creative director for CornerstoneAIAssets. Create specific, socially native content. Never invent product claims, prices, results, personal experiences, testimonials, screenshots or facts. Avoid generic AI language. Write like a human creator. For Cara: direct, dry, disciplined, British. For Lila: warm, measured, observant, understated. For Cara + Lila: natural chemistry and distinct voices. For Cornerstone AI Group: direct automotive/B2B commercial tone. The video prompt must be production-ready and describe a real camera, natural movement, continuity, environment, sound and timing.`,
+    system_prompt: `You are the local creative director for CornerstoneAIAssets. Create specific, socially native content. Never invent product claims, prices, results, personal experiences, testimonials, screenshots or facts. Avoid generic AI language. Use CANONICAL CREATOR DNA as the identity source of truth; never reduce a creator to a preset adjective list. For Cornerstone AI Group, use the commercial brief. The video prompt must be production-ready and describe a real camera, natural movement, continuity, environment, sound and timing.\\n\\nCANONICAL CREATOR DNA\\n${creatorDnaText(personaId === "cara_lila" ? "duo" : personaId)}`,
     user_prompt: userPrompt,
     options: { max_tokens: 1800, temperature: 0.72 },
     status: "queued",
