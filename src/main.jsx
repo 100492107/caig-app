@@ -13,6 +13,7 @@ import BusinessIntelligenceWorkspace from './BusinessIntelligenceWorkspace.jsx'
 import BusinessCaptureWorkspace from './BusinessCaptureWorkspace.jsx'
 import CaseStudyWorkspace from './CaseStudyWorkspace.jsx'
 import ResearchWorkspace from './ResearchWorkspace.jsx'
+import ReferenceBoardWorkspace from './ReferenceBoardWorkspace.jsx'
 import AuthGate from './AuthGate.jsx'
 
 const ContentWorkspaceShell = lazy(() => import('./ContentWorkspaceShell2.jsx'))
@@ -45,6 +46,7 @@ function Route(){
   if(path==='/business/capture')return <BusinessCaptureWorkspace/>
   if(path==='/business/case-study')return <CaseStudyWorkspace/>
   if(path==='/research')return <ResearchWorkspace/>
+  if(path==='/references')return <ReferenceBoardWorkspace/>
   if(path==='/content'||path.startsWith('/content/'))return <ContentWorkspaceShell/>
   if(path==='/system'||path==='/ceo')return <SystemWorkspace/>
   if(path==='/generations')return <UserLibraryWorkspace/>
