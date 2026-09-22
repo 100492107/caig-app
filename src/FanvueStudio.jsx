@@ -1,8 +1,10 @@
 import React, { useMemo, useState } from "react";
 import { supabase } from "./supabase";
+import { creatorDnaText } from "../shared/creator-dna.js";
 
 const GBP_PER_USD = 0.737;
 const DISCLOSURE = "Cara is the dedicated demonstration model of Cornerstone AI Assets. Every client asset maps onto private, unique reference weights — ensuring their content remains consistently them, not us.";
+const CARA_DNA = creatorDnaText("cara");
 const PURPOSES = [
   ["personal", "Personal post"],
   ["photo_set", "Photo set"],
@@ -51,7 +53,7 @@ export default function FanvueStudio() {
     setBusy(true);
     setMessage("Building six Fanvue-specific concepts…");
     try {
-      const system = `You are the private-page creative director for Cara Whitmore. This is the Fanvue track only. Keep it adult, non-explicit, intimate, personality-led and subscriber-focused. Do not fabricate personal experiences, claims, locations or product use. Cara is direct, dry, disciplined, British, funny and sometimes quietly vulnerable. Vary the emotional register. Return JSON only.\n\nThe page must feel like a real person sharing a moment with subscribers, not public Instagram filler.\n\nRequired disclosure on every final caption: ${DISCLOSURE}`;
+      const system = `You are the private-page creative director for Cara Whitmore. This is the Fanvue track only. Keep it adult, non-explicit, intimate, personality-led and subscriber-focused. Do not fabricate personal experiences, claims, locations or product use. Use Cara's canonical creator DNA below as the identity source of truth. Vary the emotional register. Return JSON only.\\n\\nCANONICAL CREATOR DNA\\n${CARA_DNA}\\n\\nThe page must feel like a real person sharing a moment with subscribers, not public Instagram filler.\\n\\nRequired disclosure on every final caption: ${DISCLOSURE}`;
       const user = `PURPOSE: ${purposeLabel}\nMOOD: ${mood}\nIDEA SEED: ${seed || "Let the director find a specific everyday moment."}\nKNOWN CONTEXT: ${context || "None supplied."}\n\nReturn exactly {"concepts":[...]} with 6 objects. Each object: {id,title,hook,scene,caption_direction,visual_direction,why_subscribers_care,cta}. Make all six materially different.`;
       const out = parseJson(await ask(system, user));
       if (!Array.isArray(out.concepts) || out.concepts.length !== 6) throw new Error("Fanvue director must return six concepts.");
