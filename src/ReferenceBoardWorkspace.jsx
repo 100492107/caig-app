@@ -51,6 +51,7 @@ export default function ReferenceBoardWorkspace() {
   const [recipes, setRecipes] = useState([]);
   const [url, setUrl] = useState("");
   const [imageUrl, setImageUrl] = useState("");
+  const [bulkUrls, setBulkUrls] = useState("");
   const [creator, setCreator] = useState("cara");
   const [purpose, setPurpose] = useState("mixed");
   const [category, setCategory] = useState("mixed");
@@ -213,6 +214,64 @@ export default function ReferenceBoardWorkspace() {
         : "Reference saved without a preview image. Add an image URL when available.");
     } catch (ingestError) {
       setError(ingestError?.message || String(ingestError));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function ingestMany() {
+    setBusy(true);
+    setError("");
+    setMessage("");
+    try {
+      if (!boardId) throw new Error("Create or select a board first.");
+      const urls = bulkUrls.split(/\r?\n|,/).map((value) => value.trim()).filter(Boolean).slice(0, 25);
+      if (!urls.length) throw new Error("Paste one reference URL per line.");
+      const { data: session } = await supabase.auth.getSession();
+      const token = session?.session?.access_token;
+      if (!token) throw new Error("Sign in required.");
+      let added = 0;
+      let failed = 0;
+      for (const sourceUrl of urls) {
+        try {
+          const response = await fetch("/api/store-image", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+            body: JSON.stringify({ mode: "reference_ingest", url: sourceUrl }),
+          });
+          const result = await response.json().catch(() => ({}));
+          if (!response.ok) throw new Error(result.error || "Could not read source.");
+          const user = await currentUser();
+          const selectedCategory = result.recipe?.category || "mixed";
+          const { error: insertError } = await supabase.from("cornerstone_visual_references").insert({
+            owner_id: user.id,
+            board_id: boardId,
+            source_platform: result.source_platform || sourceGuess(sourceUrl),
+            source_url: result.source_url || sourceUrl,
+            canonical_url: result.canonical_url || sourceUrl,
+            image_url: result.image_url || null,
+            storage_path: result.structured_data?.storage_path || null,
+            title: result.title || null,
+            description: result.description || null,
+            media_type: "image",
+            category: selectedCategory,
+            tags: [result.source_platform || sourceGuess(sourceUrl), selectedCategory],
+            structured_data: result.structured_data || {},
+            recipe: result.recipe || {},
+            analysis: {},
+            analysis_status: result.image_url ? "pending" : "no_image",
+          });
+          if (insertError) throw insertError;
+          added += 1;
+        } catch {
+          failed += 1;
+        }
+      }
+      setBulkUrls("");
+      await loadItems(boardId, filter);
+      setMessage(added + " reference(s) imported" + (failed ? "; " + failed + " failed." : "."));
+    } catch (batchError) {
+      setError(batchError?.message || String(batchError));
     } finally {
       setBusy(false);
     }
@@ -485,6 +544,11 @@ export default function ReferenceBoardWorkspace() {
               </div>
               <label className="bi-k">Public URL<input value={url} onChange={(event) => setUrl(event.target.value)} style={{ display: "block", width: "100%", marginTop: 7 }} placeholder="Pinterest pin, Vinted listing or Depop item URL" /></label>
               <label className="bi-k">Optional image URL<input value={imageUrl} onChange={(event) => setImageUrl(event.target.value)} style={{ display: "block", width: "100%", marginTop: 7 }} placeholder="Use when the source hides its image" /></label>
+              <label className="bi-k">Batch import URLs<textarea value={bulkUrls} onChange={(event) => setBulkUrls(event.target.value)} style={{ display: "block", width: "100%", minHeight: 84, marginTop: 7 }} placeholder="Paste up to 25 Pinterest / Vinted / Depop URLs, one per line" /></label>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                <button className="bi-tab" disabled={busy || !boardId || !bulkUrls.trim()} onClick={ingestMany}>{busy ? "Working…" : "Import URL list"}</button>
+                <span className="bi-k" style={{ alignSelf: "center" }}>Batch import keeps the source page and stores a local copy of the preview image when available.</span>
+              </div>
               <label className="bi-k">Category<select value={category} onChange={(event) => setCategory(event.target.value)} style={{ display: "block", width: "100%", marginTop: 7 }}>{CATS.slice(1).map((entry) => <option value={entry} key={entry}>{entry}</option>)}</select></label>
               <button className="bi-primary" disabled={busy || !boardId} onClick={ingest}>{busy ? "Reading…" : "Add reference"}</button>
               <div className="bi-rule">The marketplace is a source of structure, not a template. No private marketplace API is required.</div>
