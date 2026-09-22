@@ -1,14 +1,15 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { supabase } from "./supabase";
-import { creatorDnaText } from "../shared/creator-dna.js";
+import { creatorDnaFor, creatorDnaText } from "../shared/creator-dna.js";
 
 const QWEN_MODEL = "mlx-community/Qwen3.5-9B-4bit";
 const DISCLOSURE = "Cara is the dedicated demonstration model of Cornerstone AI Assets. Every client asset maps onto private, unique reference weights — ensuring their content remains consistently them, not us.";
 
+const CANONICAL_DNA = { cara: creatorDnaFor("cara"), lila: creatorDnaFor("lila"), duo: creatorDnaFor("duo") };
 const PEOPLE = [
-  { id: "cara", name: "Cara", note: "Direct · dry · disciplined · British" },
-  { id: "lila", name: "Lila", note: "Warm · measured · observant · understated" },
-  { id: "cara_lila", name: "Cara + Lila", note: "Distinct personalities · chemistry · contrast" },
+  { id: "cara", name: CANONICAL_DNA.cara.name, note: CANONICAL_DNA.cara.soul },
+  { id: "lila", name: CANONICAL_DNA.lila.name, note: CANONICAL_DNA.lila.soul },
+  { id: "cara_lila", name: CANONICAL_DNA.duo.name || "Cara + Lila", note: CANONICAL_DNA.duo.soul },
 ];
 
 const CONTENT_TYPES = [
