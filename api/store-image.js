@@ -132,7 +132,7 @@ async function persistReferenceImage(imageUrl, ownerId, bucket = "visual-referen
 
 function jsonLdProducts(html) {
   const blocks = [];
-  const re = /<script[^>]*type=["']application\\/ld\\+json["'][^>]*>([\\s\\S]*?)<\\/script>/gi;
+  const re = /<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
   let match;
   while ((match = re.exec(String(html || ""))) && blocks.length < 12) {
     try {
@@ -158,7 +158,7 @@ function productOfferValue(offers) {
   return {
     price_amount: Number.isFinite(price) ? price : null,
     price_currency: referenceClean(offer.priceCurrency || ""),
-    availability: referenceClean(offer.availability || "").replace(/^https?:\\/\\/schema.org\\//, "")
+    availability: referenceClean(offer.availability || "").replace(/^https?:\/\/schema.org\//, "")
   };
 }
 
@@ -179,7 +179,7 @@ async function handleCommerceIngest(body, ownerId) {
   try { parsed = new URL(pageUrl); } catch { throw new Error("That URL is not valid."); }
   if (!/^https?:$/.test(parsed.protocol)) throw new Error("Only HTTP(S) URLs are supported.");
   const source = referenceSourcePlatform(pageUrl);
-  const host = parsed.hostname.toLowerCase().replace(/^www\\./, "");
+  const host = parsed.hostname.toLowerCase().replace(/^www\./, "");
   const allowedHost =
     host === "temu.com" || host.endsWith(".temu.com") ||
     host === "alibaba.com" || host.endsWith(".alibaba.com") ||
@@ -211,9 +211,9 @@ async function handleCommerceIngest(body, ownerId) {
     const reviewCount = Number(product?.aggregateRating?.reviewCount || product?.aggregateRating?.ratingCount);
     const sourceProductId = referenceClean(product?.sku || product?.productID || "");
     const brand = referenceClean(typeof product?.brand === "object" ? product.brand?.name : product?.brand);
-    const soldCount = numberFromText(html, [/([0-9][0-9,.]*)\\s*(?:sold|sales)/i, /(?:sold|sales)\\s*[:\\-]?\\s*([0-9][0-9,.]*)/i]);
+    const soldCount = numberFromText(html, [/([0-9][0-9,.]*)\s*(?:sold|sales)/i, /(?:sold|sales)\s*[:\-]?\s*([0-9][0-9,.]*)/i]);
     const metricValue = source === "tiktok" && /creativecenter|trends|hashtag|inspiration/i.test(pageUrl)
-      ? numberFromText(html, /([0-9][0-9,.]*)\\s*(?:posts|views)/i)
+      ? numberFromText(html, /([0-9][0-9,.]*)\s*(?:posts|views)/i)
       : null;
     const signalType = source === "tiktok" ? "trend" : (source === "pinterest" || source === "vinted" || source === "depop" ? "visual" : "product");
     const category = referenceCategoryHint(title + " " + description);
