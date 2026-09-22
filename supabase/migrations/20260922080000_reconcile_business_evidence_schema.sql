@@ -2,47 +2,6 @@
 -- These tables previously existed in production without their DDL being tracked in-repo.
 -- Keep this migration idempotent so it safely reconciles an already-populated database.
 
-create table if not exists public.cornerstone_metric_snapshots (
-  id uuid primary key default gen_random_uuid(),
-  owner_id uuid not null default auth.uid() references auth.users(id) on delete cascade,
-  snapshot_date date not null default current_date,
-  period_days integer not null default 30 check (period_days > 0),
-  scope text not null default 'business' check (scope in ('business','creator','platform')),
-  creator_id text,
-  platform text,
-  audience_followers bigint,
-  subscribers bigint,
-  paid_subscribers bigint,
-  views bigint,
-  reach bigint,
-  clicks bigint,
-  conversions bigint,
-  revenue numeric,
-  fees numeric,
-  cogs numeric,
-  operating_expenses numeric,
-  cash_balance numeric,
-  receivables numeric,
-  current_assets numeric,
-  current_liabilities numeric,
-  monthly_burn numeric,
-  debt numeric,
-  customer_count bigint,
-  new_customers bigint,
-  churn_rate numeric,
-  cac numeric,
-  ltv numeric,
-  employee_count integer,
-  dso_days numeric,
-  notes text,
-  source_type text not null default 'manual' check (source_type in ('manual','platform_api','accounting','bank','document','import')),
-  source_name text,
-  source_document_id uuid references public.cornerstone_documents(id) on delete set null,
-  verified boolean not null default false,
-  captured_at timestamptz not null default now(),
-  created_at timestamptz not null default now()
-);
-
 create table if not exists public.cornerstone_documents (
   id uuid primary key default gen_random_uuid(),
   owner_id uuid not null default auth.uid() references auth.users(id) on delete cascade,
@@ -96,6 +55,48 @@ create table if not exists public.cornerstone_experiment_log (
   notes text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
+);
+
+
+create table if not exists public.cornerstone_metric_snapshots (
+  id uuid primary key default gen_random_uuid(),
+  owner_id uuid not null default auth.uid() references auth.users(id) on delete cascade,
+  snapshot_date date not null default current_date,
+  period_days integer not null default 30 check (period_days > 0),
+  scope text not null default 'business' check (scope in ('business','creator','platform')),
+  creator_id text,
+  platform text,
+  audience_followers bigint,
+  subscribers bigint,
+  paid_subscribers bigint,
+  views bigint,
+  reach bigint,
+  clicks bigint,
+  conversions bigint,
+  revenue numeric,
+  fees numeric,
+  cogs numeric,
+  operating_expenses numeric,
+  cash_balance numeric,
+  receivables numeric,
+  current_assets numeric,
+  current_liabilities numeric,
+  monthly_burn numeric,
+  debt numeric,
+  customer_count bigint,
+  new_customers bigint,
+  churn_rate numeric,
+  cac numeric,
+  ltv numeric,
+  employee_count integer,
+  dso_days numeric,
+  notes text,
+  source_type text not null default 'manual' check (source_type in ('manual','platform_api','accounting','bank','document','import')),
+  source_name text,
+  source_document_id uuid references public.cornerstone_documents(id) on delete set null,
+  verified boolean not null default false,
+  captured_at timestamptz not null default now(),
+  created_at timestamptz not null default now()
 );
 
 -- Reconcile columns that were introduced during production hardening.
