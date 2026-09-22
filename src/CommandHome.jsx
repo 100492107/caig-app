@@ -15,21 +15,32 @@ const age=v=>{
 };
 
 async function readState(){
-  const [p,j,pu,e,h,l,bm,sm,cs]=await Promise.all([
-    supabase.from('track_b_content_projects').select('id,title,status,updated_at,created_at').order('updated_at',{ascending:false}).limit(200),
-    supabase.from('track_b_production_jobs').select('id,project_id,mode,status,updated_at,created_at').order('updated_at',{ascending:false}).limit(200),
-    supabase.from('track_b_publications').select('id,project_id,title,platform,status,scheduled_at,published_at,updated_at,created_at').order('updated_at',{ascending:false}).limit(200),
-    supabase.from('track_b_performance_evidence').select('id,title,revenue,winner,publication_id,operator_note,created_at').order('created_at',{ascending:false}).limit(200),
-    supabase.from('local_ai_worker_heartbeat').select('status,last_seen,current_job_type').eq('id','qwen').maybeSingle(),
-    supabase.from('track_b_learning_recommendations').select('id,recommendation_type,format,invariant_pattern,confidence,status,source_evidence_id,created_at').eq('status','active').order('created_at',{ascending:false}).limit(20),
-    supabase.from('cornerstone_metric_snapshots').select('scope,platform,audience_followers,subscribers,paid_subscribers,revenue,captured_at,verified').order('snapshot_date',{ascending:false}).limit(200),
-    supabase.from('subscriber_memory').select('id,lifetime_spend,platform').limit(1000),
-    supabase.from('cornerstone_case_study_updates').select('id').order('week_ending',{ascending:false}).limit(1)
+  const safe = async (name, run, fallback) => {
+    try {
+      const r = await run();
+      if (r.error) return { data: fallback, error: { name, message: r.error.message || String(r.error) } };
+      return { data: r.data ?? fallback, error: null };
+    } catch (error) {
+      return { data: fallback, error: { name, message: error?.message || String(error) } };
+    }
+  };
+
+  const [p,j,pu,e,h,l,bm,cs]=await Promise.all([
+    safe('projects',()=>supabase.from('track_b_content_projects').select('id,title,status,updated_at,created_at').order('updated_at',{ascending:false}).limit(200),[]),
+    safe('production jobs',()=>supabase.from('track_b_production_jobs').select('id,project_id,mode,status,updated_at,created_at').order('updated_at',{ascending:false}).limit(200),[]),
+    safe('publications',()=>supabase.from('track_b_publications').select('id,project_id,title,platform,status,scheduled_at,published_at,updated_at,created_at').order('updated_at',{ascending:false}).limit(200),[]),
+    safe('performance evidence',()=>supabase.from('track_b_performance_evidence').select('id,title,revenue,winner,publication_id,operator_note,created_at').order('created_at',{ascending:false}).limit(200),[]),
+    safe('local AI heartbeat',()=>supabase.from('local_ai_worker_heartbeat').select('status,last_seen,current_job_type').eq('id','qwen').maybeSingle(),null),
+    safe('learning recommendations',()=>supabase.from('track_b_learning_recommendations').select('id,recommendation_type,format,invariant_pattern,confidence,status,source_evidence_id,created_at').eq('status','active').order('created_at',{ascending:false}).limit(20),[]),
+    safe('metric snapshots',()=>supabase.from('cornerstone_metric_snapshots').select('scope,platform,audience_followers,subscribers,paid_subscribers,revenue,captured_at,verified').order('snapshot_date',{ascending:false}).limit(200),[]),
+    safe('case study',()=>supabase.from('cornerstone_case_study_updates').select('id').order('week_ending',{ascending:false}).limit(1),[])
   ]);
-  for(const r of [p,j,pu,e,h,l,bm,sm,cs]) if(r.error) throw r.error;
-  const projects=p.data||[],jobs=j.data||[],pubs=pu.data||[],evidence=e.data||[],hb=h.data||{},learning=l.data||[],metricSnapshots=bm.data||[],subscriberRows=sm.data||[],caseStudyUpdates=cs.data||[];
-  const fresh=Boolean(hb.last_seen&&Date.now()-new Date(hb.last_seen).getTime()<90000);
-  const online=fresh&&String(hb.status||'').toLowerCase()!=='offline';
+
+  const warnings=[p,j,pu,e,h,l,bm,cs].filter(r=>r.error).map(r=>r.error.name+': '+r.error.message);
+  const projects=p.data||[],jobs=j.data||[],pubs=pu.data||[],evidence=e.data||[],hb=h.data||{},learning=l.data||[],metricSnapshots=bm.data||[],caseStudyUpdates=cs.data||[];
+  const heartbeatKnown=!h.error;
+  const fresh=heartbeatKnown&&Boolean(hb.last_seen&&Date.now()-new Date(hb.last_seen).getTime()<90000);
+  const online=heartbeatKnown ? fresh&&String(hb.status||'').toLowerCase()!=='offline' : null;
   const failed=[...jobs.filter(x=>FAIL.has(String(x.status))),...pubs.filter(x=>FAIL.has(String(x.status)))];
   const production=jobs.filter(x=>['queued','processing','review','in_production'].includes(String(x.status)));
   const scheduled=pubs.filter(x=>x.status==='scheduled');
@@ -43,8 +54,6 @@ async function readState(){
   const subscribers=platformMetrics.reduce((n,x)=>n+Number(x.subscribers||0),0);
   const paidSubscribers=platformMetrics.reduce((n,x)=>n+Number(x.paid_subscribers||0),0);
   const snapshotRevenue=latestBusiness?.revenue==null?0:Number(latestBusiness.revenue);
-  const subscriberSpend=subscriberRows.reduce((n,x)=>n+Number(x.lifetime_spend||0),0);
-
   let next={
     title:'Run the first Build',
     body:'Give Cornerstone one strong reference. It will inspect the signal, extract the mechanism and build an original package.',
@@ -55,12 +64,12 @@ async function readState(){
     body:failed.length+' item'+(failed.length===1?' is':'s are')+' stopped. Fix the bottleneck before adding more work.',
     href:'/system',cta:'Open System',reason:'A live workflow needs attention.'
   };
-  else if(!online) next={
+  else if(online===false && (jobs.some(x=>['queued','processing'].includes(String(x.status))) || projects.length===0)) next={
     title:'Bring intelligence online',
     body:'The local intelligence worker has not checked in recently. New analysis is not ready to run reliably.',
-    href:'/system',cta:'Check System',reason:'Cornerstone cannot build on evidence while intelligence is offline.'
+    href:'/system',cta:'Check System',reason:'Queued intelligence work needs the local worker online.'
   };
-  else if(caseStudyUpdates.length===0) next={
+  else if(!cs.error && caseStudyUpdates.length===0) next={
     title:'Start the public case study',
     body:'Record the starting point before the numbers get interesting. Preserve the baseline, gaps, experiments and decisions as they happen.',
     href:'/business/case-study',cta:'Open Case Study',reason:'No weekly operating record exists yet.'
@@ -103,8 +112,8 @@ async function readState(){
   const firstOpen=loop.findIndex(x=>!x[2]);
 
   return {
-    revenue:latestBusiness?Number(latestBusiness.revenue||0):revenue,measuredRevenue:revenue,snapshotRevenue,followers,subscribers,paidSubscribers,subscriberSpend,packages:projects.length,inMotion:production.length+scheduled.length,published:published.length,
-    winners:winners.length,online,lastSeen:hb.last_seen,currentJob:hb.current_job_type,
+    revenue:latestBusiness?Number(latestBusiness.revenue||0):revenue,measuredRevenue:revenue,snapshotRevenue,followers,subscribers,paidSubscribers,packages:projects.length,inMotion:production.length+scheduled.length,published:published.length,
+    winners:winners.length,online,lastSeen:hb.last_seen,currentJob:hb.current_job_type,warnings,
     failed:failed.length,queued:jobs.filter(x=>x.status==='queued').length,
     processing:jobs.filter(x=>x.status==='processing').length,recent,next,learning,
     closedLoops:evidence.length,caseStudyUpdates:caseStudyUpdates.length,loop,currentIndex:firstOpen<0?5:firstOpen
@@ -122,7 +131,7 @@ export default function CommandHome(){
   },[]);
 
   const x=s||{
-    revenue:0,measuredRevenue:0,snapshotRevenue:0,followers:0,subscribers:0,paidSubscribers:0,subscriberSpend:0,packages:0,inMotion:0,published:0,winners:0,online:false,lastSeen:null,currentJob:null,
+    revenue:0,measuredRevenue:0,snapshotRevenue:0,followers:0,subscribers:0,paidSubscribers:0,packages:0,inMotion:0,published:0,winners:0,online:null,lastSeen:null,currentJob:null,warnings:[],
     failed:0,queued:0,processing:0,recent:[],learning:[],closedLoops:0,currentIndex:0,
     loop:[
       ['01','Evidence',false,'Signals in the system','/content/remake'],
@@ -147,8 +156,8 @@ export default function CommandHome(){
           <h1>{x.packages?'You are building an owned media system.':'Build the first loop.'}</h1>
           <p>Turn proven attention into original work, put it in the market, capture the result, and let evidence decide what happens next. Cara and Lila are owned creator assets inside the machine.</p>
           <div className="presence">
-            <i className={'dot'+(x.online?'':' off')} />
-            {x.online?'Intelligence ready':'Intelligence offline'} · {age(x.lastSeen)}{x.currentJob?' · '+clean(x.currentJob):''}
+            <i className={'dot'+(x.online===false?' off':'')} />
+            {x.online===null?'Intelligence status unavailable':x.online?'Intelligence ready':'Intelligence offline'} · {age(x.lastSeen)}{x.currentJob?' · '+clean(x.currentJob):''}
           </div>
         </div>
         <div className="return">
@@ -269,6 +278,7 @@ export default function CommandHome(){
         <div className="foot"><b>{x.closedLoops}</b><span>Closed loops</span></div>
         <div className="foot"><b>{x.winners}</b><span>Can compound</span></div>
       </section>
+      {x.warnings?.length?<div className="error" style={{marginTop:14}}>Some operating data is unavailable: {x.warnings.join(' · ')}</div>:null}
       {error?<div className="error">Could not refresh the command view: {error}</div>:null}
     </main>
   </EnterpriseShell>;
