@@ -9,11 +9,12 @@ const NAV_GROUPS = [
   ]},
   { label: 'Creator loop', items: [
     { id: 'research', label: 'Research', href: '/research', key: '03' },
-    { id: 'content', label: 'Build', href: '/content/remake', key: '04' },
-    { id: 'voices', label: 'Voices', href: '/content/creators', key: '05' },
-    { id: 'production', label: 'Make', href: '/content/production', key: '06' },
-    { id: 'publish', label: 'Publish', href: '/content/publish', key: '07' },
-    { id: 'measurement', label: 'Learn', href: '/content/measurement', key: '08' },
+    { id: 'references', label: 'References', href: '/references', key: '04' },
+    { id: 'content', label: 'Build', href: '/content/remake', key: '05' },
+    { id: 'voices', label: 'Voices', href: '/content/creators', key: '06' },
+    { id: 'production', label: 'Make', href: '/content/production', key: '07' },
+    { id: 'publish', label: 'Publish', href: '/content/publish', key: '08' },
+    { id: 'measurement', label: 'Learn', href: '/content/measurement', key: '09' },
   ]},
 ]
 
