@@ -15,6 +15,7 @@ import CaseStudyWorkspace from './CaseStudyWorkspace.jsx'
 import ResearchWorkspace from './ResearchWorkspace.jsx'
 import ReferenceBoardWorkspace from './ReferenceBoardWorkspace.jsx'
 import CommerceIntelligenceWorkspace from './CommerceIntelligenceWorkspace.jsx'
+import RevenueMission from './RevenueMission.jsx'
 import './CommerceIntelligence.css'
 import AuthGate from './AuthGate.jsx'
 
@@ -50,6 +51,7 @@ function Route(){
   if(path==='/research')return <ResearchWorkspace/>
   if(path==='/references')return <ReferenceBoardWorkspace/>
   if(path==='/commerce')return <CommerceIntelligenceWorkspace/>
+  if(path==='/mission')return <RevenueMission/>
   if(path==='/content'||path.startsWith('/content/'))return <ContentWorkspaceShell/>
   if(path==='/system'||path==='/ceo')return <SystemWorkspace/>
   if(path==='/generations')return <UserLibraryWorkspace/>
