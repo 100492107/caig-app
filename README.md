@@ -93,7 +93,10 @@ The older automotive-only and fixed YouTube-business research domains are retire
 - Abstract mechanisms; do not copy protected executions.
 - The Human Quality Gate runs before expensive generation.
 - Source and derived assets remain distinct and persistent.
-- Final media can be visually verified by local Qwen Vision when required.
+- Final media passes an automated local Qwen Vision production QA gate before canonical completion.
+- Winner decisions are generated from owned performance evidence once enough comparable results exist; validated patterns become reusable learning recommendations.
+- Commerce discovery runs continuously on the local worker cadence and deduplicates public evidence into the commerce signal layer.
+- Production records an explicit quality state, provider/cost provenance and a configurable daily estimated-credit cap.
 - No invented claims, testimonials, audience reactions or performance metrics.
 - Build only what removes a demonstrated bottleneck.
 - Measure business outcomes, not software activity.
@@ -105,9 +108,12 @@ npm run qwen:server
 npm run qwen:worker
 npm run qwen:vision:server
 npm run qwen:scene:worker
+npm run qwen:reference:worker
+npm run qwen:commerce:worker
+npm run qwen:production:qa
 ```
 
-Qwen is the intelligence layer. FAL and other approved providers are renderer implementations only. Supabase provides durable job/state storage. Vercel provides secure API orchestration.
+Qwen is the intelligence layer. FAL and other approved providers are renderer implementations only. Supabase provides durable job/state storage. Vercel provides secure API orchestration. The local stack also runs reference analysis, commerce discovery and final production QA workers.
 
 ## Architecture rule
 
@@ -116,3 +122,4 @@ There is one canonical implementation per active capability. Do not create `V2`,
 ## Security
 
 Keep service credentials server-side. Use authenticated access and database RLS where configured. Never rely on front-end routing as a security boundary. Keep Track A commercial data separate from Track B creative data.
+\n## Automation completion layer\n\nTrack B now closes the learning, discovery and production-control gaps around the canonical lifecycle:\n\n`Performance evidence → automatic baseline evaluation → winner / neutral / underperforming → learning recommendation → next Build run`\n\n`Watchlist → scheduled public commerce scan → deduplicated signal → Commerce opportunity`\n\n`Production output → technical inspection + local Qwen Vision → approved / rejected quality gate → publish-ready asset`\n\nProduction budgets are operator-scoped and evidence-driven. No provider price, affiliate eligibility or future performance is inferred from public source data.\n
