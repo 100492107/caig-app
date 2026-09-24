@@ -308,8 +308,23 @@ async function completeCanonicalProduction(job, stored) {
   console.log(`[MPT] canonical production ready for automated QA ${canonicalJobId}; asset=${asset.id}`);
 }
 
+async function markCanonicalProcessing(job) {
+  const canonicalJobId = job.payload?.canonical_production_job_id || job.payload?.canonicalProductionJobId;
+  if (!canonicalJobId || !job.owner_id) return;
+  const { error } = await supabase.from('track_b_production_jobs').update({
+    status: 'processing',
+    budget_status: 'allowed',
+    provider: 'mpt',
+    started_at: new Date().toISOString(),
+    failure_stage: null,
+    failure_code: null,
+  }).eq('id', canonicalJobId).eq('owner_id', job.owner_id).in('status', ['queued','draft']);
+  if (error) throw error;
+}
+
 async function processJob(job) {
   try {
+    await markCanonicalProcessing(job);
     let taskId = job.mpt_task_id;
     if (!taskId) {
       taskId = await enqueueToMpt(job);
