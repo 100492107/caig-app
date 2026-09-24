@@ -105,7 +105,7 @@ This backlog follows the current two-engine architecture. Work is ordered by com
 - Use Fanvue for appropriate owned creator assets.
 - Test sponsorships, subscriptions, products and licensing when audience evidence supports them.
 
-## Owned creator layer
+### Completed 2026-09 automation layer\n- B8: automatic winner/neutral/underperforming decisions are now derived from comparable owned evidence, with reusable learning recommendations for validated winners.\n- B10: commerce discovery now runs on the local worker cadence with owner-scoped watchlists and deterministic dedupe across the supported public sources.\n- B6: canonical production now stops at `review` until technical checks and local Qwen Vision approve the final media. Production records quality state and cost-control fields.\n- Repository docs and local-stack commands now reflect the active reference, commerce and production-QA workers.\n\n## Owned creator layer
 
 ### Cara
 Maintain identity consistency, publish, measure, and test appropriate affiliate/social-commerce/private monetisation routes.
@@ -127,6 +127,7 @@ The following remain future options rather than current architectural requiremen
 - self-serve SaaS;
 - additional creator fleets;
 - automatic platform posting where official APIs are not available;
+- native account analytics/attribution integrations are still intentionally separate from this automation layer;
 - expensive provider integrations without a demonstrated quality/cost problem.
 
 ## Build rule
