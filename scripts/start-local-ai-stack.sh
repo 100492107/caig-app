@@ -127,6 +127,7 @@ if [[ -n "${SUPABASE_SERVICE_ROLE_KEY:-}" ]]; then
   restart_bg "source-worker" "scripts/youtube-source-worker.mjs" "source-worker.log" env PATH="$PATH" YOUTUBE_PYTHON="$SOURCE_PYTHON" "$NODE_BIN" --env-file=.env.qwen.local "$ROOT/scripts/youtube-source-worker.mjs"
   restart_bg "creator-source" "scripts/creator-source-worker.mjs" "creator-source.log" env PATH="$PATH" CREATOR_PYTHON="$SOURCE_PYTHON" "$NODE_BIN" --env-file=.env.qwen.local "$ROOT/scripts/creator-source-worker.mjs"
   restart_bg "scene-worker" "scripts/qwen-scene-worker.mjs" "scene-worker.log" env PATH="$PATH" "$NODE_BIN" --env-file=.env.qwen.local "$ROOT/scripts/qwen-scene-worker.mjs"
+  restart_bg "production-qa-worker" "scripts/qwen-production-qa-worker.mjs" "production-qa-worker.log" env PATH="$PATH" QWEN_VISION_URL="http://${QWEN_VISION_HOST}:${QWEN_VISION_PORT}" QWEN_VISION_MODEL="$QWEN_VISION_MODEL" "$NODE_BIN" --env-file=.env.qwen.local "$ROOT/scripts/qwen-production-qa-worker.mjs"
   restart_bg "reference-worker" "scripts/qwen-reference-worker.mjs" "reference-worker.log" env PATH="$PATH" QWEN_VISION_URL="http://${QWEN_VISION_HOST}:${QWEN_VISION_PORT}" QWEN_VISION_MODEL="$QWEN_VISION_MODEL" "$NODE_BIN" --env-file=.env.qwen.local "$ROOT/scripts/qwen-reference-worker.mjs"
   restart_bg "commerce-worker" "scripts/qwen-commerce-worker.mjs" "commerce-worker.log" env PATH="$PATH" QWEN_URL="http://${QWEN_HOST}:${QWEN_PORT}" QWEN_MODEL="$QWEN_MODEL" "$NODE_BIN" --env-file=.env.qwen.local "$ROOT/scripts/qwen-commerce-worker.mjs"
   if [[ -x "$ROOT/.venv-caption/bin/python" ]]; then restart_bg "caption-worker" "scripts/caption-worker.mjs" "caption-worker.log" env PATH="$PATH" "$NODE_BIN" --env-file=.env.qwen.local "$ROOT/scripts/caption-worker.mjs"; fi
@@ -142,4 +143,4 @@ else
 fi
 
 echo "[LOCAL AI] shared stack requested"
-echo "[LOCAL AI] Qwen: ${QWEN_HOST}:${QWEN_PORT} · Vision: ${QWEN_VISION_HOST}:${QWEN_VISION_PORT} · Commerce intelligence: enabled · Track B max tokens: ${QWEN_FAST_MAX_TOKENS} · Source acquisition: YouTube + creator platforms"
+echo "[LOCAL AI] Qwen: ${QWEN_HOST}:${QWEN_PORT} · Vision: ${QWEN_VISION_HOST}:${QWEN_VISION_PORT} · Commerce intelligence: enabled · Production QA: enabled · Track B max tokens: ${QWEN_FAST_MAX_TOKENS} · Source acquisition: YouTube + creator platforms"
