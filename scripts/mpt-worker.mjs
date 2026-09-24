@@ -311,15 +311,25 @@ async function completeCanonicalProduction(job, stored) {
 async function markCanonicalProcessing(job) {
   const canonicalJobId = job.payload?.canonical_production_job_id || job.payload?.canonicalProductionJobId;
   if (!canonicalJobId || !job.owner_id) return;
-  const { error } = await supabase.from('track_b_production_jobs').update({
+  const { data: current, error: readError } = await supabase.from('track_b_production_jobs')
+    .select('id,status')
+    .eq('id', canonicalJobId)
+    .eq('owner_id', job.owner_id)
+    .maybeSingle();
+  if (readError) throw readError;
+  if (!current) throw new Error('Canonical production job not found before execution.');
+  if (current.status === 'processing') return;
+  if (!['queued','draft'].includes(current.status)) throw new Error('Canonical production job is not executable from status ' + current.status + '.');
+  const { data: updated, error } = await supabase.from('track_b_production_jobs').update({
     status: 'processing',
     budget_status: 'allowed',
     provider: 'mpt',
     started_at: new Date().toISOString(),
     failure_stage: null,
     failure_code: null,
-  }).eq('id', canonicalJobId).eq('owner_id', job.owner_id).in('status', ['queued','draft']);
+  }).eq('id', canonicalJobId).eq('owner_id', job.owner_id).in('status', ['queued','draft']).select('id').maybeSingle();
   if (error) throw error;
+  if (!updated) throw new Error('Canonical production job could not enter processing; budget or concurrency guard blocked it.');
 }
 
 async function processJob(job) {
