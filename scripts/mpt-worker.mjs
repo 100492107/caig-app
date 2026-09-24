@@ -292,8 +292,10 @@ async function completeCanonicalProduction(job, stored) {
   const { error: canonicalUpdateError } = await supabase
     .from('track_b_production_jobs')
     .update({
-      status: 'completed',
-      completed_at: new Date().toISOString(),
+      status: 'review',
+      quality_status: 'required',
+      budget_status: 'allowed',
+      completed_at: null,
       actual_credits: null,
       failure_stage: null,
       failure_code: null,
@@ -303,7 +305,7 @@ async function completeCanonicalProduction(job, stored) {
     .eq('owner_id', job.owner_id);
   if (canonicalUpdateError) throw canonicalUpdateError;
 
-  console.log(`[MPT] canonical production completed ${canonicalJobId}; asset=${asset.id}`);
+  console.log(`[MPT] canonical production ready for automated QA ${canonicalJobId}; asset=${asset.id}`);
 }
 
 async function processJob(job) {
@@ -339,7 +341,7 @@ async function processJob(job) {
         last_publish_error: null,
       }).eq('id', job.payload.content_queue_id);
     }
-    console.log(`[MPT] completed ${job.id} -> ${stored.publicUrl}`);
+    console.log(`[MPT] output stored ${job.id} -> ${stored.publicUrl}; canonical job now awaits production QA`);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error(`[MPT] failed ${job.id}:`, error);
