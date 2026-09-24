@@ -39,6 +39,8 @@ New Life is the personal operating system for action, discipline, family, health
 - `/content/production` — canonical production jobs and media output.
 - `/content/publish` — canonical publication scheduling and publishing state.
 - `/content/measurement` — canonical performance evidence and learning input.
+- `/references` — automated visual reference boards for wardrobe, pose, scene and shoot evidence.
+- `/commerce` — commerce and trend intelligence across Pinterest, Vinted, Depop, TikTok, TikTok Shop, Temu and Alibaba.
 - `/revenue` — canonical Track A Revenue Recovery workspace.
 - `/system` — local AI, queue, error and dependency health.
 - `/creative`, `/main-app` — compatibility redirects to the canonical Content starting point.
