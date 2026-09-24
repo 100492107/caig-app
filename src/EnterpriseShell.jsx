@@ -5,7 +5,8 @@ const NEW_LIFE = 'https://new-life-game-alpha.vercel.app/start-v2.html'
 const NAV_GROUPS = [
   { label: 'Operate', items: [
     { id: 'command', label: 'Command', href: '/', key: '01' },
-    { id: 'business', label: 'Business', href: '/business', key: '02' },
+    { id: 'mission', label: 'Revenue Mission', href: '/mission', key: '02' },
+    { id: 'business', label: 'Business', href: '/business', key: '03' },
   ]},
   { label: 'Creator loop', items: [
     { id: 'research', label: 'Research', href: '/research', key: '03' },
@@ -30,7 +31,7 @@ export default function EnterpriseShell({ active = 'command', children, eyebrow 
   const resolved = {
     remake: 'content', creators: 'voices', profiles: 'voices', production: 'production',
     publish: 'publish', measurement: 'measurement', content: 'content', command: 'command', commerce: 'commerce',
-    business: 'business', research: 'research', references: 'references', commerce: 'commerce', library: 'library', system: 'system',
+    business: 'business', mission: 'mission', research: 'research', references: 'references', commerce: 'commerce', library: 'library', system: 'system',
   }[active] || active
   return (
     <div className="cs-app">
