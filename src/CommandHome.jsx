@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { supabase } from './supabase'
 import { creatorDnaFor } from '../shared/creator-dna.js'
 import EnterpriseShell from './EnterpriseShell.jsx'
+import { RevenueMissionBanner } from './RevenueMission.jsx'
 
 const FAIL = new Set(['error', 'failed', 'blocked'])
 const money = (v) =>
@@ -328,6 +329,8 @@ export default function CommandHome() {
   return (
     <EnterpriseShell active="command" eyebrow="Command">
       <main className="home cmd-today">
+        <RevenueMissionBanner />
+
         <header className="cmd-today-head">
           <div>
             <div className="k">Today · sequential path</div>
