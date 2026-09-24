@@ -5,7 +5,7 @@ const NEW_LIFE = 'https://new-life-game-alpha.vercel.app/start-v2.html'
 const NAV_GROUPS = [
   { label: 'Operate', items: [
     { id: 'command', label: 'Command', href: '/', key: '01' },
-    { id: 'mission', label: 'Revenue Mission', href: '/mission', key: '02' },
+    { id: 'mission', label: 'Directive', href: '/mission', key: '02' },
     { id: 'business', label: 'Business', href: '/business', key: '03' },
   ]},
   { label: 'Creator loop', items: [
