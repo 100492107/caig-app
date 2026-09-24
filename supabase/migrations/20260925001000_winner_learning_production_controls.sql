@@ -1,3 +1,19 @@
+-- Recreate the canonical quality gate if an earlier production restore left it absent.
+create table if not exists public.track_b_quality_gates (
+  id uuid primary key default gen_random_uuid(),
+  owner_id uuid references auth.users(id) on delete set null,
+  project_id uuid references public.track_b_content_projects(id) on delete cascade,
+  production_job_id uuid references public.track_b_production_jobs(id) on delete cascade,
+  status text not null default 'required' check (status in ('required','approved','rejected')),
+  checks jsonb not null default '{}'::jsonb,
+  reviewer_notes text,
+  approved_at timestamptz,
+  approved_by uuid references auth.users(id) on delete set null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+alter table public.track_b_quality_gates enable row level security;
+
 -- Automatic winner/learning decisions, production QA handoff and spend controls.
 -- September 2026 Track B completion layer.
 
