@@ -68,6 +68,8 @@ export default function CommerceIntelligenceWorkspace() {
   const [error, setError] = useState("");
   const [setup, setSetup] = useState({ tiktok_shop_ready: false, showcase_ready: false, creator_profile_url: "", instagram_url: "", tracking_destination: "", samples_requested: 0 });
   const [setupSaving, setSetupSaving] = useState(false);
+  const [outcomeTest, setOutcomeTest] = useState(null);
+  const [outcomeDraft, setOutcomeDraft] = useState({ views: "", clicks: "", conversions: "", revenue: "", commission: "" });
 
   async function loadAll() {
     setLoading(true);
@@ -366,56 +368,56 @@ export default function CommerceIntelligenceWorkspace() {
     }
   }
 
-  async function recordTestOutcome(test) {
+  function recordTestOutcome(test) {
     setError("");
     setMessage("");
-    const clicks = Number(window.prompt("Clicks recorded", test.clicks ?? "") || 0);
-    const conversions = Number(window.prompt("Conversions / sales recorded", test.conversions ?? "") || 0);
-    const revenue = Number(window.prompt("Revenue recorded (leave 0 if unknown)", test.revenue ?? "") || 0);
-    const commission = Number(window.prompt("Commission recorded (leave 0 if unknown)", test.commission ?? "") || 0);
-    const views = Number(window.prompt("Views / impressions recorded (leave 0 if unknown)", test.views ?? test.impressions ?? "") || 0);
-    if ([clicks, conversions, revenue, commission, views].some((v) => !Number.isFinite(v) || v < 0)) {
-      setError("Outcome values must be zero or positive numbers.");
-      return;
-    }
+    setOutcomeTest(test);
+    setOutcomeDraft({ views: test.views ?? "", clicks: test.clicks ?? "", conversions: test.conversions ?? "", revenue: test.revenue ?? "", commission: test.commission ?? "" });
+  }
+
+  async function saveTestOutcome() {
+    if (!outcomeTest) return;
     try {
+      const values = Object.fromEntries(Object.entries(outcomeDraft).map(([k,v]) => [k, Number(v || 0)]));
+      if (Object.values(values).some((v) => !Number.isFinite(v) || v < 0)) throw new Error("Outcome values must be zero or positive numbers.");
       const user = await currentUser();
       const { data: updated, error: updateError } = await supabase.from("cornerstone_commerce_tests").update({
-        views: views || null,
-        impressions: views || null,
-        clicks: clicks || null,
-        conversions: conversions || null,
-        revenue: revenue || null,
-        commission: commission || null,
+        views: values.views || null,
+        impressions: values.views || null,
+        clicks: values.clicks || null,
+        conversions: values.conversions || null,
+        revenue: values.revenue || null,
+        commission: values.commission || null,
         status: "complete",
         completed_at: new Date().toISOString(),
-        notes: "Outcome recorded by operator."
-      }).eq("id", test.id).eq("owner_id", user.id).select("*").single();
+        notes: "Outcome recorded by operator in Commerce Intelligence."
+      }).eq("id", outcomeTest.id).eq("owner_id", user.id).select("*").single();
       if (updateError) throw updateError;
-      const clickRate = views > 0 ? clicks / views : null;
-      const conversionRate = clicks > 0 ? conversions / clicks : null;
-      const mechanism = "Commerce test outcome · " + (test.monetisation_route || "commerce");
-      await supabase.from("cornerstone_research_signals").insert({
+      const clickRate = values.views > 0 ? values.clicks / values.views : null;
+      const conversionRate = values.clicks > 0 ? values.conversions / values.clicks : null;
+      const { error: researchError } = await supabase.from("cornerstone_research_signals").insert({
         owner_id: user.id,
-        source_url: test.content_url || test.tracking_url || null,
-        platform: test.platform || null,
-        source_creator: test.creator_id || creator,
+        source_url: outcomeTest.content_url || outcomeTest.tracking_url || null,
+        platform: outcomeTest.platform || null,
+        source_creator: outcomeTest.creator_id || creator,
         creator_baseline_views: null,
         observed_metric_name: "commission",
-        observed_metric_value: commission || null,
-        outlier_rationale: "Observed operator-entered commerce test outcome. Rates: click-through " + (clickRate == null ? "unknown" : (clickRate * 100).toFixed(2) + "%") + ", conversion " + (conversionRate == null ? "unknown" : (conversionRate * 100).toFixed(2) + "%") + ".",
-        topic: test.metadata?.opportunity_title || null,
-        mechanism,
+        observed_metric_value: values.commission || null,
+        outlier_rationale: "Observed commerce test outcome. CTR: " + (clickRate == null ? "unknown" : (clickRate * 100).toFixed(2) + "%") + ", conversion: " + (conversionRate == null ? "unknown" : (conversionRate * 100).toFixed(2) + "%") + ".",
+        topic: outcomeTest.metadata?.opportunity_title || null,
+        mechanism: "Commerce test outcome · " + (outcomeTest.monetisation_route || "commerce"),
         confidence: "medium",
         niche: "Track B Commerce",
         status: "used",
-        notes: JSON.stringify({ test_id: test.id, views, clicks, conversions, revenue, commission, click_rate: clickRate, conversion_rate: conversionRate }),
+        notes: JSON.stringify({ test_id: outcomeTest.id, ...values, click_rate: clickRate, conversion_rate: conversionRate }),
         captured_at: new Date().toISOString().slice(0, 10)
-      }).catch(() => null);
-      setTests((current) => current.map((row) => row.id === test.id ? updated : row));
+      });
+      if (researchError) throw researchError;
+      setTests((current) => current.map((row) => row.id === outcomeTest.id ? updated : row));
+      setOutcomeTest(null);
       setMessage("Outcome recorded and fed back into the evidence layer.");
-    } catch (outcomeError) {
-      setError(outcomeError?.message || String(outcomeError));
+    } catch (e) {
+      setError(e?.message || String(e));
     }
   }
 
@@ -603,7 +605,8 @@ export default function CommerceIntelligenceWorkspace() {
 
         <section className="commerce-panel commerce-tests">
           <div className="commerce-panel-head"><div><strong>Monetisation tests</strong><span>Observed outcomes close the loop</span></div><span>{tests.length} planned / recorded</span></div>
-          {tests.length ? <div className="commerce-test-list">{tests.slice(0, 12).map((item) => <div className="commerce-test" key={item.id}><div><b>{item.monetisation_route}</b><span>{item.creator_id} · {item.status}</span></div><div><span>Clicks {item.clicks ?? "—"}</span><span>Conversions {item.conversions ?? "—"}</span><span>Revenue {item.revenue ?? "—"}</span><button className="cs-btn-ghost" onClick={() => recordTestOutcome(item)}>{item.status === "complete" ? "Update outcome" : "Record outcome"}</button></div></div>)}</div> : <div className="commerce-empty">No tests planned yet.</div>}
+          {tests.length ? <div className="commerce-test-list">{tests.slice(0, 12).map((item) => <div className="commerce-test" key={item.id}><div><b>{item.monetisation_route}</b><span>{item.creator_id} · {item.status}</span></div><div><span>Clicks {item.clicks ?? "—"}</span><span>Conversions {item.conversions ?? "—"}</span><span>Commission {item.commission ?? "—"}</span><button className="cs-btn-ghost" onClick={() => recordTestOutcome(item)}>{item.status === "complete" ? "Update outcome" : "Record outcome"}</button></div></div>)}</div> : <div className="commerce-empty">No tests planned yet.</div>}
+          {outcomeTest ? <div style={{marginTop:12,padding:14,border:"1px solid var(--border)",borderRadius:12,background:"var(--surface-2)"}}><div style={{display:"flex",justifyContent:"space-between",gap:10,alignItems:"center"}}><div><b style={{fontSize:12}}>Record observed outcome</b><div style={{fontSize:9,color:"var(--text-muted)",marginTop:3}}>{outcomeTest.metadata?.opportunity_title || outcomeTest.monetisation_route}</div></div><button className="cs-btn-ghost" onClick={()=>setOutcomeTest(null)}>Cancel</button></div><div style={{display:"grid",gridTemplateColumns:"repeat(5,minmax(0,1fr))",gap:8,marginTop:12}}>{[['views','Views'],['clicks','Clicks'],['conversions','Orders'],['revenue','Revenue'],['commission','Commission']].map(([key,label])=><label key={key} style={{fontSize:9,color:"var(--text-subtle)",fontWeight:800,textTransform:"uppercase",letterSpacing:".08em"}}>{label}<input style={{width:"100%",boxSizing:"border-box",marginTop:5,padding:"9px 10px",border:"1px solid var(--border)",borderRadius:9,background:"var(--panel-2)",color:"var(--text)",font: "inherit"}} inputMode="decimal" value={outcomeDraft[key]} onChange={(e)=>setOutcomeDraft((d)=>({...d,[key]:e.target.value}))}/></label>)}</div><div style={{display:"flex",justifyContent:"flex-end",marginTop:10}}><button className="cs-btn" onClick={saveTestOutcome}>Save outcome →</button></div></div> : null}
         </section>
 
         <div className="commerce-disclaimer">Source discipline: Cornerstone records public evidence and operator-entered data. TikTok Shop API access is optional and requires approved credentials. Temu, Alibaba and TikTok Shop affiliate/commerce eligibility is not inferred from a product URL. Always use the applicable platform terms and disclosures.</div>
