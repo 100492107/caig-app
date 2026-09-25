@@ -5,8 +5,17 @@ const SUPABASE_URL   = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SVC_ROLE_KEY")!;
 const FROM_EMAIL = "Cornerstone AI Group <hello@cornerstoneaigroup.com>";
 
-Deno.serve(async (_req) => {
-  const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+Deno.serve(async (req) => {
+  const authHeader = req.headers.get("Authorization") || "";
+  const token = authHeader.replace(/^Bearer\\s+/i, "").trim();
+  if (!token) return new Response(JSON.stringify({ error: "Authentication required" }), { status: 401, headers: { "Content-Type": "application/json" } });
+
+  const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
+  const { data: caller, error: callerError } = await supabase.auth.getUser(token);
+  if (callerError || !caller?.user?.id) return new Response(JSON.stringify({ error: "Invalid session" }), { status: 401, headers: { "Content-Type": "application/json" } });
+  const { data: operator, error: operatorError } = await supabase.from("profiles").select("role,is_active").eq("id", caller.user.id).maybeSingle();
+  if (operatorError) return new Response(JSON.stringify({ error: operatorError.message }), { status: 500, headers: { "Content-Type": "application/json" } });
+  if (operator?.role !== "admin" || operator?.is_active === false) return new Response(JSON.stringify({ error: "Admin access required" }), { status: 403, headers: { "Content-Type": "application/json" } });
 
   // Fetch all active clients
   const { data: clients, error: clientErr } = await supabase
