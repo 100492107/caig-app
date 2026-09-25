@@ -1,3 +1,4 @@
+import { requireUser, sameOrigin } from '../lib/auth.js';
 // api/generate-poll.js
 // Status polling for image (Grok Imagine Image 2.0) and video (Seedance 2.5).
 // Tries both status URL shapes fal has used for subpath models.
@@ -34,6 +35,9 @@ async function fetchJson(url, falKey) {
 }
 
 export default async function handler(req, res) {
+  if (!sameOrigin(req)) return res.status(403).json({ error: "Invalid origin" });
+  const user = await requireUser(req);
+  if (!user?.id) return res.status(401).json({ error: "Authentication required" });
   const falKey = process.env.FAL_API_KEY || process.env.FAL_KEY;
   if (!falKey) return res.status(500).json({ error: "FAL key not configured" });
 
