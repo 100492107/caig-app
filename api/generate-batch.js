@@ -1,3 +1,4 @@
+import { requireUser, sameOrigin } from '../lib/auth.js';
 // Vercel serverless function — runs the full content generation batch server-side.
 // Streams each completed post back as NDJSON (one JSON line per post) so the
 // browser can save to queue in real-time regardless of screen state.
@@ -1063,6 +1064,9 @@ function readBody(req) {
 }
 
 export default async function handler(req, res) {
+  if (!sameOrigin(req)) return res.status(403).json({ error: "Invalid origin" });
+  const user = await requireUser(req);
+  if (!user?.id) return res.status(401).json({ error: "Authentication required" });
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
