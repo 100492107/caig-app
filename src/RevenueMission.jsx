@@ -73,32 +73,59 @@ const css = `
 .rm-link{color:var(--cs-os-accent);font-size:10px;font-weight:800;text-decoration:none}
 @media(max-width:980px){.rm-loop{grid-template-columns:repeat(4,minmax(0,1fr))}.rm-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:700px){.rm-cols{grid-template-columns:1fr}.rm-grid.three{grid-template-columns:1fr}.rm-loop{grid-template-columns:1fr 1fr}}
+.rm-banner{display:grid;gap:12px;padding:14px 16px;border:1px solid rgba(212,181,106,.28);border-radius:16px;background:linear-gradient(135deg,rgba(212,181,106,.09),rgba(255,255,255,.02));margin-bottom:4px}
+.rm-banner-top{display:grid;grid-template-columns:minmax(0,1.4fr) auto;gap:14px;align-items:start}
+.rm-banner-k{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.rm-banner-label{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--cs-os-subtle);font-weight:800}
+.rm-banner-copy h2{margin:0;font-size:clamp(20px,2.4vw,26px);letter-spacing:-.04em;line-height:1.1;font-weight:650}
+.rm-banner-copy p{margin:6px 0 0;max-width:62ch;color:var(--cs-os-muted);font-size:12px;line-height:1.5}
+.rm-banner-actions{display:flex;flex-direction:column;align-items:flex-end;gap:7px;padding-top:2px}
+.rm-banner-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.rm-banner-stat{padding:10px 12px;border:1px solid var(--cs-os-line);border-radius:12px;background:rgba(255,255,255,.02)}
+.rm-banner-stat b{display:block;font-size:13px;letter-spacing:-.02em;line-height:1.25}
+.rm-banner-stat span{display:block;margin-top:3px;color:var(--cs-os-subtle);font-size:9px;letter-spacing:.04em;text-transform:uppercase;font-weight:700}
+@media(max-width:900px){
+  .rm-banner-top{grid-template-columns:1fr}
+  .rm-banner-actions{align-items:flex-start;flex-direction:row;flex-wrap:wrap}
+  .rm-banner-stats{grid-template-columns:1fr}
+}
 `
 
 export function RevenueMissionBanner(){
   return (
-    <section className="rm-panel is-primary">
+    <section className="rm-banner">
       <style>{css}</style>
-      <div className="rm-eyebrow">Operating directive</div>
-      <div>
-        <h2 className="rm-section-title" style={{fontSize:'22px'}}>Money first. Prove the loop.</h2>
-        <p className="rm-lead" style={{marginTop:8}}>
-          The product-building phase has produced the machine. The priority is now to get a real creator → commerce → revenue → Learn loop working before we add more substantial product work.
-        </p>
+      <div className="rm-banner-top">
+        <div className="rm-banner-copy">
+          <div className="rm-banner-k">
+            <span className="rm-pill is-live">GO</span>
+            <span className="rm-banner-label">Executive decision</span>
+          </div>
+          <h2>Money first. Prove the loop.</h2>
+          <p>
+            Creator → commerce → cash → learn. First tracked commission is the only primary objective.
+            No substantial new product work unless it removes a blocker to that loop.
+          </p>
+        </div>
+        <div className="rm-banner-actions">
+          <span className="rm-pill">7-day proof</span>
+          <span className="rm-pill">14-day sprint</span>
+          <a className="rm-link" href="/mission">Full directive →</a>
+        </div>
       </div>
-      <div className="rm-meta">
-        <span className="rm-pill is-live">GO</span>
-        <span className="rm-pill">7-day first commission objective</span>
-        <span className="rm-pill">14-day commercial sprint</span>
-      </div>
-      <div className="rm-grid three">
-        <div className="rm-card"><b>First tracked commission</b><span>Primary proof</span></div>
-        <div className="rm-card"><b>2 different experiments / day</b><span>Cadence after launch</span></div>
-        <div className="rm-card"><b>£15–£60 products</b><span>Initial test band</span></div>
-      </div>
-      <div className="rm-footer">
-        <span>Additional product work is only progress when it removes a blocker to the live revenue loop.</span>
-        <a className="rm-link" href="/mission">Open directive →</a>
+      <div className="rm-banner-stats">
+        <div className="rm-banner-stat">
+          <b>First tracked commission</b>
+          <span>Primary objective</span>
+        </div>
+        <div className="rm-banner-stat">
+          <b>2 experiments / day</b>
+          <span>Cadence after launch</span>
+        </div>
+        <div className="rm-banner-stat">
+          <b>£15–£60 products</b>
+          <span>First-test price band</span>
+        </div>
       </div>
     </section>
   )
