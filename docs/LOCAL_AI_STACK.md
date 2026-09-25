@@ -20,6 +20,9 @@ This starts:
 | `qwen-worker.mjs` | Claims text jobs from `local_ai_jobs` |
 | `content-source-ingestion-worker.mjs` | Claims `content_media_ingestion` jobs |
 | `qwen-scene-worker.mjs` | Scene verify jobs |
+| `qwen-reference-worker.mjs` | Visual reference analysis |
+| `qwen-commerce-worker.mjs` | Continuous public commerce discovery + synthesis support |
+| `qwen-production-qa-worker.mjs` | Final Track B production QA gate |
 | Heartbeat | Writes `local_ai_worker_heartbeat` so the app shows Online |
 
 ## Prerequisites
@@ -56,3 +59,16 @@ This starts:
 | Worker liveness | `local_ai_worker_heartbeat` |
 
 Packages were already cloud-backed. Profiles/earnings use the new sync table.
+
+
+## Revenue-first operating path
+
+For the current Track B commercial push, the active path is:
+
+Commerce → Voices → Make → Publish → Learn
+
+The local stack is part of the loop. The Commerce discovery worker, creator strategy worker and production QA worker run from the Mac; they are not hosted background jobs.
+
+Publish currently hands off through the configured publishing integration. It is not a native TikTok account uploader. The first commercial experiment therefore still requires the real TikTok Shop account, product selection/tracking destination and publishing integration to be configured and verified by the operator.
+
+The target is one tracked commission first. The first few measured results establish the baseline used by automatic learning.
