@@ -1,3 +1,4 @@
+import { requireUser, sameOrigin } from '../lib/auth.js';
 // api/generate-submit.js
 // Submits Grok Imagine Image 2.0 (fal.ai) generation job to the async queue.
 // Identity = pixel-match reference images.
@@ -263,6 +264,9 @@ export async function submitToFal({ falKey, prompt, personaId = "cara" }) {
 }
 
 export default async function handler(req, res) {
+  if (!sameOrigin(req)) return res.status(403).json({ error: "Invalid origin" });
+  const user = await requireUser(req);
+  if (!user?.id) return res.status(401).json({ error: "Authentication required" });
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
   const apiKey = process.env.FAL_API_KEY;
   if (!apiKey) return res.status(500).json({ error: "FAL_API_KEY environment variable is not configured" });
