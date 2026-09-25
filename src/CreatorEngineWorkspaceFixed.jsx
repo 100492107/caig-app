@@ -173,6 +173,8 @@ export default function CreatorEngineWorkspaceFixed() {
 
   async function saveToMake() {
     if (!result || savingPackage || savedProjectId) return
+    const brief = result?.operator_brief || result?.operatorBrief || {}
+    const pack = result?.production_package || result?.productionPackage || result?.creator_package || result || {}
     setSavingPackage(true)
     setError('')
     setMessage('Saving this creator test into the canonical Make queue…')
