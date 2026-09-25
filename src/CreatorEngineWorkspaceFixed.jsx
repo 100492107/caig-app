@@ -70,6 +70,8 @@ export default function CreatorEngineWorkspaceFixed() {
   const [visualReferencePack, setVisualReferencePack] = useState(null)
   const [visualReferenceRecipe, setVisualReferenceRecipe] = useState(null)
   const [commerceContext, setCommerceContext] = useState(null)
+  const [savedProjectId, setSavedProjectId] = useState('')
+  const [savingPackage, setSavingPackage] = useState(false)
 
   const person = PEOPLE.find((p) => p[0] === persona) || PEOPLE[0]
   const job = JOBS.find((j) => j[0] === jobType) || JOBS[0]
@@ -168,6 +170,104 @@ export default function CreatorEngineWorkspaceFixed() {
     'Evidence context: ' + JSON.stringify((commerceContext.signals || []).slice(0, 8)).slice(0, 14000),
     'Treat imported commerce data as evidence, not as guaranteed claims. Do not invent prices, commissions, availability, reviews, sales or platform eligibility.'
   ].join('\n') : 'NO ACTIVE COMMERCE OPPORTUNITY';
+
+  async function saveToMake() {
+    if (!result || savingPackage || savedProjectId) return
+    setSavingPackage(true)
+    setError('')
+    setMessage('Saving this creator test into the canonical Make queue…')
+    try {
+      const { data: auth, error: authError } = await supabase.auth.getUser()
+      if (authError || !auth?.user) throw new Error('Please sign in again.')
+      const title = String(pack.series || brief.recommended_subject || pack.concept || job[1] || 'Creator commerce test').trim()
+      const hooks = Array.isArray(pack.hooks) ? pack.hooks : []
+      const hashtags = Array.isArray(pack.hashtags) ? pack.hashtags.join(' ') : String(pack.hashtags || '')
+      const sourceUrl = commerceContext?.signals?.find((signal) => signal?.source_url)?.source_url || reference.trim() || null
+      let commerceTestId = null
+      if (commerceContext?.opportunity_id) {
+        const { data: existingTest, error: testLookupError } = await supabase
+          .from('cornerstone_commerce_tests')
+          .select('id')
+          .eq('owner_id', auth.user.id)
+          .eq('opportunity_id', commerceContext.opportunity_id)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle()
+        if (testLookupError) throw testLookupError
+        commerceTestId = existingTest?.id || null
+        if (!commerceTestId) {
+          const { data: createdTest, error: testInsertError } = await supabase.from('cornerstone_commerce_tests').insert({
+            owner_id: auth.user.id,
+            opportunity_id: commerceContext.opportunity_id,
+            creator_id: commerceContext.creator || persona,
+            platform,
+            monetisation_route: commerceContext.monetisation_route || job[1],
+            source_signal_ids: commerceContext.signal_ids || [],
+            tracking_url: commerceContext.tracking_destination || commerceContext.tracking_url || null,
+            cta: commerceContext.cta || pack.cta || 'Use the tracked product destination.',
+            kpi: commerceContext.kpi || result?.monetisation?.success_metric || 'Views → clicks → conversions → commission',
+            winner_rule: commerceContext.winner_rule || result?.monetisation?.winner_rule || 'Repeat only after observed evidence.',
+            status: 'planned',
+            metadata: { opportunity_title: commerceContext.title || null },
+          }).select('id').single()
+          if (testInsertError) throw testInsertError
+          commerceTestId = createdTest?.id || null
+        }
+      }
+
+      const briefPayload = {
+        creator_id: persona,
+        creator_name: person[1],
+        objective: jobType,
+        platform,
+        format,
+        operator_brief: brief,
+        creator_package: pack,
+        monetisation: result?.monetisation || {},
+        commerce_context: commerceContext || null,
+        commerce_test_id: commerceTestId,
+        saved_from: 'Creator Engine / Voices',
+      }
+      const sourceEvidence = {
+        commerce_context: commerceContext || null,
+        source_url: sourceUrl,
+        captured_at: new Date().toISOString(),
+        evidence_status: brief.evidence_status || 'insufficient',
+      }
+      const { data: rpcData, error: rpcError } = await supabase.rpc('create_track_b_content_package', {
+        p_title: title,
+        p_source_url: sourceUrl,
+        p_source_type: 'creative_brief',
+        p_brief: briefPayload,
+        p_source_evidence: sourceEvidence,
+        p_platform: platform,
+        p_hook: hooks[0] || pack.opening_beat || brief.recommended_angle || '',
+        p_caption: pack.caption || pack.script || '',
+        p_hashtags: hashtags,
+        p_cta: pack.cta || result?.monetisation?.test || commerceContext?.cta || '',
+        p_photo_idea: typeof pack.visual_direction === 'string' ? pack.visual_direction : JSON.stringify(pack.visual_direction || {}),
+        p_photo_direction: JSON.stringify({ scene_directions: pack.scene_directions || [], visual_direction: pack.visual_direction || [], image_prompts: pack.image_prompts || [] }),
+        p_post_type: pack.format || format,
+        p_content_queue_id: 'ce-' + crypto.randomUUID(),
+      })
+      if (rpcError) throw rpcError
+      const projectId = rpcData?.[0]?.project_id || rpcData?.project_id || null
+      if (!projectId) throw new Error('Cornerstone saved the package but returned no project id.')
+
+      if (commerceTestId) {
+        await supabase.from('cornerstone_commerce_tests').update({
+          metadata: { ...(commerceContext || {}), project_id: projectId, creator_package_saved_at: new Date().toISOString() },
+        }).eq('id', commerceTestId).eq('owner_id', auth.user.id)
+      }
+      setSavedProjectId(projectId)
+      setMessage('Saved to the canonical content project. The next step is Make.')
+    } catch (e) {
+      setError(e?.message || String(e))
+      setMessage('')
+    } finally {
+      setSavingPackage(false)
+    }
+  }
 
   async function build() {
     setBusy(true); setError(''); setResult(null); setMessage('Building creator strategy…')
@@ -553,7 +653,7 @@ RETURN JSON ONLY: {"operator_brief":{"finding":"","evidence_status":"observed|su
       <p className="ce-lead">{brief.recommended_angle || brief.finding || pack.concept || 'Creator experiment ready.'}</p>
       <section className="ce-dna">
         <article className="ce-dna-card"><small>Character choice</small><strong>{dna.coreVerb || 'Creator identity'}</strong><p>{dna.signatureQuestion || dna.coreDynamic || ''}</p></article>
-        <article className="ce-dna-card"><small>Next handoff</small><strong>Make → Publish → Learn</strong><p>The strategy is the decision layer. Take the approved concept into Make, then bring the market result back into Learn.</p></article>
+        <article className="ce-dna-card"><small>Next handoff</small><strong>{savedProjectId ? 'Saved → Make → Publish → Learn' : 'Save → Make → Publish → Learn'}</strong><p>{savedProjectId ? 'This package is now a canonical project. Open Make to turn it into finished media.' : 'Save this approved creator test into the canonical project layer before producing anything. Nothing is considered shipped until it exists in the loop.'}</p><div style={{display:'flex',gap:8,flexWrap:'wrap',marginTop:10}}>{savedProjectId ? <a href="/content/production" className="ce-primary" style={{display:'inline-flex',alignItems:'center',textDecoration:'none'}}>Open Make →</a> : <button type="button" className="ce-primary" onClick={saveToMake} disabled={savingPackage}>{savingPackage ? 'Saving…' : 'Save to Make →'}</button>}</div></article>
       </section>
       <div className="ce-grid"><article><span>What Cornerstone found</span><b>{brief.finding || 'Opportunity identified.'}</b></article><article><span>Mechanism</span><b>{brief.mechanism || 'Creator-native mechanism.'}</b></article><article><span>Next action</span><b>{brief.next_action || 'Run the first test.'}</b></article><article><span>Money route</span><b>{result?.monetisation?.route || job[1]}</b></article></div>
       {list(result?.creator_research).length ? <section className="ce-section"><span>Evidence & comparable patterns</span>{list(result.creator_research).map((x, i) => <div key={i}>{renderItem(x)}</div>)}</section> : null}
