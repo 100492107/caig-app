@@ -453,7 +453,7 @@ export default function CommerceIntelligenceWorkspace() {
     const linkedSignals = signals.filter((item) => (opportunity.signal_ids || []).includes(item.id));
     const context = {
       opportunity_id: opportunity.id,
-      creator: opportunity.creator_id,
+      creator: opportunity.creator_id === 'duo' ? 'cara_lila' : opportunity.creator_id,
       title: opportunity.title,
       trend: opportunity.trend,
       product_angle: opportunity.product_angle,
