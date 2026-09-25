@@ -66,23 +66,28 @@ export default function CommerceIntelligenceWorkspace() {
   const [generating, setGenerating] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [setup, setSetup] = useState({ tiktok_shop_ready: false, showcase_ready: false, creator_profile_url: "", instagram_url: "", tracking_destination: "", samples_requested: 0 });
+  const [setupSaving, setSetupSaving] = useState(false);
 
   async function loadAll() {
     setLoading(true);
     setError("");
     try {
       const user = await currentUser();
-      const [signalsRes, opportunitiesRes, testsRes] = await Promise.all([
+      const [signalsRes, opportunitiesRes, testsRes, setupRes] = await Promise.all([
         supabase.from("cornerstone_commerce_signals").select("*").eq("owner_id", user.id).order("created_at", { ascending: false }).limit(100),
         supabase.from("cornerstone_commerce_opportunities").select("*").eq("owner_id", user.id).order("created_at", { ascending: false }).limit(30),
         supabase.from("cornerstone_commerce_tests").select("*").eq("owner_id", user.id).order("created_at", { ascending: false }).limit(30),
+        supabase.from("cornerstone_commerce_setup").select("*").eq("owner_id", user.id).maybeSingle(),
       ]);
       if (signalsRes.error) throw signalsRes.error;
       if (opportunitiesRes.error) throw opportunitiesRes.error;
       if (testsRes.error) throw testsRes.error;
+      if (setupRes.error) throw setupRes.error;
       setSignals(signalsRes.data || []);
       setOpportunities(opportunitiesRes.data || []);
       setTests(testsRes.data || []);
+      if (setupRes.data) setSetup({ tiktok_shop_ready: !!setupRes.data.tiktok_shop_ready, showcase_ready: !!setupRes.data.showcase_ready, creator_profile_url: setupRes.data.creator_profile_url || "", instagram_url: setupRes.data.instagram_url || "", tracking_destination: setupRes.data.tracking_destination || "", samples_requested: Number(setupRes.data.samples_requested || 0) });
     } catch (loadError) {
       setError(loadError?.message || String(loadError));
     } finally {
@@ -91,6 +96,34 @@ export default function CommerceIntelligenceWorkspace() {
   }
 
   useEffect(() => { loadAll(); }, []);
+
+  async function saveSetup() {
+    setSetupSaving(true);
+    setError("");
+    setMessage("");
+    try {
+      const user = await currentUser();
+      const payload = {
+        owner_id: user.id,
+        tiktok_shop_ready: !!setup.tiktok_shop_ready,
+        showcase_ready: !!setup.showcase_ready,
+        creator_profile_url: setup.creator_profile_url.trim() || null,
+        instagram_url: setup.instagram_url.trim() || null,
+        tracking_destination: setup.tracking_destination.trim() || null,
+        samples_requested: Math.max(0, Number(setup.samples_requested || 0)),
+        updated_at: new Date().toISOString(),
+      };
+      const { data, error: saveError } = await supabase.from("cornerstone_commerce_setup").upsert(payload, { onConflict: "owner_id" }).select("*").single();
+      if (saveError) throw saveError;
+      setSetup({ tiktok_shop_ready: !!data.tiktok_shop_ready, showcase_ready: !!data.showcase_ready, creator_profile_url: data.creator_profile_url || "", instagram_url: data.instagram_url || "", tracking_destination: data.tracking_destination || "", samples_requested: Number(data.samples_requested || 0) });
+      setMessage("Launch checklist saved.");
+    } catch (e) {
+      setError(e?.message || String(e));
+    } finally {
+      setSetupSaving(false);
+    }
+  }
+
 
   const visibleSignals = useMemo(
     () => filter === "all" ? signals : signals.filter((item) => item.signal_type === filter),
@@ -451,6 +484,34 @@ export default function CommerceIntelligenceWorkspace() {
           <p>Visual demand from Pinterest, Vinted and Depop. Trend and hook signals from TikTok. Product signals from TikTok Shop, Temu and Alibaba. Cornerstone connects the evidence before content is made.</p>
         </div>
 
+        <section className="commerce-panel commerce-setup">
+          <div className="commerce-panel-head"><div><strong>Launch checklist</strong><span>Prepare the first real commerce test</span></div><span className="commerce-live">BEFORE CONTENT</span></div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(2,minmax(0,1fr))",gap:10,padding:16}}>
+            <label className="commerce-check"><input type="checkbox" checked={setup.tiktok_shop_ready} onChange={(e)=>setSetup((s)=>({...s,tiktok_shop_ready:e.target.checked}))}/><span><b>TikTok Shop access ready</b><small>Use the live account eligibility screen as the source of truth.</small></span></label>
+            <label className="commerce-check"><input type="checkbox" checked={setup.showcase_ready} onChange={(e)=>setSetup((s)=>({...s,showcase_ready:e.target.checked}))}/><span><b>Shop showcase ready</b><small>Product can be attached to the test when we publish.</small></span></label>
+            <label className="commerce-field"><span>Creator / TikTok profile URL</span><input value={setup.creator_profile_url} onChange={(e)=>setSetup((s)=>({...s,creator_profile_url:e.target.value}))} placeholder="https://www.tiktok.com/@..." /></label>
+            <label className="commerce-field"><span>Matching Instagram URL</span><input value={setup.instagram_url} onChange={(e)=>setSetup((s)=>({...s,instagram_url:e.target.value}))} placeholder="https://www.instagram.com/..." /></label>
+            <label className="commerce-field"><span>Tracking destination</span><input value={setup.tracking_destination} onChange={(e)=>setSetup((s)=>({...s,tracking_destination:e.target.value}))} placeholder="Product / tracked destination URL" /></label>
+            <label className="commerce-field"><span>Samples requested</span><input type="number" min="0" value={setup.samples_requested} onChange={(e)=>setSetup((s)=>({...s,samples_requested:e.target.value}))} /></label>
+          </div>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:10,padding:"0 16px 16px",flexWrap:"wrap"}}>
+            <div className="commerce-setup-status">{setup.tiktok_shop_ready && setup.creator_profile_url && setup.tracking_destination ? "Ready to move from discovery into the first creator test." : "Complete the live access, creator profile and tracking destination before publishing."}</div>
+            <button className="cs-btn" onClick={saveSetup} disabled={setupSaving}>{setupSaving ? "Saving…" : "Save checklist"}</button>
+          </div>
+        </section>
+
+        <style>{`
+          .commerce-setup{margin-bottom:2px}
+          .commerce-check{display:flex;align-items:flex-start;gap:9px;padding:11px 12px;border:1px solid var(--border);border-radius:11px;background:var(--surface-2);cursor:pointer}
+          .commerce-check input{margin-top:2px;accent-color:var(--accent)}
+          .commerce-check b{display:block;font-size:11px}
+          .commerce-check small{display:block;margin-top:3px;color:var(--text-muted);font-size:9px;line-height:1.45}
+          .commerce-field{display:grid;gap:6px}
+          .commerce-field span{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-subtle);font-weight:800}
+          .commerce-field input{width:100%;box-sizing:border-box;padding:10px 11px;border:1px solid var(--border-strong);border-radius:9px;background:var(--panel-2);color:var(--text);font:inherit;font-size:12px}
+          .commerce-setup-status{color:var(--text-muted);font-size:10px;line-height:1.45}
+          @media(max-width:760px){.commerce-check,.commerce-field{grid-column:1/-1}}
+        `}</style>
         <div className="commerce-flow">
           <div><strong>01 Discover</strong><span>Open the source where demand is visible.</span></div>
           <div><strong>02 Import</strong><span>Capture product or trend evidence without inventing data.</span></div>
