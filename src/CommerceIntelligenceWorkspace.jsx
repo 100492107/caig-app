@@ -472,7 +472,7 @@ export default function CommerceIntelligenceWorkspace() {
     };
     sessionStorage.setItem("cornerstone_commerce_context", JSON.stringify(context));
     sessionStorage.setItem("cornerstone_creator_opportunity", JSON.stringify(context));
-    window.location.href = "/content/remake";
+    window.location.href = "/content/creators";
   }
 
   return (
@@ -591,7 +591,7 @@ export default function CommerceIntelligenceWorkspace() {
                     <div><label>Format</label><b>{item.format || "—"}</b></div>
                     <div><label>Monetisation</label><b>{item.monetisation_route || "—"}</b></div>
                   </div>
-                  <div className="commerce-opportunity-footer"><span>KPI: {item.kpi || "—"} · Winner rule: {item.winner_rule || "—"}</span><div><button className="cs-btn-ghost" onClick={() => createTest(item)}>Plan test</button><button className="cs-btn" onClick={() => applyOpportunity(item)}>Apply to Creator Studio</button></div></div>
+                  <div className="commerce-opportunity-footer"><span>KPI: {item.kpi || "—"} · Winner rule: {item.winner_rule || "—"}</span><div><button className="cs-btn-ghost" onClick={() => createTest(item)}>Plan test</button><button className="cs-btn" onClick={() => applyOpportunity(item)}>Open in Creator Engine</button></div></div>
                 </article>
               ))}
             </div>
