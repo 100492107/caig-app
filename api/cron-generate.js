@@ -174,6 +174,7 @@ async function pollImage(falKey, requestId, maxMs = 180000) {
 }
 
 export default async function handler(req, res) {
+  if (String(process.env.DISABLE_FANVUE_CRON ?? "true").toLowerCase() !== "false") return res.status(410).json({ skipped: true, reason: "Legacy Fanvue autopilot is disabled while Track B commerce is the active revenue path." });
   if (req.headers.authorization !== `Bearer ${process.env.CRON_SECRET}`) {
     return res.status(401).json({ error: "Unauthorized" });
   }
