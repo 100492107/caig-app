@@ -16,18 +16,13 @@
       "maxDuration": 300
     },
     "api/queue-update.js": {
-      "maxDuration": 15
+      "maxDuration": 30
     },
     "api/store-image.js": {
       "maxDuration": 300
     }
   },
-  "crons": [
-    {
-      "path": "/api/cron-generate",
-      "schedule": "0 6 */2 * *"
-    }
-  ],
+  "crons": [],
   "headers": [
     {
       "source": "/index.html",
