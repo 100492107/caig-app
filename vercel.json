@@ -12,9 +12,6 @@
     "api/cron-publish.js": {
       "maxDuration": 60
     },
-    "api/cron-generate.js": {
-      "maxDuration": 300
-    },
     "api/queue-update.js": {
       "maxDuration": 30
     },
