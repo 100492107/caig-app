@@ -204,6 +204,7 @@ export default function CreatorEngineWorkspaceFixed() {
             creator_id: commerceContext.creator || persona,
             platform,
             monetisation_route: commerceContext.monetisation_route || job[1],
+            product_id: commerceContext.product_id || commerceContext.signals?.find((signal) => signal?.product_id)?.product_id || null,
             source_signal_ids: commerceContext.signal_ids || [],
             tracking_url: commerceContext.tracking_destination || commerceContext.tracking_url || null,
             cta: commerceContext.cta || pack.cta || 'Use the tracked product destination.',
