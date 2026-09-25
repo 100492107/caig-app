@@ -468,6 +468,9 @@ export default function CommerceIntelligenceWorkspace() {
       winner_rule: opportunity.winner_rule,
       signal_ids: opportunity.signal_ids || [],
       signals: linkedSignals,
+      tracking_destination: setup.tracking_destination || null,
+      creator_profile_url: setup.creator_profile_url || null,
+      instagram_url: setup.instagram_url || null,
       applied_at: new Date().toISOString(),
     };
     sessionStorage.setItem("cornerstone_commerce_context", JSON.stringify(context));
