@@ -1,3 +1,4 @@
+import { requireUser, sameOrigin } from '../lib/auth.js';
 // Track B video submit proxy. Keeps FAL credentials server-side.
 // Provider selection: Grok Imagine, MiniMax H3, Kling 3.0 Pro, Seedance 2.0 Fast.
 
@@ -57,6 +58,9 @@ async function parseBody(req) {
 }
 
 export default async function handler(req, res) {
+  if (!sameOrigin(req)) return res.status(403).json({ error: "Invalid origin" });
+  const user = await requireUser(req);
+  if (!user?.id) return res.status(401).json({ error: "Authentication required" });
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
   const key = process.env.FAL_API_KEY || process.env.FAL_KEY;
   if (!key) return res.status(500).json({ error: "FAL_API_KEY/FAL_KEY is not configured" });
