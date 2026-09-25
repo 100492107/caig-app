@@ -9,6 +9,7 @@
 
 import { generateQwenImageServer } from "../shared/qwen-image-provider.js";
 import { createClient } from "@supabase/supabase-js";
+import { requireUser, sameOrigin } from "../lib/auth.js";
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -437,7 +438,10 @@ async function registerAsset({ publicUrl, storagePath, requestId, postId, slideI
 
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+  if (!sameOrigin(req)) return res.status(403).json({ error: "Invalid origin" });
   if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) return res.status(500).json({ error: "Supabase not configured" });
+  const authenticatedUser = await requireUser(req);
+  if (!authenticatedUser?.id) return res.status(401).json({ error: "Authentication required" });
 
   let body;
   try {
@@ -586,7 +590,7 @@ export default async function handler(req, res) {
     }
 
     const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${path}`;
-    await registerAsset({ publicUrl, storagePath: path, requestId, postId, slideIndex, personaName, metadata });
+    await registerAsset({ publicUrl, storagePath: path, requestId, postId, slideIndex, personaName, metadata, ownerId: authenticatedUser.id });
 
     console.log("[store-image] stored:", publicUrl);
     return res.status(200).json({ publicUrl, storagePath: path, slideIndex: slideIndex ?? null });
