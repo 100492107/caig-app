@@ -84,6 +84,12 @@ function normalizeProfiles(value) {
       name: dna.name,
       type: id === 'cara_lila' ? 'Owned creator duo' : 'Owned creator',
       canonical_dna: dna,
+      public_links: row?.public_links && typeof row.public_links === 'object'
+        ? row.public_links
+        : CARA_LILA_PUBLIC_LINKS,
+      ...(id === 'cara_lila' && (!Array.isArray(row?.platforms) || row.platforms.every((p) => !String(p?.url || '').trim()))
+        ? { platforms: CARA_LILA_PUBLIC_CHANNELS }
+        : {}),
     };
   });
 }
