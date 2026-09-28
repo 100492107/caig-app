@@ -1,6 +1,6 @@
 import React from 'react'
 
-const NEW_LIFE = 'https://new-life-game-alpha.vercel.app/start-v2.html'
+const NEW_LIFE = '/new-life'
 
 const NAV_GROUPS = [
   { label: 'Operate', items: [
@@ -25,13 +25,14 @@ const NAV = NAV_GROUPS.flatMap(group => group.items)
 const UTILITY = [
   { id: 'library', label: 'Library', href: '/generations' },
   { id: 'system', label: 'System', href: '/system' },
+  { id: 'newlife', label: 'New Life', href: '/new-life' },
 ]
 
 export default function EnterpriseShell({ active = 'command', children, eyebrow = '' }) {
   const resolved = {
     remake: 'content', creators: 'voices', profiles: 'voices', production: 'production',
     publish: 'publish', measurement: 'measurement', content: 'content', command: 'command', commerce: 'commerce',
-    business: 'business', mission: 'mission', research: 'research', references: 'references', commerce: 'commerce', library: 'library', system: 'system',
+    business: 'business', mission: 'mission', research: 'research', references: 'references', commerce: 'commerce', library: 'library', system: 'system', newlife: 'newlife',
   }[active] || active
   return (
     <div className="cs-app">
@@ -57,13 +58,14 @@ export default function EnterpriseShell({ active = 'command', children, eyebrow 
         <div className="cs-rail-foot">
           <div className="cs-nav-group-label">Manage</div>
           {UTILITY.map(item=><a key={item.id} href={item.href}>{item.label}</a>)}
-          <a href={NEW_LIFE} target="_blank" rel="noreferrer"><span className="cs-dot" /> New Life ↗</a>
+          <a href={NEW_LIFE} className="cs-new-life-link"><span className="cs-dot" /> New Life ↗</a>
         </div>
       </aside>
       <div className="cs-stage">
         <div className="cs-stage-bar">
           <div className="cs-stage-context"><span className="label">{eyebrow||'Creator OS'}</span><span className="cs-context-divider">/</span><span className="meta">Command centre</span></div>
           <div className="cs-stage-actions">
+            <a className="cs-stage-new-life" href="/new-life">New Life <span>↗</span></a>
             <span className="cs-runtime"><i />Canonical DNA locked</span>
             <span className="cs-command-key">⌘ K</span>
           </div>
