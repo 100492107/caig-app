@@ -4,7 +4,7 @@ import { supabase } from './supabase';
 const actions = [
   { title: 'Content Engine', desc: 'Paste a winning video or channel. Analyse the mechanism. Build a stronger original package with Shorts. Publish and measure.', href: '/content/remake', external: false, tag: 'Primary product' },
   { title: 'Creators', desc: 'Use owned faces and voices when a package needs a persona. Start from evidence, then publish and measure.', href: '/content/creators', external: false, tag: 'Owned media' },
-  { title: 'New Life', desc: 'Keep the operator disciplined around family, health, money and the daily actions that let the content engine compound.', href: 'https://new-life-game-alpha.vercel.app/start-v2.html', external: true, tag: 'Execution' },
+  { title: 'New Life', desc: 'Keep the operator disciplined around family, health, money and the daily actions that let the content engine compound.', href: '/new-life', external: false, tag: 'Execution' },
 ];
 function Metric({ label, value, detail }) { return <div style={styles.metric}><div style={styles.metricLabel}>{label}</div><div style={styles.metricValue}>{value}</div><div style={styles.metricDetail}>{detail}</div></div>; }
 export default function CEOHome() {
