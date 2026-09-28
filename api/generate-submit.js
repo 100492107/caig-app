@@ -12,7 +12,7 @@ import {
   GROK_RESOLUTION,
   getPersonaVisual,
   refsForSubmit,
-} from "./cara-config.js";
+} from "../shared/cara-config.js";
 
 function stringifyPromptValue(value) {
   if (value == null) return "";
