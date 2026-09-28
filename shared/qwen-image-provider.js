@@ -2,7 +2,7 @@
 // Server-side adapter for the hosted Qwen/Qwen-Image-2.1 Gradio Space.
 // Kept outside /api so it does not count as an additional Vercel Function.
 
-import { getPersonaVisual } from "../api/cara-config.js";
+import { getPersonaVisual } from "./cara-config.js";
 
 const SPACE_URL = (process.env.QWEN_IMAGE_SPACE_URL || "https://qwen-qwen-image-2-1.hf.space").replace(/\/$/, "");
 const SPACE_TOKEN = process.env.QWEN_IMAGE_HF_TOKEN || process.env.HF_TOKEN || process.env.HUGGINGFACE_TOKEN || "";
