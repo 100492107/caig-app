@@ -1,5 +1,6 @@
 import { supabase } from "./supabase";
 import { creatorDnaFor } from "../shared/creator-dna.js";
+import { CARA_LILA_PUBLIC_CHANNELS, CARA_LILA_PUBLIC_LINKS } from "../shared/creator-links.js";
 
 const PROFILES_KEY = "caig_owned_profiles_v1";
 const EARNINGS_KEY = "caig_owned_earnings_v1";
@@ -39,12 +40,9 @@ export const DEFAULT_PROFILES = [
     type: "Owned creator duo",
     role: "BUILD + NOTICE · Contrast",
     canonical_dna: creatorDnaFor("duo"),
-    platforms: [
-      { network: "Instagram", handle: "", url: "", status: "planned" },
-      { network: "TikTok", handle: "", url: "", status: "planned" },
-      { network: "YouTube Shorts", handle: "", url: "", status: "planned" },
-    ],
-    notes: "One wants to move forward. One wants to look around first. Neither is always right.",
+    platforms: CARA_LILA_PUBLIC_CHANNELS,
+    public_links: CARA_LILA_PUBLIC_LINKS,
+    notes: "Primary public property for the first creator experiment. One wants to move forward. One wants to look around first. Neither is always right.",
   },
   {
     id: "youtube_main",
