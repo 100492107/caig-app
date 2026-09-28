@@ -18,6 +18,8 @@ import CommerceIntelligenceWorkspace from './CommerceIntelligenceWorkspace.jsx'
 import RevenueMission from './RevenueMission.jsx'
 import './CommerceIntelligence.css'
 import AuthGate from './AuthGate.jsx'
+import NewLifeBridge from './NewLifeBridge.jsx'
+import './CornerstoneTidy.css'
 
 const ContentWorkspaceShell = lazy(() => import('./ContentWorkspaceShell2.jsx'))
 const SystemWorkspace = lazy(() => import('./SystemWorkspace.jsx'))
@@ -52,6 +54,7 @@ function Route(){
   if(path==='/references')return <ReferenceBoardWorkspace/>
   if(path==='/commerce')return <CommerceIntelligenceWorkspace/>
   if(path==='/mission')return <RevenueMission/>
+  if(path==='/new-life')return <NewLifeBridge/>
   if(path==='/content'||path.startsWith('/content/'))return <ContentWorkspaceShell/>
   if(path==='/system'||path==='/ceo')return <SystemWorkspace/>
   if(path==='/generations')return <UserLibraryWorkspace/>
