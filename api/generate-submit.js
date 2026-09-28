@@ -285,7 +285,7 @@ export default async function handler(req, res) {
   const _personaId = personaId || persona_id || "cara";
   const _visual = getPersonaVisual(_personaId);
   if (!_visual.refs?.length) {
-    return res.status(500).json({ error: `${_visual.id.toUpperCase()}_REFS is empty in cara-config.js — upload refs first` });
+    return res.status(500).json({ error: `${_visual.id.toUpperCase()}_REFS is empty in shared/cara-config.js — upload refs first` });
   }
   try {
     const prompt = buildPrompt({
