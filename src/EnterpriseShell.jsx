@@ -9,14 +9,14 @@ const NAV_GROUPS = [
     { id: 'business', label: 'Business', href: '/business', key: '03' },
   ]},
   { label: 'Creator loop', items: [
-    { id: 'research', label: 'Research', href: '/research', key: '03' },
-    { id: 'references', label: 'References', href: '/references', key: '04' },
-    { id: 'commerce', label: 'Commerce', href: '/commerce', key: '05' },
-    { id: 'content', label: 'Build', href: '/content/remake', key: '06' },
-    { id: 'voices', label: 'Voices', href: '/content/creators', key: '06' },
-    { id: 'production', label: 'Make', href: '/content/production', key: '07' },
-    { id: 'publish', label: 'Publish', href: '/content/publish', key: '08' },
-    { id: 'measurement', label: 'Learn', href: '/content/measurement', key: '09' },
+    { id: 'research', label: 'Research', href: '/research', key: '04' },
+    { id: 'references', label: 'References', href: '/references', key: '05' },
+    { id: 'commerce', label: 'Commerce', href: '/commerce', key: '06' },
+    { id: 'content', label: 'Build', href: '/content/remake', key: '07' },
+    { id: 'voices', label: 'Voices', href: '/content/creators', key: '08' },
+    { id: 'production', label: 'Make', href: '/content/production', key: '09' },
+    { id: 'publish', label: 'Publish', href: '/content/publish', key: '10' },
+    { id: 'measurement', label: 'Learn', href: '/content/measurement', key: '11' },
   ]},
 ]
 
