@@ -149,7 +149,7 @@ export default function CreatorDnaDossier() {
             </div>
           </div>
 
-          <PublicChannels label={`${dna.name} · public distribution`} />
+          <PublicChannels label="Cara + Lila · shared public account" />
 
           <div className="dna-facts">
             <Fact label="Core need" value={dna.coreNeed} />
