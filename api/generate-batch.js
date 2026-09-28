@@ -3,7 +3,7 @@ import { requireUser, sameOrigin } from '../lib/auth.js';
 // Streams each completed post back as NDJSON (one JSON line per post) so the
 // browser can save to queue in real-time regardless of screen state.
 
-import { CARA_IDENTITY_LOCK, getPersonaVisual } from "./cara-config.js";
+import { CARA_IDENTITY_LOCK, getPersonaVisual } from "../shared/cara-config.js";
 import { creatorDnaText } from "../shared/creator-dna.js";
 
 // Persona files inlined — Vercel serverless has no runtime filesystem access.
