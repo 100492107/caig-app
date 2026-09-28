@@ -64,6 +64,7 @@ function CreatorMiniCard({ id }) {
 }
 
 
+const PUBLIC_CHANNEL_CSS = `
 .dna-public{margin-top:14px;padding:14px 15px;border:1px solid var(--border,#2a3038);border-radius:14px;background:var(--surface,#11151b)}
 .dna-public-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-top:10px}
 .dna-public-grid a{display:block;padding:9px 10px;border:1px solid var(--border,#2a3038);border-radius:10px;background:var(--panel,#0d1117);color:inherit;text-decoration:none;min-width:0}
@@ -71,6 +72,7 @@ function CreatorMiniCard({ id }) {
 .dna-public-grid span{display:block;font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-subtle,#7d8593);font-weight:800}
 .dna-public-grid strong{display:block;margin-top:5px;font-size:9px;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 @media(max-width:850px){.dna-public-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+`;
 
 export default function CreatorDnaDossier() {
   const [tab, setTab] = useState('cara')
@@ -79,6 +81,7 @@ export default function CreatorDnaDossier() {
 
   return (
     <section className="dna-dossier">
+      <style>{PUBLIC_CHANNEL_CSS}</style>
       <div className="dna-header">
         <div>
           <div className="dna-kicker">Canonical identity system</div>
