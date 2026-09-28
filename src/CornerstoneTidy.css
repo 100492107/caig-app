@@ -1,0 +1,35 @@
+/* Final product tidy layer — keeps the existing Cornerstone architecture, while reducing density and visual noise. */
+
+.cs-stage-new-life{display:inline-flex;align-items:center;gap:7px;min-height:30px;padding:0 10px;border:1px solid rgba(216,195,158,.22);border-radius:999px;background:rgba(216,195,158,.05);color:#d8c39e!important;font-size:10px;font-weight:750;letter-spacing:.02em}
+.cs-stage-new-life span{font-size:10px;opacity:.7}
+.cs-stage-new-life:hover{background:rgba(216,195,158,.09);border-color:rgba(216,195,158,.34)}
+.cs-rail{padding:16px 12px!important}
+.cs-brand{padding-left:7px!important;padding-right:7px!important}
+.cs-rail-intro{margin:4px 6px 14px!important}
+.cs-rail-copy{max-width:25ch!important}
+.cs-nav-group{gap:3px!important}
+.cs-nav-group-label{margin:8px 6px 5px!important}
+.cs-rail-link{min-height:34px!important;border-radius:8px!important;padding:0 10px!important}
+.cs-rail-foot{padding-top:12px!important}
+.cs-rail-foot a{min-height:32px!important}
+.cs-new-life-link{color:#d8c39e!important;background:rgba(216,195,158,.04);border:1px solid rgba(216,195,158,.15)}
+.cs-new-life-link:hover{background:rgba(216,195,158,.08)!important;border-color:rgba(216,195,158,.28)}
+.cs-stage-bar{min-height:48px!important;padding:0 20px!important}
+.cs-stage-actions{gap:8px!important}
+.cs-runtime{font-size:9px!important}
+.cs-stage-body{width:min(1180px,100%)!important;padding:28px 28px 72px!important}
+.home{max-width:1180px!important}
+.cs-page-head{padding-bottom:20px!important}
+.cs-page-head h1{font-size:clamp(27px,3.5vw,35px)!important}
+.home .panel,.cs-page .panel{border-radius:14px!important}
+.home .metric{padding:15px!important}
+.home .metrics{border-radius:14px!important}
+
+.cs-new-life-bridge{min-height:100svh;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at 50% -12%,#1d222c 0,#0b0e13 42%,#07090d 82%)}
+.cs-new-life-bridge-card{width:min(480px,100%);padding:34px;border:1px solid rgba(255,255,255,.08);border-radius:22px;background:#0d1117;box-shadow:0 28px 90px rgba(0,0,0,.35)}
+.cs-new-life-bridge-mark{width:38px;height:38px;display:grid;place-items:center;border-radius:12px;background:#d8c39e;color:#111318;font-size:15px;font-weight:950}
+.cs-new-life-bridge-kicker{margin-top:28px;color:#778192;font-size:9px;letter-spacing:.16em;font-weight:900}
+.cs-new-life-bridge h1{margin:9px 0 6px;font-size:clamp(34px,6vw,52px);letter-spacing:-.055em}
+.cs-new-life-bridge p{color:#8f98a8;font-size:13px;line-height:1.55}
+.cs-new-life-bridge-cta{display:inline-flex;align-items:center;justify-content:center;min-height:44px;margin-top:20px;padding:0 16px;border-radius:11px;background:#d8c39e;color:#141510;font-size:11px;font-weight:900}
+@media(max-width:900px){.cs-stage-new-life{display:none}.cs-stage-body{padding:22px 16px 56px!important}}
