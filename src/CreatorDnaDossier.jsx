@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react'
 import { creatorDnaFor } from '../shared/creator-dna.js'
+import { CARA_LILA_PUBLIC_CHANNELS } from '../shared/creator-links.js'
 
 const IMAGE_REFERENCES = {
   cara: 'https://zvyioxhwdyocaanzcgqf.supabase.co/storage/v1/object/public/cara%20ref/Cara_5.jpg',
@@ -26,6 +27,22 @@ function Fact({ label, value, wide = false }) {
   )
 }
 
+function PublicChannels({ label = 'Public distribution' }) {
+  return (
+    <div className="dna-public">
+      <div className="dna-section-head"><strong>{label}</strong><span>Canonical public destinations</span></div>
+      <div className="dna-public-grid">
+        {CARA_LILA_PUBLIC_CHANNELS.map((channel) => (
+          <a key={channel.network} href={channel.url} target="_blank" rel="noreferrer">
+            <span>{channel.network}</span>
+            <strong>{channel.handle || channel.url.replace(/^https?:\/\//, '').replace(/\/$/, '')}</strong>
+          </a>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 function CreatorMiniCard({ id }) {
   const dna = creatorDnaFor(id)
   return (
@@ -45,6 +62,15 @@ function CreatorMiniCard({ id }) {
     </article>
   )
 }
+
+
+.dna-public{margin-top:14px;padding:14px 15px;border:1px solid var(--border,#2a3038);border-radius:14px;background:var(--surface,#11151b)}
+.dna-public-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-top:10px}
+.dna-public-grid a{display:block;padding:9px 10px;border:1px solid var(--border,#2a3038);border-radius:10px;background:var(--panel,#0d1117);color:inherit;text-decoration:none;min-width:0}
+.dna-public-grid a:hover{border-color:var(--accent,#d4b56a);background:rgba(212,181,106,.06)}
+.dna-public-grid span{display:block;font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-subtle,#7d8593);font-weight:800}
+.dna-public-grid strong{display:block;margin-top:5px;font-size:9px;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media(max-width:850px){.dna-public-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 
 export default function CreatorDnaDossier() {
   const [tab, setTab] = useState('cara')
@@ -99,6 +125,7 @@ export default function CreatorDnaDossier() {
             <summary>Relationship rules</summary>
             <List items={dna.relationshipRules} />
           </details>
+          <PublicChannels label="Cara + Lila · public account" />
           <div className="dna-duo-grid">
             <CreatorMiniCard id="cara" />
             <CreatorMiniCard id="lila" />
@@ -118,6 +145,8 @@ export default function CreatorDnaDossier() {
               </div>
             </div>
           </div>
+
+          <PublicChannels label={`${dna.name} · public distribution`} />
 
           <div className="dna-facts">
             <Fact label="Core need" value={dna.coreNeed} />
