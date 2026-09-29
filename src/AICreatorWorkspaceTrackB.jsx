@@ -62,6 +62,14 @@ function nameFor(persona) { return PEOPLE.find((p) => p.id === persona)?.name ||
 function notesFor(item) { try { return item?.notes ? JSON.parse(item.notes) : {}; } catch { return {}; } }
 function sleep(ms) { return new Promise((resolve) => setTimeout(resolve, ms)); }
 
+function contentLaneFor(contentType, goal) {
+  if (contentType === "fanvue") return "SOFT COMMERCE";
+  if (goal === "Reach / attention") return "ATTENTION / CONTROVERSY";
+  if (goal === "Product discovery" || goal === "Conversion") return "SOFT COMMERCE";
+  if (goal === "Engagement" || goal === "Story / personality") return "LIFESTYLE / RELATIONSHIP / DAY-IN-LIFE";
+  return "USEFUL / EDUCATIONAL / INTERESTING";
+}
+
 async function queueQwen({ title, persona, systemPrompt, userPrompt, jobType = "content_package" }) {
   const { data, error } = await supabase.from("local_ai_jobs").insert({
     title,
@@ -244,6 +252,7 @@ export default function AICreatorWorkspaceTrackB() {
 
   const selectedPerson = useMemo(() => PEOPLE.find((p) => p.id === persona), [persona]);
   const personaBible = PUBLIC_BIBLES[persona === "cara_lila" ? "duo" : persona];
+  const contentLane = useMemo(() => contentLaneFor(contentType, goal), [contentType, goal]);
 
   useEffect(() => {
     (async () => {
@@ -264,6 +273,7 @@ export default function AICreatorWorkspaceTrackB() {
   }, []);
 
   const context = useMemo(() => [
+    `CONTENT LANE: ${contentLane}`,
     `CONTENT TYPE: ${contentType}`,
     contentType === "social" ? `PLATFORM: ${platform}\nGOAL: ${goal}` : "",
     contentType === "fanvue" ? `FANVUE PURPOSE: ${fanvuePurpose}\nFANVUE VISUAL DIRECTION: ${FANVUE_PURPOSES.find((x) => x[0] === fanvuePurpose)?.[1]}` : "",
@@ -293,14 +303,32 @@ export default function AICreatorWorkspaceTrackB() {
       const draftJob = await queueQwen({ title: `AI Creator · ${selectedPerson?.name} · draft`, persona, systemPrompt: writerSystem, userPrompt: writerUser });
       const draft = parseJson(await waitQwen(draftJob, setMessage));
 
-      const checkerSystem = `You are the Human Quality Gate for CornerstoneAIAssets and the final editor before Review Queue.\nFor public Cara + Lila drafts, apply the canonical ATTENTION GATE from docs/CARA_LILA_ATTENTION_GATE.md.\n\nScore 0 or 1 for MUST-HIT items 1–8:\n1 ordinary setting\n2 pattern interrupt in first 1–2 seconds\n3 private truth / social rule most suppress\n4 genuine disagreement possible\n5 “WHAT?” threshold\n6 sounds like Cara/Lila\n7 open loop / unresolved tension\n8 behaviour or dialogue beats lecture\n\nPublic content ships only when MUST-HIT >= 5/8 and all three filters are YES:\nA) what would they say/do that most people keep private?\nB) would reasonable people genuinely disagree?\nC) do the first seconds force “I need what happens next”?\n\nNEVER-DO: rage bait/humiliation, fake duo fight, lie for outrage, pretty-only content with no broken script, hard sell in hook, hot-take-only identity, platform-toxic content, full explanation in second one.\n\nReturn JSON only: {"score":0,"must_hit":{"1":0,"2":0,"3":0,"4":0,"5":0,"6":0,"7":0,"8":0},"never_do":[],"three_filters":{"A":"YES","B":"YES","C":"YES"},"issues":[],"revised":{same fields as the draft}}.`;      const auditJob = await queueQwen({ title: `AI Creator · ${selectedPerson?.name} · human quality gate`, persona, systemPrompt: checkerSystem, userPrompt: `PERSONA BIBLE:\n${personaBible}\n\nCONTEXT:\n${context}\n\nDRAFT:\n${JSON.stringify(draft)}`, jobType: "creative_human_check" });
+      const checkerSystem = `You are the Human Quality Gate for CornerstoneAIAssets and the final editor before Review Queue.
+The selected content lane is: ${contentLane}.
+
+ATTENTION / CONTROVERSY: apply docs/CARA_LILA_ATTENTION_GATE.md. Require >=5/8 MUST-HIT, no NEVER-DO, and all three filters YES.
+USEFUL / EDUCATIONAL / INTERESTING: do not demand controversy. Check genuine teaching, explanation, comparison, demonstration, curation or discovery value.
+LIFESTYLE / RELATIONSHIP / DAY-IN-LIFE: do not demand controversy. Check believable ordinary life, personality, chemistry, humour, continuity and a reason to return.
+SOFT COMMERCE: do not demand controversy. Check useful context, natural product fit and no hard-sell opening.
+
+All lanes fail for AI slop, random/prettified scenes, mismatched hook/visual, inconsistent creator, irrelevant props, impossible actions, invented facts/experiences, or mixed Track A material.
+
+Return JSON only: {"score":0,"must_hit":{"1":0,"2":0,"3":0,"4":0,"5":0,"6":0,"7":0,"8":0},"never_do":[],"three_filters":{"A":"YES","B":"YES","C":"YES"},"issues":[],"revised":{same fields as the draft}}.`;
+const auditJob = await queueQwen({ title: `AI Creator · ${selectedPerson?.name} · human quality gate`, persona, systemPrompt: checkerSystem, userPrompt: `PERSONA BIBLE:\n${personaBible}\n\nCONTEXT:\n${context}\n\nDRAFT:\n${JSON.stringify(draft)}`, jobType: "creative_human_check" });
       const audit = parseJson(await waitQwen(auditJob, setMessage));
-      const gateHits = audit?.must_hit && typeof audit.must_hit === "object" ? Object.values(audit.must_hit).filter((v) => Number(v) === 1).length : 0;
+      const gateHits = audit?.must_hit && typeof audit.must_hit === "object"
+        ? Object.values(audit.must_hit).filter((v) => Number(v) === 1).length
+        : 0;
       const neverDo = Array.isArray(audit?.never_do) ? audit.never_do : [];
       const filters = audit?.three_filters || {};
       const filtersPass = [filters.A, filters.B, filters.C].every((v) => String(v).toUpperCase() === "YES");
-      if (gateHits < 5 || neverDo.length > 0 || !filtersPass) {
-        throw new Error(`Attention Gate rejected this concept (${gateHits}/8; NEVER-DO=${neverDo.length}; three filters=${filtersPass ? "Y/Y/Y" : "not Y/Y/Y"}).`);
+      const score = Number(audit?.score || 0);
+      const humanPass = score >= 72;
+      const attentionPass = contentLane !== "ATTENTION / CONTROVERSY" || (gateHits >= 5 && neverDo.length === 0 && filtersPass);
+      if (!humanPass || !attentionPass) {
+        throw new Error(contentLane === "ATTENTION / CONTROVERSY"
+          ? `Attention Gate rejected this concept (${gateHits}/8; NEVER-DO=${neverDo.length}; three filters=${filtersPass ? "Y/Y/Y" : "not Y/Y/Y"}).`
+          : `Human Quality Gate rejected this ${contentLane.toLowerCase()} concept (score ${score}/100).`);
       }
 
       const final = { ...draft, ...(audit?.revised || {}) };
@@ -331,6 +359,7 @@ export default function AICreatorWorkspaceTrackB() {
           script: final.script || "",
           video_prompt: final.video_prompt || "",
           creative_reason: final.creative_reason || "",
+          content_lane: contentLane,
           human_audit: audit,
           carousel_slides: Array.isArray(final.carousel_slides) ? final.carousel_slides : [],
           fanvuePurpose: contentType === "fanvue" ? fanvuePurpose : null,
