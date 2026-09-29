@@ -232,3 +232,226 @@ button.cs-btn-ghost:hover,.ghost:hover,.ce-secondary:hover,.ch-mini:hover,.sys-c
 @media(max-width:960px){
   .cmd-today-head,.cmd-mission-grid,.cmd-creators-slim{grid-template-columns:1fr}
 }
+
+
+/* ============================================================
+   MOBILE SYSTEM V2 — deliberate phone UI, not compressed desktop
+   ============================================================ */
+.cs-mobile-header,.cs-mobile-nav{display:none}
+
+@media(max-width:900px){
+  html,body,#root{width:100%;min-width:0;overflow-x:hidden}
+  body{padding-bottom:0!important}
+  .cs-app{display:block!important;min-height:100dvh!important}
+  .cs-rail{display:none!important}
+  .cs-stage{width:100%;min-width:0}
+  .cs-stage-body{width:100%!important;max-width:none!important;padding:14px 14px calc(100px + env(safe-area-inset-bottom))!important}
+  .cs-mobile-header{
+    display:grid!important;
+    grid-template-columns:auto minmax(0,1fr) auto;
+    align-items:center;
+    gap:9px;
+    position:sticky;
+    top:0;
+    z-index:1000;
+    min-height:56px;
+    padding:8px 12px;
+    background:rgba(7,9,13,.94);
+    border-bottom:1px solid var(--cs-os-line);
+    backdrop-filter:blur(18px);
+    -webkit-backdrop-filter:blur(18px);
+  }
+  .cs-mobile-brand{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    min-width:0;
+    color:var(--cs-os-text);
+    text-decoration:none;
+  }
+  .cs-mobile-brand .cs-brand-mark{
+    width:30px!important;height:30px!important;min-width:30px;
+    border-radius:9px!important;font-size:12px!important;
+  }
+  .cs-mobile-brand strong{font-size:11px;letter-spacing:-.02em}
+  .cs-mobile-current{
+    min-width:0;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    text-align:center;
+    font-size:10px;
+    font-weight:750;
+    color:var(--cs-os-muted);
+  }
+  .cs-mobile-life{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-height:34px;
+    padding:0 9px;
+    border:1px solid rgba(216,195,158,.2);
+    border-radius:10px;
+    color:var(--cs-os-accent2);
+    font-size:9px;
+    font-weight:800;
+    text-decoration:none;
+    white-space:nowrap;
+    background:var(--cs-os-accent-soft);
+  }
+  .cs-mobile-nav{
+    display:grid!important;
+    grid-template-columns:repeat(6,minmax(0,1fr));
+    position:fixed;
+    left:6px;right:6px;
+    bottom:max(6px,env(safe-area-inset-bottom));
+    z-index:1200;
+    padding:4px;
+    gap:3px;
+    border:1px solid var(--cs-os-line2);
+    border-radius:18px;
+    background:rgba(9,12,16,.96);
+    box-shadow:0 16px 48px rgba(0,0,0,.4);
+    backdrop-filter:blur(18px);
+    -webkit-backdrop-filter:blur(18px);
+  }
+  .cs-mobile-nav a{
+    min-width:0;
+    min-height:52px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    gap:3px;
+    border-radius:13px;
+    color:var(--cs-os-subtle);
+    text-decoration:none;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .cs-mobile-nav a span{font-size:14px;line-height:1}
+  .cs-mobile-nav a small{font-size:8px;font-weight:800;letter-spacing:.02em;white-space:nowrap}
+  .cs-mobile-nav a.is-active{background:var(--cs-os-accent-soft);color:var(--cs-os-accent2);box-shadow:inset 0 0 0 1px rgba(216,195,158,.12)}
+  .cs-mobile-nav a:active{transform:scale(.98)}
+
+  .cs-page{min-width:0!important;gap:14px!important}
+  .cs-page-head{padding-bottom:15px!important}
+  .cs-page-head .eyebrow{font-size:8px!important}
+  .cs-page-head h1{font-size:clamp(30px,9.5vw,44px)!important;line-height:.98!important;max-width:100%!important}
+  .cs-page-head p{font-size:12px!important;line-height:1.55!important}
+  .cs-flow{
+    display:flex!important;
+    overflow-x:auto!important;
+    gap:6px!important;
+    padding:1px 1px 3px!important;
+    margin:0!important;
+    scrollbar-width:none;
+    scroll-snap-type:x proximity;
+    -webkit-overflow-scrolling:touch;
+  }
+  .cs-flow::-webkit-scrollbar{display:none}
+  .cs-flow a{
+    flex:0 0 126px;
+    min-height:64px!important;
+    scroll-snap-align:start;
+    padding:9px!important;
+  }
+  .cs-flow a small{display:none!important}
+
+  .cs-command-loop,
+  .cs-creators,
+  .ce-dna,
+  .cw-head,
+  .pw-intro,
+  .pub-top,
+  .pm-stats,
+  .pm-layout,
+  .ch-grid,
+  .bi-grid2,
+  .bi-section-title{
+    grid-template-columns:1fr!important;
+  }
+
+  .cs-command-card,
+  .cs-creator-card,
+  .ce-dna-card,
+  .cw-box,
+  .pw-card,
+  .pub-queue,
+  .pub-launch,
+  .pm-card,
+  .ch-card,
+  .bi-panel,
+  .rm-board,
+  .rm-card,
+  .rm-working{
+    width:100%!important;
+    min-width:0!important;
+    box-sizing:border-box!important;
+  }
+
+  .cs-command-card,.cs-creator-card{padding:15px!important}
+  .cs-creator-card{grid-template-columns:48px minmax(0,1fr)!important}
+  .cmd-mission-grid,.cmd-mission-actions,.cmd-progress-meta,.cmd-mission-why{grid-template-columns:1fr!important}
+  .cmd-mission-grid{display:grid!important}
+  .cmd-mission-actions{display:grid!important}
+  .cmd-mission-actions .primary,.cmd-mission-actions .ghost{width:100%!important}
+  .cmd-path-item{grid-template-columns:26px minmax(0,1fr)!important}
+  .cmd-path-go,.cmd-path-status{display:none!important}
+
+  .ce-roster{grid-template-columns:1fr!important}
+  .ce-roster button{min-height:72px!important}
+  .ce-objectives{grid-template-columns:1fr 1fr!important}
+  .ce-objectives button{min-height:48px!important}
+  .ce-grid,.ce-two{grid-template-columns:1fr!important}
+  .ce-form{padding:14px!important}
+  .ce-actions{display:grid!important;grid-template-columns:1fr!important}
+  .ce-actions>*{width:100%!important}
+
+  .cw-actions,.staged-actions,.pub-row,.operator-stats{grid-template-columns:1fr!important;display:grid!important}
+  .cw-actions>*,
+  .staged-actions>*,
+  .pub-row>*{width:100%!important}
+  .rm-actions{display:grid!important;grid-template-columns:1fr!important}
+  .rm-actions>*{width:100%!important}
+  .rm-sticky{position:sticky!important;bottom:calc(84px + env(safe-area-inset-bottom))!important}
+
+  .pub-board{grid-template-columns:1fr!important}
+  .pub-queue{border-right:0!important;border-bottom:1px solid var(--cs-os-line)!important;max-height:none!important}
+  .pub-list,.pm-list{max-height:none!important}
+  .pm-stat{min-width:0!important}
+  .pm-winner{overflow-wrap:anywhere}
+
+  .bi-kpis{grid-template-columns:1fr 1fr!important}
+  .bi-platforms{grid-template-columns:1fr!important}
+  .bi-upload{grid-template-columns:1fr!important}
+  .bi-tabs{overflow-x:auto!important;white-space:nowrap!important;display:flex!important;gap:5px!important;scrollbar-width:none}
+  .bi-tabs::-webkit-scrollbar{display:none}
+  .bi-tabs button,.bi-tabs a{flex:0 0 auto!important;min-height:42px!important}
+  .bi-table{overflow-x:auto!important}
+  .bi-table>div{min-width:280px}
+
+  input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+  select,textarea{font-size:16px!important;min-height:46px!important}
+  textarea{min-height:110px!important}
+  button,.cs-btn,.cs-btn-ghost,.primary,.ghost,.pub-btn,.pm-btn,.ch-primary,.ch-add,.cw-btn,.pw-cta,.ce-primary,.ce-secondary{
+    min-height:46px!important;
+  }
+
+  img,video,canvas,svg{max-width:100%}
+  pre{max-width:100%;overflow:auto;-webkit-overflow-scrolling:touch}
+}
+
+@media(max-width:560px){
+  .cs-stage-body{padding-left:12px!important;padding-right:12px!important}
+  .cs-mobile-header{padding-left:10px;padding-right:10px}
+  .cs-mobile-brand strong{display:none}
+  .cs-mobile-life{padding:0 8px}
+  .cs-mobile-nav{left:4px;right:4px}
+  .cs-mobile-nav a{min-height:50px}
+  .cs-mobile-nav a span{font-size:13px}
+  .cs-mobile-nav a small{font-size:7px}
+  .cs-page-head h1{font-size:32px!important}
+  .cs-flow a{flex-basis:118px}
+  .bi-kpis{grid-template-columns:1fr!important}
+  .ce-objectives{grid-template-columns:1fr!important}
+}
