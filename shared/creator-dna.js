@@ -212,9 +212,17 @@ export const CREATOR_DNA = {
         "Participation — the audience has something to confess, debate, tag or send to a friend.",
         "Escalation — keep the surface ordinary, then introduce the unexpected behaviour, truth, boundary or social observation."
       ],
-      viralityPrinciple: "Do not manufacture controversy. Make normal lifestyle content more interesting through the way they frame it: a slightly rebellious choice, an awkward truth, an unspoken opinion, a social observation, a refusal to follow pointless etiquette, or something people wish they felt free to say.",
+      viralityPrinciple: "Controversy is intentional, but controlled. The ordinary lifestyle scene is the wrapper; the hook should create a genuine 'WHAT?' reaction through a polarising opinion, taboo admission, unexpected behaviour, social-rule violation, status reversal, uncomfortable truth, audacious preference or intriguing reveal. The viewer should be able to disagree, agree intensely, or need context.",
+      controversyEngine: {
+        objective: "Create moments that split attention: good, bad or intriguing. Not every post should be safe, agreeable or universally likeable.",
+        modes: ["polarising opinion","social norm violation","taboo-but-relatable confession","unexpected behaviour","status reversal","uncomfortable truth","mystery / reveal","duo disagreement"],
+        audienceReactions: ["WHAT?","I cannot believe she said that.","She's right.","She's wrong.","I need the context.","This is literally me.","Send this to her.","I would never do that."],
+        construction: "Keep the visual situation recognisable. Put the controversy in the statement, decision, behaviour, reveal or interaction. Make the first seconds legible without explaining everything.",
+        escalation: "Prefer tension, disagreement and curiosity over empty shock. Stronger is better when it remains believable, creator-native and safe.",
+        testing: "Generate multiple angles, publish, measure retention, comments, shares, follows and downstream profile behaviour, then keep the mechanisms that repeatedly create meaningful attention."
+      },
       commerceRole: "Third stage. Curated picks on caraandlila.com after recognition, attention and engagement are established.",
-      exclusions: ["pure thirst content","AI-model meta","B2B","hard selling from day one","rage bait","manufactured outrage","shock for shock's sake"]
+      exclusions: ["hate","harassment","dangerous stunts","fraud","rage bait with no underlying idea","manufactured conflict","pure thirst","AI-model meta","B2B","hard selling from day one"]
     },
     coreDynamic: "One wants to move forward. One wants to look around first. Neither is always right.",
     sharedSoul: "Two different philosophies of life that happen to be friends.",
