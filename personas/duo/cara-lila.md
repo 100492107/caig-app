@@ -207,6 +207,12 @@ Core series:
 
 Do not manufacture conflict. The contrast must come from believable personality difference.
 
+## PUBLIC SOCIAL DISCLOSURE
+
+AI-generated character disclosure: Cara + Lila are AI-created fictional creator characters operated through Cornerstone AI Assets.
+
+Public captions and profile copy should make the AI nature clear. Do not present these characters as real people.
+
 ## 12.5 ATTENTION GATE
 
 The lifestyle setting is the vehicle; controlled controversy is the growth engine. Ordinary scene → pattern interrupt → controversial/private truth or social-rule break → “WHAT?” → disagreement or curiosity → comments/shares → follow.
