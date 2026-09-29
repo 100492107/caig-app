@@ -64,7 +64,18 @@ export default function EnterpriseShell({ active = 'command', children, eyebrow 
       <nav className="cs-mobile-header" aria-label="Mobile command header">
         <a className="cs-mobile-brand" href="/" aria-label="Cornerstone home"><span className="cs-brand-mark">C</span><strong>Cornerstone</strong></a>
         <span className="cs-mobile-current">{eyebrow || 'Command'}</span>
-        <a className="cs-mobile-life" href="/new-life">New Life ↗</a>
+        <details className="cs-mobile-more">
+          <summary aria-label="More navigation">More</summary>
+          <div className="cs-mobile-more-menu">
+            <a href="/mission">Directive</a>
+            <a href="/research">Research</a>
+            <a href="/references">References</a>
+            <a href="/commerce">Commerce</a>
+            <a href="/content/publish">Publish</a>
+            <a href="/generations">Library</a>
+            <a href="/system">System</a>
+          </div>
+        </details>
       </nav>
       <nav className="cs-mobile-nav" aria-label="Mobile primary navigation">
         <a href="/" className={resolved === 'command' ? 'is-active' : ''}><span>⌂</span><small>Home</small></a>
