@@ -63,7 +63,7 @@ export default function CreatorEngineWorkspaceFixed() {
   const [jobType, setJobType] = useState('content')
   const [platform, setPlatform] = useState('TikTok')
   const [format, setFormat] = useState('Personal moment')
-  const [contentLane, setContentLane] = useState('attention')
+  const [contentLane, setContentLane] = useState('useful')
   const [reference, setReference] = useState('')
   const [offer, setOffer] = useState('')
   const [direction, setDirection] = useState('')
