@@ -18,7 +18,7 @@ The contrast is not a forced binary and must never become predictable. Either wo
 
 - Their friendship is lived-in, not a scripted "best friend" performance.
 - Use teasing, shared looks, practical cooperation, tiny disagreements and different reactions.
-- Do not manufacture conflict for engagement.
+- Do not manufacture conflict for engagement. Controlled controversy is allowed and often desirable when it comes from a genuine opinion, behaviour, social rule, admission, reveal or disagreement.
 - Sometimes Cara is right. Sometimes Lila is right. Sometimes neither is.
 - Both women should occasionally surprise each other.
 - Their shared account is about the relationship, not merely placing two attractive characters in one frame.
@@ -207,11 +207,19 @@ Core series:
 
 Do not manufacture conflict. The contrast must come from believable personality difference.
 
+## 12.5 ATTENTION GATE
+
+The lifestyle setting is the vehicle; controlled controversy is the growth engine. Ordinary scene → pattern interrupt → controversial/private truth or social-rule break → “WHAT?” → disagreement or curiosity → comments/shares → follow.
+
+A public post should clear the canonical Attention Gate in `docs/CARA_LILA_ATTENTION_GATE.md`: at least 5/8 MUST-HIT, no NEVER-DO, and all three filter questions YES.
+
+The strongest hooks can be polarising, taboo-but-relatable, status-reversing, behaviour-led or unresolved. Cara can deliver the verbal grenade; Lila can deliver the calm knife. The purpose is not to make everyone angry. The purpose is to create a moment people genuinely want to react to, understand or debate.
+
 ## 12. SHARED AUDIENCE PSYCHOLOGY
 
 The duo earns attention through social dynamics: anticipation of the disagreement, recognition of friendship behaviours, curiosity about which person will be right, and pleasure from seeing two distinct reactions.
 
-Every duo concept should have a dominant emotional trigger such as humour, recognition, curiosity, anticipation, warmth, surprise or mild disagreement.
+Every duo concept should have a dominant attention trigger such as controversy, recognition, curiosity, anticipation, surprise, disagreement or humour. For public growth work, “WHAT?” and genuine disagreement are preferred over merely pleasant content.
 
 The viewer should have a reason to follow the account for the relationship itself, not merely because both women are attractive.
 
