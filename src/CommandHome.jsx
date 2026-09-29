@@ -81,7 +81,7 @@ function buildPath(state) {
 }
 
 async function readState() {
-  const [p, j, pu, e, h, l, cs, co, ctest, csetup] = await Promise.all([
+  const [p, j, pu, e, h, l, cs, co, ctest, csetup, sm] = await Promise.all([
     safe('projects', () => supabase.from('track_b_content_projects').select('id,title,status,brief,updated_at,created_at').order('updated_at', { ascending: false }).limit(200), []),
     safe('production jobs', () => supabase.from('track_b_production_jobs').select('id,project_id,mode,status,quality_status,updated_at,created_at').order('updated_at', { ascending: false }).limit(200), []),
     safe('publications', () => supabase.from('track_b_publications').select('id,project_id,title,platform,status,scheduled_at,published_at,updated_at,created_at').order('updated_at', { ascending: false }).limit(200), []),
@@ -92,9 +92,10 @@ async function readState() {
     safe('commerce opportunities', () => supabase.from('cornerstone_commerce_opportunities').select('id,title,creator_id,status,signal_ids,created_at').order('created_at', { ascending: false }).limit(30), []),
     safe('commerce tests', () => supabase.from('cornerstone_commerce_tests').select('id,opportunity_id,creator_id,status,views,clicks,conversions,commission,revenue,created_at').order('created_at', { ascending: false }).limit(30), []),
     safe('commerce setup', () => supabase.from('cornerstone_commerce_setup').select('*').maybeSingle(), null),
+    safe('Metricool social snapshots', () => supabase.from('cornerstone_metric_snapshots').select('id,platform,period_days,audience_followers,subscribers,views,reach,clicks,conversions,revenue,captured_at,source_name,verified').eq('scope','platform').like('source_name','Metricool%').order('captured_at',{ascending:false}).limit(50), []),
   ])
 
-  const warnings = [p, j, pu, e, h, l, cs, co, ctest, csetup].filter((x) => x.error).map((x) => x.error.name + ': ' + x.error.message)
+  const warnings = [p, j, pu, e, h, l, cs, co, ctest, csetup, sm].filter((x) => x.error).map((x) => x.error.name + ': ' + x.error.message)
   const projects = p.data || []
   const jobs = j.data || []
   const pubs = pu.data || []
@@ -104,6 +105,16 @@ async function readState() {
   const commerceOpportunities = co.data || []
   const commerceTests = ctest.data || []
   const commerceSetup = csetup.data || null
+  const socialSnapshots = sm.data || []
+  const metricool7d = new Map()
+  socialSnapshots.filter((x) => Number(x.period_days || 0) === 7).forEach((x) => {
+    if (!metricool7d.has(x.platform)) metricool7d.set(x.platform, x)
+  })
+  const social = [...metricool7d.values()]
+  const socialFollowers = social.reduce((n, x) => n + Number(x.audience_followers || 0), 0)
+  const socialViews = social.reduce((n, x) => n + Number(x.views || 0), 0)
+  const socialReach = social.reduce((n, x) => n + Number(x.reach || 0), 0)
+  const socialLastSync = social.reduce((latest, x) => !latest || new Date(x.captured_at) > new Date(latest) ? x.captured_at : latest, null)
   const hb = h.data || {}
 
   const heartbeatKnown = !h.error
@@ -128,7 +139,8 @@ async function readState() {
   ].filter((x) => x.when).sort((a,b) => new Date(b.when) - new Date(a.when)).slice(0,5)
 
   return {
-    revenue, commission, followers:0, subscribers:0, paidSubscribers:0,
+    revenue, commission, followers:socialFollowers, subscribers:0, paidSubscribers:0,
+    social, socialViews, socialReach, socialLastSync, metricoolConnected: true,
     packages: projects.length,
     inMotion: jobs.filter((x) => ['queued','processing','review'].includes(String(x.status))).length,
     published: published.length,
@@ -178,7 +190,7 @@ export default function CommandHome() {
   }
 
   const x = s || {
-    revenue: 0, commission: 0, followers: 0, subscribers: 0, paidSubscribers: 0, packages: 0, inMotion: 0, published: 0, winners: 0,
+    revenue: 0, commission: 0, followers: 0, subscribers: 0, paidSubscribers: 0, social: [], socialViews: 0, socialReach: 0, socialLastSync: null, metricoolConnected: true, packages: 0, inMotion: 0, published: 0, winners: 0,
     online: null, lastSeen: null, currentJob: null, warnings: [], failed: 0, queued: 0, processing: 0, recent: [], learning: [], closedLoops: 0, commerceSignals: [], commerceOpportunities: [], commerceTests: [], commerceSetup: null, commerceProjects: [], commerceJobs: [], commercePubs: [], commerceEvidence: [],
     path: {
       steps: [],
@@ -225,6 +237,15 @@ export default function CommandHome() {
             </div>
           </div>
         </header>
+
+        <section style={{marginTop:18,display:'grid',gridTemplateColumns:'repeat(4,minmax(0,1fr))',gap:8}}>
+          {[
+            ['Social followers', x.social?.length ? num(x.followers) : '—', x.social?.length ? 'Across connected networks' : 'Awaiting first Metricool snapshot'],
+            ['7-day views', x.social?.length ? num(x.socialViews) : '—', 'Metricool · connected networks'],
+            ['7-day reach', x.social?.length ? num(x.socialReach) : '—', 'Metricool · connected networks'],
+            ['Last social sync', x.socialLastSync ? age(x.socialLastSync) : '—', 'Hourly snapshot bridge'],
+          ].map(([label,value,sub])=><article key={label} style={{padding:'13px 14px',border:'1px solid var(--border)',borderRadius:14,background:'var(--surface)'}}><span style={{display:'block',fontSize:9,textTransform:'uppercase',letterSpacing:'.11em',color:'var(--text-subtle)'}}>{label}</span><strong style={{display:'block',marginTop:5,fontSize:20,letterSpacing:'-.04em'}}>{value}</strong><small style={{display:'block',marginTop:4,fontSize:9,color:'var(--text-muted)'}}>{sub}</small></article>)}
+        </section>
 
         <section className="cmd-mission-grid">
           <article className={'cmd-mission' + (path.allDone ? ' is-clear' : '')}>
