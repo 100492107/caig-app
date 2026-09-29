@@ -135,7 +135,7 @@ Together: ordinary scene → one broken rule → short exchange or visible behav
 ## 5. Scoring stamp (paste into draft notes / queue)
 
 ```text
-ATTENTION GATE
+CONTENT LANE: ATTENTION / CONTROVERSY
 Format: _______________
 Primary bias: _______________
 MUST-HIT: _/8
