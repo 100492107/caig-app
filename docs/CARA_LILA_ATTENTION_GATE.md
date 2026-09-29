@@ -1,18 +1,28 @@
 # Cara + Lila — Attention Gate
 
-**Canonical pre-publish filter.**  
-Lifestyle is the vehicle. Controlled controversy is the engine.  
-Every draft must clear this gate before TikTok, Instagram, or any other platform.
+**Canonical filter for attention-led / controversy-led posts.**  
+Lifestyle is the vehicle. Controlled controversy is **one acquisition engine**, not the whole account.  
+A normal Cara + Lila feed must also contain useful, informative, educational, interesting and ordinary relationship/lifestyle content. Do **not** force a “WHAT?” controversy into every post.
 
-Core formula:
+Core formula for the attention lane:
 
 ```text
-Normal setting + opinion/behaviour most people suppress
+Normal setting + strong opinion / behaviour / reveal
 → WHAT?
-→ Is she right?
-→ What are people saying?
-→ Who are these two?
-→ (later) I trust how they see the world → buy
+→ agree / disagree / curiosity
+→ comments / shares
+→ who are these two?
+→ follow
+```
+
+The account formula is broader:
+
+```text
+Attention + usefulness + lifestyle + relationship + occasional commerce
+→ repeated exposure
+→ familiarity + trust + curiosity
+→ follow
+→ buy when relevant
 ```
 
 Controversial ≠ rage bait.  
@@ -20,7 +30,11 @@ The idea must be something **reasonable people can disagree about** and still so
 
 ---
 
-## 1. One-page trigger checklist (score before publish)
+## 1. One-page trigger checklist — only for the ATTENTION lane
+
+Use this gate when the intended job of the post is to create controversy, strong opinion, intrigue, disagreement or a high-stop-power moment. Useful/educational, lifestyle/story and routine product posts use their own quality criteria and do not need to manufacture controversy.
+
+
 
 Score each draft **0 or 1** per line.  
 **Ship only if: no NEVER-DO is true, and MUST-HIT total ≥ 5 / 8.**
@@ -105,7 +119,7 @@ Use **one primary bias per post**. Rotate formats across the week so the account
 
 ---
 
-## 3. Voice cheatsheet
+## 4. Voice cheatsheet
 
 | | Cara | Lila |
 |--|------|------|
@@ -118,7 +132,7 @@ Together: ordinary scene → one broken rule → short exchange or visible behav
 
 ---
 
-## 4. Scoring stamp (paste into draft notes / queue)
+## 5. Scoring stamp (paste into draft notes / queue)
 
 ```text
 ATTENTION GATE
@@ -133,11 +147,11 @@ Sell: none / soft (after stance)
 
 ---
 
-## 5. System use
+## 6. System use
 
-- **Generation:** Creator Engine should optimise for WHAT? + disagreement + curiosity, not “relatable lifestyle” alone.  
-- **QA:** Human or automated gate runs this checklist before publish.  
-- **Measure:** Track which format×bias pairs earn comments/shares; feed winners back into the weekly mix.  
+- **Generation:** First choose the content lane. Only ATTENTION-lane posts optimise for WHAT? + disagreement + curiosity. Useful/educational posts optimise for clarity, usefulness, surprise, insight and saves. Lifestyle posts optimise for personality, atmosphere, chemistry and continuity. Commerce posts optimise for natural product fit after the idea earns attention.
+- **QA:** Run the Attention Gate only when the post is in the ATTENTION lane. Every lane still gets a human-quality check.
+- **Measure:** Track lane + format + bias together. Look at retention, comments, shares, saves, profile actions, follows and commercial actions rather than judging every post by the same KPI.
 - **Monetise:** Product only after repeated exposure to the worldview — not as the opening act.
 
 *Vehicle: lifestyle. Engine: controlled controversy. Asset: two recognisable minds people argue with — then trust.*
