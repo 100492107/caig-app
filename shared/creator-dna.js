@@ -201,12 +201,20 @@ export const CREATOR_DNA = {
       niche: "Lifestyle duo — style · home · travel · useful everyday finds",
       framing: "Two women, one little world.",
       world: ["style","home","travel","routines","getting ready","cafés","weekends","wellness","shopping"],
-      hook: "Contrast — Cara is practical and says it out loud; Lila is calmer, detail-oriented and aesthetic.",
-      format: "Short, ordinary moments that feel filmed mid-life, not ads.",
-      audience: "Lifestyle, day-in-the-life and girl-duo viewers looking for taste and relatability.",
-      sequence: ["reach","engagement","sell"],
-      commerceRole: "Second stage. Curated picks on caraandlila.com after recognition and engagement are established.",
-      exclusions: ["pure thirst content","AI-model meta","B2B","hard selling from day one"]
+      hook: "Norm-breaking relatability — ordinary lifestyle moments become attention-worthy when Cara and Lila say, do or show the thing people secretly think, want or feel but normally suppress because of social expectations or fear of judgement.",
+      format: "Short, ordinary moments that feel filmed mid-life, not ads — with an unexpected stance, choice, admission, refusal or observation that creates the hook.",
+      audience: "Lifestyle, day-in-the-life and girl-duo viewers who want taste and relatability, plus the feeling of 'they just said what I was thinking.'",
+      sequence: ["ordinary moment","norm-breaking hook","attention","engagement","follow","sell"],
+      engagementMechanism: [
+        "Recognition — viewers see a thought or impulse they have had but would not normally say.",
+        "Permission — the content makes a socially constrained opinion, choice or feeling feel sayable.",
+        "Contrast — Cara can state it bluntly; Lila can deliver the same underlying idea more calmly or unexpectedly.",
+        "Participation — the audience has something to confess, debate, tag or send to a friend.",
+        "Escalation — keep the surface ordinary, then introduce the unexpected behaviour, truth, boundary or social observation."
+      ],
+      viralityPrinciple: "Do not manufacture controversy. Make normal lifestyle content more interesting through the way they frame it: a slightly rebellious choice, an awkward truth, an unspoken opinion, a social observation, a refusal to follow pointless etiquette, or something people wish they felt free to say.",
+      commerceRole: "Third stage. Curated picks on caraandlila.com after recognition, attention and engagement are established.",
+      exclusions: ["pure thirst content","AI-model meta","B2B","hard selling from day one","rage bait","manufactured outrage","shock for shock's sake"]
     },
     coreDynamic: "One wants to move forward. One wants to look around first. Neither is always right.",
     sharedSoul: "Two different philosophies of life that happen to be friends.",
