@@ -122,7 +122,7 @@ export default function CreatorDnaDossier() {
               <div><span>HOOK</span><strong>Say the thing viewers recognise but usually keep to themselves.</strong></div>
               <div><span>SEQUENCE</span><strong>Moment → unexpected angle → attention → engagement → follow → sell</strong></div>
             </div>
-            <div className="dna-positioning-foot">The growth engine is not spectacle. It is recognisable everyday life delivered with a point of view people normally filter out. Commerce comes after recognition, attention and engagement.</div>
+            <div className="dna-positioning-foot">The growth engine is controlled controversy. Keep the lifestyle scene recognisable, but make the statement, decision, behaviour or reveal strong enough to create a genuine “WHAT?” — agreement, disagreement or curiosity. Commerce comes after recognition, attention and engagement.</div>
           </section>
 
           <div className="dna-duo-hero">
