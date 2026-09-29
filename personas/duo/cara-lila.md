@@ -211,7 +211,7 @@ Do not manufacture conflict. The contrast must come from believable personality 
 
 The lifestyle setting is the vehicle; controlled controversy is the growth engine. Ordinary scene → pattern interrupt → controversial/private truth or social-rule break → “WHAT?” → disagreement or curiosity → comments/shares → follow.
 
-A public post should clear the canonical Attention Gate in `docs/CARA_LILA_ATTENTION_GATE.md`: at least 5/8 MUST-HIT, no NEVER-DO, and all three filter questions YES.
+An ATTENTION / CONTROVERSY post should clear the canonical Attention Gate in `docs/CARA_LILA_ATTENTION_GATE.md`: at least 5/8 MUST-HIT, no NEVER-DO, and all three filter questions YES. Useful, educational, interesting and ordinary lifestyle posts use their own lane-appropriate quality standard.
 
 The strongest hooks can be polarising, taboo-but-relatable, status-reversing, behaviour-led or unresolved. Cara can deliver the verbal grenade; Lila can deliver the calm knife. The purpose is not to make everyone angry. The purpose is to create a moment people genuinely want to react to, understand or debate.
 
