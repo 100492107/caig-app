@@ -65,6 +65,13 @@ function CreatorMiniCard({ id }) {
 
 
 const PUBLIC_CHANNEL_CSS = `
+.dna-positioning{margin-top:16px;padding:16px 17px;border:1px solid rgba(216,195,158,.2);border-radius:16px;background:linear-gradient(145deg,rgba(216,195,158,.055),rgba(255,255,255,.015))}
+.dna-positioning-head{display:flex;justify-content:space-between;gap:12px;align-items:center}.dna-positioning-head span{font-size:8px;color:var(--text-subtle,#7d8593);text-transform:uppercase;letter-spacing:.12em}
+.dna-positioning h3{margin:8px 0 0;font-size:22px;letter-spacing:-.04em}.dna-positioning p{margin:8px 0 0;color:var(--text-muted,#9aa2ad);font-size:11px;line-height:1.55;max-width:78ch}
+.dna-positioning-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-top:12px}.dna-positioning-grid>div{padding:10px;border:1px solid var(--border,#2a3038);border-radius:10px;background:rgba(0,0,0,.14)}
+.dna-positioning-grid span{display:block;font-size:8px;letter-spacing:.12em;color:var(--text-subtle,#7d8593);font-weight:800}.dna-positioning-grid strong{display:block;margin-top:5px;font-size:9px;line-height:1.4}
+.dna-positioning-foot{margin-top:10px;padding-top:10px;border-top:1px solid var(--border,#2a3038);color:var(--text-muted,#9aa2ad);font-size:9px;line-height:1.45}
+@media(max-width:850px){.dna-positioning-grid{grid-template-columns:1fr 1fr}}@media(max-width:520px){.dna-positioning-grid{grid-template-columns:1fr}}
 .dna-public{margin-top:14px;padding:14px 15px;border:1px solid var(--border,#2a3038);border-radius:14px;background:var(--surface,#11151b)}
 .dna-public-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-top:10px}
 .dna-public-grid a{display:block;padding:9px 10px;border:1px solid var(--border,#2a3038);border-radius:10px;background:var(--panel,#0d1117);color:inherit;text-decoration:none;min-width:0}
@@ -105,6 +112,19 @@ export default function CreatorDnaDossier() {
 
       {isDuo ? (
         <>
+          <section className="dna-positioning">
+            <div className="dna-positioning-head"><div className="dna-kicker">Public positioning · reach first</div><span>Frozen account lane</span></div>
+            <h3>Lifestyle duo — style · home · travel · useful everyday finds</h3>
+            <p><strong>Two women, one little world.</strong> Short, ordinary moments with a recognisable contrast: Cara is practical and says it out loud; Lila is calmer, detail-oriented and aesthetic.</p>
+            <div className="dna-positioning-grid">
+              <div><span>WORLD</span><strong>Style · home · travel · routines · cafés · weekends · wellness · shopping</strong></div>
+              <div><span>FORMAT</span><strong>Platform-native moments that feel filmed mid-life, not like ads.</strong></div>
+              <div><span>AUDIENCE</span><strong>Lifestyle, day-in-the-life and duo viewers looking for taste and relatability.</strong></div>
+              <div><span>SEQUENCE</span><strong>Reach → engagement → sell</strong></div>
+            </div>
+            <div className="dna-positioning-foot">Commerce comes second: curated picks on caraandlila.com after recognition and engagement. Not pure thirst, AI-model meta, B2B or hard selling from day one.</div>
+          </section>
+
           <div className="dna-duo-hero">
             <div className="dna-duo-images">
               <img src={IMAGE_REFERENCES.cara} alt="Cara Whitmore" />
