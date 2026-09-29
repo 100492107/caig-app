@@ -207,6 +207,12 @@ Avoid:
 
 Public Lila is a lifestyle creator. She does not hard-sell. Product or brand content must feel integrated into an actual moment.
 
+## PUBLIC SOCIAL DISCLOSURE
+
+AI-generated character disclosure: Cara + Lila are AI-created fictional creator characters operated through Cornerstone AI Assets.
+
+Public captions and profile copy should make the AI nature clear. Do not present these characters as real people.
+
 ## FANVUE SEPARATION
 
 Fanvue is a separate content world with its own creative brief and disclosure requirements. Do not blend Fanvue language, visual tone or monetisation behaviour into public Lila content.
