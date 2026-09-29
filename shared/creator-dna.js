@@ -197,6 +197,17 @@ export const CREATOR_DNA = {
   duo: {
     id: "duo",
     name: "Cara + Lila",
+    publicPositioning: {
+      niche: "Lifestyle duo — style · home · travel · useful everyday finds",
+      framing: "Two women, one little world.",
+      world: ["style","home","travel","routines","getting ready","cafés","weekends","wellness","shopping"],
+      hook: "Contrast — Cara is practical and says it out loud; Lila is calmer, detail-oriented and aesthetic.",
+      format: "Short, ordinary moments that feel filmed mid-life, not ads.",
+      audience: "Lifestyle, day-in-the-life and girl-duo viewers looking for taste and relatability.",
+      sequence: ["reach","engagement","sell"],
+      commerceRole: "Second stage. Curated picks on caraandlila.com after recognition and engagement are established.",
+      exclusions: ["pure thirst content","AI-model meta","B2B","hard selling from day one"]
+    },
     coreDynamic: "One wants to move forward. One wants to look around first. Neither is always right.",
     sharedSoul: "Two different philosophies of life that happen to be friends.",
     contrast: [
