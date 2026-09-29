@@ -293,10 +293,15 @@ export default function AICreatorWorkspaceTrackB() {
       const draftJob = await queueQwen({ title: `AI Creator · ${selectedPerson?.name} · draft`, persona, systemPrompt: writerSystem, userPrompt: writerUser });
       const draft = parseJson(await waitQwen(draftJob, setMessage));
 
-      const checkerSystem = `You are the Human Quality Gate for CornerstoneAIAssets. You are the final editor before Review Queue. Score the draft 0–100 and rewrite it where necessary.\n\nREJECT OR REWRITE if: the scene is random, pretty-for-no-reason, AI-slop, mismatched to the caption/hook, inconsistent with the creator, uses irrelevant props, has impossible wardrobe/location/action, mixes Track A automotive material into Cara/Lila lifestyle content, makes Fanvue bland/public/corporate, or makes a carousel out of disconnected images. The result should feel like a real creator's content plan, not a demo of an AI model.\n\nReturn JSON only: {"score":0,"issues":[],"revised":{same fields as the draft}}.`;
-      const auditJob = await queueQwen({ title: `AI Creator · ${selectedPerson?.name} · human quality gate`, persona, systemPrompt: checkerSystem, userPrompt: `PERSONA BIBLE:\n${personaBible}\n\nCONTEXT:\n${context}\n\nDRAFT:\n${JSON.stringify(draft)}`, jobType: "creative_human_check" });
+      const checkerSystem = `You are the Human Quality Gate for CornerstoneAIAssets and the final editor before Review Queue.\nFor public Cara + Lila drafts, apply the canonical ATTENTION GATE from docs/CARA_LILA_ATTENTION_GATE.md.\n\nScore 0 or 1 for MUST-HIT items 1–8:\n1 ordinary setting\n2 pattern interrupt in first 1–2 seconds\n3 private truth / social rule most suppress\n4 genuine disagreement possible\n5 “WHAT?” threshold\n6 sounds like Cara/Lila\n7 open loop / unresolved tension\n8 behaviour or dialogue beats lecture\n\nPublic content ships only when MUST-HIT >= 5/8 and all three filters are YES:\nA) what would they say/do that most people keep private?\nB) would reasonable people genuinely disagree?\nC) do the first seconds force “I need what happens next”?\n\nNEVER-DO: rage bait/humiliation, fake duo fight, lie for outrage, pretty-only content with no broken script, hard sell in hook, hot-take-only identity, platform-toxic content, full explanation in second one.\n\nReturn JSON only: {"score":0,"must_hit":{"1":0,"2":0,"3":0,"4":0,"5":0,"6":0,"7":0,"8":0},"never_do":[],"three_filters":{"A":"YES","B":"YES","C":"YES"},"issues":[],"revised":{same fields as the draft}}.`;      const auditJob = await queueQwen({ title: `AI Creator · ${selectedPerson?.name} · human quality gate`, persona, systemPrompt: checkerSystem, userPrompt: `PERSONA BIBLE:\n${personaBible}\n\nCONTEXT:\n${context}\n\nDRAFT:\n${JSON.stringify(draft)}`, jobType: "creative_human_check" });
       const audit = parseJson(await waitQwen(auditJob, setMessage));
-      if (Number(audit?.score || 0) < 72) throw new Error("Human Quality Gate rejected this concept. Generate again for a different idea.");
+      const gateHits = audit?.must_hit && typeof audit.must_hit === "object" ? Object.values(audit.must_hit).filter((v) => Number(v) === 1).length : 0;
+      const neverDo = Array.isArray(audit?.never_do) ? audit.never_do : [];
+      const filters = audit?.three_filters || {};
+      const filtersPass = [filters.A, filters.B, filters.C].every((v) => String(v).toUpperCase() === "YES");
+      if (gateHits < 5 || neverDo.length > 0 || !filtersPass) {
+        throw new Error(`Attention Gate rejected this concept (${gateHits}/8; NEVER-DO=${neverDo.length}; three filters=${filtersPass ? "Y/Y/Y" : "not Y/Y/Y"}).`);
+      }
 
       const final = { ...draft, ...(audit?.revised || {}) };
       let caption = final.caption || "";
