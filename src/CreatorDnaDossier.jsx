@@ -118,11 +118,11 @@ export default function CreatorDnaDossier() {
             <p><strong>Two women, one little world.</strong> Short, ordinary moments with a recognisable contrast: Cara is practical and says it out loud; Lila is calmer, detail-oriented and aesthetic.</p>
             <div className="dna-positioning-grid">
               <div><span>WORLD</span><strong>Style · home · travel · routines · cafés · weekends · wellness · shopping</strong></div>
-              <div><span>FORMAT</span><strong>Platform-native moments that feel filmed mid-life, not like ads.</strong></div>
-              <div><span>AUDIENCE</span><strong>Lifestyle, day-in-the-life and duo viewers looking for taste and relatability.</strong></div>
-              <div><span>SEQUENCE</span><strong>Reach → engagement → sell</strong></div>
+              <div><span>FORMAT</span><strong>Normal, platform-native lifestyle moments with a surprising social angle.</strong></div>
+              <div><span>HOOK</span><strong>Say the thing viewers recognise but usually keep to themselves.</strong></div>
+              <div><span>SEQUENCE</span><strong>Moment → unexpected angle → attention → engagement → follow → sell</strong></div>
             </div>
-            <div className="dna-positioning-foot">Commerce comes second: curated picks on caraandlila.com after recognition and engagement. Not pure thirst, AI-model meta, B2B or hard selling from day one.</div>
+            <div className="dna-positioning-foot">The growth engine is not spectacle. It is recognisable everyday life delivered with a point of view people normally filter out. Commerce comes after recognition, attention and engagement.</div>
           </section>
 
           <div className="dna-duo-hero">
