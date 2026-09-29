@@ -115,7 +115,7 @@ Use **one primary bias per post**. Rotate formats across the week so the account
 | 6 | Relationship or advice | Values / uncomfortable truth | No |
 | 7 | Best-performing type replay **or** soft product | Consistency + liking | Yes if earned |
 
-**Ratio:** ~70–80% pure stance/behaviour · ~20–30% soft product in the same worldview.
+**Portfolio reminder:** the attention lane is only ~20–30% of the account. The rest should deliberately provide useful/educational value, lifestyle/relationship continuity and limited soft commerce.
 
 ---
 
