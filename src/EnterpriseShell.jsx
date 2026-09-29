@@ -61,6 +61,19 @@ export default function EnterpriseShell({ active = 'command', children, eyebrow 
           <a href={NEW_LIFE} className="cs-new-life-link"><span className="cs-dot" /> New Life ↗</a>
         </div>
       </aside>
+      <nav className="cs-mobile-header" aria-label="Mobile command header">
+        <a className="cs-mobile-brand" href="/" aria-label="Cornerstone home"><span className="cs-brand-mark">C</span><strong>Cornerstone</strong></a>
+        <span className="cs-mobile-current">{eyebrow || 'Command'}</span>
+        <a className="cs-mobile-life" href="/new-life">New Life ↗</a>
+      </nav>
+      <nav className="cs-mobile-nav" aria-label="Mobile primary navigation">
+        <a href="/" className={resolved === 'command' ? 'is-active' : ''}><span>⌂</span><small>Home</small></a>
+        <a href="/content/creators" className={resolved === 'voices' ? 'is-active' : ''}><span>◎</span><small>Voices</small></a>
+        <a href="/content/production" className={resolved === 'production' ? 'is-active' : ''}><span>✦</span><small>Make</small></a>
+        <a href="/content/measurement" className={resolved === 'measurement' ? 'is-active' : ''}><span>↗</span><small>Learn</small></a>
+        <a href="/business" className={resolved === 'business' ? 'is-active' : ''}><span>◫</span><small>Business</small></a>
+        <a href="/new-life" className={resolved === 'newlife' ? 'is-active' : ''}><span>+</span><small>New Life</small></a>
+      </nav>
       <div className="cs-stage">
         <div className="cs-stage-bar">
           <div className="cs-stage-context"><span className="label">{eyebrow||'Creator OS'}</span><span className="cs-context-divider">/</span><span className="meta">Command centre</span></div>
