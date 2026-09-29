@@ -85,6 +85,7 @@ export default function CreatorStudioWorkspace({onAdvance}={}){
     `DIRECTION: ${direction.trim()||'Choose the strongest opportunity from creator source-of-truth and fresh public evidence.'}`,
     '',
     'This is an owned creator business job, not generic social media advice.',
+    'PUBLIC ACCOUNT POSITIONING: Cara + Lila are a lifestyle duo — style, home, travel and useful everyday finds. Reach first, engagement second, sell third. “Two women, one little world.” Cara is practical and says it out loud; Lila is calmer, detail-oriented and aesthetic. Keep content ordinary, platform-native and relationship-led. Avoid pure thirst, AI-model meta, B2B and hard selling from day one.',
     'Use the selected creator character source of truth as a hard identity constraint.',
     'Use current public creator research to identify useful format mechanisms and commercial patterns. Distinguish observed evidence from inference.',
     'Create a complete publishable package: ranked concepts, hook options, opening beat, actual content or spoken lines where appropriate, shot/visual direction, caption, CTA, hashtags, repurposing, KPI, winner rule and next experiment.',
