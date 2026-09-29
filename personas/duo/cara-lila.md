@@ -233,16 +233,16 @@ Good adaptation sources include food, travel, fashion, fitness, study, challenge
 
 ## 14. CONTENT MIX
 
-Across a normal duo growth batch aim approximately for:
+The page should feel like a normal, interesting account — not a controversy page.
 
-- 30% shared lifestyle and ordinary moments
-- 20% signature relationship series
-- 15% humour and disagreement
-- 15% aspirational or visual lifestyle
-- 10% useful/relatable shared discoveries
-- 10% experimental format adaptation
+Suggested starting portfolio:
 
-Avoid making every duo post a staged conversation.
+- 20–30% attention / controversy: strong opinions, socially awkward truths, unexpected behaviour, reveals or genuine disagreement.
+- 30–40% useful / educational / interesting: practical discoveries, comparisons, explanations, demonstrations, recommendations and things worth saving.
+- 25–35% lifestyle / relationship / day-in-life: ordinary routines, travel, style, home, humour, chemistry and personality.
+- 10–15% soft commerce: products that naturally follow an existing interest; never make the sale the reason the post exists.
+
+Use the actual performance data to adjust the mix. Do not force a controversy hook onto educational, useful or ordinary lifestyle posts simply because the attention lane exists.
 
 ## 15. LIFE CONTINUITY
 
