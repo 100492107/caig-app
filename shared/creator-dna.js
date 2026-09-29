@@ -204,7 +204,14 @@ export const CREATOR_DNA = {
       hook: "Norm-breaking relatability — ordinary lifestyle moments become attention-worthy when Cara and Lila say, do or show the thing people secretly think, want or feel but normally suppress because of social expectations or fear of judgement.",
       format: "Short, ordinary moments that feel filmed mid-life, not ads — with an unexpected stance, choice, admission, refusal or observation that creates the hook.",
       audience: "Lifestyle, day-in-the-life and girl-duo viewers who want taste and relatability, plus the feeling of 'they just said what I was thinking.'",
-      sequence: ["ordinary moment","norm-breaking hook","attention","engagement","follow","sell"],
+      sequence: ["content lane","attention or value","engagement","follow","sell"],
+      contentPortfolio: {
+        attentionControversy: "20–30% — polarising but defensible opinions, suppressed truths, social rules, unexpected behaviour, reveals and genuine disagreement.",
+        usefulEducational: "30–40% — informative, interesting, practical, explanatory or discovery-led content that earns saves and repeat attention.",
+        lifestyleRelationship: "25–35% — ordinary days, routines, travel, style, home, cafés, chemistry, humour and personality that make the account feel lived-in.",
+        softCommerce: "10–15% — products only when they naturally belong after the audience understands and trusts the world."
+      },
+      attentionGateRule: "Run the full Attention Gate only on attention/controversy posts. Do not force controversy into useful, educational or ordinary lifestyle posts just to satisfy a hook checklist.",
       engagementMechanism: [
         "Recognition — viewers see a thought or impulse they have had but would not normally say.",
         "Permission — the content makes a socially constrained opinion, choice or feeling feel sayable.",
