@@ -284,6 +284,26 @@ button.cs-btn-ghost:hover,.ghost:hover,.ce-secondary:hover,.ch-mini:hover,.sys-c
     font-weight:750;
     color:var(--cs-os-muted);
   }
+  .cs-mobile-more{position:relative}
+  .cs-mobile-more summary{
+    list-style:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;
+    min-height:34px;padding:0 9px;border:1px solid var(--cs-os-line2);border-radius:10px;
+    color:var(--cs-os-muted);font-size:9px;font-weight:800;background:rgba(255,255,255,.02)
+  }
+  .cs-mobile-more summary::-webkit-details-marker{display:none}
+  .cs-mobile-more-menu{
+    position:absolute;right:0;top:42px;width:190px;padding:6px;
+    display:grid;gap:3px;border:1px solid var(--cs-os-line2);border-radius:14px;
+    background:rgba(10,13,18,.98);box-shadow:0 18px 48px rgba(0,0,0,.45);
+    backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)
+  }
+  .cs-mobile-more-menu a{
+    display:flex;align-items:center;min-height:40px;padding:0 10px;border-radius:9px;
+    color:var(--cs-os-muted);text-decoration:none;font-size:10px;font-weight:700
+  }
+  .cs-mobile-more-menu a:hover,.cs-mobile-more-menu a:active{
+    background:var(--cs-os-accent-soft);color:var(--cs-os-text)
+  }
   .cs-mobile-life{
     display:inline-flex;
     align-items:center;
