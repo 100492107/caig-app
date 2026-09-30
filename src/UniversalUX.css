@@ -1,0 +1,303 @@
+/* ============================================================
+   CORNERSTONE UNIVERSAL UI V3
+   One responsive system for desktop, tablet and phone.
+   Loaded last so every workspace inherits the same containment,
+   typography, controls and responsive behaviour.
+   ============================================================ */
+
+html,body,#root{
+  width:100%;
+  min-width:0!important;
+  max-width:100%;
+  overflow-x:hidden!important;
+}
+*,*::before,*::after{box-sizing:border-box}
+body{
+  -webkit-text-size-adjust:100%;
+  text-size-adjust:100%;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+img,svg,video,canvas,iframe{max-width:100%!important}
+iframe{border:0}
+main,section,article,header,footer,nav,aside,form,fieldset,div{
+  min-width:0;
+}
+p,h1,h2,h3,h4,h5,h6,span,strong,b,small,label,a,button{
+  overflow-wrap:anywhere;
+}
+a{max-width:100%}
+button,input,select,textarea{
+  max-width:100%;
+  min-width:0;
+}
+pre,code{
+  max-width:100%;
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+}
+table{
+  max-width:100%;
+}
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+select,textarea{
+  width:100%;
+  font:inherit;
+  color:var(--cs-os-text,var(--text,#f3f0e9));
+  background:var(--cs-os-panel2,var(--panel,#11161d));
+  border:1px solid var(--cs-os-line2,var(--line-2,rgba(255,255,255,.12)));
+  border-radius:12px;
+  outline:0;
+  min-height:44px;
+}
+textarea{min-height:112px;resize:vertical;line-height:1.5}
+input:focus,select:focus,textarea:focus{
+  border-color:rgba(216,195,158,.45);
+  box-shadow:0 0 0 3px rgba(216,195,158,.08);
+}
+button,.primary,.ghost,.cs-btn,.cs-btn-ghost,.ce-primary,.ce-secondary,.cw-btn,.pw-cta,.pub-btn,.pm-btn,.ch-primary,.ch-add{
+  max-width:100%;
+  min-width:0;
+  min-height:42px;
+  line-height:1.15;
+  white-space:normal;
+  text-align:center;
+}
+button:disabled{cursor:not-allowed}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{
+  outline:2px solid var(--cs-os-accent,#d8c39e);
+  outline-offset:2px;
+}
+
+/* Desktop: controlled width and consistent page rhythm */
+.cs-stage,.cs-stage-body,.cs-page,.creator-engine,.create-workspace,.production-workspace,.publish-desk,.pm,.ch,.bi,.system-workspace{
+  width:100%;
+  max-width:none;
+}
+.cs-stage-body{
+  overflow:visible;
+}
+.cs-page{
+  gap:18px;
+}
+.cs-page-head{
+  min-width:0;
+}
+.cs-page-head h1,.creator-engine h1,.cw-head h1,.pw-title,.pub-title,.pm-h,.ch-h{
+  text-wrap:balance;
+  max-width:100%;
+}
+
+/* Any dense layout should allow children to shrink instead of forcing overflow */
+[class*="grid"],[class*="Grid"],[class*="layout"],[class*="Layout"],[class*="row"],[class*="Row"]{
+  min-width:0;
+}
+[class*="grid"] > *,[class*="Grid"] > *,[class*="layout"] > *,[class*="Layout"] > *,
+[class*="row"] > *,[class*="Row"] > *{
+  min-width:0;
+  max-width:100%;
+}
+
+/* Horizontal data structures scroll inside themselves, not the page */
+.table,.tableWrap,.dataTable,.ledger,.bi-table,.pm-table,.pub-table{
+  max-width:100%;
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+}
+.table table,.tableWrap table,.dataTable table,.ledger table{
+  width:100%;
+  max-width:none;
+}
+
+/* Command / shell containment */
+.cs-command-loop,.cs-mission-grid,.cmd-mission-grid,.cmd-creators-slim,
+.ce-dna,.ce-two,.ce-grid,.cw-head,.pw-intro,.pub-top,.pm-layout,.ch-grid,
+.bi-grid2,.bi-section-title{
+  min-width:0;
+}
+.cs-command-loop > *, .cmd-mission-grid > *, .ce-dna > *, .ce-two > *,
+.ce-grid > *, .cw-head > *, .pw-intro > *, .pub-top > *, .pm-layout > *,
+.bi-grid2 > *, .bi-section-title > *{
+  min-width:0;
+}
+
+/* Long status / metadata strings */
+.cs-runtime,.cs-stage-context,.cs-mobile-current,.cmd-path-status,.cmd-path-copy,
+.pm-meta,.pm-msg,.pub-meta,.pub-status,.ch-sync,.bi-muted,.bi-rule{
+  min-width:0;
+  max-width:100%;
+  overflow-wrap:anywhere;
+}
+
+/* Cards should never create a second horizontal viewport */
+.panel,.home .panel,.sys-card,.sys-panel,.rm-board,.rm-hero,.rm-card,.rm-working,
+.pp-card,.pu-card,.pm-card,.cp-card,.ch-card,.pub-board,.pub-queue,.pub-launch,
+.pub-selected,.ce-section,.ce-dna-card,.ce-form,.cw-box,.pw-card{
+  min-width:0!important;
+  max-width:100%!important;
+}
+
+/* Large hero text remains readable without escaping the viewport */
+.home .hero h1,.creator-engine h1,.cs-page-head h1,.pm-h,.ch-h,.cw-head h1,.pw-title,.pub-title{
+  font-size:clamp(34px,5vw,78px);
+  line-height:.95;
+  letter-spacing:-.055em;
+}
+.home .hero p,.ce-lead,.cs-page-head p{
+  max-width:70ch;
+}
+
+/* Make repeated action groups coherent */
+.ce-actions,.cw-actions,.staged-actions,.pub-actions,.pm-actions,.cmd-mission-actions,.sys-command{
+  min-width:0;
+  display:flex;
+  flex-wrap:wrap;
+  gap:9px;
+}
+.ce-actions > *, .cw-actions > *, .staged-actions > *, .pub-actions > *,
+.pm-actions > *, .cmd-mission-actions > *, .sys-command > *{
+  min-width:0;
+  max-width:100%;
+}
+
+/* ============================================================
+   TABLET
+   ============================================================ */
+@media (max-width:1024px){
+  .cs-stage-body{
+    padding-left:20px!important;
+    padding-right:20px!important;
+  }
+  .home .hero,.cmd-today-head,.cmd-mission-grid,.cs-command-loop{
+    grid-template-columns:1fr!important;
+  }
+  .sys-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+
+/* ============================================================
+   PHONE
+   ============================================================ */
+@media (max-width:900px){
+  html,body,#root{
+    min-width:0!important;
+    width:100%!important;
+    max-width:100%!important;
+  }
+  body{padding-bottom:0!important}
+  .cs-stage-body{
+    padding:14px 14px calc(104px + env(safe-area-inset-bottom))!important;
+  }
+
+  .cs-page{gap:14px!important}
+  .cs-page-head{padding-bottom:14px!important}
+  .cs-page-head h1{
+    font-size:clamp(30px,9vw,48px)!important;
+    line-height:.98!important;
+  }
+  .cs-page-head p{font-size:12px!important;line-height:1.55!important}
+
+  .home .hero h1,.creator-engine h1,.cw-head h1,.pw-title,.pub-title,.pm-h,.ch-h{
+    font-size:clamp(32px,10vw,54px)!important;
+    line-height:.95!important;
+  }
+
+  .home .grid,.ce-roster,.ce-grid,.ce-two,.ce-dna,.cs-creators,
+  .cw-head,.pw-intro,.pm-layout,.bi-grid2,.bi-section-title,
+  .cmd-mission-grid,.cmd-today-head,.cs-command-loop,.cmd-creators-slim{
+    grid-template-columns:1fr!important;
+  }
+
+  .ce-objectives{
+    grid-template-columns:1fr 1fr!important;
+  }
+
+  .ce-actions,.cw-actions,.staged-actions,.pub-actions,.pm-actions,.cmd-mission-actions,.sys-command{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+  }
+  .ce-actions > *, .cw-actions > *, .staged-actions > *, .pub-actions > *,
+  .pm-actions > *, .cmd-mission-actions > *, .sys-command > *{
+    width:100%!important;
+  }
+
+  .pm-stats{grid-template-columns:1fr 1fr!important}
+  .bi-kpis{grid-template-columns:1fr 1fr!important}
+
+  .bi-tabs,.cs-flow{
+    display:flex!important;
+    overflow-x:auto!important;
+    -webkit-overflow-scrolling:touch!important;
+    scrollbar-width:none!important;
+  }
+  .bi-tabs::-webkit-scrollbar,.cs-flow::-webkit-scrollbar{display:none}
+  .bi-tabs > *, .cs-flow > *{
+    flex:0 0 auto;
+  }
+
+  .cs-flow a{
+    min-width:120px!important;
+    max-width:140px!important;
+  }
+
+  .pub-board{
+    grid-template-columns:1fr!important;
+  }
+  .pub-queue{
+    border-right:0!important;
+    border-bottom:1px solid var(--cs-os-line)!important;
+  }
+
+  input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+  select,textarea{
+    min-height:48px!important;
+    font-size:16px!important;
+  }
+  textarea{min-height:110px!important}
+
+  button,.primary,.ghost,.cs-btn,.cs-btn-ghost,.ce-primary,.ce-secondary,.cw-btn,.pw-cta,
+  .pub-btn,.pm-btn,.ch-primary,.ch-add{
+    min-height:48px!important;
+  }
+
+  .cs-mobile-nav a,.cs-mobile-header a,.cs-mobile-more summary{
+    white-space:nowrap!important;
+    overflow-wrap:normal!important;
+  }
+
+  .cmd-path-copy strong,.cmd-path-copy span{
+    white-space:normal!important;
+    overflow-wrap:anywhere!important;
+  }
+}
+
+@media (max-width:560px){
+  .cs-stage-body{padding-left:12px!important;padding-right:12px!important}
+  .home .hero h1,.creator-engine h1,.cw-head h1,.pw-title,.pub-title,.pm-h,.ch-h{
+    font-size:clamp(30px,10.5vw,44px)!important;
+  }
+  .ce-objectives,.pm-stats,.bi-kpis{grid-template-columns:1fr!important}
+  .cs-flow a{min-width:114px!important}
+  .panel,.card,.section,.pm-card,.pub-board,.pub-queue,.pub-launch,.pub-selected{
+    border-radius:14px!important;
+  }
+  .cs-command-card,.cs-creator-card,.ce-dna-card,.ce-form{padding:14px!important}
+}
+
+/* Narrow phones */
+@media (max-width:390px){
+  .cs-stage-body{padding-left:10px!important;padding-right:10px!important}
+  .cs-page-head h1{font-size:30px!important}
+  .home .hero h1,.creator-engine h1,.cw-head h1,.pw-title,.pub-title,.pm-h,.ch-h{font-size:32px!important}
+  .cs-flow a{min-width:108px!important}
+  .cs-mobile-nav a small{font-size:7px!important}
+}
+
+/* Reduced motion + safe scrolling */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    scroll-behavior:auto!important;
+    animation-duration:.001ms!important;
+    animation-iteration-count:1!important;
+    transition-duration:.001ms!important;
+  }
+}
