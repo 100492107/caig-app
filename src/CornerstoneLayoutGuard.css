@@ -1,0 +1,266 @@
+/* ============================================================
+   Cornerstone Layout Guard — Mac + mobile
+   Load LAST. Stops horizontal overflow, fixes readability,
+   full-width actions on phone, readable type on desktop.
+   ============================================================ */
+
+html {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body,
+#root {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+img,
+video,
+svg,
+canvas {
+  max-width: 100%;
+  height: auto;
+}
+
+pre,
+code {
+  max-width: 100%;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+h1, h2, h3, h4, h5, h6,
+p, li, span, label, a,
+.cs-page-head p,
+.cmd-mission p,
+.rm-copy,
+.operator-brief,
+.ce-form,
+.bi-panel,
+.panel p {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* Contain nested grids so they cannot blow past the viewport */
+.cs-stage,
+.cs-stage-body,
+.home,
+.panel,
+.cs-page,
+.cs-workspace,
+.rm-board,
+.pp-card,
+.pu-card,
+.pm-card,
+.pub-board,
+.ce-form,
+.ce-grid,
+.bi-panel,
+.sys-card,
+.library,
+[class*="workspace"],
+[class*="Workspace"] {
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+/* Tables scroll inside, never the whole page sideways */
+table,
+.bi-table,
+.data-table,
+.ledger,
+.scorecard {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Desktop: comfortable reading measure */
+@media (min-width: 901px) {
+  .cs-stage-body {
+    width: min(1180px, 100%) !important;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 28px 28px 72px !important;
+  }
+
+  .cs-page-head h1,
+  .home h1 {
+    font-size: clamp(28px, 2.4vw, 36px) !important;
+    line-height: 1.15 !important;
+    letter-spacing: -0.03em !important;
+  }
+
+  p,
+  .cs-page-head p,
+  .cmd-mission p,
+  .panel p {
+    font-size: 14px !important;
+    line-height: 1.55 !important;
+  }
+
+  button,
+  .cs-btn,
+  .primary,
+  .ghost,
+  .btn,
+  .rm-btn,
+  .pp-btn,
+  .pu-btn,
+  .pm-btn,
+  .pub-btn,
+  .ch-btn,
+  .v-btn {
+    min-height: 40px !important;
+    padding: 0 16px !important;
+    font-size: 13px !important;
+  }
+
+  input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+  select,
+  textarea {
+    min-height: 40px !important;
+    font-size: 14px !important;
+  }
+}
+
+/* Phone + tablet: no sideways scroll, thumb-first actions */
+@media (max-width: 900px) {
+  html,
+  body,
+  #root {
+    overflow-x: hidden !important;
+  }
+
+  .cs-stage-body {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 14px 14px calc(100px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  .cs-page-head h1,
+  .home h1 {
+    font-size: clamp(24px, 7vw, 30px) !important;
+    line-height: 1.12 !important;
+  }
+
+  p,
+  label,
+  .cs-page-head p,
+  .panel p,
+  .cmd-mission p {
+    font-size: 14px !important;
+    line-height: 1.5 !important;
+  }
+
+  /* Single column everything dense */
+  .sys-grid,
+  .ce-grid,
+  .ce-two,
+  .pub-board,
+  .bi-kpis,
+  .bi-platforms,
+  .bi-upload,
+  .cmd-mission-grid,
+  .cmd-mission-actions,
+  .home .metrics,
+  .rm-actions,
+  .cw-actions,
+  .staged-actions,
+  .operator-stats,
+  .ce-actions {
+    grid-template-columns: 1fr !important;
+    display: grid !important;
+  }
+
+  .cmd-mission-actions .primary,
+  .cmd-mission-actions .ghost,
+  .ce-actions > *,
+  .rm-actions > *,
+  .cw-actions > *,
+  .staged-actions > *,
+  .pub-row > * {
+    width: 100% !important;
+  }
+
+  button,
+  .cs-btn,
+  .primary,
+  .ghost,
+  .btn,
+  .rm-btn,
+  .pp-btn,
+  .pu-btn,
+  .pm-btn,
+  .pub-btn,
+  .ch-btn,
+  .v-btn,
+  .cs-auth-button,
+  a.primary,
+  a.ghost {
+    min-height: 48px !important;
+    font-size: 14px !important;
+    padding: 0 14px !important;
+  }
+
+  /* Stop iOS zoom on focus */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+  select,
+  textarea {
+    font-size: 16px !important;
+    min-height: 48px !important;
+    width: 100% !important;
+  }
+
+  textarea {
+    min-height: 120px !important;
+  }
+
+  /* Kill fixed px widths that break phones */
+  [style*="min-width"] {
+    min-width: 0 !important;
+  }
+
+  .cs-rail {
+    /* rail handled by OS mobile shell — ensure no residual width */
+    max-width: 100% !important;
+  }
+}
+
+/* Very small phones */
+@media (max-width: 380px) {
+  .cs-stage-body {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+
+  .cs-page-head h1 {
+    font-size: 22px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
