@@ -271,6 +271,12 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 }
 
 @media (max-width:560px){
+  .commerce-signal-main b,.commerce-signal-main p,.dna-public-grid strong{
+    white-space:normal!important;
+    overflow:visible!important;
+    text-overflow:clip!important;
+  }
+
   .cs-stage-body{padding-left:12px!important;padding-right:12px!important}
   .home .hero h1,.creator-engine h1,.cw-head h1,.pw-title,.pub-title,.pm-h,.ch-h{
     font-size:clamp(30px,10.5vw,44px)!important;
