@@ -20,6 +20,7 @@ import './CommerceIntelligence.css'
 import AuthGate from './AuthGate.jsx'
 import NewLifeBridge from './NewLifeBridge.jsx'
 import './CornerstoneTidy.css'
+import './UniversalUX.css'
 import './CornerstoneLayoutGuard.css'
 
 const ContentWorkspaceShell = lazy(() => import('./ContentWorkspaceShell2.jsx'))
