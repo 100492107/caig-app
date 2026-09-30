@@ -21,6 +21,7 @@ import AuthGate from './AuthGate.jsx'
 import NewLifeBridge from './NewLifeBridge.jsx'
 import './CornerstoneTidy.css'
 import './UniversalUX.css'
+import './PlainEnglishUI.js'
 import './CornerstoneLayoutGuard.css'
 
 const ContentWorkspaceShell = lazy(() => import('./ContentWorkspaceShell2.jsx'))
@@ -40,7 +41,7 @@ const LEGACY_REDIRECTS = {
 if (LEGACY_REDIRECTS[path]) window.location.replace(LEGACY_REDIRECTS[path])
 
 function Loading(){return <div className="cs-loading">Opening Cornerstone…</div>}
-function Crash({error}){return <div className="cs-crash"><div className="cs-crash-card"><div className="cs-crash-k">Cornerstone</div><h1>Something needs attention.</h1><p>Reload Cornerstone to recover this workspace.</p><details><summary>Technical detail</summary><pre>{String(error?.stack||error?.message||error||'Unknown error')}</pre></details><button onClick={()=>window.location.reload()}>Reload</button></div></div>}
+function Crash({error}){return <div className="cs-crash"><div className="cs-crash-card"><div className="cs-crash-k">Cornerstone</div><h1>Something needs attention.</h1><p>Reload Cornerstone to recover this workspace.</p><details><summary>What went wrong?</summary><pre>{String(error?.stack||error?.message||error||'Unknown error')}</pre></details><button onClick={()=>window.location.reload()}>Reload</button></div></div>}
 class ErrorBoundary extends Component {
   state={error:null}
   static getDerivedStateFromError(error){return {error}}
