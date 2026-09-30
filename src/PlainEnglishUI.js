@@ -104,6 +104,8 @@ const RULES = [
   ['obstacles','what gets in the way']
 ];
 
+RULES.sort((a,b)=>b[0].length-a[0].length);
+
 const ATTR_RULES = [
   ['Run auto radar','Find ideas'],
   ['Save signal','Save'],
