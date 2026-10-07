@@ -3,7 +3,7 @@ import { supabase } from './supabase'
 import { creatorDnaFor, creatorDnaText } from '../shared/creator-dna.js'
 import { aspectFromVision, generateCreatorImage } from './imageGeneration/qwenImageClient.js'
 import { sceneDirectionSystemBlock, VISION_JSON_COMPLETION_CHECK } from '../shared/scene-direction-knowledge.js'
-import SOCIAL_SALES_DOCTRINE from '../docs/CARA_LILA_2026_SOCIAL_SALES_DOCTRINE.md?raw'
+import SOCIAL_SALES_DOCTRINE from '../shared/social-sales-doctrine.js'
 
 const PEOPLE = [
   ['cara', 'Cara', 'Build · agency · earned progress'],
