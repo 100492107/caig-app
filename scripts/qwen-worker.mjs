@@ -54,7 +54,8 @@ const SOCIAL_SALES_DOCTRINE = [
   'CARA + LILA: they remain a normal, interesting lifestyle duo. Attention or controversy is one acquisition engine, not the whole account.',
   'COMMERCE STANDARD: viewer problem/desire -> why this product fits -> evidence -> objection/hesitation -> natural CTA. Never invent prices, commissions, discounts, reviews, results, availability or eligibility.',
   'CONTENT TESTING: hook -> viewer outcome -> reason to believe -> payoff -> next action. Measure retention, saves, shares, comments, follows and commercial actions separately.',
-  'LANGUAGE: sharp, human, specific British English. Avoid corporate filler, fake urgency, generic motivation and over-explaining.'
+  'REFERENCE VIDEO PATTERNS: the supplied sales/social examples repeatedly use a clear outcome-led title, direct-to-camera delivery, confident teaching, numbered/frameworked points, simple on-screen text, screenshots or visual proof inserted beside the speaker, and a strong informational promise. One social example frames where creator/media is heading by showing external posts and industry evidence while the presenter explains the implication. Use these as structural lessons: promise -> explain -> show evidence -> make the implication useful -> give the next step. Do not copy the wording, creator identity, footage or distinctive edit.'
+  + ' LANGUAGE: sharp, human, specific British English. Avoid corporate filler, fake urgency, generic motivation and over-explaining.'
 ].join('\n');
 
 const RESEARCH_QUERIES = [
