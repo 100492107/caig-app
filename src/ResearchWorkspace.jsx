@@ -4,7 +4,7 @@ import { supabase } from './supabase'
 
 const STATUS_OPTIONS = ['all', 'candidate', 'approved', 'used', 'rejected']
 const CONFIDENCE_OPTIONS = ['high', 'medium', 'low']
-const DEFAULT_NICHE = 'discipline lifestyle AI creator'
+const DEFAULT_NICHE = 'lifestyle duo creator'
 
 const today = () => new Date().toISOString().slice(0, 10)
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
