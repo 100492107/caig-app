@@ -211,11 +211,11 @@ export const CREATOR_DNA = {
       hook: "Ordinary setting + a precise, true statement that people want to say but cannot under current social pressure. The reaction is 'WHAT? She actually said that?' followed by 'Wait… is she right?'",
       format: "Short, ordinary moments that feel filmed mid-life — with a clear, true, defensible statement that breaks the expected social script. Not rage. Not cartoon extreme. Intelligent, calm, specific, grounded in reality.",
       audience: "People who recognise the pressure to stay silent on certain topics and feel relief when two attractive, high-status women say what is actually true and can defend it.",
-      sequence: ["attention via forbidden truth", "recognition", "debate / share", "follow", "trust", "soft commerce"],
+      sequence: ["discovery", "recognition", "value", "trust", "follow", "action", "proof", "repeat"],
       contentPortfolio: {
-        attentionControversy: "30–40% — the core engine. Precise, true, defensible statements that people want to make but feel they cannot. Status, agency, relationships, money, social hypocrisy, male/female dynamics, responsibility.",
-        usefulEducational: "25–35% — practical or insightful content that still sits inside the same worldview (standards, discipline, taste, money, clarity).",
-        lifestyleRelationship: "15–25% — ordinary days and chemistry that make the characters feel real, not pure hot-take accounts.",
+        attentionControversy: "20–30% — a discovery engine, not the account identity. Precise, true, defensible statements that people want to make but feel they cannot. Status, agency, relationships, money, social hypocrisy, male/female dynamics, responsibility.",
+        usefulEducational: "30–40% — practical or insightful content that still sits inside the same worldview (standards, discipline, taste, money, clarity).",
+        lifestyleRelationship: "25–35% — ordinary days and chemistry that make the characters feel real, not pure hot-take accounts.",
         softCommerce: "10–15% — UGC-style soft sell (affiliates / TikTok Shop). Product secondary to the moment. Never open on BUY. Fanvue never in captions."
       },
       softCommerceRules: {
@@ -227,6 +227,7 @@ export const CREATOR_DNA = {
       },
       attentionGateRule: "Run the full Attention Gate only on attention/controversy posts. Useful and lifestyle posts have their own standards. Never force controversy into every post. Never ship a claim that elevates feelings above reality.",
       engagementMechanism: [
+        "Viewer outcome — every post gives the audience something: understand, feel, decide, discover, laugh, save or buy.",
         "Recognition — viewer sees a true thought they have had but would not normally say.",
         "Permission — the content makes a constrained truth feel sayable.",
         "Status dissonance — the truth is coming from two attractive, high-status girls, which makes it harder to dismiss.",
