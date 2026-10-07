@@ -3,7 +3,7 @@
 // Platform-specific claims are grounded in the 2026 source notes in
 // docs/CARA_LILA_2026_SOCIAL_SALES_DOCTRINE.md.
 
-export const SOCIAL_SALES_DOCTRINE = \`
+export const SOCIAL_SALES_DOCTRINE = `
 VIEWER-FIRST SALES PSYCHOLOGY
 - Define the viewer before the hook: who is this for, what do they want, avoid, understand or become, what would stop the scroll, what proof would make them believe, and what action naturally follows?
 - Sell the transformation/outcome, not the object, feature or production process.
@@ -53,6 +53,6 @@ viewer, viewer_outcome, belief_reason, objection_or_question, search_intent, nex
 
 DECISION RULE
 Prefer the concept with the clearest audience outcome, strongest believable reason to care, most specific point of view, cleanest visual story, most natural next step and best chance of becoming a repeatable series.
-\`;
+`;
 
 export default SOCIAL_SALES_DOCTRINE;
