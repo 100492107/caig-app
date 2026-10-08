@@ -143,7 +143,10 @@ export default function AIFallbackWorkspace() {
 @media(max-width:560px){
   .ai-fallback-providers,.ai-fallback-job-summary{grid-template-columns:1fr!important}
 }`;
-  return (\n    <>\n      <style dangerouslySetInnerHTML={{ __html: responsiveStyle }} />\n      <EnterpriseShell active="ai-backup" eyebrow="AI Backup">
+  return (
+    <>
+      <style dangerouslySetInnerHTML={{ __html: responsiveStyle }} />
+      <EnterpriseShell active="ai-backup" eyebrow="AI Backup">
       <main className="ai-fallback" style={{ maxWidth: 1180, margin: '0 auto' }}>
         <header className="cs-page-head">
           <div className="eyebrow">AI Backup</div>
