@@ -22,6 +22,8 @@ import NewLifeBridge from './NewLifeBridge.jsx'
 import './CornerstoneTidy.css'
 import './UniversalUX.css'
 import './PlainEnglishUI.js'
+import './YouTubeAutomation.css'
+import YouTubeAutomationWorkspace from './YouTubeAutomationWorkspace.jsx'
 import './CornerstoneLayoutGuard.css'
 
 const ContentWorkspaceShell = lazy(() => import('./ContentWorkspaceShell2.jsx'))
@@ -50,6 +52,7 @@ class ErrorBoundary extends Component {
 }
 function Route(){
   if(path==='/'||path==='/command')return <CommandHome/>
+  if(path==='/youtube')return <YouTubeAutomationWorkspace/>
   if(path==='/business')return <BusinessIntelligenceWorkspace/>
   if(path==='/business/capture')return <BusinessCaptureWorkspace/>
   if(path==='/business/case-study')return <CaseStudyWorkspace/>
