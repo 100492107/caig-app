@@ -112,6 +112,18 @@ The import action updates:
 
 This allows existing Cornerstone polling, result viewers and downstream tooling to continue using the same job record.
 
+## Telegram backup interface
+
+Telegram is an optional alternate interface for the same operating brain.
+
+When configured on the operator Mac, the Telegram bot loads the same portable-ai context used by external fallback providers. It can continue normal work when the Cornerstone UI is inconvenient or local Qwen is temporarily unavailable.
+
+Default provider order is Qwen → Gemini → Claude → Grok → ChatGPT. The bot skips providers that are not configured and reports when a fallback provider answered.
+
+Useful controls are /status, /provider, /backup, /context and /clear.
+
+Telegram is not a second source of truth and must not receive secrets. The portable context contains operating rules and business/creator context, not API keys, service-role keys or authentication credentials. Private customer/prospect records are not automatically copied into the external-provider packet.
+
 ## Future evolution
 
 The manual fallback is the safety net.
