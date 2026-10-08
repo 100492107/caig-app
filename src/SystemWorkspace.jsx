@@ -91,7 +91,7 @@ export default function SystemWorkspace() {
           <div className="sys-command">
             <a className="primary" href="/">Back to Home →</a>
             <a href="/content/remake">Open Content Builder →</a>
-            <a href="/system/ai-backup">AI Backup →</a>
+            <a href="/system/ai-anywhere">AI Backup →</a>
           </div>
         </section>
       </div>
