@@ -89,8 +89,9 @@ export default function SystemWorkspace() {
             <div className="sys-row"><span>Queue</span><strong>{state.errors ? 'Needs attention' : state.jobs ? 'Moving' : 'Idle'}</strong></div>
           </div>
           <div className="sys-command">
-            <a className="primary" href="/">Back to Command →</a>
-            <a href="/content/remake">Open Build →</a>
+            <a className="primary" href="/">Back to Home →</a>
+            <a href="/content/remake">Open Content Builder →</a>
+            <a href="/system/ai-backup">AI Backup →</a>
           </div>
         </section>
       </div>
