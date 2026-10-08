@@ -136,6 +136,12 @@ else
   echo "[LOCAL AI] CAIG workers skipped: SUPABASE_SERVICE_ROLE_KEY not loaded"
 fi
 
+if [[ -n "${TELEGRAM_BOT_TOKEN:-}" ]]; then
+  restart_bg "telegram-ai-bot" "scripts/telegram-ai-bot.mjs" "telegram-ai-bot.log" env PATH="$PATH" "$NODE_BIN" --env-file=.env.qwen.local "$ROOT/scripts/telegram-ai-bot.mjs"
+else
+  echo "[LOCAL AI] Telegram AI backup skipped: TELEGRAM_BOT_TOKEN not configured"
+fi
+
 if [[ -f "$NEW_LIFE_ROOT/.env.new-life-coach" && -f "$NEW_LIFE_ROOT/new-life-coach-worker.mjs" ]]; then
   if is_running "new-life-coach-worker.mjs"; then echo "[LOCAL AI] New Life coach already running"; else echo "[LOCAL AI] starting New Life coach with shared Qwen model"; NEW_LIFE_ROOT="$NEW_LIFE_ROOT" PATH="$PATH" nohup bash "$ROOT/scripts/start-new-life-coach-shared.sh" >>"$LOG_DIR/new-life-coach.log" 2>&1 < /dev/null & echo $! >"$STATE_DIR/new-life-coach.pid"; fi
 else
