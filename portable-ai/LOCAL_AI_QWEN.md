@@ -2,8 +2,8 @@
 
 ## Current operator setup
 
-Main CAIG checkout:
-~/Business/caig-app
+Main CAIG checkout (verified by operator 8 October 2026):
+/Users/Joseph/Business/caig-app
 
 Refresh:
 ~~~bash
@@ -55,3 +55,17 @@ When the replacement model cannot access a local-only service, create the exact 
 ## Security
 
 Never put secrets, service-role keys, auth tokens or credentials into the portable context.
+
+
+## Telegram backup
+
+The optional Telegram AI bot uses the same portable context, prefers local Qwen and fails over to configured external providers.
+
+Start manually:
+
+~~~bash
+cd /Users/Joseph/Business/caig-app
+npm run telegram:bot
+~~~
+
+See portable-ai/TELEGRAM_AI_CONTEXT.md.
