@@ -1,6 +1,6 @@
 {
   "name": "Cornerstone AI Portable Context",
-  "version": "2026-10-08.4",
+  "version": "2026-10-08.5",
   "status": "active",
   "canonical_repository": "100492107/caig-app",
   "principle": "The model is replaceable; the operating contract is the asset.",
@@ -9,15 +9,29 @@
     "track_b": "Content Intelligence + Production",
     "new_life": "Separate personal execution system"
   },
+  "cara_lila": {
+    "foundational_rule": "Truth is definitive. Feelings do not override reality.",
+    "attention_lane": "30-40%",
+    "useful_lane": "25-35%",
+    "lifestyle_lane": "15-25%",
+    "soft_commerce_lane": "10-15%",
+    "fanvue": "bio and website only — never in public post CTAs"
+  },
+  "export": {
+    "full": "npm run context:export",
+    "core": "node scripts/export-portable-ai-context.mjs --core",
+    "output_dir": "portable-ai-exports/"
+  },
   "files": [
     "portable-ai/CONTEXT_RECEIPT_PROTOCOL.md",
     "portable-ai/00_START_HERE.md",
     "portable-ai/CAIG_AI_CONTEXT.md",
     "portable-ai/CARA_LILA_AI_CONTEXT.md",
+    "docs/CARA_LILA_ATTENTION_GATE.md",
+    "docs/CARA_LILA_SOFT_COMMERCE_LANE.md",
     "portable-ai/SOCIAL_SALES_DOCTRINE.md",
     "portable-ai/YOUTUBE_AUTOMATION_AI_CONTEXT.md",
     "portable-ai/LOCAL_AI_QWEN.md",
-    "portable-ai/CONTEXT_RECEIPT_PROTOCOL.md",
     "portable-ai/PROVIDER_BOOT_PROMPTS.md"
   ],
   "local_ai": {
@@ -31,5 +45,5 @@
     "contains_auth_tokens": false,
     "contains_service_role_keys": false
   },
-  "portability": "Use the same context, methods, quality gates, evidence rules and output schema with any suitable AI provider. External handoffs include the exact Qwen prompt-layer and worker sources and require a source-by-source context receipt before execution."
+  "portability": "Use the same context, methods, quality gates, evidence rules and output schema with any suitable AI provider. External handoffs require a source-by-source context receipt before execution. Core pack is for tighter context windows; full pack is the complete brain."
 }
