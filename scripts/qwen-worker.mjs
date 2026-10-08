@@ -59,6 +59,9 @@ const SOCIAL_SALES_DOCTRINE = [
 ].join('\n');
 
 const RESEARCH_QUERIES = [
+  (n) => 'YouTube ' + n + ' high performing long form formats titles thumbnails 2026',
+  (n) => 'YouTube ' + n + ' retention storytelling packaging channel growth 2026',
+  (n) => 'YouTube ' + n + ' creator search discovery audience questions 2026',
   (n) => 'TikTok ' + n + ' discovery search curiosity comments creators 2026',
   (n) => 'TikTok ' + n + ' creator storytelling retention recurring series 2026',
   (n) => 'Instagram ' + n + ' Reels original content recommendations creator growth 2026',
