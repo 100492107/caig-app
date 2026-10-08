@@ -17,7 +17,7 @@ const QWEN_MODEL = process.env.QWEN_MODEL || 'mlx-community/Qwen3.5-9B-4bit';
 const OPENAI_MODEL = process.env.OPENAI_MODEL || 'gpt-5';
 const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL || 'claude-sonnet-4-6';
 const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
-const XAI_MODEL = process.env.XAI_MODEL || 'grok-4.7';
+const XAI_MODEL = process.env.XAI_MODEL || 'grok-4.6';
 
 const CONTEXT_FILES = [
   'CAIG_AI_CONTEXT.md',
