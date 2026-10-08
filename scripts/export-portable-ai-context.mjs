@@ -17,7 +17,7 @@ import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
-const VERSION = '2026-10-08.5'
+const VERSION = '2026-10-08.6'
 
 const FULL_SOURCES = [
   ['portable-ai/CONTEXT_RECEIPT_PROTOCOL.md', 'Context receipt protocol'],
@@ -28,6 +28,8 @@ const FULL_SOURCES = [
   ['docs/CARA_LILA_ATTENTION_GATE.md', 'Attention Gate checklist — absolute truth'],
   ['docs/CARA_LILA_SOFT_COMMERCE_LANE.md', 'Soft commerce lane rules'],
   ['docs/CARA_LILA_ATTACK_WEEK_01.md', 'Attack Week 01 operating plan'],
+  ['docs/POST_NOW_CHECKLIST.md', 'POST NOW checklist — ship this week'],
+  ['docs/COMPETITIVE_INTEL_2026-10-08.md', 'Competitive intel — what is winning on X'],
   ['docs/CEO_MASTER_CONTEXT_2026-10-08.md', 'CEO master context'],
   ['docs/CORNERSTONE_MASTER_CONTEXT.md', 'Canonical enterprise operating blueprint'],
   ['docs/MASTER_CONTEXT_SEP_2026.md', 'Master context and architecture companion'],
@@ -57,7 +59,6 @@ const FULL_SOURCES = [
   ['scripts/qwen-worker.mjs', 'Exact Qwen worker and research orchestration source'],
 ]
 
-/** Smaller pack for models with tighter context windows — still enough to run Cara+Lila correctly. */
 const CORE_SOURCES = [
   ['portable-ai/CONTEXT_RECEIPT_PROTOCOL.md', 'Context receipt protocol'],
   ['portable-ai/00_START_HERE.md', 'Portable brain entry point'],
@@ -66,9 +67,12 @@ const CORE_SOURCES = [
   ['docs/CARA_LILA_ATTENTION_GATE.md', 'Attention Gate checklist — absolute truth'],
   ['docs/CARA_LILA_SOFT_COMMERCE_LANE.md', 'Soft commerce lane rules'],
   ['docs/CARA_LILA_ATTACK_WEEK_01.md', 'Attack Week 01 operating plan'],
+  ['docs/POST_NOW_CHECKLIST.md', 'POST NOW checklist — ship this week'],
+  ['docs/COMPETITIVE_INTEL_2026-10-08.md', 'Competitive intel — what is winning on X'],
   ['portable-ai/SOCIAL_SALES_DOCTRINE.md', 'Portable social and sales doctrine'],
   ['portable-ai/PROVIDER_BOOT_PROMPTS.md', 'Provider boot prompts'],
   ['shared/creator-dna.js', 'Runtime creator DNA — absolute truth'],
+  ['shared/content-lane-rules.js', 'Content lanes — first 2s + hook structures'],
   ['personas/duo/cara-lila.md', 'Cara plus Lila relationship source'],
 ]
 
@@ -98,6 +102,7 @@ const RECEIPT_GATE = [
   'If any required section is missing or your context limit prevents reading it, say NOT READY. Never silently omit material, substitute a vague summary, or claim perfect ingestion.',
   'After PROCEED, execute the exact task that the operator supplied in the chat. If no specific task was supplied, ask what they want done.',
   'FOUNDATIONAL RULE FOR CARA + LILA: Truth is definitive. Feelings do not override reality. Do not ship “my truth” framing.',
+  'SHIP RULE: First 1–2 seconds must interrupt. Batch production. Clone winners, pause empty-view formats.',
   'Do not reveal hidden chain-of-thought. The receipt is an auditable source checklist, not private reasoning.',
   'SECURITY: this export excludes .env values, credentials, API keys, service-role keys, auth tokens, New Life personal records and unexported private database rows. Review any task-specific data separately before sending it externally.',
   'This pack does not include model weights, local image/audio/video files, or access to services running on the operator Mac.',
