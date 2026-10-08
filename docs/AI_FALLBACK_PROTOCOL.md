@@ -57,6 +57,22 @@ When a local-only capability is unavailable, the fallback model must produce the
 
 The original job id is preserved. The imported result is recorded with the provider name and import timestamp.
 
+## Offline export when Cornerstone is unavailable
+
+The repository includes a stand-alone exporter that reads the allow-listed canonical context files directly from the Mac checkout. It does not need the Cornerstone website, Supabase credentials, or a working Qwen model.
+
+From the repository root:
+
+~~~bash
+cd /Users/Joseph/Business/caig-app
+git pull origin main
+npm run context:export
+~~~
+
+It creates a Markdown context pack plus a JSON manifest under portable-ai-exports/. That generated folder is intentionally git-ignored because exports are operational handoff files and must stay on the operator's machine unless deliberately shared. The exporter aborts if a required canonical source file is missing instead of silently producing an incomplete pack.
+
+Attach the Markdown file to ChatGPT, Claude, Gemini or Grok, or paste it where the provider supports large text. Its first response must be a Context Receipt only. Check every source ID and reply PROCEED only when the provider reports READY. If it reports PARTIAL, MISSING or NOT READY, resend the missing source sections or use a provider with a sufficient context window. The JSON sidecar lists section checksums for source-integrity comparison; it cannot prove the provider actually attended to every token.
+
 ## Why this matters
 
 Cornerstone is not dependent on one model's availability.
