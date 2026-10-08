@@ -105,12 +105,10 @@ The same portable context must work in Claude, Gemini, Grok, ChatGPT, OpenAI-com
 When Qwen fails, change provider rather than losing the workflow or the context.
 Do not claim a fallback provider is connected until its credentials and real call path have been tested.
 
-## 14. Telegram AI backup
-Telegram is a secondary interface, not the source of truth.
-The CAIG repository now contains a Telegram webhook scaffold with authorised chat checking, portable context injection, provider routing, /status, /context, /export and /clear, plus rolling Supabase conversation memory.
-Supported provider patterns: Anthropic / Claude, Gemini, xAI / Grok and OpenAI-compatible endpoints.
-Telegram is not configured or proven live until the bot token, webhook secret, authorised chat ID and a provider credential/model are set and tested.
-New Life must remain outside this business bot.
+## 14. External AI continuity
+
+The same versioned context contract must work in Claude, Gemini, Grok, ChatGPT and other suitable providers. The required first response is a context receipt only. The model must list every source section, mark READ / PARTIAL / MISSING, flag conflicts and context-limit issues, and wait for the operator to say PROCEED before doing the task. An external result continues the same job; it is not a new workflow.
+
 
 ## 15. Product UX
 One visible UX per job. One canonical page per responsibility.
@@ -130,7 +128,7 @@ It may share the local Qwen model endpoint operationally but must never share CA
 4. Research repeatable mechanisms rather than isolated viral outliers.
 5. Run verified commerce tests only when a real product and tracking path exist.
 6. Keep Track A focused on the fastest credible path to the income target.
-7. Configure and test Telegram backup and at least one fallback AI provider.
+7. Keep the portable AI context receipt workflow current and use an external provider whenever Qwen is unavailable.
 8. Only change architecture when a demonstrated bottleneck or reliability issue requires it.
 
 ## 18. Permanent rule
