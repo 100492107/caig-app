@@ -199,4 +199,4 @@ The canonical operating brain is the version-controlled portable-ai context plus
 
 A different model must preserve the same strategy, creator identity, evidence hierarchy, quality gates, output contracts and separation between Track A, Track B and New Life.
 
-Telegram is an alternate interface that loads the same context.
+The portable context receipt protocol is the required first step for any external AI handoff: acknowledge every section and wait for PROCEED before executing.
