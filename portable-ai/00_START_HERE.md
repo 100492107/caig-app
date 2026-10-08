@@ -12,12 +12,13 @@ Do not let any AI silently replace the operating model with its own preferred st
 
 ## Load order
 
-1. CAIG_AI_CONTEXT.md
-2. CARA_LILA_AI_CONTEXT.md when Cara/Lila are involved
-3. SOCIAL_SALES_DOCTRINE.md for social/content/sales work
-4. YOUTUBE_AUTOMATION_AI_CONTEXT.md for YouTube work
-5. LOCAL_AI_QWEN.md for local-AI work
-6. The job-specific instructions supplied by the operator
+1. CONTEXT_RECEIPT_PROTOCOL.md — required acknowledgement gate
+2. CAIG_AI_CONTEXT.md
+3. CARA_LILA_AI_CONTEXT.md and the full character sources when Cara/Lila are involved
+4. SOCIAL_SALES_DOCTRINE.md for social/content/sales work
+5. YOUTUBE_AUTOMATION_AI_CONTEXT.md for YouTube work
+6. LOCAL_AI_QWEN.md for local-AI work
+7. The exact job-specific instructions and evidence supplied by the operator
 
 ## Source-of-truth hierarchy
 
@@ -27,6 +28,10 @@ Do not let any AI silently replace the operating model with its own preferred st
 4. Model inference
 
 When sources conflict, flag the conflict and prefer the higher source.
+
+## Mandatory context receipt
+
+When a full context packet is pasted into a new AI chat, its first response must be a context receipt only. It must list every source ID, mark each READ / PARTIAL / MISSING, give one source anchor per section, identify conflicts and context limits, and wait for the operator to say PROCEED. No task execution before that. If anything is missing or truncated, the model must say NOT READY rather than guess.
 
 ## Portable AI rule
 
