@@ -88,6 +88,9 @@ export default function AIFallbackWorkspace() {
     setProvider(providerId)
     const p = PROVIDERS.find((x) => x.id === providerId) || PROVIDERS[0]
     const packed = buildFallbackPacket({ job: selected, provider: providerId })
+    // Open synchronously during the user click so browser popup blockers do not
+    // discard the provider tab after the clipboard await.
+    window.open(p.url, '_blank', 'noopener,noreferrer')
     const ok = await copyText(packed)
     download('cornerstone-ai-context-' + providerId + '-' + (selected ? 'job' : 'full-brain') + '.md', packed)
     setMessage(
@@ -95,7 +98,6 @@ export default function AIFallbackWorkspace() {
         ? 'Context packet copied and downloaded. Paste it into ' + p.label + '. Its first response must be a context receipt only. Check it, then type PROCEED.'
         : 'Packet downloaded. Open ' + p.label + ' and paste the .md contents. Check its context receipt before typing PROCEED.'
     )
-    window.open(p.url, '_blank', 'noopener,noreferrer')
   }
 
   function downloadMarkdown() {
