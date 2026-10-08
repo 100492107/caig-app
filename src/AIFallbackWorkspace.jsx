@@ -77,7 +77,7 @@ export default function AIFallbackWorkspace() {
   const payload = useMemo(() => buildFallbackPayload({ job: selected, provider }), [selected, provider])
   const activeJobs = jobs.filter((j) => ['queued', 'processing', 'error', 'failed'].includes(String(j.status || '').toLowerCase()))
   const recentDone = jobs.filter((j) => String(j.status || '').toLowerCase() === 'completed').slice(0, 10)
-  const packetStats = useMemo(() => ({ chars: packet.length, words: packet.trim() ? packet.trim().split(/\\s+/).length : 0, sections: (packet.match(/<<<BEGIN_CONTEXT_SECTION/g) || []).length, approximateTokens: Math.ceil(packet.length / 4) }), [packet])
+  const packetStats = useMemo(() => ({ chars: packet.length, words: packet.trim() ? packet.trim().split(/\s+/).length : 0, sections: (packet.match(/<<<BEGIN_CONTEXT_SECTION/g) || []).length, approximateTokens: Math.ceil(packet.length / 4) }), [packet])
 
   async function send(providerId) {
     if (!approvedExternalShare) {
