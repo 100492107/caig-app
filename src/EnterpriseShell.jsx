@@ -17,6 +17,7 @@ const NAV_GROUPS = [
     { id: 'production', label: 'Make content', href: '/content/production', key: '09' },
     { id: 'publish', label: 'Post', href: '/content/publish', key: '10' },
     { id: 'measurement', label: 'Results', href: '/content/measurement', key: '11' },
+    { id: 'youtube', label: 'YouTube', href: '/youtube', key: '12' },
   ]},
 ]
 
@@ -31,7 +32,7 @@ const UTILITY = [
 export default function EnterpriseShell({ active = 'command', children, eyebrow = '' }) {
   const resolved = {
     remake: 'content', creators: 'voices', profiles: 'voices', production: 'production',
-    publish: 'publish', measurement: 'measurement', content: 'content', command: 'command', commerce: 'commerce',
+    publish: 'publish', measurement: 'measurement', youtube: 'youtube', content: 'content', command: 'command', commerce: 'commerce',
     business: 'business', mission: 'mission', research: 'research', references: 'references', commerce: 'commerce', library: 'library', system: 'system', newlife: 'newlife',
   }[active] || active
   return (
@@ -72,6 +73,7 @@ export default function EnterpriseShell({ active = 'command', children, eyebrow 
             <a href="/references">Examples</a>
             <a href="/commerce">Selling</a>
             <a href="/content/publish">Post</a>
+            <a href="/youtube">YouTube</a>
             <a href="/generations">Saved work</a>
             <a href="/system">Settings</a>
           </div>
