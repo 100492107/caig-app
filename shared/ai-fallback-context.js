@@ -8,6 +8,7 @@ import CARA_LILA_CONTEXT from '../portable-ai/CARA_LILA_AI_CONTEXT.md?raw'
 import SOCIAL_SALES_CONTEXT from '../portable-ai/SOCIAL_SALES_DOCTRINE.md?raw'
 import YOUTUBE_CONTEXT from '../portable-ai/YOUTUBE_AUTOMATION_AI_CONTEXT.md?raw'
 import LOCAL_AI_CONTEXT from '../portable-ai/LOCAL_AI_QWEN.md?raw'
+import TELEGRAM_CONTEXT from '../portable-ai/TELEGRAM_AI_CONTEXT.md?raw'
 
 export const QWEN_REFERENCE = {
   model: 'mlx-community/Qwen3.5-9B-4bit',
@@ -61,6 +62,7 @@ export function buildFallbackPacket({ job = null, provider = 'claude' } = {}) {
     '=== PORTABLE SOCIAL + SALES DOCTRINE ===', SOCIAL_SALES_CONTEXT,
     '=== PORTABLE YOUTUBE CONTEXT ===', YOUTUBE_CONTEXT,
     '=== PORTABLE LOCAL AI / QWEN CONTEXT ===', LOCAL_AI_CONTEXT,
+    '=== PORTABLE TELEGRAM CONTINUITY CONTEXT ===', TELEGRAM_CONTEXT,
   ].join('\\n\\n')
   const userTask = String(job?.user_prompt || '(No active user request supplied.)')
 
