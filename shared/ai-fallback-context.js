@@ -3,6 +3,11 @@
 import SOCIAL_SALES_DOCTRINE from './social-sales-doctrine.js'
 import { CONTENT_PORTFOLIO, FANVUE_POLICY, LANE_PROMPTS } from './content-lane-rules.js'
 import { creatorDnaText } from './creator-dna.js'
+import CAIG_CONTEXT from '../portable-ai/CAIG_AI_CONTEXT.md?raw'
+import CARA_LILA_CONTEXT from '../portable-ai/CARA_LILA_AI_CONTEXT.md?raw'
+import SOCIAL_SALES_CONTEXT from '../portable-ai/SOCIAL_SALES_DOCTRINE.md?raw'
+import YOUTUBE_CONTEXT from '../portable-ai/YOUTUBE_AUTOMATION_AI_CONTEXT.md?raw'
+import LOCAL_AI_CONTEXT from '../portable-ai/LOCAL_AI_QWEN.md?raw'
 
 export const QWEN_REFERENCE = {
   model: 'mlx-community/Qwen3.5-9B-4bit',
@@ -50,6 +55,13 @@ export function buildFallbackPacket({ job = null, provider = 'claude' } = {}) {
   const laneText = lane ? (LANE_PROMPTS[lane] || lane) : 'Use the job-specific content lane if one is supplied.'
   const researchText = research ? '\nLIVE RESEARCH SNAPSHOT\n' + JSON.stringify(research, null, 2) : ''
   const jobContract = String(job?.system_prompt || '(No job-specific system contract supplied.)')
+  const portableContext = [
+    '=== PORTABLE CAIG MASTER CONTEXT ===', CAIG_CONTEXT,
+    '=== PORTABLE CARA + LILA CONTEXT ===', CARA_LILA_CONTEXT,
+    '=== PORTABLE SOCIAL + SALES DOCTRINE ===', SOCIAL_SALES_CONTEXT,
+    '=== PORTABLE YOUTUBE CONTEXT ===', YOUTUBE_CONTEXT,
+    '=== PORTABLE LOCAL AI / QWEN CONTEXT ===', LOCAL_AI_CONTEXT,
+  ].join('\\n\\n')
   const userTask = String(job?.user_prompt || '(No active user request supplied.)')
 
   const parts = [
@@ -58,6 +70,9 @@ export function buildFallbackPacket({ job = null, provider = 'claude' } = {}) {
     'Generated: ' + new Date().toISOString(),
     '',
     CORNERSTONE_FALLBACK_RULES,
+    '',
+    'PORTABLE BRAIN — LOAD THIS FIRST',
+    portableContext,
     '',
     'CORNERSTONE MISSION',
     'Track A = recover revenue already entering a business but lost in leads, enquiries, conversations, appointments, quotes or opportunities.',
