@@ -63,7 +63,7 @@ function Route(){
   if(path==='/mission')return <RevenueMission/>
   if(path==='/new-life')return <NewLifeBridge/>
   if(path==='/content'||path.startsWith('/content/'))return <ContentWorkspaceShell/>
-  if(path==='/system/ai-backup'||path==='/ai-backup')return <AIFallbackWorkspace/>
+  if(path==='/system/ai-anywhere'||path==='/ai-anywhere'||path==='/system/ai-backup'||path==='/ai-backup')return <AIFallbackWorkspace/>
   if(path==='/system'||path==='/ceo')return <SystemWorkspace/>
   if(path==='/generations')return <UserLibraryWorkspace/>
   return <CommandHome/>
