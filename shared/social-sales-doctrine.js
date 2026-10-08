@@ -51,6 +51,14 @@ Study high-performing media for mechanism, structure and audience psychology. Do
 REQUIRED PLANNING FIELDS
 viewer, viewer_outcome, belief_reason, objection_or_question, search_intent, next_step, comment_seed, series_follow_up
 
+
+OCTOBER 2026 PLATFORM UPDATE
+- TikTok continues to emphasise curiosity, search, community and the why behind purchase decisions.
+- TikTok's recent comment features make the comment area a richer creative surface; use genuine audience responses as inputs for future content.
+- TikTok is expanding AI-assisted discovery-to-action tooling and measurement.
+- Meta continues to prioritise original creator content and AI-assisted creator tools.
+- Operational response: design content for discovery + search + community + commerce, while preserving original creator perspective and materially original execution.
+
 DECISION RULE
 Prefer the concept with the clearest audience outcome, strongest believable reason to care, most specific point of view, cleanest visual story, most natural next step and best chance of becoming a repeatable series.
 `;
