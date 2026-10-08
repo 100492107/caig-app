@@ -134,8 +134,7 @@ export default function AIFallbackWorkspace() {
     setSaving(false)
   }
 
-  const responsiveStyle = `<style>
-@media(max-width:900px){
+  const responsiveStyle = `@media(max-width:900px){
   .ai-fallback-hero{grid-template-columns:1fr!important}
   .ai-fallback-providers{grid-template-columns:1fr 1fr!important}
   .ai-fallback-actions{grid-template-columns:1fr!important}
@@ -143,8 +142,7 @@ export default function AIFallbackWorkspace() {
 }
 @media(max-width:560px){
   .ai-fallback-providers,.ai-fallback-job-summary{grid-template-columns:1fr!important}
-}
-</style>`;
+}`;
   return (\n    <>\n      <style dangerouslySetInnerHTML={{ __html: responsiveStyle }} />\n      <EnterpriseShell active="ai-backup" eyebrow="AI Backup">
       <main className="ai-fallback" style={{ maxWidth: 1180, margin: '0 auto' }}>
         <header className="cs-page-head">
@@ -218,7 +216,8 @@ export default function AIFallbackWorkspace() {
         {message && <div role="status" style={styles.message}>{message}</div>}
         {loading && <div style={styles.message}>Loading recent AI jobs…</div>}
       </main>
-    </EnterpriseShell>
+      </EnterpriseShell>
+    </>
   )
 }
 
