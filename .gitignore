@@ -35,6 +35,9 @@ supabase/.temp/
 .netlify
 .vercel
 
+# Generated portable AI context exports — may contain sensitive business context
+portable-ai-exports/
+
 # Local Cornerstone AI runtimes
 .local-ai-runtime/
 .venv-qwen/
