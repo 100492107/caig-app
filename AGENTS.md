@@ -73,6 +73,10 @@ Reference content is a teacher, not a template.
 Never blend Track A commercial evidence with Track B content evidence.  
 Public research ≠ owned analytics. Prefer repeated patterns. Label hypotheses.
 
+## Portable AI context
+
+`portable-ai/` is the model-independent operating context for Cornerstone. Keep it current whenever strategy, creator rules, social/sales doctrine, YouTube doctrine or local-AI operating rules materially change. The provider is replaceable; the context contract is the durable asset.
+
 ## Qwen
 
 Local Qwen is the intelligence layer. Identify domain → load context → research if needed → separate evidence from inference → human quality gate → durable job state.  
