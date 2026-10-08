@@ -8,6 +8,7 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "context:export": "node scripts/export-portable-ai-context.mjs",
     "mpt:worker": "node scripts/mpt-worker.mjs",
     "caption:worker": "node --env-file=.env.qwen.local scripts/caption-worker.mjs",
     "caption:whisper": ".venv-caption/bin/python scripts/mlx-whisper-server.py",
