@@ -83,7 +83,7 @@ export default function YouTubeAutomationWorkspace() {
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState("")
   const [views, setViews] = useState("")
-  const [rpm, setRpm] = useState("4")
+  const [rpm, setRpm] = useState("")
   const [ctr, setCtr] = useState("")
   const [avd, setAvd] = useState("")
 
@@ -132,8 +132,9 @@ export default function YouTubeAutomationWorkspace() {
           </article>
 
           <aside className="yt-side">
+            <article className="yt-panel"><div className="yt-k">Study one video deeply</div><p className="yt-note">Use the existing YouTube analysis pipeline to download a public reference, inspect it and build an original package from the mechanism.</p><a className="yt-primary" href="/content/remake" style={{display:"flex",alignItems:"center",justifyContent:"center",textDecoration:"none"}}>Analyse a YouTube video</a></article>
             <article className="yt-panel"><div className="yt-k">The whole system</div><div className="yt-flow">{["Research","Niche","Channels","Formats","Patterns","Make","Publish","Results","Learn"].map((x, i) => <div key={x}><span>{i + 1}</span><b>{x}</b>{i < 8 && <em>→</em>}</div>)}</div></article>
-            <article className="yt-panel"><div className="yt-k">Revenue planner</div><div className="yt-revenue-grid"><label>Monthly views<input inputMode="numeric" value={views} onChange={(e) => setViews(e.target.value)} placeholder="100000" /></label><label>Assumed RPM<input inputMode="decimal" value={rpm} onChange={(e) => setRpm(e.target.value)} /></label><div><span>Estimated ad revenue</span><strong>{revenue}</strong><small>Planning estimate only. RPM is an operator assumption.</small></div></div></article>
+            <article className="yt-panel"><div className="yt-k">Revenue planner</div><div className="yt-revenue-grid"><label>Monthly views<input inputMode="numeric" value={views} onChange={(e) => setViews(e.target.value)} placeholder="e.g. 100000" /></label><label>Assumed RPM<input inputMode="decimal" value={rpm} onChange={(e) => setRpm(e.target.value)} /></label><div><span>Estimated ad revenue</span><strong>{revenue}</strong><small>Planning estimate only. RPM is an operator assumption.</small></div></div></article>
             <article className="yt-panel"><div className="yt-k">Quick diagnosis</div><div className="yt-mini-grid"><label>CTR %<input value={ctr} onChange={(e) => setCtr(e.target.value)} placeholder="e.g. 6.5" /></label><label>Average view duration<input value={avd} onChange={(e) => setAvd(e.target.value)} placeholder="e.g. 5:42" /></label></div><p className="yt-note">Read CTR together with impressions and viewer satisfaction. A high CTR with weak retention can mean the package is stronger than the video experience.</p></article>
           </aside>
         </section>
