@@ -1,6 +1,6 @@
 {
   "name": "Cornerstone AI Portable Context",
-  "version": "2026-10-08.2",
+  "version": "2026-10-08.3",
   "status": "active",
   "canonical_repository": "100492107/caig-app",
   "principle": "The model is replaceable; the operating contract is the asset.",
@@ -10,6 +10,7 @@
     "new_life": "Separate personal execution system"
   },
   "files": [
+    "portable-ai/CONTEXT_RECEIPT_PROTOCOL.md",
     "portable-ai/00_START_HERE.md",
     "portable-ai/CAIG_AI_CONTEXT.md",
     "portable-ai/CARA_LILA_AI_CONTEXT.md",
@@ -29,5 +30,5 @@
     "contains_auth_tokens": false,
     "contains_service_role_keys": false
   },
-  "portability": "Use the same context, methods, quality gates, evidence rules and output schema with any suitable AI provider."
+  "portability": "Use the same context, methods, quality gates, evidence rules and output schema with any suitable AI provider. External handoffs require a source-by-source context receipt before execution."
 }
