@@ -155,3 +155,31 @@ Sell where value is stuck. Build where attention is proven. Measure what actuall
 - `docs/TRACK_B_LOCKED_STRATEGY.md` (Track B detail; stages must match this doc)  
 - `docs/LOCAL_RUN.md`  
 - Dashboard: `OUTREACH_PLAYBOOK.md` + `recovery-sequence.js`
+
+
+## October 8 2026 — Model-independent intelligence
+
+The company no longer treats Qwen, the Cornerstone UI, or any single provider as the keeper of strategic memory.
+
+The durable asset is the version-controlled context contract: business model, Track A and Track B boundaries, creator DNA, social/sales doctrine, YouTube doctrine, research method, evidence hierarchy, quality rules, operating priorities and job-specific instructions.
+
+Qwen remains the preferred local execution engine. That is an implementation advantage, not a dependency that may stop the business.
+
+Approved continuity path:
+
+Cornerstone job/context → local Qwen → external fallback (Gemini / Claude / Grok / ChatGPT) → same requested output → human review → same downstream workflow.
+
+An optional local Telegram bot now provides an alternate interface to the same context. It keeps a small local conversation history, can send a portable context backup with /backup and can automatically fall through from Qwen to configured external providers.
+
+Telegram is an interface, not a source of truth. Secrets and private customer/prospect records are not included in the portable context by default.
+
+Operator verification on 8 October 2026 confirmed the main checkout at /Users/Joseph/Business/caig-app, a successful git pull, the shared local AI stack running, and the Qwen model endpoint returning the currently available model ids:
+
+mlx-community/Qwen3.5-9B-4bit
+Qwen/Qwen2.5-VL-3B-Instruct
+mlx-community/Qwen3-8B-4bit
+mlx-community/Qwen2.5-VL-3B-Instruct-4bit
+
+The active stack output also reported text on 127.0.0.1:8000, Vision on 127.0.0.1:8001, Whisper on 127.0.0.1:8787 and Track B max tokens of 6000.
+
+Operator rule: if a local model breaks, do not spend hours redesigning the business or weakening the context. Switch execution provider and keep the workflow moving.
