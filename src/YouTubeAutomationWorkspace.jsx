@@ -14,9 +14,9 @@ const QWEN_MODEL = "mlx-community/Qwen3.5-9B-4bit"
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
 function parse(raw) {
-  const text = String(raw || "").replace(/```json|```/gi, "").replace(/<think>[\\s\\S]*?<\\/think>/gi, "").trim()
+  const text = String(raw || "").replace(/```json|```/gi, "").replace(/<think>[\s\S]*?<\/think>/gi, "").trim()
   try { return JSON.parse(text) } catch {}
-  const match = text.match(/\\{[\\s\\S]*\\}/)
+  const match = text.match(/\{[\s\S]*\}/)
   if (match) { try { return JSON.parse(match[0]) } catch {} }
   return { text }
 }
