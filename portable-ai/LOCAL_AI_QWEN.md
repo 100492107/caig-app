@@ -57,15 +57,7 @@ When the replacement model cannot access a local-only service, create the exact 
 Never put secrets, service-role keys, auth tokens or credentials into the portable context.
 
 
-## Telegram backup
 
-The optional Telegram AI bot uses the same portable context, prefers local Qwen and fails over to configured external providers.
+## External AI fallback
 
-Start manually:
-
-~~~bash
-cd /Users/Joseph/Business/caig-app
-npm run telegram:bot
-~~~
-
-See portable-ai/TELEGRAM_AI_CONTEXT.md.
+When Qwen is unavailable, use Cornerstone → Settings → AI Anywhere. Export the portable context packet, require a context receipt from the replacement model, then reply PROCEED once it confirms all source sections were received. Review the exported packet before sending because job-specific details may be sensitive.
