@@ -26,14 +26,14 @@ const NAV = NAV_GROUPS.flatMap(group => group.items)
 const UTILITY = [
   { id: 'library', label: 'Saved work', href: '/generations' },
   { id: 'system', label: 'Settings', href: '/system' },
-  { id: 'ai-backup', label: 'AI Backup', href: '/system/ai-backup' },
+  { id: 'ai-anywhere', label: 'AI Anywhere', href: '/system/ai-anywhere' },
   { id: 'newlife', label: 'New Life', href: '/new-life' },
 ]
 
 export default function EnterpriseShell({ active = 'command', children, eyebrow = '' }) {
   const resolved = {
     remake: 'content', creators: 'voices', profiles: 'voices', production: 'production',
-    publish: 'publish', measurement: 'measurement', youtube: 'youtube', content: 'content', command: 'command', commerce: 'commerce', aiBackup: 'ai-backup', 'ai-backup': 'ai-backup',
+    publish: 'publish', measurement: 'measurement', youtube: 'youtube', content: 'content', command: 'command', commerce: 'commerce', aiBackup: 'ai-anywhere', 'ai-anywhere': 'ai-anywhere',
     business: 'business', mission: 'mission', research: 'research', references: 'references', commerce: 'commerce', library: 'library', system: 'system', newlife: 'newlife',
   }[active] || active
   return (
@@ -77,7 +77,7 @@ export default function EnterpriseShell({ active = 'command', children, eyebrow 
             <a href="/youtube">YouTube</a>
             <a href="/generations">Saved work</a>
             <a href="/system">Settings</a>
-            <a href="/system/ai-backup">AI Backup</a>
+            <a href="/system/ai-anywhere">AI Anywhere</a>
           </div>
         </details>
       </nav>
