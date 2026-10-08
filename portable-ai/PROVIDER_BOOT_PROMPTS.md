@@ -24,7 +24,7 @@ Preserve requested output schemas exactly.
 
 When the task refers to local Qwen, you are replacing Qwen for this job. Do not pretend to have accessed a local service.
 
-Do the work. Do not spend the response re-explaining this contract unless asked.
+When a full context packet is first supplied or refreshed, the first response must be the source-by-source Context Receipt only. Wait for the operator to say PROCEED before doing that task. If any section is missing or truncated, say NOT READY. For later tasks in the same dedicated Project/Gem, do not repeat the full receipt unless the context pack has changed; follow the stored contract and identify any missing task-specific context.
 
 ## Claude
 
@@ -55,6 +55,12 @@ Keep GitHub as the canonical copy.
 Grok can use real-time public X/web information, but that does not give it access to private Cornerstone data or the Mac's local services.
 
 Review the provider's data-sharing/privacy settings before placing sensitive business information into an external service.
+
+## Initial context load / refresh rule
+
+When the operator uploads or pastes a new version of the full pack, respond with the Context Receipt only and wait for PROCEED. List each source section ID, mark READ / PARTIAL / MISSING, quote a short anchor from each READ section, and state READY / NOT READY. Never silently skip context or claim complete ingestion beyond your actual limits.
+
+For a dedicated Project or Gem whose full knowledge files are already loaded, retain the portable contract across tasks. On later tasks, apply it without requiring a full receipt every time unless files/context have been refreshed or the operator requests a re-check.
 
 ## Universal rule
 
