@@ -104,12 +104,10 @@ The same portable context must work in Claude, Gemini, Grok, ChatGPT, OpenAI-com
 When Qwen fails, change provider rather than losing the workflow or the context.
 Do not claim a fallback provider is connected until its credentials and real call path have been tested.
 
-## 14. Telegram AI backup
-Telegram is a secondary interface, not the source of truth.
-The CAIG repository now contains a Telegram webhook scaffold with authorised chat checking, portable context injection, provider routing, /status, /context, /export and /clear, plus rolling Supabase conversation memory.
-Supported provider patterns: Anthropic / Claude, Gemini, xAI / Grok and OpenAI-compatible endpoints.
-Telegram is not configured or proven live until the bot token, webhook secret, authorised chat ID and a provider credential/model are set and tested.
-New Life must remain outside this business bot.
+## 14. External AI context receipt
+
+Use Cornerstone → Settings → AI Anywhere to create a portable handoff for Claude, Gemini, Grok, ChatGPT or another suitable provider. Every packet includes the context source manifest and a gate requiring the replacement model to acknowledge all sections, flag missing/truncated material and wait for PROCEED before it executes. This cannot guarantee a provider can ingest unlimited context, so limits must be disclosed instead of silently skipping material.
+
 
 ## 15. Product UX
 One visible UX per job. One canonical page per responsibility.
@@ -129,7 +127,7 @@ It may share the local Qwen model endpoint operationally but must never share CA
 4. Research repeatable mechanisms rather than isolated viral outliers.
 5. Run verified commerce tests only when a real product and tracking path exist.
 6. Keep Track A focused on the fastest credible path to the income target.
-7. Configure and test Telegram backup and at least one fallback AI provider.
+7. Keep the external provider context receipt workflow current and use it when Qwen is unavailable.
 8. Only change architecture when a demonstrated bottleneck or reliability issue requires it.
 
 ## 18. Permanent rule
