@@ -55,6 +55,7 @@ export default function AIFallbackWorkspace() {
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(true)
   const [approvedExternalShare, setApprovedExternalShare] = useState(false)
+  const [receiptConfirmed, setReceiptConfirmed] = useState(false)
 
   async function load() {
     setLoading(true)
@@ -108,7 +109,7 @@ export default function AIFallbackWorkspace() {
   }
 
   async function saveExternalResult() {
-    if (!selected?.id || !resultText.trim() || saving) return
+    if (!selected?.id || !resultText.trim() || saving || !receiptConfirmed) return
     setSaving(true)
     setMessage('Saving the external result back into Cornerstone…')
     const nextOptions = {
@@ -134,6 +135,7 @@ export default function AIFallbackWorkspace() {
     } else {
       setMessage('External result saved. Cornerstone can continue from the same job.')
       setResultText('')
+      setReceiptConfirmed(false)
       await load()
     }
     setSaving(false)
@@ -226,7 +228,8 @@ export default function AIFallbackWorkspace() {
             {PROVIDERS.map((p) => <button key={p.id} onClick={() => setProvider(p.id)} style={provider === p.id ? styles.selectedProvider : styles.ghost}>{p.label}</button>)}
           </div>
           <textarea value={resultText} onChange={(e) => setResultText(e.target.value)} placeholder="Paste the external AI's final answer here…" style={{ ...styles.input, minHeight: 260, marginTop: 12 }} />
-          <button disabled={!selected || !resultText.trim() || saving} onClick={saveExternalResult} style={styles.primary}>{saving ? 'Saving…' : 'Save result back to Cornerstone →'}</button>
+          <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, margin: '12px 0', color: '#c4ccd7', fontSize: 12, lineHeight: 1.5 }}><input type="checkbox" checked={receiptConfirmed} onChange={(e) => setReceiptConfirmed(e.target.checked)} style={{ marginTop: 3 }} /><span>I checked the AI's Context Receipt. It marked every required section READ, reported READY, and I replied PROCEED before it created this result.</span></label>
+          <button disabled={!selected || !resultText.trim() || saving || !receiptConfirmed} onClick={saveExternalResult} style={styles.primary}>{saving ? 'Saving…' : 'Save result back to Cornerstone →'}</button>
         </section>
 
         {message && <div role="status" style={styles.message}>{message}</div>}
