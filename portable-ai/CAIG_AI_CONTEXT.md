@@ -189,3 +189,14 @@ Local Qwen = primary execution
 External AIs = interchangeable fallback/execution providers
 Media providers = replaceable implementation layers
 Metricool / platform analytics = observed audience evidence
+
+
+## Model independence
+
+The model is replaceable. The business context is not.
+
+The canonical operating brain is the version-controlled portable-ai context plus current job-specific instructions and verified evidence. Qwen is the preferred local executor. Gemini, Claude, Grok and ChatGPT are approved alternate execution providers when configured.
+
+A different model must preserve the same strategy, creator identity, evidence hierarchy, quality gates, output contracts and separation between Track A, Track B and New Life.
+
+Telegram is an alternate interface that loads the same context.
