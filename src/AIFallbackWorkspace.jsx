@@ -88,8 +88,6 @@ export default function AIFallbackWorkspace() {
     setProvider(providerId)
     const p = PROVIDERS.find((x) => x.id === providerId) || PROVIDERS[0]
     const packed = buildFallbackPacket({ job: selected, provider: providerId })
-    // Open synchronously during the user click so browser popup blockers do not
-    // discard the provider tab after the clipboard await.
     window.open(p.url, '_blank', 'noopener,noreferrer')
     const ok = await copyText(packed)
     download('cornerstone-ai-context-' + providerId + '-' + (selected ? 'job' : 'full-brain') + '.md', packed)
@@ -160,8 +158,64 @@ export default function AIFallbackWorkspace() {
         <header className="cs-page-head">
           <div className="eyebrow">AI Anywhere</div>
           <h1>Keep the whole brain. Change the AI.</h1>
-          <p>Export the business context, operating rules, creator sources, social and sales methods, YouTube method, local AI setup and exact job instructions. The new AI must acknowledge every included section before it starts work.</p>
+          <p>Qwen is replaceable. The business knowledge is not. Export the operating brain, force a Context Receipt, then use whatever model is strongest right now.</p>
         </header>
+
+        {/* PERMANENT CHECKLIST — never forget */}
+        <section style={styles.neverForget}>
+          <div style={styles.neverForgetHead}>
+            <div style={styles.kickerGold}>NEVER FORGET · PORTABLE BRAIN</div>
+            <div style={styles.winLine}>AI keeps getting better. The model changes. The brain does not. Win with whatever is strongest.</div>
+          </div>
+
+          <ol style={styles.steps}>
+            <li>
+              <strong>Open the export folder</strong>
+              <div style={styles.stepBody}>
+                Finder → <code style={styles.code}>Business/caig-app/portable-ai-exports/</code>
+                <br />or Terminal: <code style={styles.code}>open /Users/joseph/Business/caig-app/portable-ai-exports/</code>
+              </div>
+            </li>
+            <li>
+              <strong>Pick a pack</strong>
+              <div style={styles.stepBody}>
+                <b>Core</b> first if using ChatGPT / free tiers / smaller windows — enough for Cara + Lila truth, Attention Gate, soft commerce, DNA.
+                <br /><b>Full</b> when the model can take ~60k tokens and you want the complete brain.
+              </div>
+            </li>
+            <li>
+              <strong>New chat</strong> in ChatGPT, Claude, Gemini, or Grok
+              <div style={styles.stepBody}>
+                Paste the whole <code style={styles.code}>.md</code> (or upload it) as the <b>first</b> message.
+                <br />Nothing else in that first message.
+              </div>
+            </li>
+            <li>
+              <strong>Wait for the Context Receipt</strong>
+              <div style={styles.stepBody}>
+                It must list every section as <b>READ / PARTIAL / MISSING</b> and say <b>READY</b> or <b>NOT READY</b>.
+                <br />It must <b>not</b> start the task yet.
+              </div>
+            </li>
+            <li>
+              <strong>You type: PROCEED</strong>
+              <div style={styles.stepBody}>
+                Then give the actual job (e.g. “Write 7 Attack Week posts for Cara + Lila — 3 attention, 2 useful, 1 lifestyle, 1 soft commerce”).
+                <br />If the receipt says <b>NOT READY</b> (context limit), use the <b>core</b> pack instead of the full one.
+              </div>
+            </li>
+          </ol>
+
+          <div style={styles.refreshBox}>
+            <div style={styles.kickerGold}>REFRESH THE PACK</div>
+            <pre style={styles.pre}>{`cd /Users/joseph/Business/caig-app
+git pull origin main
+npm run context:export
+# or smaller:
+node scripts/export-portable-ai-context.mjs --core`}</pre>
+            <div style={styles.stepBody}>Same operating knowledge. Any model. That is how you stay current when Qwen ages out.</div>
+          </div>
+        </section>
 
         <section className="ai-fallback-hero" style={styles.hero}>
           <div>
@@ -247,6 +301,7 @@ const styles = {
   hero: { display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: 12, background: 'linear-gradient(145deg,#111720,#0d1017)', border: '1px solid #273141', borderRadius: 18, padding: 18, marginBottom: 16 },
   modelBox: { background: '#0a0d12', border: '1px solid #252d39', borderRadius: 14, padding: 14, display: 'grid', gap: 4 },
   kicker: { fontSize: 9, letterSpacing: '.15em', textTransform: 'uppercase', color: '#8a94a5', fontWeight: 900 },
+  kickerGold: { fontSize: 10, letterSpacing: '.14em', textTransform: 'uppercase', color: '#d4af37', fontWeight: 900 },
   h2: { margin: '5px 0 8px', fontSize: 21, letterSpacing: '-.035em' },
   muted: { color: '#929cab', fontSize: 13, lineHeight: 1.55 },
   headRow: { display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start' },
@@ -260,4 +315,47 @@ const styles = {
   secondaryActions: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 10 },
   jobSummary: { display: 'grid', gridTemplateColumns: 'repeat(4,minmax(0,1fr))', gap: 8, marginTop: 10 },
   message: { margin: '0 0 16px', padding: 12, borderRadius: 12, background: '#121720', border: '1px solid #2b3442', color: '#ccd4df', fontSize: 13, lineHeight: 1.45 },
+  neverForget: {
+    background: 'linear-gradient(160deg,#16120a,#0f1218)',
+    border: '1px solid rgba(212,175,55,.35)',
+    borderRadius: 20,
+    padding: '20px 18px 18px',
+    marginBottom: 18,
+  },
+  neverForgetHead: { marginBottom: 14 },
+  winLine: { marginTop: 8, color: '#e8e0c8', fontSize: 15, fontWeight: 800, letterSpacing: '-.02em', lineHeight: 1.35 },
+  steps: {
+    margin: '0 0 16px',
+    paddingLeft: 22,
+    color: '#eef1f6',
+    fontSize: 14,
+    lineHeight: 1.5,
+  },
+  stepBody: { marginTop: 4, color: '#a8b0bd', fontSize: 13, lineHeight: 1.55, fontWeight: 500 },
+  code: {
+    background: '#0a0d12',
+    border: '1px solid #2a3340',
+    borderRadius: 6,
+    padding: '1px 6px',
+    fontSize: 12,
+    fontFamily: 'ui-monospace,SFMono-Regular,Menlo,monospace',
+    color: '#f0d78c',
+  },
+  refreshBox: {
+    background: '#0a0d12',
+    border: '1px solid #2a3340',
+    borderRadius: 14,
+    padding: 14,
+  },
+  pre: {
+    margin: '10px 0 10px',
+    padding: 12,
+    background: '#06080c',
+    borderRadius: 10,
+    overflowX: 'auto',
+    fontSize: 12,
+    lineHeight: 1.5,
+    color: '#c8d0dc',
+    fontFamily: 'ui-monospace,SFMono-Regular,Menlo,monospace',
+  },
 }
