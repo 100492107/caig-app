@@ -22,6 +22,7 @@ import NewLifeBridge from './NewLifeBridge.jsx'
 import './CornerstoneTidy.css'
 import './UniversalUX.css'
 import './PlainEnglishUI.js'
+import AIFallbackWorkspace from './AIFallbackWorkspace.jsx'
 import './YouTubeAutomation.css'
 import YouTubeAutomationWorkspace from './YouTubeAutomationWorkspace.jsx'
 import './CornerstoneLayoutGuard.css'
@@ -62,6 +63,7 @@ function Route(){
   if(path==='/mission')return <RevenueMission/>
   if(path==='/new-life')return <NewLifeBridge/>
   if(path==='/content'||path.startsWith('/content/'))return <ContentWorkspaceShell/>
+  if(path==='/system/ai-backup'||path==='/ai-backup')return <AIFallbackWorkspace/>
   if(path==='/system'||path==='/ceo')return <SystemWorkspace/>
   if(path==='/generations')return <UserLibraryWorkspace/>
   return <CommandHome/>
