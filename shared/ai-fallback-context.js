@@ -121,6 +121,7 @@ function coreSections() {
     section('S02', 'portable-ai/00_START_HERE.md', 'Start Here / source-of-truth order', START_HERE, 'The model is replaceable; the operating contract is the asset.'),
     section('S03', 'AGENTS.md', 'Project operating constitution', PROJECT_RULES, 'Track A = cash now; Track B = compounding assets; New Life = capacity.'),
     section('S04', 'portable-ai/CAIG_AI_CONTEXT.md', 'Portable business context', CAIG_CONTEXT, 'Track A revenue recovery and Track B content/media are distinct engines.'),
+    section('S04B', 'portable-ai/CARA_LILA_AI_CONTEXT.md', 'Portable Cara + Lila context', CARA_LILA_CONTEXT, 'Cara builds and states things directly; Lila notices and states them more quietly.'),
     section('S05', 'docs/CEO_MASTER_CONTEXT_2026-10-08.md', 'CEO master context', CEO_MASTER_CONTEXT, 'Track A is the bridge for near-term cash; Track B builds owned media assets.'),
     section('S06', 'docs/CORNERSTONE_MASTER_CONTEXT.md', 'Canonical enterprise operating blueprint', ENTERPRISE_MASTER_CONTEXT, 'Track B stages: Discover → Analyse → Build → Multiply → Publish → Monetise → Measure → Repeat.'),
     section('S07', 'docs/MASTER_CONTEXT_SEP_2026.md', 'Master context / architecture companion', MASTER_CONTEXT, 'Automotive is a starting market, not the permanent definition of Track A.'),
