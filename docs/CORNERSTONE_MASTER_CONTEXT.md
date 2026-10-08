@@ -169,9 +169,7 @@ Approved continuity path:
 
 Cornerstone job/context → local Qwen → external fallback (Gemini / Claude / Grok / ChatGPT) → same requested output → human review → same downstream workflow.
 
-An optional local Telegram bot now provides an alternate interface to the same context. It keeps a small local conversation history, can send a portable context backup with /backup and can automatically fall through from Qwen to configured external providers.
-
-Telegram is an interface, not a source of truth. Secrets and private customer/prospect records are not included in the portable context by default.
+External provider handoffs use Cornerstone → Settings → AI Anywhere. Each packet contains a source manifest and a mandatory receipt gate; the replacement model must identify missing or truncated context and wait for PROCEED before executing. Secrets and New Life personal data are excluded from the CAIG portable pack by design.
 
 Operator verification on 8 October 2026 confirmed the main checkout at /Users/Joseph/Business/caig-app, a successful git pull, the shared local AI stack running, and the Qwen model endpoint returning the currently available model ids:
 
