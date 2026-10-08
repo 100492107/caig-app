@@ -270,3 +270,13 @@ Do not choose the idea simply because it is louder.
 - YouTube 2026 — stronger prioritisation of original Shorts and more conversational discovery/search.
 
 This doctrine is a strategic layer. Platform rules and product availability can change; current platform documentation remains authoritative.
+
+## October 2026 platform update
+
+These are external platform signals, not forecasts:
+- TikTok's 2026 planning direction continues to emphasise curiosity-led discovery, active search behaviour, community participation and explaining why a purchase is worth making.
+- TikTok's September 2026 product update expands the comment section with voice, poll and carousel interactions, reinforcing the idea that comments are part of the content surface rather than a passive afterthought.
+- TikTok's October 2026 advertiser update emphasises AI-supported discovery, action and measurable business outcomes.
+- Meta's 2026 creator guidance continues to prioritise original content and provides AI-assisted creator tools that use a creator's content, performance and community context.
+
+Operational response: research audience language and comment patterns; design content that can create a useful next conversation; build original creator-led assets; make subject/search intent clear; connect discovery to action only when the offer genuinely fits.
