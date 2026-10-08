@@ -134,8 +134,21 @@ export default function AIFallbackWorkspace() {
     setSaving(false)
   }
 
+  const responsiveStyle = `<style>
+@media(max-width:900px){
+  .ai-fallback-hero{grid-template-columns:1fr!important}
+  .ai-fallback-providers{grid-template-columns:1fr 1fr!important}
+  .ai-fallback-actions{grid-template-columns:1fr!important}
+  .ai-fallback-job-summary{grid-template-columns:1fr 1fr!important}
+}
+@media(max-width:560px){
+  .ai-fallback-providers,.ai-fallback-job-summary{grid-template-columns:1fr!important}
+}
+</style>`;
   return (
-    <EnterpriseShell active="system" eyebrow="AI Backup">
+    {responsiveStyle}
+
+    <EnterpriseShell active="ai-backup" eyebrow="AI Backup">
       <main className="ai-fallback" style={{ maxWidth: 1180, margin: '0 auto' }}>
         <header className="cs-page-head">
           <div className="eyebrow">AI Backup</div>
@@ -143,7 +156,7 @@ export default function AIFallbackWorkspace() {
           <p>Take the exact job instructions, creator context, social and sales rules, research snapshot and output requirements into another AI. Then put the answer back into the same Cornerstone job.</p>
         </header>
 
-        <section style={styles.hero}>
+        <section className="ai-fallback-hero" style={styles.hero}>
           <div>
             <strong style={{ fontSize: 18 }}>Your Cornerstone brain stays portable.</strong>
             <p style={styles.muted}>This does not copy Qwen itself. It copies the operating contract around Qwen — the rules, context and job detail that make the workflow work.</p>
@@ -169,7 +182,7 @@ export default function AIFallbackWorkspace() {
             {recentDone.length > 0 && <option disabled>──────── recent completed jobs ────────</option>}
             {recentDone.map((j) => <option key={j.id} value={j.id}>Done · {j.title || j.job_type} · {j.persona_id || 'general'}</option>)}
           </select>
-          <div style={styles.jobSummary}>
+          <div className="ai-fallback-job-summary" style={styles.jobSummary}>
             <div><span>Status</span><strong>{selected ? statusLabel(selected.status) : 'Full brain'}</strong></div>
             <div><span>Type</span><strong>{selected?.job_type || 'Portable context'}</strong></div>
             <div><span>AI</span><strong>{selected?.model || QWEN_REFERENCE.model}</strong></div>
@@ -181,10 +194,10 @@ export default function AIFallbackWorkspace() {
           <div style={styles.kicker}>2 · USE ANOTHER AI</div>
           <h2 style={styles.h2}>One click prepares the whole handoff</h2>
           <p style={styles.muted}>Each button copies the same portable packet, downloads a backup copy, and opens that AI. Paste the packet into the new chat. No re-explaining Cornerstone from scratch.</p>
-          <div style={styles.providerGrid}>
+          <div className="ai-fallback-providers" style={styles.providerGrid}>
             {PROVIDERS.map((p) => <button key={p.id} onClick={() => send(p.id)} style={styles.provider}><b>{p.label}</b><span>Copy + open</span></button>)}
           </div>
-          <div style={styles.secondaryActions}>
+          <div className="ai-fallback-actions" style={styles.secondaryActions}>
             <button style={styles.primary} onClick={downloadMarkdown}>Download handoff (.md)</button>
             <button style={styles.ghost} onClick={downloadJson}>Download structured backup (.json)</button>
           </div>
