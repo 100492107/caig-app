@@ -200,3 +200,14 @@ Cornerstone should feel like a quiet, professional working instrument: restraine
 4. Model inference.
 
 When in doubt, fetch current code and data rather than trusting an old note.
+
+
+## 31. Model-independent AI and Telegram continuity
+
+As of 8 October 2026, model portability is part of the core operating architecture.
+
+Local Qwen remains the preferred executor. When Qwen is unavailable, the same job can continue through Gemini, Claude, Grok or ChatGPT using the external AI fallback packet.
+
+An optional Telegram bot provides a direct alternate interface to the same portable context. It runs on the operator Mac, prefers Qwen, can fail over to configured external providers, retains a small local conversation history and can send a Markdown context backup with /backup.
+
+The workflow must survive the failure of one model, one interface or one provider.
