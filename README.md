@@ -125,3 +125,17 @@ There is one canonical implementation per active capability. Do not create `V2`,
 
 Keep service credentials server-side. Use authenticated access and database RLS where configured. Never rely on front-end routing as a security boundary. Keep Track A commercial data separate from Track B creative data.
 \n## Automation completion layer\n\nTrack B now closes the learning, discovery and production-control gaps around the canonical lifecycle:\n\n`Performance evidence → automatic baseline evaluation → winner / neutral / underperforming → learning recommendation → next Build run`\n\n`Watchlist → scheduled public commerce scan → deduplicated signal → Commerce opportunity`\n\n`Production output → technical inspection + local Qwen Vision → approved / rejected quality gate → publish-ready asset`\n\nProduction budgets are operator-scoped and evidence-driven. No provider price, affiliate eligibility or future performance is inferred from public source data.\n
+
+## Telegram AI backup
+
+Cornerstone includes an optional local Telegram AI bot. It uses the same portable-ai context as the external AI fallback system, prefers local Qwen and can fall through to configured Gemini, Claude, Grok or ChatGPT providers.
+
+Setup:
+
+~~~bash
+export TELEGRAM_BOT_TOKEN="..."
+export TELEGRAM_ADMIN_CHAT_ID="..."
+npm run telegram:bot
+~~~
+
+For first setup, run the bot with only TELEGRAM_BOT_TOKEN, send /id, add the returned chat ID as TELEGRAM_ADMIN_CHAT_ID, then restart. See portable-ai/TELEGRAM_AI_CONTEXT.md.
