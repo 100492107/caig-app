@@ -7,6 +7,7 @@
  * Usage:
  *   npm run context:export
  *   node scripts/export-portable-ai-context.mjs --provider=claude
+ *   node scripts/export-portable-ai-context.mjs --core
  *   node scripts/export-portable-ai-context.mjs --out=/absolute/path/context.md
  */
 import fs from 'node:fs/promises'
@@ -16,13 +17,17 @@ import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
-const VERSION = '2026-10-08.4'
-const SOURCES = [
+const VERSION = '2026-10-08.5'
+
+const FULL_SOURCES = [
   ['portable-ai/CONTEXT_RECEIPT_PROTOCOL.md', 'Context receipt protocol'],
   ['portable-ai/00_START_HERE.md', 'Portable brain entry point'],
   ['AGENTS.md', 'Project operating constitution'],
   ['portable-ai/CAIG_AI_CONTEXT.md', 'Portable business context'],
-  ['portable-ai/CARA_LILA_AI_CONTEXT.md', 'Portable creator context'],
+  ['portable-ai/CARA_LILA_AI_CONTEXT.md', 'Portable creator context — truth + viral/money engine'],
+  ['docs/CARA_LILA_ATTENTION_GATE.md', 'Attention Gate checklist — absolute truth'],
+  ['docs/CARA_LILA_SOFT_COMMERCE_LANE.md', 'Soft commerce lane rules'],
+  ['docs/CARA_LILA_ATTACK_WEEK_01.md', 'Attack Week 01 operating plan'],
   ['docs/CEO_MASTER_CONTEXT_2026-10-08.md', 'CEO master context'],
   ['docs/CORNERSTONE_MASTER_CONTEXT.md', 'Canonical enterprise operating blueprint'],
   ['docs/MASTER_CONTEXT_SEP_2026.md', 'Master context and architecture companion'],
@@ -36,7 +41,7 @@ const SOURCES = [
   ['portable-ai/PROVIDER_BOOT_PROMPTS.md', 'Provider boot prompts'],
   ['portable-ai/CONTEXT_MANIFEST.json', 'Portable context manifest'],
   ['shared/social-sales-doctrine.js', 'Runtime social and sales doctrine'],
-  ['shared/creator-dna.js', 'Runtime creator DNA'],
+  ['shared/creator-dna.js', 'Runtime creator DNA — absolute truth'],
   ['shared/content-lane-rules.js', 'Content lanes and content mix'],
   ['shared/scene-direction-knowledge.js', 'Visual and scene direction rules'],
   ['personas/cara/CHARACTER_BIBLE.md', 'Cara full character bible'],
@@ -51,25 +56,48 @@ const SOURCES = [
   ['scripts/qwen-output-contract.mjs', 'Exact Qwen output-contract middleware source'],
   ['scripts/qwen-worker.mjs', 'Exact Qwen worker and research orchestration source'],
 ]
+
+/** Smaller pack for models with tighter context windows — still enough to run Cara+Lila correctly. */
+const CORE_SOURCES = [
+  ['portable-ai/CONTEXT_RECEIPT_PROTOCOL.md', 'Context receipt protocol'],
+  ['portable-ai/00_START_HERE.md', 'Portable brain entry point'],
+  ['portable-ai/CAIG_AI_CONTEXT.md', 'Portable business context'],
+  ['portable-ai/CARA_LILA_AI_CONTEXT.md', 'Portable creator context — truth + viral/money engine'],
+  ['docs/CARA_LILA_ATTENTION_GATE.md', 'Attention Gate checklist — absolute truth'],
+  ['docs/CARA_LILA_SOFT_COMMERCE_LANE.md', 'Soft commerce lane rules'],
+  ['docs/CARA_LILA_ATTACK_WEEK_01.md', 'Attack Week 01 operating plan'],
+  ['portable-ai/SOCIAL_SALES_DOCTRINE.md', 'Portable social and sales doctrine'],
+  ['portable-ai/PROVIDER_BOOT_PROMPTS.md', 'Provider boot prompts'],
+  ['shared/creator-dna.js', 'Runtime creator DNA — absolute truth'],
+  ['personas/duo/cara-lila.md', 'Cara plus Lila relationship source'],
+]
+
 const args = Object.fromEntries(process.argv.slice(2).filter(x => x.startsWith('--')).map(x => {
   const splitAt = x.indexOf('=')
   return splitAt < 0 ? [x.slice(2), 'true'] : [x.slice(2, splitAt), x.slice(splitAt + 1)]
 }))
 const provider = args.provider || 'portable / model-independent'
+const coreOnly = args.core === 'true' || args.core === true
+const SOURCES = coreOnly ? CORE_SOURCES : FULL_SOURCES
+const modeLabel = coreOnly ? 'core_brain' : 'full_business_brain'
 const today = new Date().toISOString().slice(0, 10)
-const defaultOut = path.join(ROOT, 'portable-ai-exports', 'cornerstone-full-context-' + today + '.md')
+const defaultName = coreOnly
+  ? 'cornerstone-core-context-' + today + '.md'
+  : 'cornerstone-full-context-' + today + '.md'
+const defaultOut = path.join(ROOT, 'portable-ai-exports', defaultName)
 const outPath = path.resolve(args.out || defaultOut)
 const manifestPath = outPath.toLowerCase().endsWith('.md') ? outPath.slice(0, -3) + '.manifest.json' : outPath + '.manifest.json'
 
 const RECEIPT_GATE = [
   'NON-NEGOTIABLE CONTEXT LOAD GATE — READ THIS BEFORE ANYTHING ELSE',
-  'You are receiving Cornerstone AI Context Pack ' + VERSION + '. The model is replaceable; the context and methods are not.',
+  'You are receiving Cornerstone AI Context Pack ' + VERSION + ' (' + modeLabel + '). The model is replaceable; the context and methods are not.',
   'YOUR FIRST RESPONSE MUST BE A CONTEXT RECEIPT ONLY. DO NOT EXECUTE THE TASK IN THAT RESPONSE.',
   'Read every listed source section and check its matching END marker.',
   'Return: pack version and mode; every source ID in order marked READ / PARTIAL / MISSING; one distinctive anchor from every READ section; all conflicts, omissions, unreadable sections, truncation and capability gaps; then READY or NOT READY.',
   'Stop and wait for the operator to reply PROCEED. Do not execute before PROCEED.',
   'If any required section is missing or your context limit prevents reading it, say NOT READY. Never silently omit material, substitute a vague summary, or claim perfect ingestion.',
   'After PROCEED, execute the exact task that the operator supplied in the chat. If no specific task was supplied, ask what they want done.',
+  'FOUNDATIONAL RULE FOR CARA + LILA: Truth is definitive. Feelings do not override reality. Do not ship “my truth” framing.',
   'Do not reveal hidden chain-of-thought. The receipt is an auditable source checklist, not private reasoning.',
   'SECURITY: this export excludes .env values, credentials, API keys, service-role keys, auth tokens, New Life personal records and unexported private database rows. Review any task-specific data separately before sending it externally.',
   'This pack does not include model weights, local image/audio/video files, or access to services running on the operator Mac.',
@@ -124,11 +152,11 @@ async function main() {
   const sources = await readSources()
   const chars = sources.reduce((sum, source) => sum + source.chars, 0)
   const manifest = {
-    name: 'Cornerstone full portable AI context',
+    name: coreOnly ? 'Cornerstone core portable AI context' : 'Cornerstone full portable AI context',
     version: VERSION,
     generated_at: new Date().toISOString(),
     provider,
-    mode: 'full_business_brain',
+    mode: modeLabel,
     source_count: sources.length,
     total_source_characters: chars,
     approximate_tokens_characters_divided_by_4: Math.ceil(chars / 4),
@@ -157,7 +185,7 @@ async function main() {
     'Version: ' + VERSION,
     'Generated at: ' + manifest.generated_at,
     'Target provider: ' + provider,
-    'Mode: full business brain',
+    'Mode: ' + modeLabel,
     'Source sections: ' + sources.length,
     'Source characters: ' + chars,
     'Estimated tokens (rough estimate only): ' + manifest.approximate_tokens_characters_divided_by_4,
@@ -180,6 +208,7 @@ async function main() {
   await fs.writeFile(outPath, [header, body, footer].join('\n\n'), 'utf8')
   await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2) + '\n', 'utf8')
   console.log('[CONTEXT EXPORT] Complete')
+  console.log('[CONTEXT EXPORT] Mode: ' + modeLabel)
   console.log('[CONTEXT EXPORT] Markdown: ' + outPath)
   console.log('[CONTEXT EXPORT] Manifest: ' + manifestPath)
   console.log('[CONTEXT EXPORT] Sections: ' + sources.length)
