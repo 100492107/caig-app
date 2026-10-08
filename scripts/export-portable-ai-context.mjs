@@ -59,7 +59,7 @@ const provider = args.provider || 'portable / model-independent'
 const today = new Date().toISOString().slice(0, 10)
 const defaultOut = path.join(ROOT, 'portable-ai-exports', 'cornerstone-full-context-' + today + '.md')
 const outPath = path.resolve(args.out || defaultOut)
-const manifestPath = outPath.replace(/\.md$/i, '.manifest.json')
+const manifestPath = outPath.toLowerCase().endsWith('.md') ? outPath.slice(0, -3) + '.manifest.json' : outPath + '.manifest.json'
 
 const RECEIPT_GATE = [
   'NON-NEGOTIABLE CONTEXT LOAD GATE — READ THIS BEFORE ANYTHING ELSE',
