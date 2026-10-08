@@ -109,10 +109,6 @@ See `docs/LOCAL_RUN.md`.
 
 ## AI portability
 
-The portable-ai directory is model-independent source-of-truth context. Qwen, Gemini, Claude, Grok, ChatGPT and the optional Telegram bot execute against the same contract.
+The portable-ai directory is model-independent source-of-truth context. Qwen, Gemini, Claude, Grok, ChatGPT and other suitable providers execute against the same contract.
 
 Do not move strategic context into provider-specific prompts only. When strategy changes, update the portable context first.
-
-## Telegram AI backup
-
-npm run telegram:bot runs the optional local Telegram interface. It requires TELEGRAM_BOT_TOKEN and, for private AI access, TELEGRAM_ADMIN_CHAT_ID. It must never expose secrets or private customer/prospect records to external providers by default.
