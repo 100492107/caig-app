@@ -26,13 +26,14 @@ const NAV = NAV_GROUPS.flatMap(group => group.items)
 const UTILITY = [
   { id: 'library', label: 'Saved work', href: '/generations' },
   { id: 'system', label: 'Settings', href: '/system' },
+  { id: 'ai-backup', label: 'AI Backup', href: '/system/ai-backup' },
   { id: 'newlife', label: 'New Life', href: '/new-life' },
 ]
 
 export default function EnterpriseShell({ active = 'command', children, eyebrow = '' }) {
   const resolved = {
     remake: 'content', creators: 'voices', profiles: 'voices', production: 'production',
-    publish: 'publish', measurement: 'measurement', youtube: 'youtube', content: 'content', command: 'command', commerce: 'commerce',
+    publish: 'publish', measurement: 'measurement', youtube: 'youtube', content: 'content', command: 'command', commerce: 'commerce', aiBackup: 'ai-backup', 'ai-backup': 'ai-backup',
     business: 'business', mission: 'mission', research: 'research', references: 'references', commerce: 'commerce', library: 'library', system: 'system', newlife: 'newlife',
   }[active] || active
   return (
@@ -76,6 +77,7 @@ export default function EnterpriseShell({ active = 'command', children, eyebrow 
             <a href="/youtube">YouTube</a>
             <a href="/generations">Saved work</a>
             <a href="/system">Settings</a>
+            <a href="/system/ai-backup">AI Backup</a>
           </div>
         </details>
       </nav>
