@@ -23,6 +23,9 @@ import MASTER_CONTEXT from '../docs/MASTER_CONTEXT_SEP_2026.md?raw'
 import PORTABLE_CONTEXT from '../docs/PORTABLE_AI_CONTEXT_2026-10-08.md?raw'
 import TRACK_B_STRATEGY from '../docs/TRACK_B_LOCKED_STRATEGY.md?raw'
 import LOCAL_RUNBOOK from '../docs/LOCAL_RUN.md?raw'
+import QWEN_FORMAT_SOURCE from '../scripts/qwen-format-archaeology.mjs?raw'
+import QWEN_OUTPUT_CONTRACT_SOURCE from '../scripts/qwen-output-contract.mjs?raw'
+import QWEN_WORKER_SOURCE from '../scripts/qwen-worker.mjs?raw'
 import CARA_BIBLE from '../personas/cara/CHARACTER_BIBLE.md?raw'
 import CARA_PERSONA from '../personas/cara/persona.md?raw'
 import CARA_FANVUE_PERSONA from '../personas/cara/persona-fanvue.md?raw'
@@ -39,7 +42,7 @@ export const QWEN_REFERENCE = {
   whisperUrl: 'http://127.0.0.1:8787',
 }
 
-export const CONTEXT_PACK_VERSION = '2026-10-08.3'
+export const CONTEXT_PACK_VERSION = '2026-10-08.4'
 
 export const CORNERSTONE_FALLBACK_RULES = [
   'You are an execution partner for Cornerstone AI Enterprises.',
@@ -141,6 +144,9 @@ function coreSections() {
       fanvue_policy: FANVUE_POLICY,
       lane_prompts: LANE_PROMPTS,
     }, null, 2), 'Attention is 20–30%; useful is 30–40%; lifestyle is 25–35%; commerce is 10–15%.'),
+    section('S20', 'scripts/qwen-format-archaeology.mjs', 'Exact Qwen prompt-layer assembly source', QWEN_FORMAT_SOURCE, 'This source injects the project constitution, enterprise layers, domain rules, research and originality constraints.'),
+    section('S21', 'scripts/qwen-output-contract.mjs', 'Exact Qwen output-contract middleware source', QWEN_OUTPUT_CONTRACT_SOURCE, 'Track B output is split into operator_brief and production_package with a hard evidence firewall.'),
+    section('S22', 'scripts/qwen-worker.mjs', 'Exact Qwen worker and research orchestration source', QWEN_WORKER_SOURCE, 'The worker assembles the job, research, relevant character context, visual rules and persistent result.'),
   ]
 }
 
