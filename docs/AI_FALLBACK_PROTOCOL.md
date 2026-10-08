@@ -23,7 +23,7 @@ The AI Backup workspace can export:
 - the output rule requiring the external model to preserve the requested schema
 - anti-invention and Track A / Track B separation rules
 
-The result is a portable execution contract, not a copy of the Qwen model weights.
+The result is a portable execution contract, not a copy of the Qwen model weights. Every packet starts with a mandatory context receipt gate: the external model must acknowledge each included source section, report missing/truncated content and wait for the operator to say PROCEED before executing.
 
 ## What is not preserved
 
@@ -46,8 +46,8 @@ When a local-only capability is unavailable, the fallback model must produce the
 1. Open Cornerstone → Settings → AI Backup.
 2. Select the stuck, queued, processing or failed job.
 3. Choose Gemini, Claude, Grok or ChatGPT.
-4. Cornerstone copies the complete handoff packet and downloads a Markdown backup, then opens the selected provider.
-5. Paste the packet into the new chat.
+4. Cornerstone copies the full handoff packet and downloads a Markdown backup, then opens the selected provider.
+5. Paste the packet into the new chat. The provider must return a context receipt only; review it and reply PROCEED once all sections are accounted for.
 6. Complete the work in the external AI.
 7. Copy its final answer.
 8. Return to AI Backup.
@@ -111,18 +111,6 @@ The import action updates:
 - local_ai_jobs.options.fallback_source
 
 This allows existing Cornerstone polling, result viewers and downstream tooling to continue using the same job record.
-
-## Telegram backup interface
-
-Telegram is an optional alternate interface for the same operating brain.
-
-When configured on the operator Mac, the Telegram bot loads the same portable-ai context used by external fallback providers. It can continue normal work when the Cornerstone UI is inconvenient or local Qwen is temporarily unavailable.
-
-Default provider order is Qwen → Gemini → Claude → Grok → ChatGPT. The bot skips providers that are not configured and reports when a fallback provider answered.
-
-Useful controls are /status, /provider, /backup, /context and /clear.
-
-Telegram is not a second source of truth and must not receive secrets. The portable context contains operating rules and business/creator context, not API keys, service-role keys or authentication credentials. Private customer/prospect records are not automatically copied into the external-provider packet.
 
 ## Future evolution
 
