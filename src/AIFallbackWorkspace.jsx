@@ -54,6 +54,7 @@ export default function AIFallbackWorkspace() {
   const [resultText, setResultText] = useState('')
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [approvedExternalShare, setApprovedExternalShare] = useState(false)
 
   async function load() {
     setLoading(true)
@@ -65,7 +66,6 @@ export default function AIFallbackWorkspace() {
     if (error) setMessage(error.message)
     else {
       setJobs(data || [])
-      if (!selectedId && data?.[0]?.id) setSelectedId(data[0].id)
     }
     setLoading(false)
   }
@@ -77,28 +77,33 @@ export default function AIFallbackWorkspace() {
   const payload = useMemo(() => buildFallbackPayload({ job: selected, provider }), [selected, provider])
   const activeJobs = jobs.filter((j) => ['queued', 'processing', 'error', 'failed'].includes(String(j.status || '').toLowerCase()))
   const recentDone = jobs.filter((j) => String(j.status || '').toLowerCase() === 'completed').slice(0, 10)
+  const packetStats = useMemo(() => ({ chars: packet.length, words: packet.trim() ? packet.trim().split(/\\s+/).length : 0, sections: (packet.match(/<<<BEGIN_CONTEXT_SECTION/g) || []).length, approximateTokens: Math.ceil(packet.length / 4) }), [packet])
 
   async function send(providerId) {
+    if (!approvedExternalShare) {
+      setMessage('Please confirm that you have reviewed the packet and approve sending this business context to the selected external provider.')
+      return
+    }
     setProvider(providerId)
     const p = PROVIDERS.find((x) => x.id === providerId) || PROVIDERS[0]
     const packed = buildFallbackPacket({ job: selected, provider: providerId })
     const ok = await copyText(packed)
-    download('cornerstone-ai-fallback-' + providerId + '.md', packed)
+    download('cornerstone-ai-context-' + providerId + '-' + (selected ? 'job' : 'full-brain') + '.md', packed)
     setMessage(
       ok
-        ? 'Context packet copied and a .md copy downloaded. Opening ' + p.label + ' now — paste the packet into the new chat.'
-        : 'Packet downloaded. Clipboard access failed, so open ' + p.label + ' and paste the .md contents manually.'
+        ? 'Context packet copied and downloaded. Paste it into ' + p.label + '. Its first response must be a context receipt only. Check it, then type PROCEED.'
+        : 'Packet downloaded. Open ' + p.label + ' and paste the .md contents. Check its context receipt before typing PROCEED.'
     )
     window.open(p.url, '_blank', 'noopener,noreferrer')
   }
 
   function downloadMarkdown() {
-    download('cornerstone-ai-fallback.md', packet)
+    download('cornerstone-ai-context-' + (selected ? 'job-handoff' : 'full-brain') + '.md', packet)
     setMessage('Context packet downloaded as Markdown.')
   }
 
   function downloadJson() {
-    download('cornerstone-ai-fallback.json', JSON.stringify(payload, null, 2), 'application/json')
+    download('cornerstone-ai-context-backup.json', JSON.stringify(payload, null, 2), 'application/json')
     setMessage('Structured context downloaded as JSON.')
   }
 
@@ -150,14 +155,14 @@ export default function AIFallbackWorkspace() {
       <main className="ai-fallback" style={{ maxWidth: 1180, margin: '0 auto' }}>
         <header className="cs-page-head">
           <div className="eyebrow">AI Anywhere</div>
-          <h1>Qwen goes down. Work does not stop.</h1>
-          <p>Take the exact job instructions, creator context, social and sales rules, research snapshot and output requirements into another AI. Then put the answer back into the same Cornerstone job.</p>
+          <h1>Keep the whole brain. Change the AI.</h1>
+          <p>Export the business context, operating rules, creator sources, social and sales methods, YouTube method, local AI setup and exact job instructions. The new AI must acknowledge every included section before it starts work.</p>
         </header>
 
         <section className="ai-fallback-hero" style={styles.hero}>
           <div>
-            <strong style={{ fontSize: 18 }}>Your operating brain stays portable.</strong>
-            <p style={styles.muted}>This does not copy a model. It carries the business context, methods, quality rules and job detail to another AI.</p>
+            <strong style={{ fontSize: 18 }}>One source of truth. Any capable model.</strong>
+            <p style={styles.muted}>Qwen is the current worker, not the owner of the knowledge. This export contains source sections and a required acknowledgement checkpoint. No receipt, no task execution.</p>
           </div>
           <div style={styles.modelBox}>
             <span>Local Qwen</span>
@@ -175,13 +180,13 @@ export default function AIFallbackWorkspace() {
             <button style={styles.ghost} onClick={load}>Refresh</button>
           </div>
           <select value={selectedId} onChange={(e) => setSelectedId(e.target.value)} style={styles.input}>
-            <option value="">No job — export the full Cornerstone context</option>
+            <option value="">No job — export the full business brain (recommended)</option>
             {activeJobs.map((j) => <option key={j.id} value={j.id}>{statusLabel(j.status)} · {j.title || j.job_type} · {j.persona_id || 'general'}</option>)}
             {recentDone.length > 0 && <option disabled>──────── recent completed jobs ────────</option>}
             {recentDone.map((j) => <option key={j.id} value={j.id}>Done · {j.title || j.job_type} · {j.persona_id || 'general'}</option>)}
           </select>
           <div className="ai-fallback-job-summary" style={styles.jobSummary}>
-            <div><span>Status</span><strong>{selected ? statusLabel(selected.status) : 'Full context'}</strong></div>
+            <div><span>Mode</span><strong>{selected ? 'Job handoff' : 'Full business brain'}</strong></div>
             <div><span>Type</span><strong>{selected?.job_type || 'Portable context'}</strong></div>
             <div><span>AI</span><strong>{selected?.model || QWEN_REFERENCE.model}</strong></div>
             <div><span>Creator</span><strong>{selected?.persona_id || 'All relevant context'}</strong></div>
@@ -190,17 +195,25 @@ export default function AIFallbackWorkspace() {
 
         <section style={styles.panel}>
           <div style={styles.kicker}>2 · USE ANOTHER AI</div>
-          <h2 style={styles.h2}>One click prepares the handoff</h2>
-          <p style={styles.muted}>Each button copies the same portable packet, downloads a backup copy, and opens that AI. Paste the packet into the new chat. No re-explaining Cornerstone from scratch.</p>
+          <h2 style={styles.h2}>Export the complete context first</h2>
+          <p style={styles.muted}>No job selected means export the full business brain. Choose a specific job only when you need that job's exact instructions, evidence and previous result. Every packet begins with the context receipt gate.</p>
+          <div className="ai-fallback-job-summary" style={styles.jobSummary}>
+            <div><span>Sources</span><strong>{packetStats.sections}</strong></div>
+            <div><span>Words</span><strong>{packetStats.words.toLocaleString()}</strong></div>
+            <div><span>Characters</span><strong>{packetStats.chars.toLocaleString()}</strong></div>
+            <div><span>Approx. tokens</span><strong>{packetStats.approximateTokens.toLocaleString()}</strong></div>
+          </div>
+          <div style={{ ...styles.message, marginTop: 12, marginBottom: 8 }}><strong>Important:</strong> External models cannot be forced to ingest unlimited context. If the receipt says PARTIAL, MISSING or NOT READY, do not proceed. Resend the missing sections instead of trusting a summary.</div>
+          <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, margin: '12px 0', color: '#c4ccd7', fontSize: 12, lineHeight: 1.5 }}><input type="checkbox" checked={approvedExternalShare} onChange={(e) => setApprovedExternalShare(e.target.checked)} style={{ marginTop: 3 }} /><span>I reviewed the packet and approve sending its contents to another AI provider. The packet excludes credentials and New Life personal records, but a selected job may contain sensitive business details.</span></label>
           <div className="ai-fallback-providers" style={styles.providerGrid}>
-            {PROVIDERS.map((p) => <button key={p.id} onClick={() => send(p.id)} style={styles.provider}><b>{p.label}</b><span>Copy + open</span></button>)}
+            {PROVIDERS.map((p) => <button key={p.id} disabled={!approvedExternalShare} onClick={() => send(p.id)} style={{ ...styles.provider, opacity: approvedExternalShare ? 1 : .45, cursor: approvedExternalShare ? 'pointer' : 'not-allowed' }}><b>{p.label}</b><span>Copy + open</span></button>)}
           </div>
           <div className="ai-fallback-actions" style={styles.secondaryActions}>
             <button style={styles.primary} onClick={downloadMarkdown}>Download handoff (.md)</button>
             <button style={styles.ghost} onClick={downloadJson}>Download structured backup (.json)</button>
           </div>
           <details style={{ marginTop: 14 }}>
-            <summary style={{ cursor: 'pointer', color: '#b7c0cc', fontWeight: 800 }}>Show exactly what leaves Cornerstone</summary>
+            <summary style={{ cursor: 'pointer', color: '#b7c0cc', fontWeight: 800 }}>Show every included source section</summary>
             <textarea readOnly value={packet} style={{ ...styles.input, minHeight: 360, marginTop: 10, fontFamily: 'ui-monospace,SFMono-Regular,Menlo,monospace', fontSize: 12, lineHeight: 1.45 }} />
           </details>
         </section>
@@ -208,7 +221,7 @@ export default function AIFallbackWorkspace() {
         <section style={styles.panel}>
           <div style={styles.kicker}>3 · BRING THE ANSWER BACK</div>
           <h2 style={styles.h2}>Paste the external result here</h2>
-          <p style={styles.muted}>Paste the final answer from the other AI. Cornerstone saves it onto the original job, marks the job complete and records which provider supplied it.</p>
+          <p style={styles.muted}>After the AI has returned its context receipt and you have replied PROCEED, paste its final work here. Cornerstone saves that result onto the original job and records which provider supplied it.</p>
           <div style={styles.providerRow}>
             {PROVIDERS.map((p) => <button key={p.id} onClick={() => setProvider(p.id)} style={provider === p.id ? styles.selectedProvider : styles.ghost}>{p.label}</button>)}
           </div>
