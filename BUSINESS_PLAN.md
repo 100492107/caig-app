@@ -106,7 +106,16 @@ Cara and Lila are owned creator assets inside Track B. Their character and visua
 ### No client dependency
 Client content production is a future expansion option, not the proof requirement. Track B can begin with public demand, owned channels and the production engine itself.
 
-## Shared intelligence system
+## Portable AI architecture
+
+Local Qwen is the primary execution model, not the only execution model.
+
+The canonical business context is version-controlled in `portable-ai/`. A replacement model must receive the same context, methods, evidence rules, quality gates and job contract.
+
+Cornerstone should therefore be treated as an orchestration/interface layer rather than a dependency for strategic memory. Claude, Gemini, Grok, ChatGPT or another suitable provider can execute a job when local Qwen is unavailable.
+
+The business must never become dependent on one model's memory. Context belongs to the company.
+
 
 Local Qwen is the intelligence layer. Rendering providers are replaceable implementation layers.
 
