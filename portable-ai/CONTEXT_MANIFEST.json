@@ -1,6 +1,6 @@
 {
   "name": "Cornerstone AI Portable Context",
-  "version": "2026-10-08.3",
+  "version": "2026-10-08.4",
   "status": "active",
   "canonical_repository": "100492107/caig-app",
   "principle": "The model is replaceable; the operating contract is the asset.",
@@ -17,6 +17,7 @@
     "portable-ai/SOCIAL_SALES_DOCTRINE.md",
     "portable-ai/YOUTUBE_AUTOMATION_AI_CONTEXT.md",
     "portable-ai/LOCAL_AI_QWEN.md",
+    "portable-ai/CONTEXT_RECEIPT_PROTOCOL.md",
     "portable-ai/PROVIDER_BOOT_PROMPTS.md"
   ],
   "local_ai": {
@@ -30,5 +31,5 @@
     "contains_auth_tokens": false,
     "contains_service_role_keys": false
   },
-  "portability": "Use the same context, methods, quality gates, evidence rules and output schema with any suitable AI provider. External handoffs require a source-by-source context receipt before execution."
+  "portability": "Use the same context, methods, quality gates, evidence rules and output schema with any suitable AI provider. External handoffs include the exact Qwen prompt-layer and worker sources and require a source-by-source context receipt before execution."
 }
