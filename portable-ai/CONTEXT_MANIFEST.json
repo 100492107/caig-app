@@ -1,6 +1,6 @@
 {
   "name": "Cornerstone AI Portable Context",
-  "version": "2026-10-09.6",
+  "version": "2026-10-09.7",
   "status": "active",
   "canonical_repository": "100492107/caig-app",
   "principle": "The model is replaceable; the operating contract is the asset.",
@@ -41,7 +41,8 @@
     "shared/social-sales-doctrine.js",
     "shared/creator-dna.js",
     "shared/content-lane-rules.js",
-    "docs/CORNERSTONE_ONE_BRAIN_OPERATING_MANUAL.md"
+    "docs/CORNERSTONE_ONE_BRAIN_OPERATING_MANUAL.md",
+    "docs/CARA_LILA_2026_SOCIAL_SALES_DOCTRINE.md"
   ],
   "local_ai": {
     "text_model": "mlx-community/Qwen3.5-9B-4bit",
