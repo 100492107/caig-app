@@ -114,15 +114,15 @@ async function resolveServedModel(preferred) {
     if (ids.includes(preferredModel)) return preferredModel;
     if (ids.includes(QWEN_MODEL)) return QWEN_MODEL;
 
-    // Prefer configured fallback, then a text model the operator recently confirmed.
+    // Prefer the configured fallback, then the known text model the operator reported.
     for (const candidate of [QWEN_FALLBACK_MODEL, 'mlx-community/Qwen3-8B-4bit']) {
-      if (candidate && ids.includes(candidate) && !/(?:\\bVL\\b|vision)/i.test(candidate)) return candidate;
+      if (candidate && ids.includes(candidate) && !/(VL|vision)/i.test(candidate)) return candidate;
     }
 
-    // Never silently select the first available model: it may be a vision-only model.
+    // Never silently select the first available model: it may be vision-only.
     const safeTextModel = ids.find((id) =>
-      !/(?:\\bVL\\b|vision)/i.test(id) &&
-      /(?:Qwen3(?:\\.5)?[^/]*(?:4B|8B|9B)|Qwen2\\.5[^/]*Instruct)/i.test(id)
+      !/(VL|vision)/i.test(id) &&
+      (/Qwen3.*(4B|8B|9B)/i.test(id) || /Qwen2[.]5.*Instruct/i.test(id))
     );
     return safeTextModel || preferredModel;
   } catch {
