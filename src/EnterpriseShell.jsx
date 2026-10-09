@@ -19,6 +19,7 @@ const CONTENT_TOOLS = [
 ]
 
 const MORE = [
+  { id: 'business', label: 'Business numbers', href: '/business' },
   { id: 'library', label: 'Saved work', href: '/generations' },
   { id: 'system', label: 'Settings & system health', href: '/system' },
   { id: 'newlife', label: 'New Life', href: '/new-life' },
@@ -119,7 +120,7 @@ export default function EnterpriseShell({ active = 'command', children, eyebrow 
 
       <nav className="cs-mobile-nav" aria-label="Main tasks">
         <a href="/" className={resolved === 'command' ? 'is-active' : ''}><span aria-hidden="true">⌂</span><small>Home</small></a>
-        <a href="/content/remake" className={resolved === 'content' || resolved === 'voices' || resolved === 'production' || resolved === 'publish' ? 'is-active' : ''}><span aria-hidden="true">✦</span><small>Make</small></a>
+        <a href="/content/remake" className={resolved === 'content' || resolved === 'voices' || resolved === 'production' || resolved === 'publish' || resolved === 'measurement' ? 'is-active' : ''}><span aria-hidden="true">✦</span><small>Make</small></a>
         <a href="/youtube" className={resolved === 'youtube' ? 'is-active' : ''}><span aria-hidden="true">▶</span><small>YouTube</small></a>
         <a href="/mission" className={resolved === 'mission' ? 'is-active' : ''}><span aria-hidden="true">£</span><small>Revenue</small></a>
         <details className="cs-mobile-more">
@@ -133,6 +134,7 @@ export default function EnterpriseShell({ active = 'command', children, eyebrow 
             <a href="/content/production">Make the assets</a>
             <a href="/content/publish">Post content</a>
             <a href="/content/measurement">Results</a>
+            <a href="/business">Business numbers</a>
             <a href="/generations">Saved work</a>
             <a href="/system">Settings & system health</a>
             <a href="/new-life">New Life</a>
