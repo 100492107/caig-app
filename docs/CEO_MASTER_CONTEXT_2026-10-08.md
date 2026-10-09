@@ -1,7 +1,8 @@
 # Cornerstone AI Enterprises — CEO Master Context
 
-Version: 8 October 2026
+Version: 9 October 2026
 Status: current operating handoff
+See also: `docs/CORNERSTONE_ONE_BRAIN_OPERATING_MANUAL.md` for the full operating system and AI portability contract.
 
 ## 1. Business definition
 Cornerstone AI Enterprises is the parent / CEO operating layer. It coordinates two business engines and one separate personal execution system.
