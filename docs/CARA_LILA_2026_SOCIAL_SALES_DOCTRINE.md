@@ -262,14 +262,20 @@ Prefer the one with:
 
 Do not choose the idea simply because it is louder.
 
-## Sources used for the 2026 platform direction
+## Verified official sources for the 2026 platform direction
 
-- TikTok Next 2026 — official trend forecast: curiosity-driven discovery, emotional ROI, human stories, and comments/community as creative inputs.
-- TikTok World 2026 — discovery-to-action and AI-supported commerce.
-- Meta 2026 — increasing prevalence of original content in recommendations and AI-assisted creation/distribution.
-- YouTube 2026 — stronger prioritisation of original Shorts and more conversational discovery/search.
+- TikTok, **Introducing TikTok Next 2026** (14 January 2026): curiosity-led discovery, search journeys, community participation, human stories and purchase value.
+  https://newsroom.tiktok.com/introducing-tiktok-next-2026-our-trend-forecast-for-marketers-for-the-year-ahead?_hsmi=399120832&lang=en
+- TikTok, **Next 2026 — UK business page**: comments as a creative surface, buyer confidence and value-led commerce.
+  https://ads.tiktok.com/business/en-GB/next
+- Meta, **Rewarding Original Creators on Facebook** (12 March 2026): meaningful originality and the risks of duplicative or minimally edited content.
+  https://about.fb.com/news/2026/03/rewarding-original-creators-on-facebook/
+- YouTube, **Channel monetisation policies**: original/authentic content and limits on repetitive or mass-produced work.
+  https://support.google.com/youtube/answer/1311392
+- YouTube, **Impressions and click-through-rate FAQs**: CTR must be considered alongside impression volume and audience context.
+  https://support.google.com/youtube/answer/7628154?hl=en-GB
 
-This doctrine is a strategic layer. Platform rules and product availability can change; current platform documentation remains authoritative.
+This doctrine is strategic context, not a performance guarantee. Verify current platform rules for policy-sensitive decisions.
 
 ## Verified platform evidence boundary
 
