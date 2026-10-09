@@ -11,8 +11,9 @@ const STAGES = [
   ["niche", "Choose a niche", "Check whether the audience and opportunity are strong enough."],
   ["format", "Pick a format", "Choose a video structure you can repeat well."],
   ["patterns", "Study winners", "Find what successful videos have in common."],
-  ["make", "Build a video", "Create the title, thumbnail idea, opening and script."],
-  ["results", "Review results", "Use performance data to choose the next test."],
+  ["make", "Build a video plan", "Create the title, thumbnail idea, opening, script and production plan."],
+  ["publish", "Prepare upload", "Prepare the title, description, chapters, thumbnail brief and upload checklist."],
+  ["results", "Review results", "Use real performance data to choose the next test."],
 ]
 const QWEN_MODEL = "mlx-community/Qwen3.5-9B-4bit"
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
@@ -148,8 +149,13 @@ export default function YouTubeAutomationWorkspace() {
   const [rpm, setRpm] = useState("")
   const [ctr, setCtr] = useState("")
   const [avd, setAvd] = useState("")
+  const [impressions, setImpressions] = useState("")
+  const [retention, setRetention] = useState("")
+  const [subsGained, setSubsGained] = useState("")
+  const [trafficSource, setTrafficSource] = useState("")
 
   const revenue = useMemo(() => {
+    if (views.trim() === "" || rpm.trim() === "") return "—"
     const v = Number(views), r = Number(rpm)
     if (!Number.isFinite(v) || !Number.isFinite(r) || v < 0 || r < 0) return "—"
     return "£" + ((v / 1000) * r).toLocaleString("en-GB", { maximumFractionDigits: 2 })
@@ -158,7 +164,20 @@ export default function YouTubeAutomationWorkspace() {
   async function execute() {
     setBusy(true); setResult(null); setLastJobId(""); setMessage("Saving the job and asking local Qwen…")
     try {
-      const data = await runLocalAI(stage, { niche, channels, topic, direction }, setLastJobId)
+      const data = await runLocalAI(stage, {
+        niche, channels, topic, direction,
+        previousResult: result,
+        metrics: {
+          views: views.trim() || null,
+          assumed_rpm: rpm.trim() || null,
+          impressions: impressions.trim() || null,
+          click_through_rate_percent: ctr.trim() || null,
+          average_view_duration: avd.trim() || null,
+          audience_retention_percent: retention.trim() || null,
+          subscribers_gained: subsGained.trim() || null,
+          traffic_source: trafficSource.trim() || null,
+        },
+      }, setLastJobId)
       setResult(data)
       setMessage("Done. The result is saved. Use it to choose the next test.")
     } catch (e) {
@@ -172,7 +191,7 @@ export default function YouTubeAutomationWorkspace() {
     <EnterpriseShell active="youtube" eyebrow="YouTube">
       <main className="yt-auto">
         <header className="yt-head">
-          <div><div className="yt-kicker">MAKE VIDEOS PEOPLE CHOOSE TO WATCH</div><h1>YouTube workspace</h1><p>Build a channel step by step: find a topic people care about, choose a repeatable format, make an original video, publish it and learn from real results.</p></div>
+          <div><div className="yt-kicker">MAKE VIDEOS PEOPLE CHOOSE TO WATCH</div><h1>YouTube workspace</h1><p>Research demand, study repeatable formats, build an original video plan, prepare the upload and learn from real results. Actual upload still happens in YouTube unless a verified publishing connection is configured.</p></div>
           <div className="yt-reality"><b>Our rule</b><span>Automate the repetitive work. Keep the ideas original and the quality high.</span></div>
         </header>
 
@@ -198,7 +217,15 @@ export default function YouTubeAutomationWorkspace() {
             <article className="yt-panel"><div className="yt-k">Start from a real example</div><p className="yt-note">Paste a public YouTube link to study its promise, opening, story, pacing and visuals. We learn the method and build something original — we do not copy the video.</p><a className="yt-primary" href="/content/remake" style={{display:"flex",alignItems:"center",justifyContent:"center",textDecoration:"none"}}>Analyse a video</a></article>
             <article className="yt-panel"><div className="yt-k">From idea to improvement</div><div className="yt-flow">{["Find demand","Choose a topic","Study examples","Choose a format","Make original work","Publish","Measure","Learn","Repeat"].map((x, i) => <div key={x}><span>{i + 1}</span><b>{x}</b>{i < 8 && <em>→</em>}</div>)}</div></article>
             <article className="yt-panel"><div className="yt-k">Estimate possible ad revenue</div><div className="yt-revenue-grid"><label>Monthly views<input inputMode="numeric" value={views} onChange={(e) => setViews(e.target.value)} placeholder="e.g. 100000" /></label><label>Assumed RPM<input inputMode="decimal" value={rpm} onChange={(e) => setRpm(e.target.value)} /></label><div><span>Estimated ad revenue</span><strong>{revenue}</strong><small>Planning estimate only. RPM is an operator assumption.</small></div></div></article>
-            <article className="yt-panel"><div className="yt-k">Review a published video</div><div className="yt-mini-grid"><label>CTR %<input value={ctr} onChange={(e) => setCtr(e.target.value)} placeholder="e.g. 6.5" /></label><label>Average view duration<input value={avd} onChange={(e) => setAvd(e.target.value)} placeholder="e.g. 5:42" /></label></div><p className="yt-note">Read CTR together with impressions and viewer satisfaction. A high CTR with weak retention can mean the package is stronger than the video experience.</p></article>
+            <article className="yt-panel"><div className="yt-k">Review a published video</div><p className="yt-note">Enter what YouTube Studio actually reports. The review step will use these values; a blank field stays unknown.</p><div className="yt-mini-grid">
+              <label>Impressions<input inputMode="numeric" value={impressions} onChange={(e) => setImpressions(e.target.value)} placeholder="e.g. 12000" /></label>
+              <label>CTR %<input inputMode="decimal" value={ctr} onChange={(e) => setCtr(e.target.value)} placeholder="e.g. 6.5" /></label>
+              <label>Views<input inputMode="numeric" value={views} onChange={(e) => setViews(e.target.value)} placeholder="e.g. 1500" /></label>
+              <label>Average view duration<input value={avd} onChange={(e) => setAvd(e.target.value)} placeholder="e.g. 5:42" /></label>
+              <label>Average retention %<input inputMode="decimal" value={retention} onChange={(e) => setRetention(e.target.value)} placeholder="e.g. 42" /></label>
+              <label>Subscribers gained<input inputMode="numeric" value={subsGained} onChange={(e) => setSubsGained(e.target.value)} placeholder="e.g. 15" /></label>
+              <label>Top traffic source<input value={trafficSource} onChange={(e) => setTrafficSource(e.target.value)} placeholder="Browse, search, suggested…" /></label>
+            </div><p className="yt-note">Use CTR with impressions and viewer satisfaction. A high CTR with weak retention can mean the package is stronger than the video experience.</p></article>
           </aside>
         </section>
 
