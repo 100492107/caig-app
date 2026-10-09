@@ -48,7 +48,7 @@ function statusLabel(status) {
 
 export default function AIFallbackWorkspace() {
   const [jobs, setJobs] = useState([])
-  const [selectedId, setSelectedId] = useState('')
+  const [selectedId, setSelectedId] = useState(() => new URLSearchParams(window.location.search).get('job') || '')
   const [provider, setProvider] = useState('gemini')
   const [message, setMessage] = useState('')
   const [resultText, setResultText] = useState('')
