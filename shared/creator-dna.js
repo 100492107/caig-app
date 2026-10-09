@@ -213,9 +213,9 @@ export const CREATOR_DNA = {
       audience: "People who recognise the pressure to stay silent on certain topics and feel relief when two attractive, high-status women say what is actually true and can defend it.",
       sequence: ["discovery", "recognition", "value", "trust", "follow", "action", "proof", "repeat"],
       contentPortfolio: {
-        attentionControversy: "20–30% — a discovery engine, not the account identity. Precise, true, defensible statements that people want to make but feel they cannot. Status, agency, relationships, money, social hypocrisy, male/female dynamics, responsibility.",
-        usefulEducational: "30–40% — practical or insightful content that still sits inside the same worldview (standards, discipline, taste, money, clarity).",
-        lifestyleRelationship: "25–35% — ordinary days and chemistry that make the characters feel real, not pure hot-take accounts.",
+        attentionControversy: "30–40% — a discovery engine, not the whole account identity. Precise, true, defensible statements that people want to make but feel they cannot. Status, agency, relationships, money, social hypocrisy, male/female dynamics, responsibility.",
+        usefulEducational: "25–35% — practical or insightful content that still sits inside the same worldview (standards, discipline, taste, money, clarity).",
+        lifestyleRelationship: "15–25% — ordinary days and chemistry that make the characters feel real, not pure hot-take accounts.",
         softCommerce: "10–15% — UGC-style soft sell (affiliates / TikTok Shop). Product secondary to the moment. Never open on BUY. Fanvue never in captions."
       },
       softCommerceRules: {
