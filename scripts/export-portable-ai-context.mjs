@@ -17,9 +17,10 @@ import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
-const VERSION = '2026-10-09.2'
+const VERSION = '2026-10-09.3'
 
 const FULL_SOURCES = [
+  ['docs/MONEY_THIS_WEEK.md', 'Current priority: Cara + Lila cash this week'],
   ['portable-ai/CONTEXT_RECEIPT_PROTOCOL.md', 'Context receipt protocol'],
   ['portable-ai/00_START_HERE.md', 'Portable brain entry point'],
   ['AGENTS.md', 'Project operating constitution'],
@@ -60,6 +61,7 @@ const FULL_SOURCES = [
 ]
 
 const CORE_SOURCES = [
+  ['docs/MONEY_THIS_WEEK.md', 'Current priority: Cara + Lila cash this week'],
   ['portable-ai/CONTEXT_RECEIPT_PROTOCOL.md', 'Context receipt protocol'],
   ['portable-ai/00_START_HERE.md', 'Portable brain entry point'],
   ['portable-ai/CAIG_AI_CONTEXT.md', 'Portable business context'],
