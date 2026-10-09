@@ -49,7 +49,7 @@ function statusLabel(status) {
 export default function AIFallbackWorkspace() {
   const [jobs, setJobs] = useState([])
   const [selectedId, setSelectedId] = useState('')
-  const [provider, setProvider] = useState('claude')
+  const [provider, setProvider] = useState('gemini')
   const [message, setMessage] = useState('')
   const [resultText, setResultText] = useState('')
   const [saving, setSaving] = useState(false)
@@ -156,71 +156,15 @@ export default function AIFallbackWorkspace() {
       <EnterpriseShell active="ai-anywhere" eyebrow="AI Anywhere">
       <main className="ai-fallback" style={{ maxWidth: 1180, margin: '0 auto' }}>
         <header className="cs-page-head">
-          <div className="eyebrow">AI Anywhere</div>
-          <h1>Keep the whole brain. Change the AI.</h1>
-          <p>Qwen is replaceable. The business knowledge is not. Export the operating brain, force a Context Receipt, then use whatever model is strongest right now.</p>
+          <div className="eyebrow">OTHER AI</div>
+          <h1>Keep working when Qwen stops.</h1>
+          <p>Your plans, instructions and saved jobs stay in Cornerstone. Send the right context to Gemini, Claude, Grok or ChatGPT, continue there, then save the answer back here.</p>
         </header>
-
-        {/* PERMANENT CHECKLIST — never forget */}
-        <section style={styles.neverForget}>
-          <div style={styles.neverForgetHead}>
-            <div style={styles.kickerGold}>NEVER FORGET · PORTABLE BRAIN</div>
-            <div style={styles.winLine}>AI keeps getting better. The model changes. The brain does not. Win with whatever is strongest.</div>
-          </div>
-
-          <ol style={styles.steps}>
-            <li>
-              <strong>Open the export folder</strong>
-              <div style={styles.stepBody}>
-                Finder → <code style={styles.code}>Business/caig-app/portable-ai-exports/</code>
-                <br />or Terminal: <code style={styles.code}>open /Users/joseph/Business/caig-app/portable-ai-exports/</code>
-              </div>
-            </li>
-            <li>
-              <strong>Pick a pack</strong>
-              <div style={styles.stepBody}>
-                <b>Core</b> first if using ChatGPT / free tiers / smaller windows — enough for Cara + Lila truth, Attention Gate, soft commerce, DNA.
-                <br /><b>Full</b> when the model can take ~60k tokens and you want the complete brain.
-              </div>
-            </li>
-            <li>
-              <strong>New chat</strong> in ChatGPT, Claude, Gemini, or Grok
-              <div style={styles.stepBody}>
-                Paste the whole <code style={styles.code}>.md</code> (or upload it) as the <b>first</b> message.
-                <br />Nothing else in that first message.
-              </div>
-            </li>
-            <li>
-              <strong>Wait for the Context Receipt</strong>
-              <div style={styles.stepBody}>
-                It must list every section as <b>READ / PARTIAL / MISSING</b> and say <b>READY</b> or <b>NOT READY</b>.
-                <br />It must <b>not</b> start the task yet.
-              </div>
-            </li>
-            <li>
-              <strong>You type: PROCEED</strong>
-              <div style={styles.stepBody}>
-                Then give the actual job (e.g. “Write 7 Attack Week posts for Cara + Lila — 3 attention, 2 useful, 1 lifestyle, 1 soft commerce”).
-                <br />If the receipt says <b>NOT READY</b> (context limit), use the <b>core</b> pack instead of the full one.
-              </div>
-            </li>
-          </ol>
-
-          <div style={styles.refreshBox}>
-            <div style={styles.kickerGold}>REFRESH THE PACK</div>
-            <pre style={styles.pre}>{`cd /Users/joseph/Business/caig-app
-git pull origin main
-npm run context:export
-# or smaller:
-node scripts/export-portable-ai-context.mjs --core`}</pre>
-            <div style={styles.stepBody}>Same operating knowledge. Any model. That is how you stay current when Qwen ages out.</div>
-          </div>
-        </section>
 
         <section className="ai-fallback-hero" style={styles.hero}>
           <div>
-            <strong style={{ fontSize: 18 }}>One source of truth. Any capable model.</strong>
-            <p style={styles.muted}>Qwen is the current worker, not the owner of the knowledge. This export contains source sections and a required acknowledgement checkpoint. No receipt, no task execution.</p>
+            <strong style={{ fontSize: 18 }}>The AI can change. Your work should not.</strong>
+            <p style={styles.muted}>Choose a saved job to carry its exact instructions and previous result, or leave the selection empty to export the full business context. Nothing is sent until you approve it.</p>
           </div>
           <div style={styles.modelBox}>
             <span>Local Qwen</span>
@@ -232,8 +176,8 @@ node scripts/export-portable-ai-context.mjs --core`}</pre>
         <section style={styles.panel}>
           <div style={styles.headRow}>
             <div>
-              <div style={styles.kicker}>1 · PICK THE JOB</div>
-              <h2 style={styles.h2}>Choose what needs to keep moving</h2>
+              <div style={styles.kicker}>STEP 1 OF 3</div>
+              <h2 style={styles.h2}>Choose what you need to continue</h2>
             </div>
             <button style={styles.ghost} onClick={load}>Refresh</button>
           </div>
@@ -252,8 +196,8 @@ node scripts/export-portable-ai-context.mjs --core`}</pre>
         </section>
 
         <section style={styles.panel}>
-          <div style={styles.kicker}>2 · USE ANOTHER AI</div>
-          <h2 style={styles.h2}>Export the complete context first</h2>
+          <div style={styles.kicker}>STEP 2 OF 3</div>
+          <h2 style={styles.h2}>Open another AI with the right context</h2>
           <p style={styles.muted}>No job selected means export the full business brain. Choose a specific job only when you need that job's exact instructions, evidence and previous result. Every packet begins with the context receipt gate.</p>
           <div className="ai-fallback-job-summary" style={styles.jobSummary}>
             <div><span>Sources</span><strong>{packetStats.sections}</strong></div>
@@ -277,8 +221,8 @@ node scripts/export-portable-ai-context.mjs --core`}</pre>
         </section>
 
         <section style={styles.panel}>
-          <div style={styles.kicker}>3 · BRING THE ANSWER BACK</div>
-          <h2 style={styles.h2}>Paste the external result here</h2>
+          <div style={styles.kicker}>STEP 3 OF 3</div>
+          <h2 style={styles.h2}>Save the answer back to Cornerstone</h2>
           <p style={styles.muted}>After the AI has returned its context receipt and you have replied PROCEED, paste its final work here. Cornerstone saves that result onto the original job and records which provider supplied it.</p>
           <div style={styles.providerRow}>
             {PROVIDERS.map((p) => <button key={p.id} onClick={() => setProvider(p.id)} style={provider === p.id ? styles.selectedProvider : styles.ghost}>{p.label}</button>)}
