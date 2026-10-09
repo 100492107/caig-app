@@ -13,6 +13,7 @@ import CAIG_CONTEXT from '../portable-ai/CAIG_AI_CONTEXT.md?raw'
 import CARA_LILA_CONTEXT from '../portable-ai/CARA_LILA_AI_CONTEXT.md?raw'
 import SOCIAL_SALES_CONTEXT from '../portable-ai/SOCIAL_SALES_DOCTRINE.md?raw'
 import YOUTUBE_CONTEXT from '../portable-ai/YOUTUBE_AUTOMATION_AI_CONTEXT.md?raw'
+import YOUTUBE_DOCTRINE from '../docs/YOUTUBE_AUTOMATION_DOCTRINE.md?raw'
 import LOCAL_AI_CONTEXT from '../portable-ai/LOCAL_AI_QWEN.md?raw'
 import PROVIDER_PROMPTS from '../portable-ai/PROVIDER_BOOT_PROMPTS.md?raw'
 import CONTEXT_MANIFEST from '../portable-ai/CONTEXT_MANIFEST.json?raw'
@@ -44,7 +45,7 @@ export const QWEN_REFERENCE = {
   whisperUrl: 'http://127.0.0.1:8787',
 }
 
-export const CONTEXT_PACK_VERSION = '2026-10-09.5'
+export const CONTEXT_PACK_VERSION = '2026-10-09.6'
 
 export const CORNERSTONE_FALLBACK_RULES = [
   'You are an execution partner for Cornerstone AI Enterprises.',
@@ -138,6 +139,7 @@ function coreSections() {
     section('S10', 'portable-ai/SOCIAL_SALES_DOCTRINE.md', 'Portable social and sales doctrine', SOCIAL_SALES_CONTEXT, 'Sell the transformation, not the object or feature.'),
     section('S11', 'shared/social-sales-doctrine.js', 'Runtime social and sales doctrine', SOCIAL_SALES_DOCTRINE, 'Viewer-first sales psychology; Discovery → Search → Community → Commerce.'),
     section('S12', 'portable-ai/YOUTUBE_AUTOMATION_AI_CONTEXT.md', 'YouTube automation context', YOUTUBE_CONTEXT, 'Title + thumbnail + opening are one promise.'),
+    section('S12A', 'docs/YOUTUBE_AUTOMATION_DOCTRINE.md', 'Detailed YouTube automation doctrine', YOUTUBE_DOCTRINE, 'Research, topic, packaging, script, production, publishing, analytics and learning form one loop.'),
     section('S13', 'portable-ai/LOCAL_AI_QWEN.md', 'Local AI and Qwen setup', LOCAL_AI_CONTEXT, 'Local AI is an execution layer, not the source of truth.'),
     section('S14', 'docs/LOCAL_RUN.md', 'Local AI recovery runbook', LOCAL_RUNBOOK, 'After git pull, restart workers; model weights stay put.'),
     section('S15', 'portable-ai/PROVIDER_BOOT_PROMPTS.md', 'Provider setup guidance', PROVIDER_PROMPTS, 'Update GitHub first, then refresh the external provider from the newest pack.'),
