@@ -17,7 +17,7 @@ import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
-const VERSION = '2026-10-08.6'
+const VERSION = '2026-10-09.2'
 
 const FULL_SOURCES = [
   ['portable-ai/CONTEXT_RECEIPT_PROTOCOL.md', 'Context receipt protocol'],
