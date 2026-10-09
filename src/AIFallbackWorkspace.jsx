@@ -153,7 +153,7 @@ export default function AIFallbackWorkspace() {
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: responsiveStyle }} />
-      <EnterpriseShell active="ai-anywhere" eyebrow="AI Anywhere">
+      <EnterpriseShell active="ai-anywhere" eyebrow="Other AI">
       <main className="ai-fallback" style={{ maxWidth: 1180, margin: '0 auto' }}>
         <header className="cs-page-head">
           <div className="eyebrow">OTHER AI</div>
