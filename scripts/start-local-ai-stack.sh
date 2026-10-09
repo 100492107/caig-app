@@ -27,6 +27,12 @@ mkdir -p "$LOG_DIR"
 
 export QWEN_MODEL="${QWEN_MODEL:-mlx-community/Qwen3.5-9B-4bit}"
 export QWEN_FALLBACK_MODEL="${QWEN_FALLBACK_MODEL:-mlx-community/Qwen3-8B-4bit}"
+# The current Mac model inventory includes Qwen3-8B-4bit, not Qwen3.5-4B-4bit.
+# Normalize known stale .env values for this run without editing secrets or other settings.
+if [[ "$QWEN_FALLBACK_MODEL" == "mlx-community/Qwen3.5-4B-4bit" || "$QWEN_FALLBACK_MODEL" == "mlx-community/Qwen3.5-4B-OptiQ-4bit" ]]; then
+  echo "[LOCAL AI] replacing unavailable fallback $QWEN_FALLBACK_MODEL with mlx-community/Qwen3-8B-4bit"
+  export QWEN_FALLBACK_MODEL="mlx-community/Qwen3-8B-4bit"
+fi
 export QWEN_HOST="${QWEN_HOST:-127.0.0.1}"
 export QWEN_PORT="${QWEN_PORT:-8000}"
 # 8002 was a retired legacy text endpoint; always migrate it to the canonical 8000.
