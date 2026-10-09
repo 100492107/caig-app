@@ -12,6 +12,7 @@ import START_HERE from '../portable-ai/00_START_HERE.md?raw'
 import CAIG_CONTEXT from '../portable-ai/CAIG_AI_CONTEXT.md?raw'
 import CARA_LILA_CONTEXT from '../portable-ai/CARA_LILA_AI_CONTEXT.md?raw'
 import SOCIAL_SALES_CONTEXT from '../portable-ai/SOCIAL_SALES_DOCTRINE.md?raw'
+import DETAILED_SOCIAL_SALES_DOCTRINE from '../docs/CARA_LILA_2026_SOCIAL_SALES_DOCTRINE.md?raw'
 import YOUTUBE_CONTEXT from '../portable-ai/YOUTUBE_AUTOMATION_AI_CONTEXT.md?raw'
 import YOUTUBE_DOCTRINE from '../docs/YOUTUBE_AUTOMATION_DOCTRINE.md?raw'
 import LOCAL_AI_CONTEXT from '../portable-ai/LOCAL_AI_QWEN.md?raw'
@@ -137,6 +138,7 @@ function coreSections() {
     section('S08', 'docs/TRACK_B_LOCKED_STRATEGY.md', 'Track B locked strategy', TRACK_B_STRATEGY, 'References are a teacher, not a template.'),
     section('S09', 'docs/PORTABLE_AI_CONTEXT_2026-10-08.md', 'Portable context supplement', PORTABLE_CONTEXT, 'Plans are objectives, not forecasts; owned evidence outranks public signals.'),
     section('S10', 'portable-ai/SOCIAL_SALES_DOCTRINE.md', 'Portable social and sales doctrine', SOCIAL_SALES_CONTEXT, 'Sell the transformation, not the object or feature.'),
+    section('S10A', 'docs/CARA_LILA_2026_SOCIAL_SALES_DOCTRINE.md', 'Full 2026 social and sales doctrine', DETAILED_SOCIAL_SALES_DOCTRINE, 'Discovery, search, community, commerce, originality, story and audience outcome principles.'),
     section('S11', 'shared/social-sales-doctrine.js', 'Runtime social and sales doctrine', SOCIAL_SALES_DOCTRINE, 'Viewer-first sales psychology; Discovery → Search → Community → Commerce.'),
     section('S12', 'portable-ai/YOUTUBE_AUTOMATION_AI_CONTEXT.md', 'YouTube automation context', YOUTUBE_CONTEXT, 'Title + thumbnail + opening are one promise.'),
     section('S12A', 'docs/YOUTUBE_AUTOMATION_DOCTRINE.md', 'Detailed YouTube automation doctrine', YOUTUBE_DOCTRINE, 'Research, topic, packaging, script, production, publishing, analytics and learning form one loop.'),
