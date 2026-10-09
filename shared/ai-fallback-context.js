@@ -45,7 +45,7 @@ export const QWEN_REFERENCE = {
   whisperUrl: 'http://127.0.0.1:8787',
 }
 
-export const CONTEXT_PACK_VERSION = '2026-10-09.6'
+export const CONTEXT_PACK_VERSION = '2026-10-09.7'
 
 export const CORNERSTONE_FALLBACK_RULES = [
   'You are an execution partner for Cornerstone AI Enterprises.',
