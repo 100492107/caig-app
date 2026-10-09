@@ -26,6 +26,7 @@ import AIFallbackWorkspace from './AIFallbackWorkspace.jsx'
 import './YouTubeAutomation.css'
 import YouTubeAutomationWorkspace from './YouTubeAutomationWorkspace.jsx'
 import './CornerstoneLayoutGuard.css'
+import './CornerstoneBreathe.css'
 
 const ContentWorkspaceShell = lazy(() => import('./ContentWorkspaceShell2.jsx'))
 const SystemWorkspace = lazy(() => import('./SystemWorkspace.jsx'))
