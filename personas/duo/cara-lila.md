@@ -243,9 +243,9 @@ The page should feel like a normal, interesting account — not a controversy pa
 
 Suggested starting portfolio:
 
-- 20–30% attention / controversy: strong opinions, socially awkward truths, unexpected behaviour, reveals or genuine disagreement.
-- 30–40% useful / educational / interesting: practical discoveries, comparisons, explanations, demonstrations, recommendations and things worth saving.
-- 25–35% lifestyle / relationship / day-in-life: ordinary routines, travel, style, home, humour, chemistry and personality.
+- 30–40% attention / controversy: strong opinions, socially awkward truths, unexpected behaviour, reveals or genuine disagreement.
+- 25–35% useful / educational / interesting: practical discoveries, comparisons, explanations, demonstrations, recommendations and things worth saving.
+- 15–25% lifestyle / relationship / day-in-life: ordinary routines, travel, style, home, humour, chemistry and personality.
 - 10–15% soft commerce: products that naturally follow an existing interest; never make the sale the reason the post exists.
 
 Use the actual performance data to adjust the mix. Do not force a controversy hook onto educational, useful or ordinary lifestyle posts simply because the attention lane exists.
