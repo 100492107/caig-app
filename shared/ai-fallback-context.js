@@ -17,6 +17,7 @@ import LOCAL_AI_CONTEXT from '../portable-ai/LOCAL_AI_QWEN.md?raw'
 import PROVIDER_PROMPTS from '../portable-ai/PROVIDER_BOOT_PROMPTS.md?raw'
 import CONTEXT_MANIFEST from '../portable-ai/CONTEXT_MANIFEST.json?raw'
 import PROJECT_RULES from '../AGENTS.md?raw'
+import MONEY_THIS_WEEK from '../docs/MONEY_THIS_WEEK.md?raw'
 import CEO_MASTER_CONTEXT from '../docs/CEO_MASTER_CONTEXT_2026-10-08.md?raw'
 import ENTERPRISE_MASTER_CONTEXT from '../docs/CORNERSTONE_MASTER_CONTEXT.md?raw'
 import MASTER_CONTEXT from '../docs/MASTER_CONTEXT_SEP_2026.md?raw'
@@ -120,6 +121,7 @@ function section(id, path, title, content, anchor) {
 
 function coreSections() {
   return [
+    section('S00', 'docs/MONEY_THIS_WEEK.md', 'This week’s only priority — Cara + Lila cash', MONEY_THIS_WEEK, 'Publish and monetise Cara + Lila this week; every other project is secondary.'),
     section('S01', 'portable-ai/CONTEXT_RECEIPT_PROTOCOL.md', 'Context Receipt Protocol', RECEIPT_PROTOCOL, 'First response must be receipt only; wait for PROCEED.'),
     section('S02', 'portable-ai/00_START_HERE.md', 'Start Here / source-of-truth order', START_HERE, 'The model is replaceable; the operating contract is the asset.'),
     section('S03', 'AGENTS.md', 'Project operating constitution', PROJECT_RULES, 'Track A = cash now; Track B = compounding assets; New Life = capacity.'),
