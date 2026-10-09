@@ -1,6 +1,6 @@
 {
   "name": "Cornerstone AI Portable Context",
-  "version": "2026-10-09.1",
+  "version": "2026-10-09.3",
   "status": "active",
   "canonical_repository": "100492107/caig-app",
   "principle": "The model is replaceable; the operating contract is the asset.",
@@ -25,6 +25,9 @@
     "output_dir": "portable-ai-exports/"
   },
   "files": [
+    "docs/MONEY_THIS_WEEK.md",
+    "docs/YOUTUBE_AUTOMATION_DOCTRINE.md",
+    "portable-ai/YOUTUBE_AUTOMATION_AI_CONTEXT.md",
     "docs/MONEY_THIS_WEEK.md",
     "portable-ai/CONTEXT_RECEIPT_PROTOCOL.md",
     "portable-ai/00_START_HERE.md",
