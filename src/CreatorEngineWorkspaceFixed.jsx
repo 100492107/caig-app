@@ -22,9 +22,9 @@ const PLATFORMS = ['TikTok', 'Instagram', 'YouTube Shorts', 'TikTok + Instagram'
 const FORMATS = ['Personal moment', 'POV / relatable', 'Quick take', 'Micro-story', 'GRWM', 'Day in the life', 'Photo slideshow', 'Reaction', 'Product-led demo', 'Story + recommendation']
 const PUBLIC_AI_DISCLOSURE = 'AI-generated character: Cara + Lila are fictional creator characters operated through Cornerstone AI Assets.'
 const CONTENT_LANES = [
-  ['attention', 'Attention / controversy', '20–30% · discovery, strong reactions, disagreement and shares'],
-  ['useful', 'Useful / educational / interesting', '30–40% · teach, explain, compare, demonstrate, curate'],
-  ['lifestyle', 'Lifestyle / relationship / day-in-life', '25–35% · personality, chemistry, atmosphere, continuity'],
+  ['attention', 'Attention / controversy', '30–40% · discovery, strong reactions, disagreement and shares'],
+  ['useful', 'Useful / educational / interesting', '25–35% · teach, explain, compare, demonstrate, curate'],
+  ['lifestyle', 'Lifestyle / relationship / day-in-life', '15–25% · personality, chemistry, atmosphere, continuity'],
   ['commerce', 'Soft commerce', '10–15% · relevant products after interest exists'],
 ]
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
@@ -305,7 +305,7 @@ Niche: lifestyle duo — style · home · travel · useful everyday finds.
 Framing: “Two women, one little world.”
 World: style, home, travel, routines, getting ready, cafés, weekends, wellness, shopping.
 ACCOUNT FEEL: the page should look and behave like a normal, genuinely interesting account run by two girls. Do not turn it into a controversy page.
-CONTENT PORTFOLIO: ATTENTION / CONTROVERSY 20–30%; USEFUL / EDUCATIONAL / INTERESTING 30–40%; LIFESTYLE / RELATIONSHIP / DAY-IN-LIFE 25–35%; SOFT COMMERCE 10–15%.
+CONTENT PORTFOLIO: ATTENTION / CONTROVERSY 30–40%; USEFUL / EDUCATIONAL / INTERESTING 25–35%; LIFESTYLE / RELATIONSHIP / DAY-IN-LIFE 15–25%; SOFT COMMERCE 10–15%.
 SELECTED LANE: ${lane[1]}.
 LANE RULES:
 - ATTENTION / CONTROVERSY: use a polarising but defensible opinion, taboo-but-relatable admission, unexpected behaviour, social-rule violation, status reversal, uncomfortable truth or intriguing reveal. Apply the full Attention Gate. Do not manufacture outrage.
