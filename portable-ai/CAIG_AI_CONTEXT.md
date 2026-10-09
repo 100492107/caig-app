@@ -112,7 +112,9 @@ ATTENTION → RECOGNITION → VALUE → TRUST → DESIRE → ACTION → PROOF �
 
 Not every post needs every stage.
 
-The current cash priority and mix authority is `docs/MONEY_THIS_WEEK.md`.\n\n## Cara + Lila feed mix
+The current cash priority and mix authority is `docs/MONEY_THIS_WEEK.md`.
+
+## Cara + Lila feed mix
 
 Attention / controversy: 30–40%
 Useful / educational / interesting: 25–35%
