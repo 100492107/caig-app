@@ -112,11 +112,11 @@ ATTENTION → RECOGNITION → VALUE → TRUST → DESIRE → ACTION → PROOF �
 
 Not every post needs every stage.
 
-## Cara + Lila feed mix
+The current cash priority and mix authority is `docs/MONEY_THIS_WEEK.md`.\n\n## Cara + Lila feed mix
 
-Attention / controversy: 20–30%
-Useful / educational / interesting: 30–40%
-Lifestyle / relationship / day-in-life: 25–35%
+Attention / controversy: 30–40%
+Useful / educational / interesting: 25–35%
+Lifestyle / relationship / day-in-life: 15–25%
 Soft commerce: 10–15%
 
 The account is not a controversy page. Controversy is one discovery engine. Useful and lifestyle content make the characters worth following. Commerce follows interest.
