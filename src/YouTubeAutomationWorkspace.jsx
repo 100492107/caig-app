@@ -107,19 +107,39 @@ async function runLocalAI(stage, inputs, onJobCreated = () => {}) {
   } else if (stage === "patterns") {
     userPrompt = "Find repeated mechanisms across the supplied channels/videos.\nNICHE: " + (inputs.niche || "Not set") + "\nCHANNELS/VIDEOS: " + (inputs.channels || "None") + "\nTOPIC: " + (inputs.topic || "Not set") + "\nReturn JSON: {patterns:[{pattern,evidence,confidence,adaptation,test}],anti_patterns:[],best_mechanism,next_test}"
   } else if (stage === "make") {
-    userPrompt = "Build one original YouTube video plan. Use earlier research and pattern results when supplied. Do not copy source execution.\\nNICHE: " + (inputs.niche || "Not set") + "\\nTOPIC: " + (inputs.topic || "Not set") + "\\nCHANNELS/REFERENCES: " + (inputs.channels || "None") + "\\nDIRECTION: " + (inputs.direction || "Build the strongest original video.") + "\\nReturn JSON: {audience,viewer_outcome,why_people_click,belief_reason,title_options:[],thumbnail_concepts:[],opening_hook,video_length_target,outline:[],script,visual_plan:[],voiceover_direction,editing_notes,fact_check_list:[],originality_check:[],production_assets_needed:[],next_step}"
+    userPrompt = [
+      "Build one original YouTube video plan. Use earlier research and pattern results when supplied. Do not copy source execution.",
+      "NICHE: " + (inputs.niche || "Not set"),
+      "TOPIC: " + (inputs.topic || "Not set"),
+      "CHANNELS/REFERENCES: " + (inputs.channels || "None"),
+      "DIRECTION: " + (inputs.direction || "Build the strongest original video."),
+      'Return JSON: {"audience":"","viewer_outcome":"","why_people_click":"","belief_reason":"","title_options":[],"thumbnail_concepts":[],"opening_hook":"","video_length_target":"","outline":[],"script":"","visual_plan":[],"voiceover_direction":"","editing_notes":"","fact_check_list":[],"originality_check":[],"production_assets_needed":[],"next_step":""}'
+    ].join("\n")
   } else if (stage === "publish") {
-    userPrompt = "Prepare a manual-ready YouTube upload pack using the supplied earlier research and video plan. Do not claim that a finished video, thumbnail or edit exists unless the operator supplied it. Use natural searchable wording without keyword stuffing. Mark missing items as blockers.\\nNICHE: " + (inputs.niche || "Not set") + "\\nTOPIC: " + (inputs.topic || "Not set") + "\\nCHANNELS/REFERENCES: " + (inputs.channels || "None") + "\\nVIDEO / DIRECTION: " + (inputs.direction || "Use the previous stage result if available.") + "\\nReturn JSON: {recommended_title,alternative_titles:[],final_thumbnail_brief,description,chapters:[],pinned_comment,call_to_action,end_screen_or_related_video,next_video_suggestion,optional_tags,disclosure_or_rights_notes:[],upload_checklist:[],assets_still_needed:[],manual_upload_steps:[],analytics_to_capture:[],ready_status,blockers:[],next_step}"
+    userPrompt = [
+      "Prepare a manual-ready YouTube upload pack using the supplied earlier research and video plan. Do not claim that a finished video, thumbnail or edit exists unless the operator supplied it. Use natural searchable wording without keyword stuffing. Mark missing items as blockers.",
+      "NICHE: " + (inputs.niche || "Not set"),
+      "TOPIC: " + (inputs.topic || "Not set"),
+      "CHANNELS/REFERENCES: " + (inputs.channels || "None"),
+      "VIDEO / DIRECTION: " + (inputs.direction || "Use the previous stage result if available."),
+      'Return JSON: {"recommended_title":"","alternative_titles":[],"final_thumbnail_brief":"","description":"","chapters":[],"pinned_comment":"","call_to_action":"","end_screen_or_related_video":"","next_video_suggestion":"","optional_tags":[],"disclosure_or_rights_notes":[],"upload_checklist":[],"assets_still_needed":[],"manual_upload_steps":[],"analytics_to_capture":[],"ready_status":"","blockers":[],"next_step":""}'
+    ].join("\n")
   } else {
-    userPrompt = "Diagnose YouTube performance using only the actual metrics supplied. A blank metric is unknown, not zero. Interpret CTR together with impressions, average view duration and retention; hypotheses are not proven causes.\\nVIDEO/NICHE: " + (inputs.niche || "Not set") + "\\nTOPIC: " + (inputs.topic || "Not set") + "\\nADDITIONAL CONTEXT: " + (inputs.direction || "No additional context supplied") + "\\nReturn JSON: {diagnosis:" + "\\"PACKAGING|RETENTION|TOPIC|AUDIENCE|PRODUCTION|UNKNOWN\\"" + ",observed_facts:[],missing_metrics:[],what_is_strong:[],what_is_weak:[],likely_explanations:[],next_tests:[],metrics_to_watch:[],decision_rule}"
+    userPrompt = [
+      "Diagnose YouTube performance using only the actual metrics supplied. A blank metric is unknown, not zero. Interpret CTR together with impressions, average view duration and retention; hypotheses are not proven causes.",
+      "VIDEO/NICHE: " + (inputs.niche || "Not set"),
+      "TOPIC: " + (inputs.topic || "Not set"),
+      "ADDITIONAL CONTEXT: " + (inputs.direction || "No additional context supplied"),
+      'Return JSON: {"diagnosis":"PACKAGING|RETENTION|TOPIC|AUDIENCE|PRODUCTION|UNKNOWN","observed_facts":[],"missing_metrics":[],"what_is_strong":[],"what_is_weak":[],"likely_explanations":[],"next_tests":[],"metrics_to_watch":[],"decision_rule":""}'
+    ].join("\n")
   }
   if (inputs.previousResult) {
-    userPrompt += "\\n\\nPREVIOUS STAGE RESULT (continue from this; do not make the operator repeat it):\\n" +
-      JSON.stringify(inputs.previousResult).slice(0, 14000);
+    userPrompt += "\n\nPREVIOUS STAGE RESULT (continue from this; do not make the operator repeat it):\n" +
+      JSON.stringify(inputs.previousResult).slice(0, 14000)
   }
   if (stage === "results") {
-    userPrompt += "\\n\\nMETRICS ENTERED BY THE OPERATOR (blank means unknown; do not turn blank values into zero):\\n" +
-      JSON.stringify(inputs.metrics || {}, null, 2);
+    userPrompt += "\n\nMETRICS ENTERED BY THE OPERATOR (blank means unknown; do not turn blank values into zero):\n" +
+      JSON.stringify(inputs.metrics || {}, null, 2)
   }
   const { data, error } = await supabase.from("local_ai_jobs").insert({
     owner_id: auth.user.id,
