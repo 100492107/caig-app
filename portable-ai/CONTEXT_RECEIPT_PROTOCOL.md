@@ -1,9 +1,13 @@
 # Portable AI Context Receipt Protocol
-Version: 2026-10-08.3
+Version: 2026-10-09.5
 
 ## Purpose
 
 The business context must survive a change of model or interface. Qwen is the preferred local executor, not the owner of strategy or memory. This protocol applies when Cornerstone context is pasted into ChatGPT, Claude, Gemini, Grok or any other capable AI.
+
+## Priority source order
+
+If included in the packet, `S00 docs/MONEY_THIS_WEEK.md` is authoritative for this week’s first goal and Cara + Lila content mix. `docs/CORNERSTONE_ONE_BRAIN_OPERATING_MANUAL.md` explains the wider business/system. When an older file conflicts, flag the conflict in the receipt and apply S00 after the operator says PROCEED.
 
 ## Required first response: receipt only
 
