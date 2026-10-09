@@ -3,15 +3,66 @@ import { supabase } from "./supabase"
 import EnterpriseShell from "./EnterpriseShell.jsx"
 
 const STAGES = [
-  ["research", "Research", "Find channels, topics and demand."],
-  ["niche", "Niche", "Choose a market worth testing."],
-  ["format", "Format", "Find repeatable video structures."],
-  ["patterns", "Patterns", "Compare winners and extract what repeats."],
-  ["make", "Make", "Build title, thumbnail, script and visual plan."],
-  ["results", "Results", "Read performance and decide the next test."],
+  ["research", "Find a topic", "Look for audience demand and promising channels."],
+  ["niche", "Choose a niche", "Check whether the audience and opportunity are strong enough."],
+  ["format", "Pick a format", "Choose a video structure you can repeat well."],
+  ["patterns", "Study winners", "Find what successful videos have in common."],
+  ["make", "Build a video", "Create the title, thumbnail idea, opening and script."],
+  ["results", "Review results", "Use performance data to choose the next test."],
 ]
 const QWEN_MODEL = "mlx-community/Qwen3.5-9B-4bit"
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+
+
+function readableLabel(value) {
+  return String(value || "")
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/^\w/, (m) => m.toUpperCase())
+}
+function ReadableValue({ value, depth = 0 }) {
+  if (value === null || value === undefined || value === "") return <p className="yt-value-empty">No details provided.</p>
+  if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+    return <div className="yt-value-text">{String(value)}</div>
+  }
+  if (Array.isArray(value)) {
+    if (!value.length) return <p className="yt-value-empty">No items returned.</p>
+    return <div className="yt-value-list">
+      {value.map((item, index) => (
+        <article className="yt-value-item" key={String(index)}>
+          {typeof item === "object" && item !== null
+            ? <ReadableValue value={item} depth={depth + 1} />
+            : <div className="yt-value-text">{String(item)}</div>}
+        </article>
+      ))}
+    </div>
+  }
+  if (typeof value === "object") {
+    const entries = Object.entries(value)
+    const main = entries.filter(([key]) => !["research_run_id", "cornerstone_signals_written"].includes(key))
+    return <div className={depth === 0 ? "yt-value-grid yt-value-grid-root" : "yt-value-grid"}>
+      {main.map(([key, child]) => {
+        const longText = typeof child === "string" && child.length > 1600
+        const nested = child && typeof child === "object"
+        return <section className="yt-value-section" key={key}>
+          <h3>{readableLabel(key)}</h3>
+          {longText
+            ? <details><summary>Read full {readableLabel(key).toLowerCase()}</summary><div className="yt-value-text">{child}</div></details>
+            : nested && depth >= 1
+              ? <details><summary>Open {readableLabel(key).toLowerCase()}</summary><ReadableValue value={child} depth={depth + 1} /></details>
+              : <ReadableValue value={child} depth={depth + 1} />}
+        </section>
+      })}
+    </div>
+  }
+  return <div className="yt-value-text">{String(value)}</div>
+}
+function ReadableResult({ data }) {
+  if (data?.text) return <section className="yt-readable-result"><ReadableValue value={data.text} /></section>
+  return <section className="yt-readable-result"><ReadableValue value={data} /></section>
+}
 
 function parse(raw) {
   const text = String(raw || "").replace(/```json|```/gi, "").replace(/<think>[\s\S]*?<\/think>/gi, "").trim()
@@ -21,7 +72,7 @@ function parse(raw) {
   return { text }
 }
 
-async function runLocalAI(stage, inputs) {
+async function runLocalAI(stage, inputs, onJobCreated = () => {}) {
   const { data: auth, error: authError } = await supabase.auth.getUser()
   if (authError || !auth?.user) throw new Error("Please sign in again.")
   const systemPrompt = [
@@ -62,6 +113,7 @@ async function runLocalAI(stage, inputs) {
     production_status: "not_started",
   }).select("id").single()
   if (error) throw error
+  onJobCreated(data.id)
   const deadline = Date.now() + 8 * 60 * 1000
   while (Date.now() < deadline) {
     await sleep(2500)
@@ -80,6 +132,7 @@ export default function YouTubeAutomationWorkspace() {
   const [topic, setTopic] = useState("")
   const [direction, setDirection] = useState("")
   const [result, setResult] = useState(null)
+  const [lastJobId, setLastJobId] = useState("")
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState("")
   const [views, setViews] = useState("")
@@ -94,11 +147,11 @@ export default function YouTubeAutomationWorkspace() {
   }, [views, rpm])
 
   async function execute() {
-    setBusy(true); setResult(null); setMessage("Working with your Mac’s local Qwen…")
+    setBusy(true); setResult(null); setLastJobId(""); setMessage("Saving the job and asking local Qwen…")
     try {
-      const data = await runLocalAI(stage, { niche, channels, topic, direction })
+      const data = await runLocalAI(stage, { niche, channels, topic, direction }, setLastJobId)
       setResult(data)
-      setMessage("Done. Use the result to choose the next test.")
+      setMessage("Done. The result is saved. Use it to choose the next test.")
     } catch (e) {
       setMessage(e?.message || String(e))
     } finally { setBusy(false) }
@@ -110,8 +163,8 @@ export default function YouTubeAutomationWorkspace() {
     <EnterpriseShell active="youtube" eyebrow="YouTube">
       <main className="yt-auto">
         <header className="yt-head">
-          <div><div className="yt-kicker">YOUTUBE</div><h1>YouTube Automation</h1><p>Build a repeatable media operation: find demand, study winners, make original videos, package them well, publish, measure and improve.</p></div>
-          <div className="yt-reality"><b>The rule</b><span>Automate the work, not the quality.</span></div>
+          <div><div className="yt-kicker">MAKE VIDEOS PEOPLE CHOOSE TO WATCH</div><h1>YouTube workspace</h1><p>Build a channel step by step: find a topic people care about, choose a repeatable format, make an original video, publish it and learn from real results.</p></div>
+          <div className="yt-reality"><b>Our rule</b><span>Automate the repetitive work. Keep the ideas original and the quality high.</span></div>
         </header>
 
         <nav className="yt-stages">
@@ -120,26 +173,29 @@ export default function YouTubeAutomationWorkspace() {
 
         <section className="yt-grid">
           <article className="yt-panel">
-            <div className="yt-panel-head"><div><div className="yt-k">Your job</div><h2>{current[1]}</h2><p>{current[2]}</p></div><span className="yt-status">{busy ? "WORKING" : "READY"}</span></div>
+            <div className="yt-panel-head"><div><div className="yt-k">STEP {STAGES.findIndex((x) => x[0] === stage) + 1} OF {STAGES.length}</div><h2>{current[1]}</h2><p>{current[2]}</p></div><span className="yt-status">{busy ? "WORKING" : "READY"}</span></div>
             <div className="yt-fields">
               <label>Niche<input value={niche} onChange={(e) => setNiche(e.target.value)} placeholder="e.g. luxury homes, history, football stories" /></label>
-              <label>Channels or videos to study<textarea value={channels} onChange={(e) => setChannels(e.target.value)} placeholder="Paste channel names, video titles or URLs — one per line." /></label>
+              <label>Examples to learn from<textarea value={channels} onChange={(e) => setChannels(e.target.value)} placeholder="Paste channel names, video titles or URLs — one per line. Leave blank if you want Cornerstone to suggest examples." /></label>
               <label>Topic<input value={topic} onChange={(e) => setTopic(e.target.value)} placeholder="What should the video be about?" /></label>
-              <label>Your direction<textarea value={direction} onChange={(e) => setDirection(e.target.value)} placeholder="What are you trying to achieve?" /></label>
+              <label>Anything specific to consider<textarea value={direction} onChange={(e) => setDirection(e.target.value)} placeholder="Optional: audience, style, budget, time available, or what you want to avoid." /></label>
             </div>
             <button className="yt-primary" disabled={busy} onClick={execute}>{busy ? "Working…" : stage === "research" ? "Find opportunities" : stage === "make" ? "Build the video" : stage === "results" ? "Diagnose results" : "Run this step"}</button>
-            {message && <div className="yt-message">{message}</div>}
+            {message && <div className="yt-message" role="status">{message}</div>}
+            {lastJobId && <a className="yt-other-ai-link" href={"/system/ai-anywhere?job=" + encodeURIComponent(lastJobId)}>Need to switch AI? Continue this saved job with another AI →</a>}
           </article>
 
           <aside className="yt-side">
-            <article className="yt-panel"><div className="yt-k">Study one video deeply</div><p className="yt-note">Use the existing YouTube analysis pipeline to download a public reference, inspect it and build an original package from the mechanism.</p><a className="yt-primary" href="/content/remake" style={{display:"flex",alignItems:"center",justifyContent:"center",textDecoration:"none"}}>Analyse a YouTube video</a></article>
-            <article className="yt-panel"><div className="yt-k">The whole system</div><div className="yt-flow">{["Research","Niche","Channels","Formats","Patterns","Make","Publish","Results","Learn"].map((x, i) => <div key={x}><span>{i + 1}</span><b>{x}</b>{i < 8 && <em>→</em>}</div>)}</div></article>
-            <article className="yt-panel"><div className="yt-k">Revenue planner</div><div className="yt-revenue-grid"><label>Monthly views<input inputMode="numeric" value={views} onChange={(e) => setViews(e.target.value)} placeholder="e.g. 100000" /></label><label>Assumed RPM<input inputMode="decimal" value={rpm} onChange={(e) => setRpm(e.target.value)} /></label><div><span>Estimated ad revenue</span><strong>{revenue}</strong><small>Planning estimate only. RPM is an operator assumption.</small></div></div></article>
-            <article className="yt-panel"><div className="yt-k">Quick diagnosis</div><div className="yt-mini-grid"><label>CTR %<input value={ctr} onChange={(e) => setCtr(e.target.value)} placeholder="e.g. 6.5" /></label><label>Average view duration<input value={avd} onChange={(e) => setAvd(e.target.value)} placeholder="e.g. 5:42" /></label></div><p className="yt-note">Read CTR together with impressions and viewer satisfaction. A high CTR with weak retention can mean the package is stronger than the video experience.</p></article>
+            <article className="yt-panel"><div className="yt-k">Start from a real example</div><p className="yt-note">Paste a public YouTube link to study its promise, opening, story, pacing and visuals. We learn the method and build something original — we do not copy the video.</p><a className="yt-primary" href="/content/remake" style={{display:"flex",alignItems:"center",justifyContent:"center",textDecoration:"none"}}>Analyse a video</a></article>
+            <article className="yt-panel"><div className="yt-k">From idea to improvement</div><div className="yt-flow">{["Find demand","Choose a topic","Study examples","Choose a format","Make original work","Publish","Measure","Learn","Repeat"].map((x, i) => <div key={x}><span>{i + 1}</span><b>{x}</b>{i < 8 && <em>→</em>}</div>)}</div></article>
+            <article className="yt-panel"><div className="yt-k">Estimate possible ad revenue</div><div className="yt-revenue-grid"><label>Monthly views<input inputMode="numeric" value={views} onChange={(e) => setViews(e.target.value)} placeholder="e.g. 100000" /></label><label>Assumed RPM<input inputMode="decimal" value={rpm} onChange={(e) => setRpm(e.target.value)} /></label><div><span>Estimated ad revenue</span><strong>{revenue}</strong><small>Planning estimate only. RPM is an operator assumption.</small></div></div></article>
+            <article className="yt-panel"><div className="yt-k">Review a published video</div><div className="yt-mini-grid"><label>CTR %<input value={ctr} onChange={(e) => setCtr(e.target.value)} placeholder="e.g. 6.5" /></label><label>Average view duration<input value={avd} onChange={(e) => setAvd(e.target.value)} placeholder="e.g. 5:42" /></label></div><p className="yt-note">Read CTR together with impressions and viewer satisfaction. A high CTR with weak retention can mean the package is stronger than the video experience.</p></article>
           </aside>
         </section>
 
-        {result && <section className="yt-panel yt-result"><div className="yt-k">Result</div><pre>{JSON.stringify(result, null, 2)}</pre></section>}
+        {result && <section className="yt-panel yt-result"><div className="yt-result-head"><div><div className="yt-k">WORK SAVED</div><h2>Your result</h2><p>Read this first. Open the technical version only when you need to inspect the raw data.</p></div><button type="button" className="yt-copy-result" onClick={async () => { try { await navigator.clipboard.writeText(JSON.stringify(result, null, 2)); setMessage("Result copied.") } catch { setMessage("Copy was blocked by the browser. Use the technical result below.") } }}>Copy result</button></div>
+          <ReadableResult data={result} />
+          <details className="yt-raw-result"><summary>Show technical result (JSON)</summary><pre>{JSON.stringify(result, null, 2)}</pre></details></section>}
 
         <footer className="yt-sources"><b>YouTube guardrails</b><span>Original, useful and materially varied content matters. Repetitive, mass-produced or minimally transformed material can be ineligible for monetisation.</span><div><a href="https://support.google.com/youtube/answer/1311392" target="_blank" rel="noreferrer">Monetisation policy</a><a href="https://support.google.com/youtube/answer/16767369" target="_blank" rel="noreferrer">Impressions & CTR</a><a href="https://support.google.com/youtube/answer/9314414" target="_blank" rel="noreferrer">Analytics</a></div></footer>
       </main>
