@@ -4,7 +4,7 @@ import { creatorDnaFor, creatorDnaText } from "../shared/creator-dna.js";
 import { generateCreatorImage } from "./imageGeneration/qwenImageClient.js";
 
 const QWEN_MODEL = "mlx-community/Qwen3.5-9B-4bit";
-const DISCLOSURE = "Cara is the dedicated demonstration model of Cornerstone AI Assets. Every client asset maps onto private, unique reference weights — ensuring their content remains consistently them, not us.";
+const PUBLIC_AI_DISCLOSURE = "AI-generated character: Cara + Lila are fictional creator characters operated through Cornerstone AI Assets.";
 
 const CANONICAL_DNA = { cara: creatorDnaFor("cara"), lila: creatorDnaFor("lila"), duo: creatorDnaFor("duo") };
 const PEOPLE = [
@@ -346,7 +346,7 @@ const auditJob = await queueQwen({ title: `AI Creator · ${selectedPerson?.name}
 
       const final = { ...draft, ...(audit?.revised || {}) };
       let caption = final.caption || "";
-      if (contentType === "fanvue" && !caption.includes(DISCLOSURE)) caption = `${caption}\n\n${DISCLOSURE}`.trim();
+      if (contentType !== "fanvue" && !caption.includes(PUBLIC_AI_DISCLOSURE)) caption = `${caption}\n\n${PUBLIC_AI_DISCLOSURE}`.trim();
 
       const row = {
         id: crypto.randomUUID(),
