@@ -1,6 +1,6 @@
 {
   "name": "Cornerstone AI Portable Context",
-  "version": "2026-10-09.5",
+  "version": "2026-10-09.6",
   "status": "active",
   "canonical_repository": "100492107/caig-app",
   "principle": "The model is replaceable; the operating contract is the asset.",
