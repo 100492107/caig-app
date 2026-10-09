@@ -105,17 +105,28 @@ async function persistCornerstoneSignals(job, research, raw) { if (job?.job_type
 
 async function recoverStaleJobs() { const cutoff = new Date(Date.now() - STALE_MS).toISOString(); const { data, error } = await supabase.from('local_ai_jobs').select('id,title,status,started_at').eq('status','processing').lt('started_at',cutoff).limit(20); if (error) throw error; for (const job of data || []) { await supabase.from('local_ai_jobs').update({ status:'queued', error_message:'Recovered stale processing job after worker restart.', production_status:'not_started' }).eq('id',job.id).eq('status','processing'); console.warn(`[QWEN] requeued stale job ${job.id}`); } }
 async function resolveServedModel(preferred) {
+  const preferredModel = String(preferred || QWEN_MODEL);
   try {
     const response = await fetch(`${QWEN_URL}/v1/models`, { signal: AbortSignal.timeout(3000) });
-    if (!response.ok) return preferred;
+    if (!response.ok) return preferredModel;
     const payload = await response.json();
-    const ids = Array.isArray(payload?.data) ? payload.data.map((item) => String(item?.id || '')) : [];
-    if (ids.includes(preferred)) return preferred;
+    const ids = Array.isArray(payload?.data) ? payload.data.map((item) => String(item?.id || '')).filter(Boolean) : [];
+    if (ids.includes(preferredModel)) return preferredModel;
     if (ids.includes(QWEN_MODEL)) return QWEN_MODEL;
-    if (ids.includes(QWEN_FALLBACK_MODEL)) return QWEN_FALLBACK_MODEL;
-    return ids[0] || preferred;
+
+    // Prefer configured fallback, then a text model the operator recently confirmed.
+    for (const candidate of [QWEN_FALLBACK_MODEL, 'mlx-community/Qwen3-8B-4bit']) {
+      if (candidate && ids.includes(candidate) && !/(?:\\bVL\\b|vision)/i.test(candidate)) return candidate;
+    }
+
+    // Never silently select the first available model: it may be a vision-only model.
+    const safeTextModel = ids.find((id) =>
+      !/(?:\\bVL\\b|vision)/i.test(id) &&
+      /(?:Qwen3(?:\\.5)?[^/]*(?:4B|8B|9B)|Qwen2\\.5[^/]*Instruct)/i.test(id)
+    );
+    return safeTextModel || preferredModel;
   } catch {
-    return preferred;
+    return preferredModel;
   }
 }
 async function callQwen(job, researchPack) {
@@ -135,7 +146,11 @@ async function callQwen(job, researchPack) {
   const sceneKnowledge = ['cara','lila','cara_lila','duo','cara&lila'].includes(String(job.persona_id || '').toLowerCase())
     ? `\n\n${sceneDirectionSystemBlock(String(job.persona_id).toLowerCase())}\n\n${VISION_JSON_COMPLETION_CHECK}`
     : '';
-  const system = `${job.system_prompt || 'You are Cornerstone AI Enterprise local intelligence.'}${character}${sceneKnowledge}${researchContext}${socialSales}
+  const weeklyPriority = isTrackB ? await readOptional('docs/MONEY_THIS_WEEK.md') : '';
+  const priorityContext = weeklyPriority
+    ? `\n\nCURRENT WEEKLY PRIORITY SOURCE — AUTHORITATIVE\n${weeklyPriority}`
+    : '';
+  const system = `${job.system_prompt || 'You are Cornerstone AI Enterprise local intelligence.'}${character}${sceneKnowledge}${researchContext}${socialSales}${priorityContext}
 
 UNIVERSAL QUALITY RULES:
 - Evidence is workspace-scoped.
