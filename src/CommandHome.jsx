@@ -204,7 +204,7 @@ export default function CommandHome() {
         </header>
 
         <section className="operator-stats" aria-label="Current results">
-          <article><span>Tracked revenue</span><strong>{x.revenue == null ? '—' : money(x.revenue)}</strong><small>Only recorded results</small></article>
+          <article><span>Tracked revenue</span><strong>{Number(x.closedLoops || 0) ? money(x.revenue) : '—'}</strong><small>Only recorded results</small></article>
           <article><span>Published posts</span><strong>{Number(x.published || 0).toLocaleString('en-GB')}</strong><small>Saved publication records</small></article>
           <article><span>Audience</span><strong>{hasSocial ? num(x.followers) : '—'}</strong><small>{hasSocial ? 'Latest connected social data' : 'Waiting for a social data sync'}</small></article>
           <article><span>Work in progress</span><strong>{Number(x.inMotion || 0).toLocaleString('en-GB')}</strong><small>{Number(x.queued || 0)} waiting · {Number(x.processing || 0)} running</small></article>
