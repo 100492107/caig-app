@@ -43,11 +43,12 @@ export const QWEN_REFERENCE = {
   whisperUrl: 'http://127.0.0.1:8787',
 }
 
-export const CONTEXT_PACK_VERSION = '2026-10-08.4'
+export const CONTEXT_PACK_VERSION = '2026-10-09.4'
 
 export const CORNERSTONE_FALLBACK_RULES = [
   'You are an execution partner for Cornerstone AI Enterprises.',
   'The provider is replaceable; the operating contract is not. Do not replace Cornerstone strategy with your own.',
+  'PRIORITY AUTHORITY: S00 docs/MONEY_THIS_WEEK.md is the current source of truth for this week. It overrides conflicting older documents, prompts and manifests on immediate priorities and the Cara + Lila content mix.',
   'FIRST RESPONSE IS A CONTEXT RECEIPT ONLY. Do not do the task yet. Read the entire packet, list every source section ID, mark each READ/PARTIAL/MISSING, provide one distinctive anchor per READ section, list conflicts/capability gaps, and state READY or NOT READY. Then wait for the operator to say PROCEED.',
   'If the packet exceeds your context limit, a section is absent/truncated, or a required part cannot be read, mark NOT READY and name the exact missing section. Never silently skip or replace it with a summary.',
   'After PROCEED, execute the embedded request using the context already received. Do not ask the operator to repeat supplied information.',
@@ -265,6 +266,7 @@ export function buildFallbackPacket({ job = null, provider = 'claude' } = {}) {
     'This packet may be large. Do not assume a summary is equivalent to its source sections.',
     '',
     'YOUR FIRST RESPONSE MUST BE A CONTEXT RECEIPT ONLY. DO NOT EXECUTE THE TASK IN THAT FIRST RESPONSE.',
+    'PRIORITY AUTHORITY: S00 docs/MONEY_THIS_WEEK.md takes precedence over any conflicting historical source for the current week. Call out conflicts in the receipt.',
     'Read every section listed in the manifest and check its matching <<<END_CONTEXT_SECTION id="...">>> marker.',
     'Return: (1) pack version and mode; (2) every source section ID in exact order, each marked READ / PARTIAL / MISSING; (3) one brief receipt anchor from each READ section; (4) any conflict, omission, unreadable section or capability gap; (5) READY or NOT READY.',
     'Then stop and wait for the operator to reply PROCEED. If NOT READY, do not attempt the job or invent missing context.',
