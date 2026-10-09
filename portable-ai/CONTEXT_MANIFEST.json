@@ -1,6 +1,6 @@
 {
   "name": "Cornerstone AI Portable Context",
-  "version": "2026-10-09.3",
+  "version": "2026-10-09.4",
   "status": "active",
   "canonical_repository": "100492107/caig-app",
   "principle": "The model is replaceable; the operating contract is the asset.",
@@ -28,7 +28,6 @@
     "docs/MONEY_THIS_WEEK.md",
     "docs/YOUTUBE_AUTOMATION_DOCTRINE.md",
     "portable-ai/YOUTUBE_AUTOMATION_AI_CONTEXT.md",
-    "docs/MONEY_THIS_WEEK.md",
     "portable-ai/CONTEXT_RECEIPT_PROTOCOL.md",
     "portable-ai/00_START_HERE.md",
     "portable-ai/CAIG_AI_CONTEXT.md",
@@ -38,7 +37,10 @@
     "docs/CARA_LILA_ATTACK_WEEK_01.md",
     "docs/POST_NOW_CHECKLIST.md",
     "portable-ai/SOCIAL_SALES_DOCTRINE.md",
-    "portable-ai/PROVIDER_BOOT_PROMPTS.md"
+    "portable-ai/PROVIDER_BOOT_PROMPTS.md",
+    "shared/social-sales-doctrine.js",
+    "shared/creator-dna.js",
+    "shared/content-lane-rules.js"
   ],
   "local_ai": {
     "text_model": "mlx-community/Qwen3.5-9B-4bit",
@@ -51,5 +53,6 @@
     "contains_auth_tokens": false,
     "contains_service_role_keys": false
   },
-  "portability": "Same doctrine for Qwen, Claude, Grok, ChatGPT, Gemini. Context Receipt required before task execution. MONEY_THIS_WEEK is the priority authority when documents conflict."
+  "portability": "Same doctrine for Qwen, Claude, Grok, ChatGPT, Gemini. Context Receipt required before task execution. MONEY_THIS_WEEK is the priority authority when documents conflict.",
+  "priority_rule": "docs/MONEY_THIS_WEEK.md overrides conflicting historical context for this week."
 }
