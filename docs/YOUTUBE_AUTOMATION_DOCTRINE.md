@@ -137,9 +137,13 @@ For Cara + Lila, YouTube should remain a creator identity asset rather than beco
 
 ## Official references
 
-- YouTube Channel Monetisation Policies
-- YouTube Studio Analytics
-- YouTube Impressions and CTR guidance
-- YouTube Partner Programme overview
+- YouTube channel monetisation policies — originality, authentic content, repetitious/inauthentic content and reused content:
+  https://support.google.com/youtube/answer/1311392
+- YouTube impressions and click-through-rate FAQs — interpret CTR alongside impressions and audience context:
+  https://support.google.com/youtube/answer/7628154?hl=en-GB
+- TikTok Next 2026 — curiosity-led discovery, search and community participation for social derivatives:
+  https://newsroom.tiktok.com/introducing-tiktok-next-2026-our-trend-forecast-for-marketers-for-the-year-ahead?_hsmi=399120832&lang=en
+- Meta: Rewarding Original Creators on Facebook — originality and recommendations:
+  https://about.fb.com/news/2026/03/rewarding-original-creators-on-facebook/
 
 Official platform policy wins whenever it differs from training material or historical advice.
