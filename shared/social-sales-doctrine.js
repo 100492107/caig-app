@@ -35,6 +35,11 @@ Use visual changes when the idea changes. Do not cut just to look busy.
 
 VISUAL EXECUTION
 - Face/voice is the trust anchor.
+- Lead with an outcome-led headline or opening promise, not a long introduction.
+- Use a numbered framework when it makes a complex idea easy to follow.
+- Insert screenshots, simple diagrams or short visual examples only when they support the spoken point.
+- Explain what the evidence means for the viewer; do not simply list resources or facts.
+- Repeatable teaching sequence: PROMISE → EXPLAIN → SHOW EVIDENCE → EXPLAIN THE IMPLICATION → NEXT STEP.
 - Use supporting screenshots, photos or B-roll when they add proof or context.
 - Keep on-screen text readable without sound.
 - Use one main idea per video.
