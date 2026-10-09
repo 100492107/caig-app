@@ -17,7 +17,7 @@ import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
-const VERSION = '2026-10-09.6'
+const VERSION = '2026-10-09.7'
 
 const FULL_SOURCES = [
   ['docs/CORNERSTONE_ONE_BRAIN_OPERATING_MANUAL.md', 'One-Brain operating manual — business, execution, local AI and model portability'],
@@ -40,7 +40,9 @@ const FULL_SOURCES = [
   ['docs/LOCAL_RUN.md', 'Local AI recovery runbook'],
   ['docs/AI_FALLBACK_PROTOCOL.md', 'External AI fallback protocol'],
   ['portable-ai/SOCIAL_SALES_DOCTRINE.md', 'Portable social and sales doctrine'],
-  ['portable-ai/YOUTUBE_AUTOMATION_AI_CONTEXT.md', 'YouTube automation context'],
+  ['portable-ai/YOUTUBE_AUTOMATION_AI_CONTEXT.md', 'YouTube automation quick context'],
+  ['docs/YOUTUBE_AUTOMATION_DOCTRINE.md', 'Full YouTube automation doctrine, including research, packaging, retention, production, analytics and originality gates'],
+  ['docs/CARA_LILA_2026_SOCIAL_SALES_DOCTRINE.md', 'Detailed 2026 social discovery, sales psychology, originality and commerce doctrine'],
   ['portable-ai/LOCAL_AI_QWEN.md', 'Local AI and Qwen'],
   ['portable-ai/PROVIDER_BOOT_PROMPTS.md', 'Provider boot prompts'],
   ['portable-ai/CONTEXT_MANIFEST.json', 'Portable context manifest'],
@@ -74,6 +76,7 @@ const CORE_SOURCES = [
   ['docs/POST_NOW_CHECKLIST.md', 'POST NOW checklist — ship this week'],
   ['docs/COMPETITIVE_INTEL_2026-10-08.md', 'Competitive intel — what is winning on X'],
   ['portable-ai/SOCIAL_SALES_DOCTRINE.md', 'Portable social and sales doctrine'],
+  ['portable-ai/YOUTUBE_AUTOMATION_AI_CONTEXT.md', 'YouTube automation quick context'],
   ['portable-ai/PROVIDER_BOOT_PROMPTS.md', 'Provider boot prompts'],
   ['shared/creator-dna.js', 'Runtime creator DNA — absolute truth'],
   ['shared/content-lane-rules.js', 'Content lanes — first 2s + hook structures'],
