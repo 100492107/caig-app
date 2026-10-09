@@ -5,7 +5,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
 PRIMARY_MODEL="mlx-community/Qwen3.5-9B-4bit"
-FALLBACK_MODEL="mlx-community/Qwen3.5-4B-4bit"
+FALLBACK_MODEL="mlx-community/Qwen3-8B-4bit"
 
 if [[ "$(uname -s)" != "Darwin" ]]; then
   echo "This Qwen MLX setup targets macOS."
@@ -77,7 +77,8 @@ EOF
 else
   # Migrate known legacy configuration while preserving unrelated operator settings.
   sed -i '' 's#mlx-community/Qwen3-8B-4bit#mlx-community/Qwen3.5-9B-4bit#g' "$ROOT/.env.qwen.local"
-  sed -i '' 's#mlx-community/Qwen3.5-4B-OptiQ-4bit#mlx-community/Qwen3.5-4B-4bit#g' "$ROOT/.env.qwen.local"
+  sed -i '' 's#mlx-community/Qwen3.5-4B-OptiQ-4bit#mlx-community/Qwen3-8B-4bit#g' "$ROOT/.env.qwen.local"
+  sed -i '' 's#^QWEN_FALLBACK_MODEL=mlx-community/Qwen3.5-4B-4bit$#QWEN_FALLBACK_MODEL=mlx-community/Qwen3-8B-4bit#' "$ROOT/.env.qwen.local"
   sed -i '' 's#127\.0\.0\.1:8002#127.0.0.1:8000#g' "$ROOT/.env.qwen.local"
   sed -i '' 's#^QWEN_PORT=8002$#QWEN_PORT=8000#' "$ROOT/.env.qwen.local"
   if ! grep -q '^QWEN_MODEL=' "$ROOT/.env.qwen.local"; then
