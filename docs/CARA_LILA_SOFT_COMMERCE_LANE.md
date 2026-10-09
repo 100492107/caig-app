@@ -1,20 +1,19 @@
 # Cara + Lila — Soft Commerce Lane
 
 **Canonical rules for the SOFT COMMERCE content lane (10–15% of the public feed).**  
-Hybrid model: build the brand with attention / useful / lifestyle posts, and use a **small** share of posts as UGC-style soft sells for affiliates and TikTok Shop — with Cara + Lila in frame.
+Authority for weekly priority: `docs/MONEY_THIS_WEEK.md`.
 
-Reference pattern (style only, not frequency): lifestyle AI/creators who weave a product into an ordinary moment (e.g. easy “this is what I use” energy).  
-**We do that style. We do not do it all the time.**
+Hybrid model: build the brand with attention / useful / lifestyle posts, and use a **small** share of posts as UGC-style soft sells for affiliates and TikTok Shop — with Cara + Lila in frame.
 
 ---
 
-## 1. Portfolio lock
+## 1. Portfolio lock (canonical — supersedes older 20–30% attention docs)
 
 | Lane | Target |
 |------|--------|
-| Attention / controversy | 20–30% |
-| Useful / educational / interesting | 30–40% |
-| Lifestyle / relationship / day-in-life | 25–35% |
+| Attention / controversy | **30–40%** |
+| Useful / educational / interesting | **25–35%** |
+| Lifestyle / relationship / day-in-life | **15–25%** |
 | **Soft commerce** | **10–15%** |
 
 In a 7-post week: **about 1** clear soft-commerce post (2 only if both are very soft). Never a majority sell feed.
@@ -41,6 +40,7 @@ People who want it will find it in the bio/site. Discovery content must not beco
 - Product appears as something they **actually use / prefer / refuse the alternative for**
 - Monetisation path: **affiliate link** and/or **TikTok Shop** (and site picks) — not hard brand-deal theatre
 - CTA is light: “this one”, “link in bio / shop”, product sticker — not a pitch deck
+- **First 1–2 seconds never open on BUY**
 
 **Not Soft Commerce:**
 
@@ -74,43 +74,24 @@ Score 0/1. **Ship only if ≥ 5/6 and no NEVER.**
 
 ---
 
-## 5. Generation instructions (for Qwen / Creator Engine)
+## 5. Generation instructions
 
 When `content_lane` = Soft commerce:
 
-1. Build a **complete lifestyle beat** first (what they’re doing, why it matters in one line).
+1. Build a **complete lifestyle beat** first.
 2. Introduce **one** product as the natural object in that beat.
 3. Preference language: “this is the one we keep”, “not the hyped one”, “worth it for X”.
-4. CTA: single, soft, platform-native (TikTok Shop tag / “details in bio” / site).
-5. Output must include:
-   - `content_lane: soft_commerce`
-   - `product_role`: why it belongs in the scene
-   - `cta`: soft only
-   - `monetisation_path`: affiliate | tiktok_shop | site
-   - `fanvue_mention: false` (always)
+4. CTA: single, soft, platform-native.
+5. Output must include: `content_lane: soft_commerce`, `product_role`, soft `cta`, `monetisation_path`, `fanvue_mention: false`.
 6. Never invent prices, fake reviews, or medical claims.
 
 ---
 
-## 6. How Soft Commerce relates to other lanes
+## 6. Relation to other lanes
 
-- **Attention** posts may create curiosity; do not smuggle products into Attention Gate posts unless the lane is explicitly Soft Commerce.
-- **Useful** posts can compare or explain without a buy CTA; if a product is the point of conversion, use Soft Commerce lane.
-- **Lifestyle** posts should usually stay product-light; chemistry and world-building first.
+- Attention posts create curiosity; do not smuggle products into Attention Gate posts unless the lane is Soft Commerce.
+- Useful posts can compare without a buy CTA.
+- Lifestyle stays product-light.
 - Reach from non-sell posts supports discovery of occasional soft sells — only if soft sells stay rare and native.
-
----
-
-## 7. Operator stamp
-
-```text
-CONTENT LANE: SOFT COMMERCE
-Product: _______________
-Path: affiliate / TikTok Shop / site
-MUST: _/6
-NEVER: none / listed
-Fanvue in post: NO
-Verdict: SHIP / REWRITE / KILL
-```
 
 *Brand first. Soft sell second. Fanvue never in the feed — only bio/site.*
