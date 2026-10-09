@@ -17,7 +17,7 @@ import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
-const VERSION = '2026-10-09.5'
+const VERSION = '2026-10-09.6'
 
 const FULL_SOURCES = [
   ['docs/CORNERSTONE_ONE_BRAIN_OPERATING_MANUAL.md', 'One-Brain operating manual — business, execution, local AI and model portability'],
