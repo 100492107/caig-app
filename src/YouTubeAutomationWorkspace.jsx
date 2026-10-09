@@ -1,6 +1,9 @@
 import React, { useMemo, useState } from "react"
 import { supabase } from "./supabase"
 import EnterpriseShell from "./EnterpriseShell.jsx"
+import MONEY_THIS_WEEK from "../docs/MONEY_THIS_WEEK.md?raw"
+import YOUTUBE_AUTOMATION_CONTEXT from "../portable-ai/YOUTUBE_AUTOMATION_AI_CONTEXT.md?raw"
+import SOCIAL_SALES_DOCTRINE from "../shared/social-sales-doctrine.js"
 
 const STAGES = [
   ["research", "Find a topic", "Look for audience demand and promising channels."],
