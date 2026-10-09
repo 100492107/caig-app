@@ -1,38 +1,16 @@
 import React, { useEffect, useState } from 'react'
 import { supabase } from './supabase'
-import { creatorDnaFor } from '../shared/creator-dna.js'
 import EnterpriseShell from './EnterpriseShell.jsx'
-import { RevenueMissionBanner } from './RevenueMission.jsx'
 
 const FAIL = new Set(['error', 'failed', 'blocked'])
 const money = (v) =>
   new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP', maximumFractionDigits: 0 }).format(Number(v || 0))
 const clean = (v) => String(v || '').replaceAll('_', ' ')
 const num = (v) => new Intl.NumberFormat('en-GB', { maximumFractionDigits: 0 }).format(Number(v || 0))
-const CREATOR_IMAGES = {
-  cara: 'https://zvyioxhwdyocaanzcgqf.supabase.co/storage/v1/object/public/cara%20ref/Cara_5.jpg',
-  lila: 'https://zvyioxhwdyocaanzcgqf.supabase.co/storage/v1/object/public/lila%20ref/lila_12.jpeg',
-}
 const age = (v) => {
   if (!v) return 'No recent check-in'
   const s = Math.max(0, Math.round((Date.now() - new Date(v).getTime()) / 1000))
   return s < 60 ? s + 's ago' : Math.round(s / 60) + 'm ago'
-}
-
-const DISMISS_KEY = 'cornerstone_command_dismissed_v1'
-
-function loadDismissed() {
-  try {
-    return JSON.parse(sessionStorage.getItem(DISMISS_KEY) || '{}')
-  } catch {
-    return {}
-  }
-}
-
-function saveDismissed(map) {
-  try {
-    sessionStorage.setItem(DISMISS_KEY, JSON.stringify(map))
-  } catch {}
 }
 
 async function safe(name, run, fallback) {
@@ -170,163 +148,122 @@ async function readState() {
 export default function CommandHome() {
   const [s, setS] = useState(null)
   const [error, setError] = useState('')
-  const [dismissed, setDismissed] = useState(loadDismissed)
+  const [refreshing, setRefreshing] = useState(false)
+
+  async function refresh() {
+    setRefreshing(true)
+    try {
+      const value = await readState()
+      setS(value)
+      setError('')
+    } catch (e) {
+      setError(e?.message || String(e))
+    } finally {
+      setRefreshing(false)
+    }
+  }
 
   useEffect(() => {
     let live = true
-    const load = () =>
-      readState(dismissed)
-        .then((v) => { if (live) { setS(v); setError('') } })
-        .catch((e) => { if (live) setError(e?.message || String(e)) })
+    const load = async () => {
+      try {
+        const value = await readState()
+        if (live) { setS(value); setError('') }
+      } catch (e) {
+        if (live) setError(e?.message || String(e))
+      }
+    }
     load()
-    const t = setInterval(load, 10000)
-    return () => { live = false; clearInterval(t) }
-  }, [dismissed])
-
-  function tickSoft(stepId) {
-    const next = { ...dismissed, [stepId]: true }
-    setDismissed(next)
-    saveDismissed(next)
-  }
+    const timer = setInterval(load, 30000)
+    return () => { live = false; clearInterval(timer) }
+  }, [])
 
   const x = s || {
-    revenue: 0, commission: 0, followers: 0, subscribers: 0, paidSubscribers: 0, social: [], socialViews: 0, socialReach: 0, socialLastSync: null, metricoolConnected: true, packages: 0, inMotion: 0, published: 0, winners: 0,
-    online: null, lastSeen: null, currentJob: null, warnings: [], failed: 0, queued: 0, processing: 0, recent: [], learning: [], closedLoops: 0, commerceSignals: [], commerceOpportunities: [], commerceTests: [], commerceSetup: null, commerceProjects: [], commerceJobs: [], commercePubs: [], commerceEvidence: [],
-    path: {
-      steps: [],
-      current: { id: 'loading', label: 'Reading operating state…', detail: 'One moment', href: '/', cta: 'Wait', done: false, body: 'Cornerstone is checking blockers, research, production and results.' },
-      currentIndex: 0, allDone: false,
-    },
+    revenue: null, commission: null, followers: null, social: [], socialViews: null,
+    socialReach: null, socialLastSync: null, published: 0, online: null, lastSeen: null,
+    currentJob: null, warnings: [], failed: 0, queued: 0, processing: 0, recent: [],
+    packages: 0, inMotion: 0, winners: 0, closedLoops: 0,
   }
-
-  const path = x.path
-  const current = path.current
-  const doneCount = path.steps.filter((st) => st.done).length
-  const total = path.steps.length || 1
-  const pct = Math.round((doneCount / total) * 100)
-  const cara = creatorDnaFor('cara')
-  const lila = creatorDnaFor('lila')
+  const hasSocial = Array.isArray(x.social) && x.social.length > 0
 
   return (
-    <EnterpriseShell active="command" eyebrow="Command">
-      <main className="home cmd-today">
-        <RevenueMissionBanner />
-
-        <header className="cmd-today-head">
+    <EnterpriseShell active="command" eyebrow="Home">
+      <main className="operator-home">
+        <header className="operator-home-head">
           <div>
-            <div className="k">Today · revenue-first operating path</div>
-            <h1>{path.allDone ? 'Loop proven. Compound the evidence.' : 'Make the first money.'}</h1>
-            <p>One current objective: get the first tracked commission, then repeat the mechanisms that produce real commercial behaviour. Cornerstone is now organised around the live revenue loop, not feature collection.</p>
-            <div className="presence">
-              <i className={'dot' + (x.online === false ? ' off' : '')} />
-              {x.online === null ? 'Intelligence status unavailable' : x.online ? 'Intelligence ready' : 'Intelligence offline'}{' '}
-              · {age(x.lastSeen)}
-              {x.currentJob ? ' · ' + clean(x.currentJob) : ''}
-            </div>
+            <div className="operator-eyebrow">YOUR BUSINESS WORKSPACE</div>
+            <h1>What are we moving forward today?</h1>
+            <p>Use Cornerstone to bring money in, build content assets, and learn from the results. Your plans and work stay saved if Qwen stops working — use <b>Other AI</b> to continue with another model.</p>
           </div>
-          <div className="cmd-progress-card">
-            <div className="cmd-progress-meta">
-              <span>{doneCount} of {total} steps</span>
-              <b>{pct}%</b>
-            </div>
-            <div className="cmd-progress-bar"><i style={{ width: pct + '%' }} /></div>
-            <div className="cmd-progress-stats">
-              <span><b>{x.closedLoops}</b> loops</span>
-              <span><b>{x.winners}</b> winners</span>
-              <span><b>{money(x.revenue)}</b></span>
-            </div>
+          <div className={'operator-ai-status ' + (x.online === true ? 'is-online' : x.online === false ? 'is-offline' : 'is-unknown')}>
+            <span className="operator-status-dot" />
+            <div><b>{x.online === true ? 'Local AI ready' : x.online === false ? 'Local AI not responding' : 'Local AI status unknown'}</b>
+            <small>{x.online === true ? 'Qwen can take new work' : x.online === false ? 'Your work is still saved' : 'Last check: ' + age(x.lastSeen)}</small></div>
+            <button onClick={refresh} disabled={refreshing}>{refreshing ? 'Checking…' : 'Refresh'}</button>
           </div>
         </header>
 
-        <section style={{marginTop:18,display:'grid',gridTemplateColumns:'repeat(4,minmax(0,1fr))',gap:8}}>
-          {[
-            ['Social followers', x.social?.length ? num(x.followers) : '—', x.social?.length ? 'Across connected networks' : 'Awaiting first Metricool snapshot'],
-            ['7-day views', x.social?.length ? num(x.socialViews) : '—', 'Metricool · connected networks'],
-            ['7-day reach', x.social?.length ? num(x.socialReach) : '—', 'Metricool · connected networks'],
-            ['Last social sync', x.socialLastSync ? age(x.socialLastSync) : '—', 'Hourly snapshot bridge'],
-          ].map(([label,value,sub])=><article key={label} style={{padding:'13px 14px',border:'1px solid var(--border)',borderRadius:14,background:'var(--surface)'}}><span style={{display:'block',fontSize:9,textTransform:'uppercase',letterSpacing:'.11em',color:'var(--text-subtle)'}}>{label}</span><strong style={{display:'block',marginTop:5,fontSize:20,letterSpacing:'-.04em'}}>{value}</strong><small style={{display:'block',marginTop:4,fontSize:9,color:'var(--text-muted)'}}>{sub}</small></article>)}
+        <section className="operator-stats" aria-label="Current results">
+          <article><span>Tracked revenue</span><strong>{x.revenue == null ? '—' : money(x.revenue)}</strong><small>Only recorded results</small></article>
+          <article><span>Published posts</span><strong>{Number(x.published || 0).toLocaleString('en-GB')}</strong><small>Saved publication records</small></article>
+          <article><span>Audience</span><strong>{hasSocial ? num(x.followers) : '—'}</strong><small>{hasSocial ? 'Latest connected social data' : 'Waiting for a social data sync'}</small></article>
+          <article><span>Work in progress</span><strong>{Number(x.inMotion || 0).toLocaleString('en-GB')}</strong><small>{Number(x.queued || 0)} waiting · {Number(x.processing || 0)} running</small></article>
         </section>
 
-        <section className="cmd-mission-grid">
-          <article className={'cmd-mission' + (path.allDone ? ' is-clear' : '')}>
-            <div className="cmd-mission-k">{path.allDone ? 'Path complete' : 'Current step only'}</div>
-            <h2>{path.allDone ? 'Nothing blocking. Multiply what worked.' : current?.label}</h2>
-            <p>{path.allDone ? 'Use a learning rule, run radar, or capture a new metric snapshot. Do not invent busywork.' : current?.body}</p>
-            {!path.allDone && current ? (
-              <div className="cmd-mission-actions">
-                <a className="primary" href={current.href}>{current.cta} →</a>
-                {!current.hard && !current.done ? (
-                  <button type="button" className="ghost" onClick={() => tickSoft(current.id)}>Mark done for now</button>
-                ) : null}
-              </div>
-            ) : (
-              <div className="cmd-mission-actions">
-                <a className="primary" href="/content/remake">Build from learning →</a>
-                <a className="ghost" href="/research">Research</a>
-              </div>
-            )}
-            {current && !path.allDone ? (
-              <div className="cmd-mission-why">
-                <span>Why this</span>
-                <b>{current.detail}</b>
-              </div>
-            ) : null}
-          </article>
+        <section className="operator-section">
+          <div className="operator-section-head">
+            <div><div className="operator-eyebrow">CHOOSE YOUR NEXT TASK</div><h2>Start with the outcome you need</h2></div>
+          </div>
+          <div className="operator-work-grid">
+            <a className="operator-work-card operator-revenue" href="/mission">
+              <span className="operator-card-number">01 · INCOME</span>
+              <h3>Recover revenue</h3>
+              <p>Find where enquiries, conversations or sales have stalled and decide the next action.</p>
+              <span className="operator-card-cta">Open revenue work <b>→</b></span>
+            </a>
+            <a className="operator-work-card operator-content" href="/content/remake">
+              <span className="operator-card-number">02 · CONTENT</span>
+              <h3>Make content</h3>
+              <p>Study what works, turn the lesson into an original idea, then prepare it for production.</p>
+              <span className="operator-card-cta">Start content <b>→</b></span>
+            </a>
+            <a className="operator-work-card operator-youtube" href="/youtube">
+              <span className="operator-card-number">03 · YOUTUBE</span>
+              <h3>Build a YouTube channel</h3>
+              <p>Find a promising topic, test repeatable video formats, build the video, publish and learn.</p>
+              <span className="operator-card-cta">Open YouTube work <b>→</b></span>
+            </a>
+            <a className="operator-work-card operator-ai" href="/system/ai-anywhere">
+              <span className="operator-card-number">04 · BACKUP AI</span>
+              <h3>Continue with another AI</h3>
+              <p>Export the full business context or one saved job to Gemini, Claude, Grok or ChatGPT, then bring the answer back.</p>
+              <span className="operator-card-cta">Open Other AI <b>→</b></span>
+            </a>
+          </div>
+        </section>
 
-          <aside className="cmd-path">
-            <div className="cmd-path-head">
-              <strong>Operating path</strong>
-              <span>Tick by evidence</span>
+        <section className="operator-how">
+          <div><div className="operator-eyebrow">HOW CORNERSTONE WORKS</div><h2>One loop. No lost context.</h2>
+          <p>Find evidence → decide what to do → make the work → publish or act → record the result → improve the next attempt.</p></div>
+          <a href="/system/ai-anywhere">See how to switch AI without starting over <b>→</b></a>
+        </section>
+
+        <section className="operator-recent">
+          <div className="operator-section-head"><div><div className="operator-eyebrow">RECENT WORK</div><h2>What has changed</h2></div></div>
+          {x.recent?.length ? (
+            <div className="operator-recent-list">
+              {x.recent.map((item, i) => <a key={item.kind + '-' + item.title + '-' + i} href={item.href}>
+                <span className="operator-recent-kind">{item.kind}</span>
+                <b>{item.title}</b>
+                <small>{age(item.when)}</small>
+                <span aria-hidden="true">→</span>
+              </a>)}
             </div>
-            <ol className="cmd-path-list">
-              {path.steps.map((step, i) => {
-                const isCurrent = !path.allDone && i === path.currentIndex
-                const locked = !step.done && !isCurrent && i > path.currentIndex
-                return (
-                  <li key={step.id} className={'cmd-path-item' + (step.done ? ' is-done' : '') + (isCurrent ? ' is-current' : '') + (locked ? ' is-locked' : '')}>
-                    <span className="cmd-path-mark" aria-hidden>{step.done ? '✓' : isCurrent ? '→' : String(i + 1).padStart(2, '0')}</span>
-                    <div className="cmd-path-copy">
-                      <strong>{step.label}</strong>
-                      <span>{step.detail}</span>
-                    </div>
-                    {isCurrent ? <a href={step.href} className="cmd-path-go">Go</a> : step.done ? <span className="cmd-path-status">Done</span> : <span className="cmd-path-status">Next</span>}
-                  </li>
-                )
-              })}
-            </ol>
-          </aside>
+          ) : <p className="operator-empty">Your recent jobs, posts and results will appear here as they are saved.</p>}
         </section>
 
-        <section className="cmd-revenue-strip" style={{display:'grid',gridTemplateColumns:'repeat(4,minmax(0,1fr))',gap:8,marginTop:14}}>
-          {[['Signals',x.commerceSignals.length,'Import real product / trend evidence'],['Opportunities',x.commerceOpportunities.length,'Create a specific creator test'],['Published',x.commercePubs.filter(p=>['published','live'].includes(String(p.status))).length,'Put an asset in market'],['Commission',money(x.commission),'First tracked money']].map(([a,b,d])=><article key={a} style={{padding:'13px 14px',border:'1px solid var(--cs-os-line)',borderRadius:12,background:'rgba(255,255,255,.012)'}}><span style={{display:'block',fontSize:9,letterSpacing:'.11em',textTransform:'uppercase',color:'var(--cs-os-subtle)',fontWeight:800}}>{a}</span><strong style={{display:'block',marginTop:5,fontSize:20,letterSpacing:'-.04em'}}>{b}</strong><small style={{display:'block',marginTop:3,color:'var(--cs-os-muted)',fontSize:9,lineHeight:1.4}}>{d}</small></article>)}
-        </section>
-
-        <section className="cs-creators cmd-creators-slim">
-          <article className="cs-creator-card">
-            <div className="cs-creator-avatar"><img src={CREATOR_IMAGES.cara} alt="Cara" /></div>
-            <div>
-              <div className="cs-command-k">Cara · BUILD</div>
-              <strong>{cara?.soul || 'Agency. Earned progress.'}</strong>
-            </div>
-          </article>
-          <article className="cs-creator-card">
-            <div className="cs-creator-avatar"><img src={CREATOR_IMAGES.lila} alt="Lila" /></div>
-            <div>
-              <div className="cs-command-k">Lila · NOTICE</div>
-              <strong>{lila?.soul || 'Presence. Quiet discernment.'}</strong>
-            </div>
-          </article>
-        </section>
-
-        <section className="footer cmd-footer-slim">
-          <div className="foot"><b>{x.online ? 'Ready' : x.online === false ? 'Offline' : '—'}</b><span>Intelligence</span></div>
-          <div className="foot"><b>{x.failed}</b><span>Blockers</span></div>
-          <div className="foot"><b>{num(x.followers)}</b><span>Followers</span></div>
-          <div className="foot"><b>{x.published}</b><span>In market</span></div>
-        </section>
-
-        {x.warnings?.length ? <div className="error" style={{ marginTop: 14 }}>Some data unavailable: {x.warnings.join(' · ')}</div> : null}
-        {error ? <div className="error">Could not refresh Command: {error}</div> : null}
+        {x.warnings?.length ? <details className="operator-technical"><summary>Some information could not be loaded</summary><p>{x.warnings.join(' · ')}</p></details> : null}
+        {error ? <div role="alert" className="operator-error">Home could not refresh: {error}</div> : null}
       </main>
     </EnterpriseShell>
   )
