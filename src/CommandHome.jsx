@@ -192,8 +192,8 @@ export default function CommandHome() {
         <header className="operator-home-head">
           <div>
             <div className="operator-eyebrow">YOUR BUSINESS WORKSPACE</div>
-            <h1>What are we moving forward today?</h1>
-            <p>Use Cornerstone to bring money in, build content assets, and learn from the results. Your plans and work stay saved if Qwen stops working — use <b>Other AI</b> to continue with another model.</p>
+            <h1>This week: make Cara + Lila earn.</h1>
+            <p>First priority: publish seven original Cara + Lila posts and make the route to cash measurable. Confirm a real affiliate, TikTok Shop or site offer before selling. Track A revenue recovery remains available, but it is secondary this week. If Qwen stops, use <b>Other AI</b> without rebuilding the context.</p>
           </div>
           <div className={'operator-ai-status ' + (x.online === true ? 'is-online' : x.online === false ? 'is-offline' : 'is-unknown')}>
             <span className="operator-status-dot" />
@@ -215,28 +215,28 @@ export default function CommandHome() {
             <div><div className="operator-eyebrow">CHOOSE YOUR NEXT TASK</div><h2>Start with the outcome you need</h2></div>
           </div>
           <div className="operator-work-grid">
-            <a className="operator-work-card operator-revenue" href="/mission">
-              <span className="operator-card-number">01 · INCOME</span>
-              <h3>Recover revenue</h3>
-              <p>Find where enquiries, conversations or sales have stalled and decide the next action.</p>
-              <span className="operator-card-cta">Open revenue work <b>→</b></span>
+            <a className="operator-work-card operator-content" href="/content/creators">
+              <span className="operator-card-number">01 · THIS WEEK</span>
+              <h3>Make Cara + Lila posts</h3>
+              <p>Create and prepare the first seven posts in the approved mix. Keep the characters original; do not force a sales pitch into every post.</p>
+              <span className="operator-card-cta">Start this week's batch <b>→</b></span>
             </a>
-            <a className="operator-work-card operator-content" href="/content/remake">
-              <span className="operator-card-number">02 · CONTENT</span>
-              <h3>Make content</h3>
-              <p>Study what works, turn the lesson into an original idea, then prepare it for production.</p>
-              <span className="operator-card-cta">Start content <b>→</b></span>
+            <a className="operator-work-card operator-revenue" href="/commerce">
+              <span className="operator-card-number">02 · MONEY PATH</span>
+              <h3>Check the product path</h3>
+              <p>Confirm an approved affiliate, TikTok Shop or site offer and a working tracking destination. Never invent product claims or earnings.</p>
+              <span className="operator-card-cta">Check selling options <b>→</b></span>
             </a>
             <a className="operator-work-card operator-youtube" href="/youtube">
               <span className="operator-card-number">03 · YOUTUBE</span>
               <h3>Build a YouTube channel</h3>
-              <p>Find a promising topic, test repeatable video formats, build the video, publish and learn.</p>
+              <p>Use the research-to-video workflow as a parallel asset. Do not let it delay this week's Cara + Lila posts.</p>
               <span className="operator-card-cta">Open YouTube work <b>→</b></span>
             </a>
             <a className="operator-work-card operator-ai" href="/system/ai-anywhere">
               <span className="operator-card-number">04 · BACKUP AI</span>
               <h3>Continue with another AI</h3>
-              <p>Export the full business context or one saved job to Gemini, Claude, Grok or ChatGPT, then bring the answer back.</p>
+              <p>Export the shared business brain or this saved job to Gemini, Claude, Grok or ChatGPT, then bring the result back.</p>
               <span className="operator-card-cta">Open Other AI <b>→</b></span>
             </a>
           </div>
