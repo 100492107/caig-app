@@ -1,12 +1,13 @@
 {
   "name": "Cornerstone AI Portable Context",
-  "version": "2026-10-08.5",
+  "version": "2026-10-09.1",
   "status": "active",
   "canonical_repository": "100492107/caig-app",
   "principle": "The model is replaceable; the operating contract is the asset.",
+  "primary_goal": "Cara + Lila money this week — see docs/MONEY_THIS_WEEK.md",
   "engines": {
-    "track_a": "Revenue Recovery",
-    "track_b": "Content Intelligence + Production",
+    "track_a": "Revenue Recovery (secondary while Track B ships)",
+    "track_b": "Content Intelligence + Production — PRIMARY for money this week",
     "new_life": "Separate personal execution system"
   },
   "cara_lila": {
@@ -15,7 +16,8 @@
     "useful_lane": "25-35%",
     "lifestyle_lane": "15-25%",
     "soft_commerce_lane": "10-15%",
-    "fanvue": "bio and website only — never in public post CTAs"
+    "fanvue": "bio and website only — never in public post CTAs",
+    "first_seconds": "1-2s pattern interrupt mandatory"
   },
   "export": {
     "full": "npm run context:export",
@@ -23,15 +25,16 @@
     "output_dir": "portable-ai-exports/"
   },
   "files": [
+    "docs/MONEY_THIS_WEEK.md",
     "portable-ai/CONTEXT_RECEIPT_PROTOCOL.md",
     "portable-ai/00_START_HERE.md",
     "portable-ai/CAIG_AI_CONTEXT.md",
     "portable-ai/CARA_LILA_AI_CONTEXT.md",
     "docs/CARA_LILA_ATTENTION_GATE.md",
     "docs/CARA_LILA_SOFT_COMMERCE_LANE.md",
+    "docs/CARA_LILA_ATTACK_WEEK_01.md",
+    "docs/POST_NOW_CHECKLIST.md",
     "portable-ai/SOCIAL_SALES_DOCTRINE.md",
-    "portable-ai/YOUTUBE_AUTOMATION_AI_CONTEXT.md",
-    "portable-ai/LOCAL_AI_QWEN.md",
     "portable-ai/PROVIDER_BOOT_PROMPTS.md"
   ],
   "local_ai": {
@@ -45,5 +48,5 @@
     "contains_auth_tokens": false,
     "contains_service_role_keys": false
   },
-  "portability": "Use the same context, methods, quality gates, evidence rules and output schema with any suitable AI provider. External handoffs require a source-by-source context receipt before execution. Core pack is for tighter context windows; full pack is the complete brain."
+  "portability": "Same doctrine for Qwen, Claude, Grok, ChatGPT, Gemini. Context Receipt required before task execution. MONEY_THIS_WEEK is the priority authority when documents conflict."
 }
