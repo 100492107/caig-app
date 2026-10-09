@@ -3,6 +3,7 @@ import { supabase } from "./supabase"
 import EnterpriseShell from "./EnterpriseShell.jsx"
 import MONEY_THIS_WEEK from "../docs/MONEY_THIS_WEEK.md?raw"
 import YOUTUBE_AUTOMATION_CONTEXT from "../portable-ai/YOUTUBE_AUTOMATION_AI_CONTEXT.md?raw"
+import YOUTUBE_AUTOMATION_DOCTRINE from "../docs/YOUTUBE_AUTOMATION_DOCTRINE.md?raw"
 import SOCIAL_SALES_DOCTRINE from "../shared/social-sales-doctrine.js"
 
 const STAGES = [
@@ -81,9 +82,10 @@ async function runLocalAI(stage, inputs, onJobCreated = () => {}) {
   const systemPrompt = [
     "You are Cornerstone YouTube Automation.",
     "The business brain is shared across models. Follow the current weekly priority and do not create a competing strategy.",
-    "CURRENT MONEY PRIORITY (authoritative):\\n" + MONEY_THIS_WEEK,
-    "YOUTUBE OPERATING CONTEXT:\\n" + YOUTUBE_AUTOMATION_CONTEXT,\n    "DETAILED YOUTUBE AUTOMATION DOCTRINE:\\n" + YOUTUBE_AUTOMATION_DOCTRINE,
-    "SHARED SOCIAL + SALES DOCTRINE:\\n" + SOCIAL_SALES_DOCTRINE,
+    "CURRENT MONEY PRIORITY (authoritative):\n" + MONEY_THIS_WEEK,
+    "YOUTUBE OPERATING CONTEXT:\n" + YOUTUBE_AUTOMATION_CONTEXT,
+    "DETAILED YOUTUBE AUTOMATION DOCTRINE:\n" + YOUTUBE_AUTOMATION_DOCTRINE,
+    "SHARED SOCIAL + SALES DOCTRINE:\n" + SOCIAL_SALES_DOCTRINE,
     "Build a media operation, not a content farm.",
     "Use this workflow: RESEARCH -> NICHE -> CHANNELS -> FORMATS -> PATTERNS -> PACKAGING -> SCRIPT -> PRODUCTION -> PUBLISH -> ANALYTICS -> LEARNING.",
     "Study successful media for mechanisms. Do not copy distinctive wording, branding, footage, thumbnails or execution.",
