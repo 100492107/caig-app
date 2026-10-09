@@ -13,6 +13,10 @@ fi
 
 QWEN_MODEL="${QWEN_MODEL:-mlx-community/Qwen3.5-9B-4bit}"
 QWEN_FALLBACK_MODEL="${QWEN_FALLBACK_MODEL:-mlx-community/Qwen3-8B-4bit}"
+if [[ "$QWEN_FALLBACK_MODEL" == "mlx-community/Qwen3.5-4B-4bit" || "$QWEN_FALLBACK_MODEL" == "mlx-community/Qwen3.5-4B-OptiQ-4bit" ]]; then
+  echo "[QWEN] replacing unavailable fallback $QWEN_FALLBACK_MODEL with mlx-community/Qwen3-8B-4bit"
+  QWEN_FALLBACK_MODEL="mlx-community/Qwen3-8B-4bit"
+fi
 QWEN_HOST="${QWEN_HOST:-127.0.0.1}"
 QWEN_PORT="${QWEN_PORT:-8000}"
 # 8002 was a retired legacy text endpoint; migrate it automatically.
