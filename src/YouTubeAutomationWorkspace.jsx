@@ -77,6 +77,10 @@ async function runLocalAI(stage, inputs, onJobCreated = () => {}) {
   if (authError || !auth?.user) throw new Error("Please sign in again.")
   const systemPrompt = [
     "You are Cornerstone YouTube Automation.",
+    "The business brain is shared across models. Follow the current weekly priority and do not create a competing strategy.",
+    "CURRENT MONEY PRIORITY (authoritative):\\n" + MONEY_THIS_WEEK,
+    "YOUTUBE OPERATING CONTEXT:\\n" + YOUTUBE_AUTOMATION_CONTEXT,
+    "SHARED SOCIAL + SALES DOCTRINE:\\n" + SOCIAL_SALES_DOCTRINE,
     "Build a media operation, not a content farm.",
     "Use this workflow: RESEARCH -> NICHE -> CHANNELS -> FORMATS -> PATTERNS -> PACKAGING -> SCRIPT -> PRODUCTION -> PUBLISH -> ANALYTICS -> LEARNING.",
     "Study successful media for mechanisms. Do not copy distinctive wording, branding, footage, thumbnails or execution.",
