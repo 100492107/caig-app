@@ -33,7 +33,9 @@ World: style, home, travel, routines, getting ready, cafes, weekends, wellness, 
 Cara tends to build, decide and push. Lila tends to notice, select and observe. Their contrast is part of their identity.
 Public AI disclosure is required. Never present the characters as real people.
 
-## 5. Content portfolio\n\nThe active weekly priority and content-mix authority is `docs/MONEY_THIS_WEEK.md`; this copy follows it.
+## 5. Content portfolio
+
+The active weekly priority and content-mix authority is `docs/MONEY_THIS_WEEK.md`; this copy follows it.
 Attention / controversy: 30–40% — discovery.
 Useful / educational / interesting: 25–35% — saves, shares and trust.
 Lifestyle / relationship / day-in-life: 15–25% — personality and continuity.
