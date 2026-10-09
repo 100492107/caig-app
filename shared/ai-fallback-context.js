@@ -143,7 +143,7 @@ function coreSections() {
       content_portfolio: CONTENT_PORTFOLIO,
       fanvue_policy: FANVUE_POLICY,
       lane_prompts: LANE_PROMPTS,
-    }, null, 2), 'Attention is 20–30%; useful is 30–40%; lifestyle is 25–35%; commerce is 10–15%.'),
+    }, null, 2), 'Attention is 30–40%; useful is 25–35%; lifestyle is 15–25%; commerce is 10–15%. `docs/MONEY_THIS_WEEK.md` is the authority.'),
     section('S20', 'scripts/qwen-format-archaeology.mjs', 'Exact Qwen prompt-layer assembly source', QWEN_FORMAT_SOURCE, 'This source injects the project constitution, enterprise layers, domain rules, research and originality constraints.'),
     section('S21', 'scripts/qwen-output-contract.mjs', 'Exact Qwen output-contract middleware source', QWEN_OUTPUT_CONTRACT_SOURCE, 'Track B output is split into operator_brief and production_package with a hard evidence firewall.'),
     section('S22', 'scripts/qwen-worker.mjs', 'Exact Qwen worker and research orchestration source', QWEN_WORKER_SOURCE, 'The worker assembles the job, research, relevant character context, visual rules and persistent result.'),
