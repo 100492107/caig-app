@@ -1,6 +1,6 @@
-# Cornerstone Portable AI Context — 8 October 2026
+# Cornerstone Portable AI Context — 9 October 2026
 
-Use this with any AI provider. The model is replaceable; the context, business rules, Creator DNA, research methods, sales doctrine, YouTube workflow, evidence rules and boundaries are not.
+Use this with any AI provider. See `docs/CORNERSTONE_ONE_BRAIN_OPERATING_MANUAL.md` for the full operating map and current AI handoff contract. The model is replaceable; the context, business rules, Creator DNA, research methods, sales doctrine, YouTube workflow, evidence rules and boundaries are not.
 
 ## 1. Business definition
 Cornerstone AI Enterprises is the parent / CEO operating layer. It coordinates two business engines and one separate personal execution system.
