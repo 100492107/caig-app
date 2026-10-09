@@ -45,6 +45,8 @@ Competitors (pretty AI girls, UGC farms, oo.oz10-style reach) often have **reach
 | Lifestyle / relationship | **15–25%** | Follows + chemistry |
 | Soft commerce | **10–15%** | Cash (affiliate / TikTok Shop / site) |
 
+These are rolling portfolio targets, not exact quotas for every seven-post batch. Follow the explicit seven-post sequence below, then assess the mix across a larger published set.
+
 - Truth is definitive. Not “my truth.”
 - Fanvue: **bio / website only** — never in captions.
 - First **1–2 seconds** must interrupt. No greetings.
