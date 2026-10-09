@@ -35,29 +35,6 @@ async function fetchInstagram(topic) { const queries = [`site:instagram.com/reel
 function extract(prompt, label, fallback = '') { const m = String(prompt || '').match(new RegExp(`${label}:\\s*([^\\n]+)`, 'i')); return m ? m[1].trim() : fallback; }
 function domainFor(job) { const explicit = String(job?.options?.research_domain || '').trim().toUpperCase(); if (explicit) return explicit; const p = `${job?.system_prompt || ''}\n${job?.user_prompt || ''}`.toLowerCase(); if (p.includes('track_a_revenue_recovery')) return 'TRACK_A_REVENUE_RECOVERY'; if (p.includes('track_a_automotive_b2b')) return 'TRACK_A_REVENUE_RECOVERY'; if (p.includes('track_b_content_engine')) return 'TRACK_B_CONTENT_ENGINE'; if (p.includes('youtube_longform_business_money')) return 'TRACK_B_CONTENT_ENGINE'; if (p.includes('track_b_creator_growth') || /\bcara\b|\blila\b/.test(p)) return 'TRACK_B_CREATOR_GROWTH'; return ''; }
 
-const SOCIAL_SALES_DOCTRINE = [
-  '2026 SOCIAL + SALES DOCTRINE FOR TRACK B CREATOR WORK:',
-  'VIEWER FIRST: define who this is for, what they want or need, and why they should stay.',
-  'SELL THE TRANSFORMATION: lead with the result, change, discovery or decision; product features are supporting evidence.',
-  'CONVICTION: use a clear point of view the creator can defend calmly. Specific beats generic.',
-  'PROOF: use demonstrations, examples, comparisons, screenshots, before/after evidence or observable detail when available. Never fabricate proof.',
-  'OBJECTIONS ARE CONTENT: recurring comments, questions, hesitation and disagreement are audience research and can become follow-up posts. Never manufacture comment wars.',
-  'NATURAL CTA: choose the next action that matches the viewer journey; do not end every post with the same follow request.',
-  'FOUR SOCIAL SURFACES: discovery, search, community and commerce should work together.',
-  'DISCOVERY: curiosity, a strong opening, a story, surprise or a clear promise.',
-  'SEARCH: answer real questions using natural spoken keywords, captions and on-screen text where useful. Never keyword-stuff.',
-  'COMMUNITY: comments reveal objections, language, questions and adjacent interests. Feed useful findings into the next content.',
-  'COMMERCE: when intent exists, move from problem or desire to product fit, proof, objection handling and action.',
-  'ORIGINALITY: study successful content for mechanism, not wording, identity, footage or distinctive execution.',
-  '2026 DIRECTION: prioritise curiosity-led discovery, useful unexpected answers, real stories, humour, imperfection, human presence, original content, deeper watch time, community participation, search/discovery and clearer paths from discovery to action.',
-  'SERIES: episodic and recurring formats are valuable when the story supports them; give the audience a reason to return.',
-  'CARA + LILA: they remain a normal, interesting lifestyle duo. Attention or controversy is one acquisition engine, not the whole account.',
-  'COMMERCE STANDARD: viewer problem/desire -> why this product fits -> evidence -> objection/hesitation -> natural CTA. Never invent prices, commissions, discounts, reviews, results, availability or eligibility.',
-  'CONTENT TESTING: hook -> viewer outcome -> reason to believe -> payoff -> next action. Measure retention, saves, shares, comments, follows and commercial actions separately.',
-  'REFERENCE VIDEO PATTERNS: the supplied sales/social examples repeatedly use a clear outcome-led title, direct-to-camera delivery, confident teaching, numbered/frameworked points, simple on-screen text, screenshots or visual proof inserted beside the speaker, and a strong informational promise. One social example frames where creator/media is heading by showing external posts and industry evidence while the presenter explains the implication. Use these as structural lessons: promise -> explain -> show evidence -> make the implication useful -> give the next step. Do not copy the wording, creator identity, footage or distinctive edit.'
-  + ' LANGUAGE: sharp, human, specific British English. Avoid corporate filler, fake urgency, generic motivation and over-explaining.'
-].join('\n');
-
 const RESEARCH_QUERIES = [
   (n) => 'YouTube ' + n + ' high performing long form formats titles thumbnails 2026',
   (n) => 'YouTube ' + n + ' retention storytelling packaging channel growth 2026',
@@ -141,7 +118,53 @@ async function resolveServedModel(preferred) {
     return preferred;
   }
 }
-async function callQwen(job, researchPack) { const compactEvidence = (researchPack?.evidence || []).slice(0, 12).map((item) => ({ platform: item.platform, source: item.source, title: item.title, signal: String(item.signal || '').slice(0, 900), score: item.score ?? null, comments: item.comments ?? null })); const researchContext = researchPack ? `\n\nLIVE RESEARCH\nDomain: ${researchPack.researchDomain}\nTopic: ${researchPack.targetTopic}\nConfidence: ${researchPack.confidence}\nFirewall: ${researchPack.firewall}\nEvidence:\n${JSON.stringify(compactEvidence)}\n\nUse repeated mechanisms, not isolated outliers. Separate evidence from inference. Never copy distinctive wording, creator identity, branding, footage or execution.` : ''; const character = await loadCharacterContext(job); const isTrackBCreator = /track_b_creator_growth|cara|lila|creator_growth|content_engine/i.test(`${job.system_prompt || ''}\n${job.user_prompt || ''}`); const socialSales = isTrackBCreator ? `\n\nACTIVE SOCIAL + SALES DOCTRINE\n${SOCIAL_SALES_DOCTRINE}` : ''; const sceneKnowledge = ['cara','lila','cara_lila','duo','cara&lila'].includes(String(job.persona_id || '').toLowerCase()) ? `\n\n${sceneDirectionSystemBlock(String(job.persona_id).toLowerCase())}\n\n${VISION_JSON_COMPLETION_CHECK}` : ''; const doctrineContext = ['TRACK_B_CREATOR_GROWTH','TRACK_B_CONTENT_ENGINE'].includes(researchPack?.researchDomain || domainFor(job)) ? `\n\n${SOCIAL_SALES_DOCTRINE}` : ''; const system = `${job.system_prompt || 'You are Cornerstone AI Enterprise local intelligence.'}${character}${sceneKnowledge}${researchContext}${doctrineContext}${socialSales}\n\nUNIVERSAL QUALITY RULES:\n- Evidence is workspace-scoped.\n- Never invent private analytics, metrics, testimonials or source facts.\n- For Track A, problem domain is revenue leakage, not automotive.\n- For Track B, the selected niche is the operating boundary but may change based on an explicit operator decision.\n- Treat reference media as research input. Build materially original outputs.\n- Do not reveal hidden reasoning or chain-of-thought.`; const requested = Number(job.options?.max_tokens || FAST_MAX_TOKENS); const maxTokens = Math.max(600, Math.min(FAST_MAX_TOKENS, requested)); const r = await fetch(`${QWEN_URL}/v1/chat/completions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model: await resolveServedModel(job.model || QWEN_MODEL), messages: [{ role: 'system', content: system }, { role: 'user', content: job.user_prompt }], temperature: Number(job.options?.temperature ?? 0.55), max_tokens: maxTokens, stream: false, chat_template_kwargs: { enable_thinking: false } }) }); const json = await r.json().catch(() => ({})); if (!r.ok) throw new Error(`Qwen request failed (${r.status}): ${JSON.stringify(json)}`); const result = cleanOutput(json?.choices?.[0]?.message?.content); if (!result) throw new Error('Qwen returned no usable message content.'); return result; }
+async function callQwen(job, researchPack) {
+  const compactEvidence = (researchPack?.evidence || []).slice(0, 12).map((item) => ({
+    platform: item.platform, source: item.source, title: item.title,
+    signal: String(item.signal || '').slice(0, 900), score: item.score ?? null, comments: item.comments ?? null
+  }));
+  const researchContext = researchPack ? `\n\nLIVE RESEARCH\nDomain: ${researchPack.researchDomain}\nTopic: ${researchPack.targetTopic}\nConfidence: ${researchPack.confidence}\nFirewall: ${researchPack.firewall}\nEvidence:\n${JSON.stringify(compactEvidence)}\n\nUse repeated mechanisms, not isolated outliers. Separate evidence from inference. Never copy distinctive wording, creator identity, branding, footage or execution.` : '';
+  const character = await loadCharacterContext(job);
+  const jobText = `${job.system_prompt || ''}\n${job.user_prompt || ''}`;
+  const domain = researchPack?.researchDomain || domainFor(job);
+  const isTrackB = ['TRACK_B_CREATOR_GROWTH', 'TRACK_B_CONTENT_ENGINE'].includes(domain);
+  const alreadyHasDoctrine = /VIEWER[- ]FIRST SALES PSYCHOLOGY|SELL THE TRANSFORMATION|SOCIAL \+ SALES DOCTRINE|2026 SOCIAL \+ SALES DOCTRINE/i.test(jobText);
+  const socialSales = isTrackB && !alreadyHasDoctrine
+    ? `\n\nACTIVE SOCIAL + SALES DOCTRINE\n${SOCIAL_SALES_DOCTRINE}`
+    : '';
+  const sceneKnowledge = ['cara','lila','cara_lila','duo','cara&lila'].includes(String(job.persona_id || '').toLowerCase())
+    ? `\n\n${sceneDirectionSystemBlock(String(job.persona_id).toLowerCase())}\n\n${VISION_JSON_COMPLETION_CHECK}`
+    : '';
+  const system = `${job.system_prompt || 'You are Cornerstone AI Enterprise local intelligence.'}${character}${sceneKnowledge}${researchContext}${socialSales}
+
+UNIVERSAL QUALITY RULES:
+- Evidence is workspace-scoped.
+- Never invent private analytics, metrics, testimonials or source facts.
+- For Track A, problem domain is revenue leakage, not automotive.
+- For Track B, follow docs/MONEY_THIS_WEEK.md when planning conflicts arise; this week's first priority is Cara + Lila shipping and measurable monetisation activity.
+- The selected YouTube, creator or business task must remain within its own scope.
+- Treat reference media as research input. Build materially original outputs.
+- Do not reveal hidden reasoning or chain-of-thought.`;
+  const requested = Number(job.options?.max_tokens || FAST_MAX_TOKENS);
+  const maxTokens = Math.max(600, Math.min(FAST_MAX_TOKENS, requested));
+  const response = await fetch(`${QWEN_URL}/v1/chat/completions`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: await resolveServedModel(job.model || QWEN_MODEL),
+      messages: [{ role: 'system', content: system }, { role: 'user', content: job.user_prompt }],
+      temperature: Number(job.options?.temperature ?? 0.55),
+      max_tokens: maxTokens,
+      stream: false,
+      chat_template_kwargs: { enable_thinking: false }
+    })
+  });
+  const json = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(`Qwen request failed (${response.status}): ${JSON.stringify(json)}`);
+  const result = cleanOutput(json?.choices?.[0]?.message?.content);
+  if (!result) throw new Error('Qwen returned no usable message content.');
+  return result;
+}
 async function claimJob() { const { data: candidates, error } = await supabase.from('local_ai_jobs').select('*').eq('status', 'queued').order('created_at', { ascending: true }).limit(12); if (error) throw error; const data = (candidates || []).find((j) => !SPECIALIST_JOB_TYPES.has(String(j.job_type || ''))) || null; if (!data) return null; const { data: claimed, error: updateError } = await supabase.from('local_ai_jobs').update({ status: 'processing', started_at: new Date().toISOString(), error_message: null, production_status:'producing' }).eq('id', data.id).eq('status', 'queued').select('*').maybeSingle(); if (updateError) throw updateError; return claimed || null; }
 async function processJob(job) { try { const research = await buildResearch(job); const researchRunId = await persistResearch(job, research); const raw = await callQwen(job, research); const radarWrite = job?.job_type === 'research_radar' ? await persistCornerstoneSignals(job, research, raw) : { inserted: 0, fallback: false }; let result = raw; try { const parsed = JSON.parse(raw); const payload = Array.isArray(parsed) ? { data: parsed } : (parsed && typeof parsed === 'object' ? { ...parsed } : { text: String(parsed || '') }); if (research) { payload.research = research; payload.research_run_id = researchRunId; } if (job?.job_type === 'research_radar') payload.cornerstone_signals_written = Number(radarWrite?.inserted || 0); result = JSON.stringify(payload); } catch { const payload = research ? { text: raw, research, research_run_id: researchRunId } : { text: raw }; if (job?.job_type === 'research_radar') payload.cornerstone_signals_written = Number(radarWrite?.inserted || 0); result = JSON.stringify(payload); } const { error } = await supabase.from('local_ai_jobs').update({ status: 'completed', result, completed_at: new Date().toISOString(), error_message: null, production_status: 'completed' }).eq('id', job.id); if (error) throw error; console.log(`[QWEN] completed ${job.id} domain=${research?.researchDomain || 'none'} researchRun=${researchRunId || 'none'} evidence=${research?.evidence?.length || 0} radarSignals=${Number(radarWrite?.inserted || 0)} max_tokens=${FAST_MAX_TOKENS} thinking=off`); } catch (error) { const message = error instanceof Error ? error.message : String(error); console.error(`[QWEN] failed ${job.id}:`, error); await supabase.from('local_ai_jobs').update({ status:'error', error_message:message, production_status:'error' }).eq('id',job.id); } }
 console.log(`[QWEN] worker online. endpoint=${QWEN_URL}; model=${QWEN_MODEL}; research=parallel+compact; max_tokens=${FAST_MAX_TOKENS}; thinking=off; stale recovery=${STALE_MS}ms`);
