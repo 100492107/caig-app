@@ -1,10 +1,10 @@
 {
   "name": "Cornerstone AI Portable Context",
-  "version": "2026-10-09.4",
+  "version": "2026-10-09.5",
   "status": "active",
   "canonical_repository": "100492107/caig-app",
   "principle": "The model is replaceable; the operating contract is the asset.",
-  "primary_goal": "Cara + Lila money this week — see docs/MONEY_THIS_WEEK.md",
+  "primary_goal": "Cara + Lila money this week — authoritative details in docs/MONEY_THIS_WEEK.md",
   "engines": {
     "track_a": "Revenue Recovery (secondary while Track B ships)",
     "track_b": "Content Intelligence + Production — PRIMARY for money this week",
@@ -40,7 +40,8 @@
     "portable-ai/PROVIDER_BOOT_PROMPTS.md",
     "shared/social-sales-doctrine.js",
     "shared/creator-dna.js",
-    "shared/content-lane-rules.js"
+    "shared/content-lane-rules.js",
+    "docs/CORNERSTONE_ONE_BRAIN_OPERATING_MANUAL.md"
   ],
   "local_ai": {
     "text_model": "mlx-community/Qwen3.5-9B-4bit",
@@ -54,5 +55,5 @@
     "contains_service_role_keys": false
   },
   "portability": "Same doctrine for Qwen, Claude, Grok, ChatGPT, Gemini. Context Receipt required before task execution. MONEY_THIS_WEEK is the priority authority when documents conflict.",
-  "priority_rule": "docs/MONEY_THIS_WEEK.md overrides conflicting historical context for this week."
+  "priority_rule": "docs/MONEY_THIS_WEEK.md overrides conflicting historical context for this week; docs/CORNERSTONE_ONE_BRAIN_OPERATING_MANUAL.md explains the wider operating system."
 }
