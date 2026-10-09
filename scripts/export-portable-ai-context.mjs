@@ -17,7 +17,7 @@ import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
-const VERSION = '2026-10-09.3'
+const VERSION = '2026-10-09.4'
 
 const FULL_SOURCES = [
   ['docs/MONEY_THIS_WEEK.md', 'Current priority: Cara + Lila cash this week'],
@@ -104,6 +104,7 @@ const RECEIPT_GATE = [
   'If any required section is missing or your context limit prevents reading it, say NOT READY. Never silently omit material, substitute a vague summary, or claim perfect ingestion.',
   'After PROCEED, execute the exact task that the operator supplied in the chat. If no specific task was supplied, ask what they want done.',
   'FOUNDATIONAL RULE FOR CARA + LILA: Truth is definitive. Feelings do not override reality. Do not ship “my truth” framing.',
+  'Priority source rule: docs/MONEY_THIS_WEEK.md overrides conflicting historical context for this week.',
   'SHIP RULE: First 1–2 seconds must interrupt. Batch production. Clone winners, pause empty-view formats.',
   'Do not reveal hidden chain-of-thought. The receipt is an auditable source checklist, not private reasoning.',
   'SECURITY: this export excludes .env values, credentials, API keys, service-role keys, auth tokens, New Life personal records and unexported private database rows. Review any task-specific data separately before sending it externally.',
