@@ -271,12 +271,12 @@ Do not choose the idea simply because it is louder.
 
 This doctrine is a strategic layer. Platform rules and product availability can change; current platform documentation remains authoritative.
 
-## October 2026 platform update
+## Verified platform evidence boundary
 
-These are external platform signals, not forecasts:
-- TikTok's 2026 planning direction continues to emphasise curiosity-led discovery, active search behaviour, community participation and explaining why a purchase is worth making.
-- TikTok's September 2026 product update expands the comment section with voice, poll and carousel interactions, reinforcing the idea that comments are part of the content surface rather than a passive afterthought.
-- TikTok's October 2026 advertiser update emphasises AI-supported discovery, action and measurable business outcomes.
-- Meta's 2026 creator guidance continues to prioritise original content and provides AI-assisted creator tools that use a creator's content, performance and community context.
+The strategic implications below are grounded in official platform guidance available at the time this document was reviewed. Treat platform direction as evidence about what platforms say they are encouraging—not a guarantee that any individual post will perform.
 
-Operational response: research audience language and comment patterns; design content that can create a useful next conversation; build original creator-led assets; make subject/search intent clear; connect discovery to action only when the offer genuinely fits.
+- TikTok's 2026 official forecast describes curiosity-led discovery, search journeys, community participation, human stories and value-led buying.
+- Meta's March 2026 originality guidance says meaningfully original creator contributions are favoured, while duplicative or minimally edited third-party posts may be deprioritised.
+- YouTube's monetisation policy says repetitive, mass-produced or low-value template content may be ineligible, and reused material requires meaningful original contribution.
+
+Operational response: research audience language and comments; create original content with a clear viewer payoff; make the topic/search intent clear; connect discovery to action only when a real offer fits. Specific product-feature announcements are not treated as established unless an official source is recorded.
