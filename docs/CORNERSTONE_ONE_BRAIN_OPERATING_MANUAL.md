@@ -164,7 +164,20 @@ Track A cash recovery is available as a secondary bridge. YouTube is a parallel 
 - The uploaded video references were used for visible structure and on-screen material; this manual does not claim a verbatim transcript of all audio.
 - Platform features and monetisation eligibility change; current official platform documentation takes precedence.
 
-## 11. Non-negotiable definition of progress
+## 11. Official platform references
+
+- TikTok, **Introducing TikTok Next 2026** (14 January 2026): curiosity-led discovery, search journeys, community participation, human stories and purchase value.
+  https://newsroom.tiktok.com/introducing-tiktok-next-2026-our-trend-forecast-for-marketers-for-the-year-ahead?_hsmi=399120832&lang=en
+- TikTok, **Next 2026 — UK business page**: comment participation, discovery and buyer confidence.
+  https://ads.tiktok.com/business/en-GB/next
+- Meta, **Rewarding Original Creators on Facebook** (12 March 2026): original contribution and the risk of duplicative/minimally edited posts.
+  https://about.fb.com/news/2026/03/rewarding-original-creators-on-facebook/
+- YouTube, **Channel monetisation policies**: repetitive, mass-produced or low-value template content may be ineligible for monetisation.
+  https://support.google.com/youtube/answer/1311392
+- YouTube, **Impressions and click-through-rate FAQs**: CTR must be considered alongside impressions and audience context.
+  https://support.google.com/youtube/answer/7628154?hl=en-GB
+
+## 12. Non-negotiable definition of progress
 
 Progress is cash or measurable opportunity, content shipped, valid audience evidence, quality, unit economics, reliability, and repeatability. A new prompt, page, model or feature is not progress unless it removes a real bottleneck.
 
