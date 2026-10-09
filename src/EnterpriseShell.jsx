@@ -1,101 +1,150 @@
 import React from 'react'
 
-const NEW_LIFE = '/new-life'
-
-const NAV_GROUPS = [
-  { label: 'Main', items: [
-    { id: 'command', label: 'Home', href: '/', key: '01' },
-    { id: 'mission', label: 'Today', href: '/mission', key: '02' },
-    { id: 'business', label: 'Money', href: '/business', key: '03' },
-  ]},
-  { label: 'Create & learn', items: [
-    { id: 'research', label: 'Find ideas', href: '/research', key: '04' },
-    { id: 'references', label: 'Examples', href: '/references', key: '05' },
-    { id: 'commerce', label: 'Selling', href: '/commerce', key: '06' },
-    { id: 'content', label: 'Plan', href: '/content/remake', key: '07' },
-    { id: 'voices', label: 'Creators', href: '/content/creators', key: '08' },
-    { id: 'production', label: 'Make content', href: '/content/production', key: '09' },
-    { id: 'publish', label: 'Post', href: '/content/publish', key: '10' },
-    { id: 'measurement', label: 'Results', href: '/content/measurement', key: '11' },
-    { id: 'youtube', label: 'YouTube', href: '/youtube', key: '12' },
-  ]},
+const CORE = [
+  { id: 'command', label: 'Home', href: '/', key: '01' },
+  { id: 'mission', label: 'Revenue', href: '/mission', key: '02' },
+  { id: 'content', label: 'Make content', href: '/content/remake', key: '03' },
+  { id: 'youtube', label: 'YouTube', href: '/youtube', key: '04' },
+  { id: 'ai-anywhere', label: 'Other AI', href: '/system/ai-anywhere', key: '05' },
 ]
 
-const NAV = NAV_GROUPS.flatMap(group => group.items)
+const CONTENT_TOOLS = [
+  { id: 'research', label: 'Find ideas', href: '/research' },
+  { id: 'references', label: 'Examples', href: '/references' },
+  { id: 'commerce', label: 'Products & selling', href: '/commerce' },
+  { id: 'voices', label: 'Creators', href: '/content/creators' },
+  { id: 'production', label: 'Make the assets', href: '/content/production' },
+  { id: 'publish', label: 'Post content', href: '/content/publish' },
+  { id: 'measurement', label: 'Results', href: '/content/measurement' },
+]
 
-const UTILITY = [
+const MORE = [
   { id: 'library', label: 'Saved work', href: '/generations' },
-  { id: 'system', label: 'Settings', href: '/system' },
-  { id: 'ai-anywhere', label: 'AI Anywhere', href: '/system/ai-anywhere' },
+  { id: 'system', label: 'Settings & system health', href: '/system' },
   { id: 'newlife', label: 'New Life', href: '/new-life' },
 ]
 
-export default function EnterpriseShell({ active = 'command', children, eyebrow = '' }) {
-  const resolved = {
-    remake: 'content', creators: 'voices', profiles: 'voices', production: 'production',
-    publish: 'publish', measurement: 'measurement', youtube: 'youtube', content: 'content', command: 'command', commerce: 'commerce', aiBackup: 'ai-anywhere', 'ai-anywhere': 'ai-anywhere',
-    business: 'business', mission: 'mission', research: 'research', references: 'references', commerce: 'commerce', library: 'library', system: 'system', newlife: 'newlife',
-  }[active] || active
+const RESOLVED = {
+  remake: 'content',
+  creators: 'voices',
+  profiles: 'voices',
+  production: 'production',
+  publish: 'publish',
+  measurement: 'measurement',
+  youtube: 'youtube',
+  content: 'content',
+  command: 'command',
+  commerce: 'commerce',
+  business: 'business',
+  mission: 'mission',
+  research: 'research',
+  references: 'references',
+  library: 'library',
+  system: 'system',
+  newlife: 'newlife',
+  aiBackup: 'ai-anywhere',
+  'ai-anywhere': 'ai-anywhere',
+}
+
+function navActive(items, active) {
+  return items.some((item) => item.id === active)
+}
+
+function link(item, active, compact = false) {
+  const selected = active === item.id
   return (
-    <div className="cs-app">
-      <aside className="cs-rail" aria-label="Primary navigation">
+    <a
+      key={item.id}
+      href={item.href}
+      className={'cs-rail-link' + (selected ? ' is-active' : '') + (compact ? ' is-compact' : '')}
+      aria-current={selected ? 'page' : undefined}
+    >
+      <span>{item.label}</span>
+      {item.key && <kbd>{item.key}</kbd>}
+    </a>
+  )
+}
+
+export default function EnterpriseShell({ active = 'command', children, eyebrow = '' }) {
+  const resolved = RESOLVED[active] || active
+  const contentOpen = navActive(CONTENT_TOOLS, resolved)
+  const moreOpen = navActive(MORE, resolved)
+  const pageLabel = eyebrow || [...CORE, ...CONTENT_TOOLS, ...MORE].find((item) => item.id === resolved)?.label || 'Workspace'
+
+  return (
+    <div className="cs-app cs-app-simplified">
+      <aside className="cs-rail" aria-label="Main navigation">
         <a className="cs-brand" href="/">
           <span className="cs-brand-mark">C</span>
-          <span className="cs-brand-text"><strong>Cornerstone</strong><span>Creator workspace</span></span>
+          <span className="cs-brand-text"><strong>Cornerstone</strong><span>Business workspace</span></span>
         </a>
+
         <div className="cs-rail-intro">
-          <span className="cs-rail-overline">Your workspace</span>
-          <span className="cs-rail-copy">Create. Post. See what works. Improve.</span>
+          <span className="cs-rail-overline">Start here</span>
+          <span className="cs-rail-copy">Choose a task. Keep moving.</span>
         </div>
-        <nav className="cs-rail-nav" aria-label="Workspace">
-          {NAV_GROUPS.map(group=>(
-            <div className="cs-nav-group" key={group.label}>
-              <div className="cs-nav-group-label">{group.label}</div>
-              {group.items.map(item=><a key={item.id} href={item.href} className={'cs-rail-link'+(resolved===item.id?' is-active':'')} aria-current={resolved===item.id?'page':undefined}>
-                <span>{item.label}</span><kbd>{item.key}</kbd>
-              </a>)}
+
+        <nav className="cs-rail-nav" aria-label="Main tasks">
+          <div className="cs-nav-group">
+            <div className="cs-nav-group-label">Main tasks</div>
+            {CORE.map((item) => link(item, resolved))}
+          </div>
+
+          <details className="cs-nav-group cs-nav-collapsible" open={contentOpen}>
+            <summary className="cs-nav-group-label">Content tools <span aria-hidden="true">⌄</span></summary>
+            <div className="cs-nav-subitems">
+              {CONTENT_TOOLS.map((item) => link(item, resolved, true))}
             </div>
-          ))}
+          </details>
+
+          <details className="cs-nav-group cs-nav-collapsible" open={moreOpen}>
+            <summary className="cs-nav-group-label">More <span aria-hidden="true">⌄</span></summary>
+            <div className="cs-nav-subitems">
+              {MORE.map((item) => link(item, resolved, true))}
+            </div>
+          </details>
         </nav>
+
         <div className="cs-rail-foot">
-          <div className="cs-nav-group-label">More</div>
-          {UTILITY.map(item=><a key={item.id} href={item.href}>{item.label}</a>)}
-          <a href={NEW_LIFE} className="cs-new-life-link"><span className="cs-dot" /> New Life ↗</a>
+          <span>Work stays saved when you change AI models.</span>
         </div>
       </aside>
-      <nav className="cs-mobile-header" aria-label="Mobile command header">
-        <a className="cs-mobile-brand" href="/" aria-label="Cornerstone home"><span className="cs-brand-mark">C</span><strong>Cornerstone</strong></a>
-        <span className="cs-mobile-current">{eyebrow || 'Home'}</span>
+
+      <header className="cs-mobile-header" aria-label="Page header">
+        <a className="cs-mobile-brand" href="/" aria-label="Cornerstone home">
+          <span className="cs-brand-mark">C</span><strong>Cornerstone</strong>
+        </a>
+        <span className="cs-mobile-current">{pageLabel}</span>
+      </header>
+
+      <nav className="cs-mobile-nav" aria-label="Main tasks">
+        <a href="/" className={resolved === 'command' ? 'is-active' : ''}><span aria-hidden="true">⌂</span><small>Home</small></a>
+        <a href="/content/remake" className={resolved === 'content' || resolved === 'voices' || resolved === 'production' || resolved === 'publish' ? 'is-active' : ''}><span aria-hidden="true">✦</span><small>Make</small></a>
+        <a href="/youtube" className={resolved === 'youtube' ? 'is-active' : ''}><span aria-hidden="true">▶</span><small>YouTube</small></a>
+        <a href="/mission" className={resolved === 'mission' ? 'is-active' : ''}><span aria-hidden="true">£</span><small>Revenue</small></a>
         <details className="cs-mobile-more">
-          <summary aria-label="More navigation">More</summary>
+          <summary><span aria-hidden="true">•••</span><small>More</small></summary>
           <div className="cs-mobile-more-menu">
-            <a href="/mission">Today</a>
+            <a href="/system/ai-anywhere">Other AI</a>
             <a href="/research">Find ideas</a>
             <a href="/references">Examples</a>
-            <a href="/commerce">Selling</a>
-            <a href="/content/publish">Post</a>
-            <a href="/youtube">YouTube</a>
+            <a href="/commerce">Products & selling</a>
+            <a href="/content/creators">Creators</a>
+            <a href="/content/production">Make the assets</a>
+            <a href="/content/publish">Post content</a>
+            <a href="/content/measurement">Results</a>
             <a href="/generations">Saved work</a>
-            <a href="/system">Settings</a>
-            <a href="/system/ai-anywhere">AI Anywhere</a>
+            <a href="/system">Settings & system health</a>
+            <a href="/new-life">New Life</a>
           </div>
         </details>
       </nav>
-      <nav className="cs-mobile-nav" aria-label="Mobile primary navigation">
-        <a href="/" className={resolved === 'command' ? 'is-active' : ''}><span>⌂</span><small>Home</small></a>
-        <a href="/content/creators" className={resolved === 'voices' ? 'is-active' : ''}><span>◎</span><small>Voices</small></a>
-        <a href="/content/production" className={resolved === 'production' ? 'is-active' : ''}><span>✦</span><small>Make</small></a>
-        <a href="/content/measurement" className={resolved === 'measurement' ? 'is-active' : ''}><span>↗</span><small>Learn</small></a>
-        <a href="/business" className={resolved === 'business' ? 'is-active' : ''}><span>◫</span><small>Business</small></a>
-        <a href="/new-life" className={resolved === 'newlife' ? 'is-active' : ''}><span>+</span><small>New Life</small></a>
-      </nav>
+
       <div className="cs-stage">
         <div className="cs-stage-bar">
-          <div className="cs-stage-context"><span className="label">{eyebrow||'Creator workspace'}</span><span className="cs-context-divider">/</span><span className="meta">Home</span></div>
+          <div className="cs-stage-context"><span className="label">{pageLabel}</span><span className="cs-context-divider">/</span><span className="meta">Cornerstone</span></div>
           <div className="cs-stage-actions">
-            <a className="cs-stage-new-life" href="/new-life">New Life <span>↗</span></a>
-            <span className="cs-runtime"><i />Core rules loaded</span>
-            <span className="cs-command-key">⌘ K</span>
+            <a className="cs-stage-new-life" href="/system/ai-anywhere">Switch AI ↗</a>
           </div>
         </div>
         <div className="cs-stage-body">{children}</div>
