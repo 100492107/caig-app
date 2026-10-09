@@ -1,5 +1,5 @@
 # Portable AI Context Receipt Protocol
-Version: 2026-10-09.5
+Version: 2026-10-09.6
 
 ## Purpose
 
