@@ -10,6 +10,7 @@ import { sceneDirectionSystemBlock, VISION_JSON_COMPLETION_CHECK } from './scene
 import RECEIPT_PROTOCOL from '../portable-ai/CONTEXT_RECEIPT_PROTOCOL.md?raw'
 import START_HERE from '../portable-ai/00_START_HERE.md?raw'
 import CAIG_CONTEXT from '../portable-ai/CAIG_AI_CONTEXT.md?raw'
+import OPERATOR_SALES_PROFILE from '../portable-ai/OPERATOR_SALES_PROFILE.md?raw'
 import CARA_LILA_CONTEXT from '../portable-ai/CARA_LILA_AI_CONTEXT.md?raw'
 import SOCIAL_SALES_CONTEXT from '../portable-ai/SOCIAL_SALES_DOCTRINE.md?raw'
 import DETAILED_SOCIAL_SALES_DOCTRINE from '../docs/CARA_LILA_2026_SOCIAL_SALES_DOCTRINE.md?raw'
@@ -46,7 +47,7 @@ export const QWEN_REFERENCE = {
   whisperUrl: 'http://127.0.0.1:8787',
 }
 
-export const CONTEXT_PACK_VERSION = '2026-10-09.7'
+export const CONTEXT_PACK_VERSION = '2026-10-10.1'
 
 export const CORNERSTONE_FALLBACK_RULES = [
   'You are an execution partner for Cornerstone AI Enterprises.',
@@ -131,6 +132,7 @@ function coreSections() {
     section('S02', 'portable-ai/00_START_HERE.md', 'Start Here / source-of-truth order', START_HERE, 'The model is replaceable; the operating contract is the asset.'),
     section('S03', 'AGENTS.md', 'Project operating constitution', PROJECT_RULES, 'Track A = cash now; Track B = compounding assets; New Life = capacity.'),
     section('S04', 'portable-ai/CAIG_AI_CONTEXT.md', 'Portable business context', CAIG_CONTEXT, 'Track A revenue recovery and Track B content/media are distinct engines.'),
+    section('S04A', 'portable-ai/OPERATOR_SALES_PROFILE.md', 'Operator sales style, personality and customer experience', OPERATOR_SALES_PROFILE, 'Personality opens the conversation; listening, value and follow-through earn trust.'),
     section('S04B', 'portable-ai/CARA_LILA_AI_CONTEXT.md', 'Portable Cara + Lila context', CARA_LILA_CONTEXT, 'Cara builds and states things directly; Lila notices and states them more quietly.'),
     section('S05', 'docs/CEO_MASTER_CONTEXT_2026-10-08.md', 'CEO master context', CEO_MASTER_CONTEXT, 'Track A is the bridge for near-term cash; Track B builds owned media assets.'),
     section('S06', 'docs/CORNERSTONE_MASTER_CONTEXT.md', 'Canonical enterprise operating blueprint', ENTERPRISE_MASTER_CONTEXT, 'Track B stages: Discover → Analyse → Build → Multiply → Publish → Monetise → Measure → Repeat.'),
