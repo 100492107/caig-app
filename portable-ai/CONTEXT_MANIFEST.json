@@ -1,6 +1,6 @@
 {
   "name": "Cornerstone AI Portable Context",
-  "version": "2026-10-09.7",
+  "version": "2026-10-10.1",
   "status": "active",
   "canonical_repository": "100492107/caig-app",
   "principle": "The model is replaceable; the operating contract is the asset.",
@@ -31,6 +31,7 @@
     "portable-ai/CONTEXT_RECEIPT_PROTOCOL.md",
     "portable-ai/00_START_HERE.md",
     "portable-ai/CAIG_AI_CONTEXT.md",
+    "portable-ai/OPERATOR_SALES_PROFILE.md",
     "portable-ai/CARA_LILA_AI_CONTEXT.md",
     "docs/CARA_LILA_ATTENTION_GATE.md",
     "docs/CARA_LILA_SOFT_COMMERCE_LANE.md",
