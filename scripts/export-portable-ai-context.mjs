@@ -17,7 +17,7 @@ import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
-const VERSION = '2026-10-09.7'
+const VERSION = '2026-10-10.1'
 
 const FULL_SOURCES = [
   ['docs/CORNERSTONE_ONE_BRAIN_OPERATING_MANUAL.md', 'One-Brain operating manual — business, execution, local AI and model portability'],
@@ -26,6 +26,7 @@ const FULL_SOURCES = [
   ['portable-ai/00_START_HERE.md', 'Portable brain entry point'],
   ['AGENTS.md', 'Project operating constitution'],
   ['portable-ai/CAIG_AI_CONTEXT.md', 'Portable business context'],
+  ['portable-ai/OPERATOR_SALES_PROFILE.md', 'Operator sales style, personality, rapport and customer experience'],
   ['portable-ai/CARA_LILA_AI_CONTEXT.md', 'Portable creator context — truth + viral/money engine'],
   ['docs/CARA_LILA_ATTENTION_GATE.md', 'Attention Gate checklist — absolute truth'],
   ['docs/CARA_LILA_SOFT_COMMERCE_LANE.md', 'Soft commerce lane rules'],
@@ -69,6 +70,7 @@ const CORE_SOURCES = [
   ['portable-ai/CONTEXT_RECEIPT_PROTOCOL.md', 'Context receipt protocol'],
   ['portable-ai/00_START_HERE.md', 'Portable brain entry point'],
   ['portable-ai/CAIG_AI_CONTEXT.md', 'Portable business context'],
+  ['portable-ai/OPERATOR_SALES_PROFILE.md', 'Operator sales style, personality, rapport and customer experience'],
   ['portable-ai/CARA_LILA_AI_CONTEXT.md', 'Portable creator context — truth + viral/money engine'],
   ['docs/CARA_LILA_ATTENTION_GATE.md', 'Attention Gate checklist — absolute truth'],
   ['docs/CARA_LILA_SOFT_COMMERCE_LANE.md', 'Soft commerce lane rules'],
