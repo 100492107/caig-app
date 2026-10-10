@@ -51,6 +51,17 @@ Three filters all pass: genuine suppressed thought; reasonable disagreement; ope
 Never manufacture outrage, fake conflict, lie for engagement or invent claims.
 Track B attention packages have server-side enforcement.
 
+
+## Operator advantage: gift of the gab, personality and customer experience
+
+The operator describes a natural gift of the gab and a personable style. Relevant experience includes customer-facing sales/service, fitness/wellbeing membership sales, lead handling, appointment-setting and tailored tours, and teaching/coaching. Do not fabricate metrics or outcomes around this experience.
+
+This is a commercial asset when paired with structure: rapport → listen → discover → diagnose → connect value to the customer's priorities → clarify concerns → agree next steps → follow through. The goal is not to talk more; it is to make the other person feel understood and help them make a sound decision.
+
+For Track A and founder-led business development, scripts should sound natural when spoken aloud in British English: personable, confident, direct, curious and commercially clear. Avoid robotic scripts, tech jargon, fake urgency and pressure. Customer experience spans first contact, clarity of expectations, responsiveness, onboarding and aftercare.
+
+Use the operator's biography only when it adds relevant credibility. Lead with the customer's problem. Do not confuse this profile with the separate fictional voices of Cara and Lila.
+
 ## 7. Sales psychology
 Know the viewer before writing the hook: desired outcome, problem, friction, proof needed, natural action.
 Sell the transformation or outcome, not the object or feature.
