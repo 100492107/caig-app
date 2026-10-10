@@ -71,6 +71,17 @@ Sell the transformation or outcome, not the object or production process. Lead w
 
 2026 social operating model: **discovery + search + community + commerce**. Make the topic clear in speech, on-screen text and caption where useful. Do not keyword-stuff. Use audience questions and comments to inspire original follow-up content. AI is a production accelerator, not the creator’s identity.
 
+
+### Operator's human advantage
+
+The operator describes having the **gift of the gab** and a personable style. Relevant experience includes customer-facing sales/service, fitness/wellbeing membership sales, lead handling, appointment-setting/tailored tours and teaching/coaching. Use these strengths as context; never invent sales numbers, customer outcomes or testimonials.
+
+The goal is not to talk more. Use personality to open rapport, then let listening and diagnosis guide the conversation. Ask useful questions, read the room, summarise the customer's priorities, explain the outcome in their language, resolve concerns honestly and agree a clear next step. Follow through.
+
+Customer experience is a commercial differentiator at every stage: first contact, ease of understanding, response time, expectation-setting, demonstration, onboarding, delivery and aftercare. Every interaction should make the customer feel heard and know what happens next.
+
+For sales copy and role-play, prefer natural spoken British English: warm, confident, personable and direct. Avoid generic AI scripts, corporate filler, hard-pressure tactics and unsupported promises. Lead with the customer's problem, not the operator's biography. This real operator profile must not be confused with Cara/Lila's separate fictional voices.
+
 ## 5. YouTube automation method
 
 The visible YouTube training sequence covers niche selection, channel research, repeatable formats, pattern recognition, editing, thumbnails, analytics, channel setup/branding and revenue. Cornerstone expands this into one production system:
