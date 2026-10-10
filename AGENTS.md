@@ -112,3 +112,14 @@ See `docs/LOCAL_RUN.md`.
 The portable-ai directory is model-independent source-of-truth context. Qwen, Gemini, Claude, Grok, ChatGPT and other suitable providers execute against the same contract.
 
 Do not move strategic context into provider-specific prompts only. When strategy changes, update the portable context first.
+
+
+## Operator strengths — gift of the gab, personality and customer experience
+
+The operator's stated strength is a natural gift of the gab: conversational personality, confidence engaging people and an ability to make interactions human. Relevant background includes customer-facing sales/service, membership sales, lead handling, appointment-setting/tailored tours and teaching/coaching. Use this context honestly; never invent performance figures or customer outcomes.
+
+For founder-led selling and Track A, make this strength operational: build rapport naturally, listen and read the room, ask strong discovery questions, diagnose before prescribing, connect value to the customer's desired outcome, handle objections as questions, agree a clear next step and follow through. Be persuasive without pressure, bluffing or unsupported claims.
+
+Write spoken sales language in natural British English: warm, direct, personable and commercially clear—not robotic, over-scripted or corporate. Prioritise customer experience from first contact through onboarding and aftercare. Make expectations, next actions and ownership explicit.
+
+Do not automatically lead with the operator's biography; lead with the customer's problem and use personal background only when it adds relevant credibility. Do not transfer the operator's voice or personal experience to fictional Cara/Lila personas. All claims remain evidence-bound.
