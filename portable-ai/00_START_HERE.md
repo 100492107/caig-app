@@ -14,11 +14,12 @@ Do not let any AI silently replace the operating model with its own preferred st
 
 1. CONTEXT_RECEIPT_PROTOCOL.md — required acknowledgement gate
 2. CAIG_AI_CONTEXT.md
-3. CARA_LILA_AI_CONTEXT.md and the full character sources when Cara/Lila are involved
-4. SOCIAL_SALES_DOCTRINE.md for social/content/sales work
-5. YOUTUBE_AUTOMATION_AI_CONTEXT.md for YouTube work
-6. LOCAL_AI_QWEN.md for local-AI work
-7. The exact job-specific instructions and evidence supplied by the operator
+3. OPERATOR_SALES_PROFILE.md — real operator strengths, sales style and customer experience
+4. CARA_LILA_AI_CONTEXT.md and the full character sources when Cara/Lila are involved
+5. SOCIAL_SALES_DOCTRINE.md for social/content/sales work
+6. YOUTUBE_AUTOMATION_AI_CONTEXT.md for YouTube work
+7. LOCAL_AI_QWEN.md for local-AI work
+8. The exact job-specific instructions and evidence supplied by the operator
 
 ## Source-of-truth hierarchy
 
