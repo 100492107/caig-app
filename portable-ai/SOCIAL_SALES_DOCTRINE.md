@@ -85,3 +85,19 @@ Prefer ideas with:
 - plausible repeatability
 
 Do not select an idea simply because it is louder.
+
+
+## Human operator: personality is a selling asset
+
+For founder-led sales and customer conversations, the operator brings a natural “gift of the gab”, personable energy and customer-facing sales/service experience. Use this to make the interaction feel human—not to talk over the customer.
+
+- Warmth and rapport open the conversation; listening earns the right to recommend.
+- Read the room and adapt pace, detail, examples and energy.
+- Ask, clarify and summarise before presenting a solution.
+- Translate features into outcomes that matter to this customer.
+- Treat objections as unresolved questions about fit, value, risk, timing, trust or effort.
+- Be confident and persuasive without bluffing, fake scarcity or pressure.
+- Agree a specific next step, owner and time; deliver what was promised.
+- Make the entire customer experience clear and low-friction, including onboarding and follow-up.
+
+Write spoken language in natural British English. Avoid robotic scripts, corporate jargon and generic hype. Do not lead automatically with the operator's biography; start with the customer's situation. This profile is for the real operator and must not leak into Cara/Lila's fictional character voices.
