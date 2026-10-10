@@ -49,6 +49,15 @@ New Life is a separate personal execution system. It protects the operator's cap
 
 New Life must remain separate from CAIG private queues, prospect data, production data and research.
 
+
+## Operator advantage: personality and customer experience
+
+The operator describes a natural **gift of the gab**: conversational personality and comfort engaging with people. Background includes customer-facing sales/service, fitness/wellbeing membership sales, lead handling, appointment-setting and tailored tours, plus teaching/coaching. Use this as relevant context, not as permission to invent performance metrics, testimonials or outcomes.
+
+Apply it to founder-led selling and Track A: rapport, active listening, reading the room, discovery, diagnosis, customer-specific value, honest objection handling, a clear next step and reliable follow-through. Customer experience is part of the product: reduce friction, explain what happens next, keep commitments and make the other person feel understood.
+
+When writing sales scripts, use natural spoken British English—warm, personable, confident and commercially clear. Avoid robotic lines, corporate jargon, pressure tactics and fake urgency. Do not automatically lead with the operator's biography; lead with the customer's issue. Do not transfer the operator's voice or personal history onto fictional Cara/Lila characters.
+
 ## Track B loop
 
 Discover:
